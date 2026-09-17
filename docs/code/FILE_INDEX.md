@@ -1,6 +1,12 @@
 # File index
 
-Each tracked file outside `docs/code/**` has exactly one SHA-bound companion, with one explicit bounded exception: the two STEP 7F.1C.1 research artifacts indexed below form a paired dossier and JSON draft, with their small research schema documented in the dossier itself. This exception does not cover other or future files. The role column is curated from the actual implementation/file consumer, not inferred from the basename alone.
+Application source, tests, configuration and original root metadata have a SHA-bound companion. Explicit original-document exceptions are `AGENTS.md`, `docs/project/**`, this `docs/code/**` reference tree and the two STEP 7F.1C.1 research artifacts indexed below. The semantic pair keeps its research schema in the dossier; it is not runtime configuration. Documentation is not recursively companioned. The coverage ledger records each file and exception; self-referential audit outputs are separately inventoried, not made to hash themselves. The role column describes actual implementation/file consumers, not basename guesses or global test completeness.
+
+## Continuity and local audit
+
+Start with [AGENTS](../../AGENTS.md), [current state](../project/CURRENT_STATE.md), [step index](../project/STEP_INDEX.md), [decisions](../project/DECISIONS.md), [gaps](../project/BACKLOG_AND_GAPS.md) and [resume](../project/RESUME.md). Exact supplied material is archived once under `docs/project/tickets`; [provenance](../project/CONTEXT_PROVENANCE.md) distinguishes summaries from transcripts and execution from approval. [Audit progress and findings](audit/DOCUMENTATION_AUDIT.md) remain explicitly partial until all file/symbol review is closed.
+
+The local read-only checker is [tools/audit_documentation.py](../../tools/audit_documentation.py); its isolated synthetic regressions are [tests/unit/test_audit_documentation.py](../../tests/unit/test_audit_documentation.py). They add no runtime LandScout behavior, source acquisition, CI or environmental policy. Their companions and final case arithmetic are completed with the audit, not inferred from the starting application count.
 
 ## Non-runtime semantic research reference
 
@@ -148,7 +154,7 @@ Each tracked file outside `docs/code/**` has exactly one SHA-bound companion, wi
 | `tests/unit/test_normalize_access_ign.py` | Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file. | [files/tests/unit/test_normalize_access_ign.py.md](files/tests/unit/test_normalize_access_ign.py.md) |
 | `tests/unit/test_normalize_cadastre.py` | Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file. | [files/tests/unit/test_normalize_cadastre.py.md](files/tests/unit/test_normalize_cadastre.py.md) |
 | `tests/unit/test_normalize_grid_ign.py` | Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file. | [files/tests/unit/test_normalize_grid_ign.py.md](files/tests/unit/test_normalize_grid_ign.py.md) |
-| `tests/unit/test_package.py` | Verifies exact package exports and equality between `landscout.__version__` and `project.version`. | [files/tests/unit/test_package.py.md](files/tests/unit/test_package.py.md) |
+| `tests/unit/test_package.py` | Verifies package import and equality between `landscout.__version__` and `project.version`; does not assert package exports. | [files/tests/unit/test_package.py.md](files/tests/unit/test_package.py.md) |
 | `tests/unit/test_profile_shape.py` | Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file. | [files/tests/unit/test_profile_shape.py.md](files/tests/unit/test_profile_shape.py.md) |
 | `tests/unit/test_resolve_planning_feature_codes.py` | Provides complete unit and regression coverage for the `resolve_planning_feature_codes` contracts exercised in this file. | [files/tests/unit/test_resolve_planning_feature_codes.py.md](files/tests/unit/test_resolve_planning_feature_codes.py.md) |
 | `tests/unit/test_road_vehicle_proxy_policy.py` | Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file. | [files/tests/unit/test_road_vehicle_proxy_policy.py.md](files/tests/unit/test_road_vehicle_proxy_policy.py.md) |

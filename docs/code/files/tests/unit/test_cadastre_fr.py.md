@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+- Responsibility: Exercises the Cadastre downloader with fake network streams and real temporary cache files: canonical URL, freshness and strict sidecars, gzip/SHA verification, failed-refresh preservation, atomic pair rollback, persistent recovery evidence and simulated link/junction fail-before-network controls.
 - Source SHA256: `6d0cc8419a7dc41440e8a296eb64e7c451e553f344d67e72156425faaa3e5e01`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+Exercises the Cadastre downloader with fake network streams and real temporary cache files: canonical URL, freshness and strict sidecars, gzip/SHA verification, failed-refresh preservation, atomic pair rollback, persistent recovery evidence and simulated link/junction fail-before-network controls.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -129,7 +129,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_set_cache_age`
 
-**Purpose:** Implements `set cache age` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Implements `set cache age` within the file role: Exercises the Cadastre downloader with fake network streams and real temporary cache files: canonical URL, freshness and strict sidecars, gzip/SHA verification, failed-refresh preservation, atomic pair rollback, persistent recovery evidence and simulated link/junction fail-before-network controls.
 
 **Exact signature**
 
@@ -210,7 +210,7 @@ def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
 
 ### `_update_metadata_integrity`
 
-**Purpose:** Implements `update metadata integrity` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Recompute size and SHA256 from the temporary archive and rewrite those sidecar fields; the corruption test deliberately makes metadata consistent with bad gzip bytes to isolate decompression validation.
 
 **Exact signature**
 
@@ -283,7 +283,7 @@ def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
 
 ### `test_build_cadastre_parcelles_url`
 
-**Purpose:** Regression invariant: build cadastre parcelles url. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the exact official latest commune-31395 parcel archive URL.
 
 **Exact signature**
 
@@ -343,7 +343,7 @@ def test_build_cadastre_parcelles_url() -> None:
 
 ### `test_successful_download`
 
-**Purpose:** Regression invariant: successful download. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace network opening with BytesIO gzip payload, run real temporary publication, and assert output bytes/identity/size/cache_hit plus schema-1 sidecar commune/timestamp.
 
 **Exact signature**
 
@@ -433,7 +433,7 @@ def test_successful_download(tmp_path: Path) -> None:
 
 ### `test_fresh_cache_is_reused`
 
-**Purpose:** Regression invariant: fresh cache is reused. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Call twice with one fake stream and assert the opener ran once, second cache_hit=True and identical SHA/timestamp.
 
 **Exact signature**
 
@@ -512,7 +512,7 @@ def test_fresh_cache_is_reused(tmp_path: Path) -> None:
 
 ### `test_expired_cache_is_downloaded_again`
 
-**Purpose:** Regression invariant: expired cache is downloaded again. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Age a valid sidecar by 169 hours, supply refreshed gzip bytes and assert two opener calls, cache miss, exact replacement bytes and their independently computed SHA.
 
 **Exact signature**
 
@@ -599,7 +599,7 @@ def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
 
 ### `test_failed_refresh_preserves_cached_archive`
 
-**Purpose:** Regression invariant: failed refresh preserves cached archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Age the cache, simulate HTTPError on refresh and assert archive bytes survive plus the sidecar file still exists; this test does not assert exact sidecar-byte equality.
 
 **Exact signature**
 
@@ -690,7 +690,7 @@ def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
 
 ### `test_failed_http_response`
 
-**Purpose:** Regression invariant: failed http response. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Simulate HTTPError on first acquisition and require controlled error with an empty temporary cache directory.
 
 **Exact signature**
 
@@ -767,7 +767,7 @@ def test_failed_http_response(tmp_path: Path) -> None:
 
 ### `test_checksum_generation`
 
-**Purpose:** Regression invariant: checksum generation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare returned archive SHA256 with hashlib.sha256 over the exact fake-network payload.
 
 **Exact signature**
 
@@ -839,7 +839,7 @@ def test_checksum_generation(tmp_path: Path) -> None:
 
 ### `test_valid_gzip_is_accepted`
 
-**Purpose:** Regression invariant: valid gzip is accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write the gzip fixture and assert the private decompression validator returns true.
 
 **Exact signature**
 
@@ -905,7 +905,7 @@ def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
 
 ### `test_truncated_gzip_is_rejected`
 
-**Purpose:** Regression invariant: truncated gzip is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write the fixture with its final eight bytes removed and assert gzip validation returns false.
 
 **Exact signature**
 
@@ -971,7 +971,7 @@ def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
 
 ### `test_corrupted_cached_archive_triggers_fresh_download`
 
-**Purpose:** Regression invariant: corrupted cached archive triggers fresh download. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace cached bytes with truncated gzip and update sidecar size/SHA to match those bytes; assert decompression failure still forces a second fake request and refreshed bytes.
 
 **Exact signature**
 
@@ -1055,7 +1055,7 @@ def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> Non
 
 ### `test_corrupted_new_download_preserves_existing_archive`
 
-**Purpose:** Regression invariant: corrupted new download preserves existing archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Expire the cache, return truncated gzip on refresh, and assert controlled error leaves original archive bytes and no .part files.
 
 **Exact signature**
 
@@ -1148,7 +1148,7 @@ def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> No
 
 ### `test_corsica_cadastre_urls_are_canonical`
 
-**Purpose:** Regression invariant: corsica cadastre urls are canonical. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert uppercase 2A004 and 2B033 produce their corresponding two-character department/commune/filename URL suffixes.
 
 **Exact signature**
 
@@ -1217,7 +1217,7 @@ def test_corsica_cadastre_urls_are_canonical(code: str, department: str) -> None
 
 ### `test_noncanonical_commune_code_is_controlled`
 
-**Purpose:** Regression invariant: noncanonical commune code is controlled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject integer, lowercase Corsican, surrounding-whitespace and alphabetic commune examples with TypeError/ValueError naming commune code.
 
 **Exact signature**
 
@@ -1282,7 +1282,7 @@ def test_noncanonical_commune_code_is_controlled(code: object) -> None:
 
 ### `test_download_timeout_is_strict_finite_positive`
 
-**Purpose:** Regression invariant: download timeout is strict finite positive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject six timeout inputs: zero, negative, NaN, infinity, numeric text and bool.
 
 **Exact signature**
 
@@ -1362,7 +1362,7 @@ def test_download_timeout_is_strict_finite_positive(
 
 ### `test_cache_age_is_strict_finite_nonnegative`
 
-**Purpose:** Regression invariant: cache age is strict finite nonnegative. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject five age inputs: negative, NaN, infinity, numeric text and bool.
 
 **Exact signature**
 
@@ -1442,7 +1442,7 @@ def test_cache_age_is_strict_finite_nonnegative(
 
 ### `test_malformed_cached_metadata_triggers_refresh`
 
-**Purpose:** Regression invariant: malformed cached metadata triggers refresh. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge size mismatch, wrong SHA or invalid timestamp separately and assert a second opener call returns refreshed archive bytes.
 
 **Exact signature**
 
@@ -1539,7 +1539,7 @@ def test_malformed_cached_metadata_triggers_refresh(
 
 ### `test_cache_metadata_schema_and_size_are_strict_integers`
 
-**Purpose:** Regression invariant: cache metadata schema and size are strict integers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject bool/float schema and bool/float/text size metadata through cache miss, evidenced by two opener calls and cache_hit=False.
 
 **Exact signature**
 
@@ -1643,7 +1643,7 @@ def test_cache_metadata_schema_and_size_are_strict_integers(
 
 ### `test_future_cached_timestamp_triggers_refresh`
 
-**Purpose:** Regression invariant: future cached timestamp triggers refresh. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write a timestamp one hour in the future and assert refresh with exact new bytes.
 
 **Exact signature**
 
@@ -1733,7 +1733,7 @@ def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
 
 ### `test_strict_cadastre_cache_json_never_returns_a_cache_hit`
 
-**Purpose:** Regression invariant: strict cadastre cache json never returns a cache hit. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the sidecar with duplicate-key JSON, nonstandard NaN JSON or an array root and assert all three cases refresh rather than return a hit.
 
 **Exact signature**
 
@@ -1827,7 +1827,7 @@ def test_strict_cadastre_cache_json_never_returns_a_cache_hit(
 
 ### `test_metadata_publication_failure_restores_previous_cache_pair`
 
-**Purpose:** Regression invariant: metadata publication failure restores previous cache pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Fail only temporary-sidecar replacement during refresh, then assert exact original archive/sidecar bytes and absence of .part/.bak leftovers.
 
 **Exact signature**
 
@@ -1945,7 +1945,7 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
 
 ### `test_metadata_publication_failure_restores_previous_cache_pair.fail_metadata_publication`
 
-**Purpose:** Implements `fail metadata publication` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Raise OSError for the precise temporary-metadata-to-final-metadata replacement; delegate all other filesystem replacements to the captured real helper.
 
 **Exact signature**
 
@@ -1988,7 +1988,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_replace` delegates to the captured real file replacement except at simulated failure guards. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2010,7 +2010,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 ### `test_first_metadata_publication_failure_leaves_no_half_pair`
 
-**Purpose:** Regression invariant: first metadata publication failure leaves no half pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Simulate sidecar publication failure on first acquisition and assert neither final artifact nor .part/.bak leftovers remain.
 
 **Exact signature**
 
@@ -2119,7 +2119,7 @@ def test_first_metadata_publication_failure_leaves_no_half_pair(
 
 ### `test_first_metadata_publication_failure_leaves_no_half_pair.fail_metadata_publication`
 
-**Purpose:** Implements `fail metadata publication` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Raise for the exact first sidecar publication replacement; otherwise call the original file replacement helper.
 
 **Exact signature**
 
@@ -2162,7 +2162,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_replace` delegates to the captured real file replacement except at simulated failure guards. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2184,7 +2184,7 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 ### `test_publication_and_rollback_failure_preserves_recovery_backup`
 
-**Purpose:** Regression invariant: publication and rollback failure preserves recovery backup. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Fail metadata publication plus selected archive or metadata rollback and require a rollback error with at least one useful backup remaining; this test checks existence, not backup contents.
 
 **Exact signature**
 
@@ -2303,7 +2303,7 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
 
 ### `test_publication_and_rollback_failure_preserves_recovery_backup.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Raise at metadata publication and the selected backup-restoration source, otherwise perform the real replacement.
 
 **Exact signature**
 
@@ -2348,7 +2348,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_replace` delegates to the captured real file replacement except at simulated failure guards. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2374,7 +2374,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 ### `test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes`
 
-**Purpose:** Regression invariant: stale recovery backup rejects cache before network and preserves bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Create a real stale archive backup, then assert a subsequent call rejects before its opener sentinel and preserves both backup and final archive bytes.
 
 **Exact signature**
 
@@ -2472,7 +2472,7 @@ def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
 
 ### `test_next_run_after_double_failure_preserves_recovery_before_network`
 
-**Purpose:** Regression invariant: next run after double failure preserves recovery before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Cause publication/archive-rollback failure, assert both backups contain old bytes, then retry with a forbidden-network sentinel and require recovery rejection without changing either backup.
 
 **Exact signature**
 
@@ -2609,7 +2609,7 @@ def test_next_run_after_double_failure_preserves_recovery_before_network(
 
 ### `test_next_run_after_double_failure_preserves_recovery_before_network.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Fail precise metadata publication and archive-backup restoration operations; delegate unrelated replacements.
 
 **Exact signature**
 
@@ -2653,7 +2653,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_replace` delegates to the captured real file replacement except at simulated failure guards. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2677,7 +2677,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network`
 
-**Purpose:** Regression invariant: temporary link or junction cannot modify target before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Across archive/metadata temporary paths and symlink/junction kinds, monkeypatch link detection plus path-open redirection to a sentinel; require zero fake-network calls and unchanged sentinel bytes. These are simulated links, not native link creation.
 
 **Exact signature**
 
@@ -2807,7 +2807,7 @@ def test_temporary_link_or_junction_cannot_modify_target_before_network(
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Report the selected unsafe path as a symlink for the symlink case, otherwise delegate to captured Path.is_symlink.
 
 **Exact signature**
 
@@ -2847,7 +2847,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Captured Path link-check method is invoked for non-simulated paths. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -2870,7 +2870,7 @@ def simulated_is_symlink(path: Path) -> bool:
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_is_junction`
 
-**Purpose:** Implements `simulated is junction` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Report the selected unsafe path as a junction for the junction case, otherwise delegate to captured Path.is_junction.
 
 **Exact signature**
 
@@ -2910,7 +2910,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Captured Path link-check method is invoked for non-simulated paths. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -2933,7 +2933,7 @@ def simulated_is_junction(path: Path) -> bool:
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.simulated_symlink_open`
 
-**Purpose:** Implements `simulated symlink open` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Redirect attempted opens of the unsafe temporary path to the real sentinel, preserving mode/options; otherwise open the real requested path. This sentinel would expose accidental writes through a link.
 
 **Exact signature**
 
@@ -2976,8 +2976,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive read or metadata access | `original_open` invokes real Path.open; access mode is forwarded. |
+| Filesystem/archive write or publication | `original_open` can write using forwarded mode, redirecting the unsafe path to the sentinel. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2999,7 +2999,7 @@ def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> objec
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_network.record_network`
 
-**Purpose:** Implements `record network` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Increment the closed-over fake-network call counter and return BytesIO; the test expects this callback never to run.
 
 **Exact signature**
 
@@ -3045,7 +3045,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `network_calls += 1` updates the closed-over counter if invoked. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3063,7 +3063,7 @@ def record_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 ### `test_broken_recovery_symlink_is_rejected_before_network`
 
-**Purpose:** Regression invariant: broken recovery symlink is rejected before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Simulate a symlink at a missing backup path and require recovery rejection before the network sentinel.
 
 **Exact signature**
 
@@ -3157,7 +3157,7 @@ def test_broken_recovery_symlink_is_rejected_before_network(
 
 ### `test_broken_recovery_symlink_is_rejected_before_network.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Report the recovery path as a link even when it does not exist, otherwise use the original filesystem link check.
 
 **Exact signature**
 
@@ -3197,7 +3197,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Captured Path link-check method is invoked for non-simulated paths. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -3218,7 +3218,7 @@ def simulated_is_symlink(path: Path) -> bool:
 
 ### `test_broken_recovery_symlink_is_rejected_before_network.fail_network`
 
-**Purpose:** Implements `fail network` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Increment the closed-over counter then always raise AssertionError; its annotated BytesIO return is never reached.
 
 **Exact signature**
 
@@ -3238,7 +3238,7 @@ def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Always raises AssertionError after incrementing the counter; there is no normal return.
 - Explicit raise paths:
   - `AssertionError("broken recovery link must fail before network")`.
 
@@ -3264,7 +3264,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `network_calls += 1` updates the closed-over counter if invoked. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3282,7 +3282,7 @@ def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
 
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error`
 
-**Purpose:** Regression invariant: cleanup failure does not mask double failure recovery error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Combine metadata publication, archive rollback and subsequent temporary cleanup failures; assert the controlled error still names rollback and both backups retain exact original bytes.
 
 **Exact signature**
 
@@ -3408,7 +3408,7 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
 
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** Raise at publication, then set the closed-over rollback_failed flag and raise at archive restoration; delegate all other replacements.
 
 **Exact signature**
 
@@ -3452,11 +3452,11 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_replace` delegates to the captured real file replacement except at simulated failure guards. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `rollback_failed = True` changes the closed-over flag before the simulated rollback error. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3478,7 +3478,7 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
 
-**Purpose:** Implements `fail temporary cleanup` within the file role: Provides complete unit and regression coverage for the `cadastre_fr` contracts exercised in this file.
+**Purpose:** After rollback has failed, raise PermissionError only for temporary metadata cleanup; otherwise delegate to captured Path.unlink.
 
 **Exact signature**
 
@@ -3521,7 +3521,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `original_unlink` invokes real Path.unlink except at the simulated cleanup failure. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -3544,6 +3544,10 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 ## 7. Test-specific regression contract
 
+Exercises the Cadastre downloader with fake network streams and real temporary cache files: canonical URL, freshness and strict sidecars, gzip/SHA verification, failed-refresh preservation, atomic pair rollback, persistent recovery evidence and simulated link/junction fail-before-network controls.
+
+The 27 test definitions expand statically to 52 cases; this documentation audit does not execute them. The refreshed payload intentionally contains only a skeletal Feature: these tests validate gzip/cache transport integrity, not GeoJSON feature semantics. Fake network callbacks never establish real DNS/TLS behavior.
+
 - Test functions: **27**.
 - Pytest fixtures (decorator-proven): **0**.
 
@@ -3551,33 +3555,33 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_build_cadastre_parcelles_url` | none | none | 1 | Proves build cadastre parcelles url using the exact source reproduced in section 7. |
-| `test_successful_download` | none | none | 8 | Proves successful download using the exact source reproduced in section 7. |
-| `test_fresh_cache_is_reused` | none | none | 5 | Proves fresh cache is reused using the exact source reproduced in section 7. |
-| `test_expired_cache_is_downloaded_again` | none | none | 4 | Proves expired cache is downloaded again using the exact source reproduced in section 7. |
-| `test_failed_refresh_preserves_cached_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Proves failed refresh preserves cached archive using the exact source reproduced in section 7. |
-| `test_failed_http_response` | none | pytest.raises(CadastreDownloadError) | 1 | Proves failed http response using the exact source reproduced in section 7. |
-| `test_checksum_generation` | none | none | 1 | Proves checksum generation using the exact source reproduced in section 7. |
-| `test_valid_gzip_is_accepted` | none | none | 1 | Proves valid gzip is accepted using the exact source reproduced in section 7. |
-| `test_truncated_gzip_is_rejected` | none | none | 1 | Proves truncated gzip is rejected using the exact source reproduced in section 7. |
-| `test_corrupted_cached_archive_triggers_fresh_download` | none | none | 3 | Proves corrupted cached archive triggers fresh download using the exact source reproduced in section 7. |
-| `test_corrupted_new_download_preserves_existing_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Proves corrupted new download preserves existing archive using the exact source reproduced in section 7. |
-| `test_corsica_cadastre_urls_are_canonical` | pytest.mark.parametrize(<br>    ("code", "department"),<br>    [("2A004", "2A"), ("2B033", "2B")],<br>) | none | 1 | Proves corsica cadastre urls are canonical using the exact source reproduced in section 7. |
-| `test_noncanonical_commune_code_is_controlled` | pytest.mark.parametrize("code", [31395, "2a004", " 31395 ", "ABCDE"]) | pytest.raises((TypeError, ValueError), match="Commune code") | 0 | Proves noncanonical commune code is controlled using the exact source reproduced in section 7. |
-| `test_download_timeout_is_strict_finite_positive` | pytest.mark.parametrize(<br>    "timeout",<br>    [0, -1, float("nan"), float("inf"), "60", True],<br>) | pytest.raises(ValueError, match="timeout") | 0 | Proves download timeout is strict finite positive using the exact source reproduced in section 7. |
-| `test_cache_age_is_strict_finite_nonnegative` | pytest.mark.parametrize(<br>    "max_age",<br>    [-1, float("nan"), float("inf"), "168", True],<br>) | pytest.raises(ValueError, match="max_cache_age_hours") | 0 | Proves cache age is strict finite nonnegative using the exact source reproduced in section 7. |
-| `test_malformed_cached_metadata_triggers_refresh` | pytest.mark.parametrize("field", ["file_size", "sha256", "download_timestamp"]) | none | 2 | Proves malformed cached metadata triggers refresh using the exact source reproduced in section 7. |
-| `test_cache_metadata_schema_and_size_are_strict_integers` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("schema_version", True),<br>        ("schema_version", 1.0),<br>        ("file_size", True),<br>        ("file_size", 1.0),<br>        ("file_size", "1"),<br>    ],<br>) | none | 2 | Proves cache metadata schema and size are strict integers using the exact source reproduced in section 7. |
-| `test_future_cached_timestamp_triggers_refresh` | none | none | 2 | Proves future cached timestamp triggers refresh using the exact source reproduced in section 7. |
-| `test_strict_cadastre_cache_json_never_returns_a_cache_hit` | pytest.mark.parametrize(<br>    "invalid_metadata",<br>    [<br>        '{"schema_version":1,"schema_version":1}',<br>        '{"schema_version":1,"file_size":NaN}',<br>        "[]",<br>    ],<br>) | none | 2 | Proves strict cadastre cache json never returns a cache hit using the exact source reproduced in section 7. |
-| `test_metadata_publication_failure_restores_previous_cache_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Proves metadata publication failure restores previous cache pair using the exact source reproduced in section 7. |
-| `test_first_metadata_publication_failure_leaves_no_half_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Proves first metadata publication failure leaves no half pair using the exact source reproduced in section 7. |
-| `test_publication_and_rollback_failure_preserves_recovery_backup` | pytest.mark.parametrize("rollback_target", ["archive", "metadata"]) | pytest.raises(CadastreDownloadError, match="rollback") | 1 | Proves publication and rollback failure preserves recovery backup using the exact source reproduced in section 7. |
-| `test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 2 | Proves stale recovery backup rejects cache before network and preserves bytes using the exact source reproduced in section 7. |
-| `test_next_run_after_double_failure_preserves_recovery_before_network` | none | pytest.raises(CadastreDownloadError, match="rollback"); pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 4 | Proves next run after double failure preserves recovery before network using the exact source reproduced in section 7. |
-| `test_temporary_link_or_junction_cannot_modify_target_before_network` | pytest.mark.parametrize("temporary_role", ["archive", "metadata"]); pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(CadastreDownloadError, match="temporary\|link\|cache") | 2 | Proves temporary link or junction cannot modify target before network using the exact source reproduced in section 7. |
-| `test_broken_recovery_symlink_is_rejected_before_network` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 1 | Proves broken recovery symlink is rejected before network using the exact source reproduced in section 7. |
-| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(CadastreDownloadError, match="rollback") | 2 | Proves cleanup failure does not mask double failure recovery error using the exact source reproduced in section 7. |
+| `test_build_cadastre_parcelles_url` | none | none | 1 | Assert the exact official latest commune-31395 parcel archive URL. |
+| `test_successful_download` | none | none | 8 | Replace network opening with BytesIO gzip payload, run real temporary publication, and assert output bytes/identity/size/cache_hit plus schema-1 sidecar commune/timestamp. |
+| `test_fresh_cache_is_reused` | none | none | 5 | Call twice with one fake stream and assert the opener ran once, second cache_hit=True and identical SHA/timestamp. |
+| `test_expired_cache_is_downloaded_again` | none | none | 4 | Age a valid sidecar by 169 hours, supply refreshed gzip bytes and assert two opener calls, cache miss, exact replacement bytes and their independently computed SHA. |
+| `test_failed_refresh_preserves_cached_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Age the cache, simulate HTTPError on refresh and assert archive bytes survive plus the sidecar file still exists; this test does not assert exact sidecar-byte equality. |
+| `test_failed_http_response` | none | pytest.raises(CadastreDownloadError) | 1 | Simulate HTTPError on first acquisition and require controlled error with an empty temporary cache directory. |
+| `test_checksum_generation` | none | none | 1 | Compare returned archive SHA256 with hashlib.sha256 over the exact fake-network payload. |
+| `test_valid_gzip_is_accepted` | none | none | 1 | Write the gzip fixture and assert the private decompression validator returns true. |
+| `test_truncated_gzip_is_rejected` | none | none | 1 | Write the fixture with its final eight bytes removed and assert gzip validation returns false. |
+| `test_corrupted_cached_archive_triggers_fresh_download` | none | none | 3 | Replace cached bytes with truncated gzip and update sidecar size/SHA to match those bytes; assert decompression failure still forces a second fake request and refreshed bytes. |
+| `test_corrupted_new_download_preserves_existing_archive` | none | pytest.raises(CadastreDownloadError) | 2 | Expire the cache, return truncated gzip on refresh, and assert controlled error leaves original archive bytes and no .part files. |
+| `test_corsica_cadastre_urls_are_canonical` | pytest.mark.parametrize(<br>    ("code", "department"),<br>    [("2A004", "2A"), ("2B033", "2B")],<br>) | none | 1 | Assert uppercase 2A004 and 2B033 produce their corresponding two-character department/commune/filename URL suffixes. |
+| `test_noncanonical_commune_code_is_controlled` | pytest.mark.parametrize("code", [31395, "2a004", " 31395 ", "ABCDE"]) | pytest.raises((TypeError, ValueError), match="Commune code") | 0 | Reject integer, lowercase Corsican, surrounding-whitespace and alphabetic commune examples with TypeError/ValueError naming commune code. |
+| `test_download_timeout_is_strict_finite_positive` | pytest.mark.parametrize(<br>    "timeout",<br>    [0, -1, float("nan"), float("inf"), "60", True],<br>) | pytest.raises(ValueError, match="timeout") | 0 | Reject six timeout inputs: zero, negative, NaN, infinity, numeric text and bool. |
+| `test_cache_age_is_strict_finite_nonnegative` | pytest.mark.parametrize(<br>    "max_age",<br>    [-1, float("nan"), float("inf"), "168", True],<br>) | pytest.raises(ValueError, match="max_cache_age_hours") | 0 | Reject five age inputs: negative, NaN, infinity, numeric text and bool. |
+| `test_malformed_cached_metadata_triggers_refresh` | pytest.mark.parametrize("field", ["file_size", "sha256", "download_timestamp"]) | none | 2 | Forge size mismatch, wrong SHA or invalid timestamp separately and assert a second opener call returns refreshed archive bytes. |
+| `test_cache_metadata_schema_and_size_are_strict_integers` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("schema_version", True),<br>        ("schema_version", 1.0),<br>        ("file_size", True),<br>        ("file_size", 1.0),<br>        ("file_size", "1"),<br>    ],<br>) | none | 2 | Reject bool/float schema and bool/float/text size metadata through cache miss, evidenced by two opener calls and cache_hit=False. |
+| `test_future_cached_timestamp_triggers_refresh` | none | none | 2 | Write a timestamp one hour in the future and assert refresh with exact new bytes. |
+| `test_strict_cadastre_cache_json_never_returns_a_cache_hit` | pytest.mark.parametrize(<br>    "invalid_metadata",<br>    [<br>        '{"schema_version":1,"schema_version":1}',<br>        '{"schema_version":1,"file_size":NaN}',<br>        "[]",<br>    ],<br>) | none | 2 | Replace the sidecar with duplicate-key JSON, nonstandard NaN JSON or an array root and assert all three cases refresh rather than return a hit. |
+| `test_metadata_publication_failure_restores_previous_cache_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Fail only temporary-sidecar replacement during refresh, then assert exact original archive/sidecar bytes and absence of .part/.bak leftovers. |
+| `test_first_metadata_publication_failure_leaves_no_half_pair` | none | pytest.raises(CadastreDownloadError, match="publication") | 4 | Simulate sidecar publication failure on first acquisition and assert neither final artifact nor .part/.bak leftovers remain. |
+| `test_publication_and_rollback_failure_preserves_recovery_backup` | pytest.mark.parametrize("rollback_target", ["archive", "metadata"]) | pytest.raises(CadastreDownloadError, match="rollback") | 1 | Fail metadata publication plus selected archive or metadata rollback and require a rollback error with at least one useful backup remaining; this test checks existence, not backup contents. |
+| `test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 2 | Create a real stale archive backup, then assert a subsequent call rejects before its opener sentinel and preserves both backup and final archive bytes. |
+| `test_next_run_after_double_failure_preserves_recovery_before_network` | none | pytest.raises(CadastreDownloadError, match="rollback"); pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 4 | Cause publication/archive-rollback failure, assert both backups contain old bytes, then retry with a forbidden-network sentinel and require recovery rejection without changing either backup. |
+| `test_temporary_link_or_junction_cannot_modify_target_before_network` | pytest.mark.parametrize("temporary_role", ["archive", "metadata"]); pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(CadastreDownloadError, match="temporary\|link\|cache") | 2 | Across archive/metadata temporary paths and symlink/junction kinds, monkeypatch link detection plus path-open redirection to a sentinel; require zero fake-network calls and unchanged sentinel bytes. These are simulated links, not native link creation. |
+| `test_broken_recovery_symlink_is_rejected_before_network` | none | pytest.raises(CadastreDownloadError, match="backup\|recovery\|manual") | 1 | Simulate a symlink at a missing backup path and require recovery rejection before the network sentinel. |
+| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(CadastreDownloadError, match="rollback") | 2 | Combine metadata publication, archive rollback and subsequent temporary cleanup failures; assert the controlled error still names rollback and both backups retain exact original bytes. |
 
 ## 8. Public exports and package ownership
 

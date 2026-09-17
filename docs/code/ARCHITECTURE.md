@@ -10,7 +10,7 @@ The implemented repository does not yet provide a global parcel score, owner/con
 
 ### `src/landscout/common`
 
-Internal dependency-bottom contracts: duplicate-rejecting strict YAML/JSON parsing, deeply immutable mapping support, safe HTTPS transport, portable artifact paths, deterministic frame signatures, canonical Cadastre validation, planning overlay tolerance, planning text mapping, canonical planning schemas, and intrinsic planning relation/application checks. `common` does not import `landscout.stages`.
+Internal shared contracts: duplicate-rejecting strict YAML/JSON parsing, deeply immutable mapping support, safe HTTPS transport, portable artifact paths, deterministic frame signatures, canonical Cadastre validation, planning overlay tolerance, planning text mapping, canonical planning schemas, and intrinsic planning relation/application checks. `common` does not import `landscout.stages`; it is not wholly dependency-bottom, because `common.cadastre_contract` imports `geo.crs`.
 
 ### `src/landscout/config.py` and `configs/`
 
@@ -18,7 +18,7 @@ Pydantic models load scan/profile configuration. Source adapters and policy comp
 
 ### `src/landscout/geo`
 
-Canonical CRS names and parcel geometry calculations. Metric geometry work uses EPSG:2154 calculation copies. Storage geometry is preserved unless a result contract explicitly says otherwise.
+Canonical PyProj CRS objects and parcel geometry calculations. Metric geometry work uses EPSG:2154 calculation copies. Storage geometry is preserved unless a result contract explicitly says otherwise.
 
 ### `src/landscout/sources`
 
@@ -34,23 +34,25 @@ Unit and regression tests use strict synthetic data, temporary files, synthetic 
 
 ## Dependency direction
 
+Arrows below mean **consumer imports dependency**, not data movement. They summarize directly observed cross-layer Python imports; same-layer imports and individual package initializer re-exports are omitted. Checked-in YAML is input data, not a Python import edge. `config.py` is the scan/profile model module; source and policy models live with their own implementations.
+
 ```mermaid
 flowchart TD
-    Config[Checked-in configs] --> Sources[landscout.sources]
-    Common[landscout.common] --> Sources
-    Common --> Geo[landscout.geo]
-    Common --> Stages[landscout.stages]
-    Geo --> Stages
-    Sources --> Stages
-    Stages --> Public[landscout.stages exports]
-    Sources --> SourcePublic[landscout.sources exports]
-    Tests[tests/unit] --> Common
+    Stages[landscout.stages] --> Sources[landscout.sources]
+    Stages --> Common[landscout.common]
+    Stages --> Geo[landscout.geo]
+    Stages --> Config[landscout.config]
+    Sources --> Common
+    Config --> Common
+    Common --> Geo
+    Tests[Unit and integration tests] --> Common
     Tests --> Geo
     Tests --> Sources
     Tests --> Stages
+    Tests --> Config
 ```
 
-`landscout.common` must remain below `landscout.stages`; the common planning overlay implementation exists specifically to avoid a common-to-stages cycle. Source adapters may depend on `common.safe_http`, but the shared transport does not know source-specific datasets, hashes, or business meaning.
+The common-to-geo edge is specifically `common.cadastre_contract -> geo.crs`, not an import from geometry utilities back into common. The earlier diagram mixed opposite arrow meanings and implied that reverse import. The common planning overlay implementation avoids a common-to-stages cycle. Source adapters depend on `common.safe_http`, but the shared transport does not know source-specific datasets, hashes or business meaning. Qualified monkeypatch callbacks, framework validators and third-party receiver calls are not exhaustively resolved by this static graph; important public paths are reviewed in source/tests and the per-file ledger.
 
 ## Implemented functional chain
 
@@ -61,13 +63,15 @@ flowchart LR
     Physical --> Normalize[Normalize factual schema]
     Normalize --> Analyze[Spatial factual or proxy analysis]
     Analyze --> Policy[Checked-in policy or diagnostic precheck where implemented]
-    Policy --> Result[Immutable result envelope and validation]
+    Policy --> Result[Result evidence and explicit validation]
     Result -. future only .-> Score[Global scoring not implemented]
     Score -. future only .-> Identify[Owner identification not implemented]
     Identify -. future only .-> Export[Delivery export not implemented]
 ```
 
-The planning chain is intentionally branched: zoning geometry, planning-feature relations, written regulation text/structure, CNIG feature meaning, written-zoning policy, and CNIG feature policy stay distinct until their explicitly coded application/aggregation stages.
+This is a conceptual phase overview, not one implemented caller chain: road classification precedes parcel proximity, and EP currently stops at source evidence plus a separate non-runtime research dossier. Exact public objects and owned calls are in [DATA_FLOW](DATA_FLOW.md). The planning chain is branched: zoning geometry, planning-feature relations, written regulation text/structure, CNIG feature meaning, written-zoning policy, and CNIG feature policy stay distinct until explicitly coded application/aggregation stages.
+
+Frozen result envelopes may retain mutable Pandas/GeoPandas frames; they are not all deeply immutable trust configurations. Their validators check those frames at the relevant boundary. The INPN profile/bundle records and loaded configuration/policy collections have different immutable representation contracts.
 
 ## Public source and physical-integrity boundaries
 
@@ -93,3 +97,5 @@ Textual values such as URL, provider, archive name, layer, SHA string, profile I
 ## Current unimplemented product areas
 
 No tracked module implements global multi-criterion combination, parcel ranking, a BESS suitability score, ownership/contact enrichment, legal determination, grid capacity assessment, road easement/legal access assessment, environmental category/parcel evaluation, production export workflow, or autonomous human-replacing decision.
+
+The supported application interfaces are Python library APIs and re-exports, not a LandScout HTTP service or declared command-line entry point. There is no end-to-end scheduler/orchestrator in the checked-in application. Source HTTP endpoints belong to external providers; package/native dependencies and their allowed-versus-locked versions are separate from those remote APIs.

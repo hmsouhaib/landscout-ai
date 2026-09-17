@@ -23,20 +23,24 @@ Not applicable to YAML. Python/Pydantic consumers are named above and reproduced
 
 Every row below is a configuration field/list leaf. It is not a DataFrame column unless a consuming stage explicitly copies it into a documented result schema.
 
-| Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
-|---|---|---|---|---|---|
-| `provider` | `"PatriNat"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `authority` | `"MNHN"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured publishing/oversight authority retained as source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `program` | `"INPN"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the official source program retained as identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `dataset_id` | `"EP"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `dataset_name` | `"Base de référence des espaces protégés français"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Records the exact human-readable external dataset name. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `declared_version` | `"07/2026"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the declared source snapshot version and contributes to cache/source identity. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `reference_page_url` | `"https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Records the official reference-page provenance URL; it is not the archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `archive_url` | `"https://assets.patrinat.fr/files/donnees/ep/EP.zip"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the official HTTPS archive location; transport safety and adapter origin/path checks still apply. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `archive_filename` | `"EP.zip"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Pins the portable archive basename used by cache/source validation. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `expected_archive_size_bytes` | `99835011` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict positive integer; Boolean rejected; exact physical archive pin | Pins the exact approved archive byte length. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `expected_archive_sha256` | `"73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict lowercase 64-character hexadecimal SHA256; exact physical archive pin | Pins the lowercase SHA256 of the approved archive bytes. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
-| `cache_root` | `".cache/landscout/inpn/protected_areas"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required safe cache path under the owning adapter contract | Selects the repository-relative cache root; containment/link/recovery checks apply at runtime. | `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` |
+All twelve fields are required and non-null; extra keys are rejected. Runtime values below describe the validated model, not YAML scalar syntax. The model has no list/dict/set fields.
+
+| Exact YAML path | Runtime type and allowed domain | Checked-in role |
+|---|---|---|
+| `provider` | `Literal["PatriNat"]` | Exact provider lineage. |
+| `authority` | `Literal["MNHN"]` | Exact publishing authority lineage. |
+| `program` | `Literal["INPN"]` | Exact program lineage. |
+| `dataset_id` | `Literal["EP"]` | Dataset identity and cache path component. |
+| `dataset_name` | Exact literal `Base de référence des espaces protégés français` | Dataset label, not category interpretation. |
+| `declared_version` | Strict `str`, month `01`–`12` followed by `/` and four digits | Checked-in `07/2026`; model grammar is not a literal July-only lock. Cache directory converts `/` to `-`. |
+| `reference_page_url` | `HttpUrl`, then exact string equality to the reviewed PatriNat reference URL | Provenance only; downloader does not scrape this page. |
+| `archive_url` | `HttpUrl`, then exact string equality to the reviewed assets.patrinat.fr EP ZIP URL | Initial transport destination; shared safe-HTTPS separately owns redirect/address safety. |
+| `archive_filename` | `Literal["EP.zip"]` | Archive basename and metadata sidecar naming. |
+| `expected_archive_size_bytes` | Strict positive `int`; bool, float and numeric text rejected | YAML pins `99835011` bytes; model accepts other positive pins only through explicit config input. |
+| `expected_archive_sha256` | Strict lowercase 64-hex `str` | YAML pins `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`; physical bytes must match. |
+| `cache_root` | `Path`, parsed from YAML text | `.cache/landscout/inpn/protected_areas`; relative paths are process-working-directory relative. No repository-root containment validator is declared on this field. |
+
+The default YAML path is also process-working-directory relative. Config loading reads bytes, rejects duplicate YAML keys and validates the model; it does not compute a config-byte hash. Frozen models block ordinary reassignment, while public source boundaries still reconstruct/revalidate supplied exact model objects. File/link, snapshot and recovery checks are adapter operations, not a promise that every arbitrary `Path` is intrinsically confined by this Pydantic field.
 
 ## STEP 7F.1A.4 dependent-model refresh
 
@@ -338,7 +342,7 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime acquisition consumers are `download_inpn_protected_areas_archive`, `extract_inpn_protected_areas_archive` and `validate_inpn_protected_areas_extraction`. Catalog, attribute, geometry and bundle boundaries reuse the same config and lower source revalidation. Road policies and scan `ProfileReference` are unrelated loaders.
 
 ## 9. Error handling
 
@@ -354,7 +358,7 @@ A configured URL/provider/hash is a source lock or provenance input. Physical au
 
 ## 12. GIS / CRS rules
 
-Only explicit CRS fields impose GIS rules; configured storage/calculation CRS values are policy/configuration, not an implicit reprojection of data.
+This config declares no CRS or geometry field. Acquisition neither opens spatial datasets nor transforms geometry.
 
 ## 13. Provenance rules
 
@@ -362,7 +366,7 @@ The companion's Source SHA256 binds this checked-in file for documentation fidel
 
 ## 14. Business meaning
 
-Thresholds and outcomes are policy/configuration values. They are never relabeled as measured geometry or legal conclusions.
+This source lock declares no thresholds, environmental outcomes, category rules or authorization. Its version, URLs and expected archive integrity identify bytes only.
 
 ## 15. Explicit non-goals
 

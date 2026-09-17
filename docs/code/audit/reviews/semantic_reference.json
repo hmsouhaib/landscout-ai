@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "ticket": "DOCS.CONTINUITY.1",
+  "basis_commit": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+  "scope": "Repository-internal documentation continuity and consistency, not independent source/legal semantic approval",
+  "files": [
+    "docs/reference/inpn_ep_2026_07_semantic_reference.md",
+    "docs/reference/inpn_ep_2026_07_semantic_reference.json"
+  ],
+  "markdown_read": "All 2202 lines read, including all 42 documentary source descriptions, all 64 value entries, every field/profile table, limitations, questions and historical run account.",
+  "json_read_method": "All object-schema variants and 7584 scalar leaves inventoried and type/finite checked. Repeated numerical profile/domain material checked exhaustively against entry frequencies and Markdown tables rather than read as repeated prose. All 1223 narrative string leaves compared within their corresponding fully read Markdown source/field/entry section; unique remaining JSON-only schema/method/operation/package-lineage details read separately.",
+  "mechanical_results": {
+    "strict_utf8_and_duplicate_safe_json": true,
+    "profiles": 45,
+    "observed_value_entries": 64,
+    "per_layer_frequencies": 960,
+    "source_documents": 42,
+    "all_profile_tables_exact": true,
+    "all_entry_keys_and_positive_frequencies_exact": true,
+    "explicit_zero_frequencies_reconstructed": true,
+    "all_domain_and_summary_sums_close": true,
+    "all_reference_ids_resolve": true,
+    "all_source_bindings_tables_exact": true,
+    "historical_phase_operation_sums_close": true,
+    "narrative_literal_matches": 1221,
+    "narrative_literal_exceptions": [
+      "statut candidate_standard_domain.limitation_fr is paraphrased explicitly as documentary-only, not EP values/decoding; same limitation preserved.",
+      "objectif_protection field_name is the excluded section heading itself, not a missing definition."
+    ]
+  },
+  "changes_to_pair": "NONE",
+  "new_network_or_ep_source_reads": "NONE",
+  "independent_review_status": "PENDING",
+  "runtime_status": "RESEARCH_DRAFT_NOT_RUNTIME_POLICY",
+  "limitations": [
+    "No external page/PDF/ODT was fetched or revalidated for this continuity audit.",
+    "Historical source/toolchain/hash/operation claims remain reported evidence, not new physical executions.",
+    "Literal and frequency equivalence does not prove a definition is supported by its external source or applies to EP 07/2026.",
+    "The full independent 64-entry/42-source semantic review is not closed by this internal check.",
+    "Producer field/value/export edition links, all-null statut, Nature/nature, compound/local/historical wording, CNIG chronology and sig_tadl georeferencing remain unresolved exactly as documented."
+  ]
+}

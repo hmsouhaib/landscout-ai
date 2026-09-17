@@ -195,7 +195,7 @@ def _yaml_data(path: Path) -> dict:
 
 ### `_write_yaml`
 
-**Purpose:** Implements `write yaml` within the file role: Provides complete unit and regression coverage for the `config` contracts exercised in this file.
+**Purpose:** Serialize the supplied fixture with yaml.safe_dump and write UTF-8 to the requested temporary path; mutate neither the caller dictionary nor production config.
 
 **Exact signature**
 
@@ -274,7 +274,7 @@ def _write_yaml(path: Path, data: dict) -> None:
 
 ### `_temporary_scan`
 
-**Purpose:** Implements `temporary scan` within the file role: Provides complete unit and regression coverage for the `config` contracts exercised in this file.
+**Purpose:** Read the checked-in scan fixture, replace its profile reference in the local dictionary, write a temporary scan YAML and return its path.
 
 **Exact signature**
 
@@ -349,7 +349,7 @@ def _temporary_scan(tmp_path: Path, profile_path: Path) -> Path:
 
 ### `_load_temporary_profile`
 
-**Purpose:** Implements `load temporary profile` within the file role: Provides complete unit and regression coverage for the `config` contracts exercised in this file.
+**Purpose:** Write a temporary profile and scan, then return the actual LoadedScanConfig from load_scan_config. The source has no return annotation; the generated annotation label None is not its runtime return value.
 
 **Exact signature**
 
@@ -358,7 +358,7 @@ def _load_temporary_profile(tmp_path: Path, profile_data: dict):
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- Declared return annotation: absent (the function returns LoadedScanConfig at runtime).
 
 **Inputs**
 
@@ -440,7 +440,7 @@ def _load_temporary_profile(tmp_path: Path, profile_data: dict):
 
 ### `test_valid_config_loads`
 
-**Purpose:** Regression invariant: valid config loads. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Load checked-in Muret scan/profile and assert the commune tuple, BESS technology, resolved profile path, enabled width/ratio thresholds and seven exact calibration facts; this checks persisted configuration, not a recalculation of empirical calibration.
 
 **Exact signature**
 
@@ -532,7 +532,7 @@ def test_valid_config_loads() -> None:
 
 ### `test_trust_bearing_yaml_rejects_duplicate_mapping_keys`
 
-**Purpose:** Regression invariant: trust bearing yaml rejects duplicate mapping keys. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** In two temporary YAML documents duplicate the scan or parcel root mapping key and require TypeError/ValueError mentioning duplicate from the public loader.
 
 **Exact signature**
 
@@ -627,7 +627,7 @@ def test_trust_bearing_yaml_rejects_duplicate_mapping_keys(
 
 ### `test_loaded_scan_and_profile_models_are_immutable`
 
-**Purpose:** Regression invariant: loaded scan and profile models are immutable. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Require immediate frozen-model ValidationError on scan-name and parcel-area assignment and AttributeError on AOI tuple append; this is three specific mutations, not traversal of every trust model.
 
 **Exact signature**
 
@@ -697,7 +697,7 @@ def test_loaded_scan_and_profile_models_are_immutable() -> None:
 
 ### `test_invalid_commune_code_fails`
 
-**Purpose:** Regression invariant: invalid commune code fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write the four-character commune 3139 into a temporary scan and require ValidationError.
 
 **Exact signature**
 
@@ -768,7 +768,7 @@ def test_invalid_commune_code_fails(tmp_path: Path) -> None:
 
 ### `test_negative_minimum_area_fails`
 
-**Purpose:** Regression invariant: negative minimum area fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set minimum area to -1 in a temporary profile and require ValidationError.
 
 **Exact signature**
 
@@ -840,7 +840,7 @@ def test_negative_minimum_area_fails(tmp_path: Path) -> None:
 
 ### `test_maximum_area_smaller_than_minimum_fails`
 
-**Purpose:** Regression invariant: maximum area smaller than minimum fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set maximum area to 1000 below the retained checked-in minimum and require ValidationError.
 
 **Exact signature**
 
@@ -912,7 +912,7 @@ def test_maximum_area_smaller_than_minimum_fails(tmp_path: Path) -> None:
 
 ### `test_missing_profile_fails`
 
-**Purpose:** Regression invariant: missing profile fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reference an unwritten temporary profile path and require FileNotFoundError from load_scan_config.
 
 **Exact signature**
 
@@ -979,7 +979,7 @@ def test_missing_profile_fails(tmp_path: Path) -> None:
 
 ### `test_invalid_shape_threshold_fails`
 
-**Purpose:** Regression invariant: invalid shape threshold fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject four temporary-profile threshold cases: width -1 or 0 and maximum length/width ratio 0 or 0.999.
 
 **Exact signature**
 
@@ -1062,7 +1062,7 @@ def test_invalid_shape_threshold_fails(
 
 ### `test_invalid_calibration_percentage_fails`
 
-**Purpose:** Regression invariant: invalid calibration percentage fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject five out-of-range calibration percentages: target -1, 0 or 100.001 and observed -0.001 or 100.001.
 
 **Exact signature**
 
@@ -1146,7 +1146,7 @@ def test_invalid_calibration_percentage_fails(
 
 ### `test_invalid_calibration_sample_size_fails`
 
-**Purpose:** Regression invariant: invalid calibration sample size fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject calibration sample sizes -1 and 0.
 
 **Exact signature**
 
@@ -1220,7 +1220,7 @@ def test_invalid_calibration_sample_size_fails(
 
 ### `test_empty_calibration_metadata_fails`
 
-**Purpose:** Regression invariant: empty calibration metadata fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace each of policy_version, method, calibration_scope and calibrated_at with spaces and require ValidationError; no timestamp grammar is tested.
 
 **Exact signature**
 
@@ -1293,7 +1293,7 @@ def test_empty_calibration_metadata_fails(tmp_path: Path, field: str) -> None:
 
 ### `test_enabled_shape_screening_requires_policy_values`
 
-**Purpose:** Regression invariant: enabled shape screening requires policy values. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Delete one enabled-screening member among min_width_m, max_length_width_ratio and calibration and require the specific enabled-screening completeness error.
 
 **Exact signature**
 
@@ -1347,7 +1347,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `del profile_data["shape_screening"][field]` on the local fixture. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1369,7 +1369,7 @@ def test_enabled_shape_screening_requires_policy_values(
 
 ### `test_enabled_shape_screening_requires_complete_calibration`
 
-**Purpose:** Regression invariant: enabled shape screening requires complete calibration. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Delete each of the seven required calibration members in turn and require ValidationError.
 
 **Exact signature**
 
@@ -1432,7 +1432,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `del profile_data["shape_screening"]["calibration"][field]` on the local fixture. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1454,7 +1454,7 @@ def test_enabled_shape_screening_requires_complete_calibration(
 
 ### `test_shape_screening_can_be_disabled_without_policy_values`
 
-**Purpose:** Regression invariant: shape screening can be disabled without policy values. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Load a profile containing only enabled=False for shape_screening and assert its three optional policy members are None.
 
 **Exact signature**
 
@@ -1533,7 +1533,7 @@ def test_shape_screening_can_be_disabled_without_policy_values(
 
 ### `test_unknown_scan_fields_are_rejected`
 
-**Purpose:** Regression invariant: unknown scan fields are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Inject an extra key at the scan root, AOI or profile-reference mapping and require ValidationError naming that key.
 
 **Exact signature**
 
@@ -1621,7 +1621,7 @@ def test_unknown_scan_fields_are_rejected(
 
 ### `test_unknown_profile_fields_are_rejected`
 
-**Purpose:** Regression invariant: unknown profile fields are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Inject unexpected into parcel, CRS or shape_screening and require ValidationError naming it.
 
 **Exact signature**
 
@@ -1697,7 +1697,7 @@ def test_unknown_profile_fields_are_rejected(
 
 ### `test_parcel_numeric_contract_is_strict_and_finite`
 
-**Purpose:** Regression invariant: parcel numeric contract is strict and finite. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject six parcel inputs: zero minimum, negative maximum, NaN/infinite maximum, numeric-text maximum and boolean minimum.
 
 **Exact signature**
 
@@ -1787,7 +1787,7 @@ def test_parcel_numeric_contract_is_strict_and_finite(
 
 ### `test_calibration_sample_size_is_strict_positive_integer`
 
-**Purpose:** Regression invariant: calibration sample size is strict positive integer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject True, numeric text, zero and -1 as calibration sample size.
 
 **Exact signature**
 
@@ -1863,7 +1863,7 @@ def test_calibration_sample_size_is_strict_positive_integer(
 
 ### `test_shape_enabled_is_strict_boolean`
 
-**Purpose:** Regression invariant: shape enabled is strict boolean. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject text true and integers 1/0 as the enabled flag.
 
 **Exact signature**
 
@@ -1933,7 +1933,7 @@ def test_shape_enabled_is_strict_boolean(tmp_path: Path, value: object) -> None:
 
 ### `test_canonical_france_commune_codes_are_accepted`
 
-**Purpose:** Regression invariant: canonical france commune codes are accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept four exact digit/Corsican examples and assert ordered singleton tuple output.
 
 **Exact signature**
 
@@ -2012,7 +2012,7 @@ def test_canonical_france_commune_codes_are_accepted(
 
 ### `test_noncanonical_france_commune_codes_are_rejected`
 
-**Purpose:** Regression invariant: noncanonical france commune codes are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject eight empty, wrong-length, alphabetic, unsupported/lowercase Corsican, whitespace and non-string examples without silently canonicalizing them.
 
 **Exact signature**
 
@@ -2096,7 +2096,7 @@ def test_noncanonical_france_commune_codes_are_rejected(
 
 ### `test_aoi_requires_nonempty_unique_commune_codes`
 
-**Purpose:** Regression invariant: aoi requires nonempty unique commune codes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject an empty AOI list and a duplicate commune list.
 
 **Exact signature**
 
@@ -2177,7 +2177,7 @@ def test_aoi_requires_nonempty_unique_commune_codes(
 
 ### `test_scan_and_profile_identity_must_match`
 
-**Purpose:** Regression invariant: scan and profile identity must match. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Change the profile country to BE or technology to SOLAR and require a field-naming mismatch error against the retained scan identity; this does not prove those labels are globally forbidden.
 
 **Exact signature**
 
@@ -2259,7 +2259,7 @@ def test_scan_and_profile_identity_must_match(
 
 ### `test_profile_crs_contract_is_exact`
 
-**Purpose:** Regression invariant: profile crs contract is exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject storage EPSG:3857, calculation EPSG:4326 and malformed storage CRS; despite the test name, production compares CRS equivalence, not literal spelling.
 
 **Exact signature**
 
@@ -2342,6 +2342,10 @@ def test_profile_crs_contract_is_exact(
 
 ## 7. Test-specific regression contract
 
+Exercises checked-in scan/profile loading and exact calibration facts, temporary YAML duplicate keys, three immediate mutation attempts, strict numeric/boolean/commune and completeness/extra-key failures, matching scan/profile identities and three invalid CRS cases; it neither recalibrates shape policy nor proves universal branch coverage.
+
+The 24 test definitions expand statically to 72 parametrized cases; this arithmetic is not a test run. Temporary fixture writers and public configuration loaders perform local file I/O; there is no network, archive or parcel-data operation.
+
 - Test functions: **24**.
 - Pytest fixtures (decorator-proven): **0**.
 
@@ -2349,30 +2353,30 @@ def test_profile_crs_contract_is_exact(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_valid_config_loads` | none | none | 14 | Proves valid config loads using the exact source reproduced in section 7. |
-| `test_trust_bearing_yaml_rejects_duplicate_mapping_keys` | pytest.mark.parametrize("document", ["scan", "profile"]) | pytest.raises((TypeError, ValueError), match="(?i)duplicate") | 0 | Proves trust bearing yaml rejects duplicate mapping keys using the exact source reproduced in section 7. |
-| `test_loaded_scan_and_profile_models_are_immutable` | none | pytest.raises(ValidationError, match="frozen"); pytest.raises(ValidationError, match="frozen"); pytest.raises(AttributeError) | 0 | Proves loaded scan and profile models are immutable using the exact source reproduced in section 7. |
-| `test_invalid_commune_code_fails` | none | pytest.raises(ValidationError) | 0 | Proves invalid commune code fails using the exact source reproduced in section 7. |
-| `test_negative_minimum_area_fails` | none | pytest.raises(ValidationError) | 0 | Proves negative minimum area fails using the exact source reproduced in section 7. |
-| `test_maximum_area_smaller_than_minimum_fails` | none | pytest.raises(ValidationError) | 0 | Proves maximum area smaller than minimum fails using the exact source reproduced in section 7. |
-| `test_missing_profile_fails` | none | pytest.raises(FileNotFoundError) | 0 | Proves missing profile fails using the exact source reproduced in section 7. |
-| `test_invalid_shape_threshold_fails` | pytest.mark.parametrize(<br>    ("field", "invalid_value"),<br>    [<br>        ("min_width_m", -1),<br>        ("min_width_m", 0),<br>        ("max_length_width_ratio", 0),<br>        ("max_length_width_ratio", 0.999),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves invalid shape threshold fails using the exact source reproduced in section 7. |
-| `test_invalid_calibration_percentage_fails` | pytest.mark.parametrize(<br>    ("field", "invalid_value"),<br>    [<br>        ("target_retention_pct", -1),<br>        ("target_retention_pct", 0),<br>        ("target_retention_pct", 100.001),<br>        ("observed_retention_pct", -0.001),<br>        ("observed_retention_pct", 100.001),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves invalid calibration percentage fails using the exact source reproduced in section 7. |
-| `test_invalid_calibration_sample_size_fails` | pytest.mark.parametrize("invalid_value", [-1, 0]) | pytest.raises(ValidationError) | 0 | Proves invalid calibration sample size fails using the exact source reproduced in section 7. |
-| `test_empty_calibration_metadata_fails` | pytest.mark.parametrize(<br>    "field",<br>    ["policy_version", "method", "calibration_scope", "calibrated_at"],<br>) | pytest.raises(ValidationError) | 0 | Proves empty calibration metadata fails using the exact source reproduced in section 7. |
-| `test_enabled_shape_screening_requires_policy_values` | pytest.mark.parametrize(<br>    "field", ["min_width_m", "max_length_width_ratio", "calibration"]<br>) | pytest.raises(ValidationError, match="enabled shape screening requires") | 0 | Proves enabled shape screening requires policy values using the exact source reproduced in section 7. |
-| `test_enabled_shape_screening_requires_complete_calibration` | pytest.mark.parametrize(<br>    "field",<br>    [<br>        "policy_version",<br>        "method",<br>        "calibration_scope",<br>        "sample_size",<br>        "calibrated_at",<br>        "target_retention_pct",<br>        "observed_retention_pct",<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves enabled shape screening requires complete calibration using the exact source reproduced in section 7. |
-| `test_shape_screening_can_be_disabled_without_policy_values` | none | none | 4 | Proves shape screening can be disabled without policy values using the exact source reproduced in section 7. |
-| `test_unknown_scan_fields_are_rejected` | pytest.mark.parametrize(<br>    ("section", "field"),<br>    [(None, "unknown"), ("aoi", "unexpected"), ("profile", "unexpected")],<br>) | pytest.raises(ValidationError, match=field) | 0 | Proves unknown scan fields are rejected using the exact source reproduced in section 7. |
-| `test_unknown_profile_fields_are_rejected` | pytest.mark.parametrize("section", ["parcel", "crs", "shape_screening"]) | pytest.raises(ValidationError, match="unexpected") | 0 | Proves unknown profile fields are rejected using the exact source reproduced in section 7. |
-| `test_parcel_numeric_contract_is_strict_and_finite` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("min_area_m2", 0),<br>        ("max_area_m2", -1),<br>        ("max_area_m2", float("nan")),<br>        ("max_area_m2", float("inf")),<br>        ("max_area_m2", "15000"),<br>        ("min_area_m2", True),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves parcel numeric contract is strict and finite using the exact source reproduced in section 7. |
-| `test_calibration_sample_size_is_strict_positive_integer` | pytest.mark.parametrize("value", [True, "4013", 0, -1]) | pytest.raises(ValidationError) | 0 | Proves calibration sample size is strict positive integer using the exact source reproduced in section 7. |
-| `test_shape_enabled_is_strict_boolean` | pytest.mark.parametrize("value", ["true", 1, 0]) | pytest.raises(ValidationError) | 0 | Proves shape enabled is strict boolean using the exact source reproduced in section 7. |
-| `test_canonical_france_commune_codes_are_accepted` | pytest.mark.parametrize("code", ["31395", "75056", "2A004", "2B033"]) | none | 1 | Proves canonical france commune codes are accepted using the exact source reproduced in section 7. |
-| `test_noncanonical_france_commune_codes_are_rejected` | pytest.mark.parametrize(<br>    "code",<br>    ["", "3139", "313950", "ABCDE", "2C004", "2a004", " 31395 ", 31395],<br>) | pytest.raises(ValidationError) | 0 | Proves noncanonical france commune codes are rejected using the exact source reproduced in section 7. |
-| `test_aoi_requires_nonempty_unique_commune_codes` | pytest.mark.parametrize("codes", [[], ["31395", "31395"]]) | pytest.raises(ValidationError) | 0 | Proves aoi requires nonempty unique commune codes using the exact source reproduced in section 7. |
-| `test_scan_and_profile_identity_must_match` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("country", "BE"), ("technology", "SOLAR")],<br>) | pytest.raises(ValidationError, match=field) | 0 | Proves scan and profile identity must match using the exact source reproduced in section 7. |
-| `test_profile_crs_contract_is_exact` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("storage", "EPSG:3857"), ("calculation", "EPSG:4326"), ("storage", "bad")],<br>) | pytest.raises(ValidationError, match="CRS\|crs\|storage\|calculation") | 0 | Proves profile crs contract is exact using the exact source reproduced in section 7. |
+| `test_valid_config_loads` | none | none | 14 | Load checked-in Muret scan/profile and assert the commune tuple, BESS technology, resolved profile path, enabled width/ratio thresholds and seven exact calibration facts; this checks persisted configuration, not a recalculation of empirical calibration. |
+| `test_trust_bearing_yaml_rejects_duplicate_mapping_keys` | pytest.mark.parametrize("document", ["scan", "profile"]) | pytest.raises((TypeError, ValueError), match="(?i)duplicate") | 0 | In two temporary YAML documents duplicate the scan or parcel root mapping key and require TypeError/ValueError mentioning duplicate from the public loader. |
+| `test_loaded_scan_and_profile_models_are_immutable` | none | pytest.raises(ValidationError, match="frozen"); pytest.raises(ValidationError, match="frozen"); pytest.raises(AttributeError) | 0 | Require immediate frozen-model ValidationError on scan-name and parcel-area assignment and AttributeError on AOI tuple append; this is three specific mutations, not traversal of every trust model. |
+| `test_invalid_commune_code_fails` | none | pytest.raises(ValidationError) | 0 | Write the four-character commune 3139 into a temporary scan and require ValidationError. |
+| `test_negative_minimum_area_fails` | none | pytest.raises(ValidationError) | 0 | Set minimum area to -1 in a temporary profile and require ValidationError. |
+| `test_maximum_area_smaller_than_minimum_fails` | none | pytest.raises(ValidationError) | 0 | Set maximum area to 1000 below the retained checked-in minimum and require ValidationError. |
+| `test_missing_profile_fails` | none | pytest.raises(FileNotFoundError) | 0 | Reference an unwritten temporary profile path and require FileNotFoundError from load_scan_config. |
+| `test_invalid_shape_threshold_fails` | pytest.mark.parametrize(<br>    ("field", "invalid_value"),<br>    [<br>        ("min_width_m", -1),<br>        ("min_width_m", 0),<br>        ("max_length_width_ratio", 0),<br>        ("max_length_width_ratio", 0.999),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Reject four temporary-profile threshold cases: width -1 or 0 and maximum length/width ratio 0 or 0.999. |
+| `test_invalid_calibration_percentage_fails` | pytest.mark.parametrize(<br>    ("field", "invalid_value"),<br>    [<br>        ("target_retention_pct", -1),<br>        ("target_retention_pct", 0),<br>        ("target_retention_pct", 100.001),<br>        ("observed_retention_pct", -0.001),<br>        ("observed_retention_pct", 100.001),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Reject five out-of-range calibration percentages: target -1, 0 or 100.001 and observed -0.001 or 100.001. |
+| `test_invalid_calibration_sample_size_fails` | pytest.mark.parametrize("invalid_value", [-1, 0]) | pytest.raises(ValidationError) | 0 | Reject calibration sample sizes -1 and 0. |
+| `test_empty_calibration_metadata_fails` | pytest.mark.parametrize(<br>    "field",<br>    ["policy_version", "method", "calibration_scope", "calibrated_at"],<br>) | pytest.raises(ValidationError) | 0 | Replace each of policy_version, method, calibration_scope and calibrated_at with spaces and require ValidationError; no timestamp grammar is tested. |
+| `test_enabled_shape_screening_requires_policy_values` | pytest.mark.parametrize(<br>    "field", ["min_width_m", "max_length_width_ratio", "calibration"]<br>) | pytest.raises(ValidationError, match="enabled shape screening requires") | 0 | Delete one enabled-screening member among min_width_m, max_length_width_ratio and calibration and require the specific enabled-screening completeness error. |
+| `test_enabled_shape_screening_requires_complete_calibration` | pytest.mark.parametrize(<br>    "field",<br>    [<br>        "policy_version",<br>        "method",<br>        "calibration_scope",<br>        "sample_size",<br>        "calibrated_at",<br>        "target_retention_pct",<br>        "observed_retention_pct",<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Delete each of the seven required calibration members in turn and require ValidationError. |
+| `test_shape_screening_can_be_disabled_without_policy_values` | none | none | 4 | Load a profile containing only enabled=False for shape_screening and assert its three optional policy members are None. |
+| `test_unknown_scan_fields_are_rejected` | pytest.mark.parametrize(<br>    ("section", "field"),<br>    [(None, "unknown"), ("aoi", "unexpected"), ("profile", "unexpected")],<br>) | pytest.raises(ValidationError, match=field) | 0 | Inject an extra key at the scan root, AOI or profile-reference mapping and require ValidationError naming that key. |
+| `test_unknown_profile_fields_are_rejected` | pytest.mark.parametrize("section", ["parcel", "crs", "shape_screening"]) | pytest.raises(ValidationError, match="unexpected") | 0 | Inject unexpected into parcel, CRS or shape_screening and require ValidationError naming it. |
+| `test_parcel_numeric_contract_is_strict_and_finite` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("min_area_m2", 0),<br>        ("max_area_m2", -1),<br>        ("max_area_m2", float("nan")),<br>        ("max_area_m2", float("inf")),<br>        ("max_area_m2", "15000"),<br>        ("min_area_m2", True),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Reject six parcel inputs: zero minimum, negative maximum, NaN/infinite maximum, numeric-text maximum and boolean minimum. |
+| `test_calibration_sample_size_is_strict_positive_integer` | pytest.mark.parametrize("value", [True, "4013", 0, -1]) | pytest.raises(ValidationError) | 0 | Reject True, numeric text, zero and -1 as calibration sample size. |
+| `test_shape_enabled_is_strict_boolean` | pytest.mark.parametrize("value", ["true", 1, 0]) | pytest.raises(ValidationError) | 0 | Reject text true and integers 1/0 as the enabled flag. |
+| `test_canonical_france_commune_codes_are_accepted` | pytest.mark.parametrize("code", ["31395", "75056", "2A004", "2B033"]) | none | 1 | Accept four exact digit/Corsican examples and assert ordered singleton tuple output. |
+| `test_noncanonical_france_commune_codes_are_rejected` | pytest.mark.parametrize(<br>    "code",<br>    ["", "3139", "313950", "ABCDE", "2C004", "2a004", " 31395 ", 31395],<br>) | pytest.raises(ValidationError) | 0 | Reject eight empty, wrong-length, alphabetic, unsupported/lowercase Corsican, whitespace and non-string examples without silently canonicalizing them. |
+| `test_aoi_requires_nonempty_unique_commune_codes` | pytest.mark.parametrize("codes", [[], ["31395", "31395"]]) | pytest.raises(ValidationError) | 0 | Reject an empty AOI list and a duplicate commune list. |
+| `test_scan_and_profile_identity_must_match` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("country", "BE"), ("technology", "SOLAR")],<br>) | pytest.raises(ValidationError, match=field) | 0 | Change the profile country to BE or technology to SOLAR and require a field-naming mismatch error against the retained scan identity; this does not prove those labels are globally forbidden. |
+| `test_profile_crs_contract_is_exact` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("storage", "EPSG:3857"), ("calculation", "EPSG:4326"), ("storage", "bad")],<br>) | pytest.raises(ValidationError, match="CRS\|crs\|storage\|calculation") | 0 | Reject storage EPSG:3857, calculation EPSG:4326 and malformed storage CRS; despite the test name, production compares CRS equivalence, not literal spelling. |
 
 ## 8. Public exports and package ownership
 

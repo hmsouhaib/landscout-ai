@@ -11,7 +11,7 @@
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Revalidates shape configuration and the canonical parcel prefix before computing factual shape metrics.
+- Revalidates the canonical parcel prefix and recomputed factual area before shape measurements. There is no shape-configuration argument or policy loading in this stage; enabled/threshold policy belongs to `filter_parcels_by_shape`.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
 ## 2. Purpose and architectural position
@@ -144,7 +144,7 @@ class ShapeEnrichmentError(ValueError):
 
 ### `enrich_parcel_shapes`
 
-**Purpose:** Implements `enrich parcel shapes` within the file role: Adds parcel shape metrics and diagnostics for valid cadastral geometries.
+**Purpose:** Validate the canonical cadastral frame, reject collisions with generated shape columns, then copy/reset its index. Initialize every row to shape_status ERROR and six null metric values. For measurable valid polygon rows, create Lambert-93 calculation geometries and transform their projected centroids back to WGS84. Per row, call the centralized shape calculator and require all six outputs finite; successful rows become VALID with length, width, ratio, compactness, centroid latitude and longitude. Caught per-row measurement failures leave all six values null and retain the row. Finally verify exact parcel ID order/count. Original geometry/CRS and factual columns are retained; no filtering, shape threshold or score is applied. Projection and batch centroid construction occur before the per-row exception handler and are not promised isolated row failures.
 
 **Exact signature**
 
@@ -329,7 +329,8 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 ## 7. Validation and data-contract summary
 
 - Canonical schema/mapping declarations inventoried above: `REQUIRED_COLUMNS`, `DERIVED_METRIC_COLUMNS`.
-- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
+- The four metric dimensions/ratios are delegated to `parcel_shape_metrics_m`; area is already a separately validated input fact. The centroid fields are latitude/longitude of the centroid measured in Lambert-93 then transformed, not the centroid computed directly in angular coordinates. Nonfinite values fail the row; explicit latitude/longitude range checks are not implemented here.
+- `REQUIRED_COLUMNS` is a declaration retained in the module; the actual entry check delegates to the stronger full canonical prefix validator, not only that smaller field list. `DERIVED_METRIC_COLUMNS` controls ordered assignment and null initialization.
 
 ## 8. Public exports and package ownership
 

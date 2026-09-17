@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+- Responsibility: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 - Source SHA256: `f742a30c7921e83fd28114c7419ba0d4c2ca36aa0aed5d04c8881cad1feaef57`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -163,7 +163,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_rectangle`
 
-**Purpose:** Implements `rectangle` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `rectangle` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -272,7 +272,7 @@ def _rectangle(x1: float, y1: float, x2: float, y2: float) -> Polygon:
 
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `parcels` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -364,7 +364,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `frame.set_crs`<br>`frame.to_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `frame.set_crs(None, allow_override=True)` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -397,7 +397,7 @@ def _parcels(
 
 ### `_source_frame`
 
-**Purpose:** Implements `source frame` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `source frame` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -533,7 +533,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `frame.set_crs`<br>`frame.to_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `frame.set_crs(None, allow_override=True)`<br>`frame.set_crs(crs, allow_override=True)` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -581,7 +581,7 @@ def _source_frame(
 
 ### `_summary`
 
-**Purpose:** Implements `summary` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `summary` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -708,7 +708,7 @@ def _summary(
 
 ### `_inspected`
 
-**Purpose:** Implements `inspected` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `inspected` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -854,7 +854,7 @@ def _inspected(logical: str, frame: gpd.GeoDataFrame) -> GpuInspectedLayer:
 
 ### `_physical_inventory`
 
-**Purpose:** Implements `physical inventory` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `physical inventory` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -945,7 +945,7 @@ def _physical_inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
 
 ### `_write_extraction_manifest`
 
-**Purpose:** Implements `write extraction manifest` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `write extraction manifest` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -1034,7 +1034,7 @@ def _write_extraction_manifest(
 
 ### `_materialize_layer`
 
-**Purpose:** Implements `materialize layer` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `materialize layer` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -1082,7 +1082,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `reference.dataset_path.is_file`<br>`gpd.read_file` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | Writes synthetic GPKG through layer.data.to_file when no existing dataset is supplied. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1125,7 +1125,7 @@ def _materialize_layer(root: Path, layer: GpuInspectedLayer) -> GpuInspectedLaye
 
 ### `_planning_document`
 
-**Purpose:** Implements `planning document` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `planning document` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -1211,7 +1211,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `layer.reference.dataset_path.is_file`<br>`gpd.read_file` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | Creates a temporary root when needed, writes zoning GPKG and delegates selected-file materialization and manifest writing. |
 | Hashing/byte identity | `gpu_source_module._source_config_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1333,7 +1333,7 @@ def _planning_document(
 
 ### `_run`
 
-**Purpose:** Implements `run` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `run` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -1469,7 +1469,7 @@ def _run(
 
 ### `test_only_high_level_api_is_exported`
 
-**Purpose:** Regression invariant: only high level api is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Asserts the three named builder/error/result re-exports and membership, not absence of every other package export; a separate test checks the independent validator/validation record.
 
 **Exact signature**
 
@@ -1540,7 +1540,7 @@ def test_only_high_level_api_is_exported() -> None:
 
 ### `test_result_is_frozen`
 
-**Purpose:** Regression invariant: result is frozen. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Attempts field reassignment and expects FrozenInstanceError. Does not test or claim that contained DataFrames are immutable.
 
 **Exact signature**
 
@@ -1595,7 +1595,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 def test_result_is_frozen() -> None:
     result = _run([])
     with pytest.raises(FrozenInstanceError):
-        result.parcels = result.parcels.copy()
+        result.parcels = result.parcels.copy()  # type: ignore[misc]
 ```
 
 **Business boundary**
@@ -1604,7 +1604,7 @@ def test_result_is_frozen() -> None:
 
 ### `test_surface_full_overlap_normalizes_raw_values_and_lineage`
 
-**Purpose:** Regression invariant: surface full overlap normalizes raw values and lineage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: surface full overlap normalizes raw values and lineage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -1746,7 +1746,7 @@ def test_surface_full_overlap_normalizes_raw_values_and_lineage() -> None:
 
 ### `test_surface_partial_and_touch_relations`
 
-**Purpose:** Regression invariant: surface partial and touch relations. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: surface partial and touch relations. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -1826,7 +1826,7 @@ def test_surface_partial_and_touch_relations() -> None:
 
 ### `test_overlapping_surface_union_is_not_double_counted`
 
-**Purpose:** Regression invariant: overlapping surface union is not double counted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: overlapping surface union is not double counted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -1917,7 +1917,7 @@ def test_overlapping_surface_union_is_not_double_counted() -> None:
 
 ### `test_polygon_and_multipolygon_surfaces`
 
-**Purpose:** Regression invariant: polygon and multipolygon surfaces. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: polygon and multipolygon surfaces. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2000,7 +2000,7 @@ def test_polygon_and_multipolygon_surfaces(geometry: object) -> None:
 
 ### `test_line_crossing_and_partly_inside`
 
-**Purpose:** Regression invariant: line crossing and partly inside. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: line crossing and partly inside. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2085,7 +2085,7 @@ def test_line_crossing_and_partly_inside() -> None:
 
 ### `test_line_boundary_touch_is_zero_length`
 
-**Purpose:** Regression invariant: line boundary touch is zero length. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: line boundary touch is zero length. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2159,7 +2159,7 @@ def test_line_boundary_touch_is_zero_length() -> None:
 
 ### `test_linestring_and_multilinestring`
 
-**Purpose:** Regression invariant: linestring and multilinestring. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: linestring and multilinestring. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2239,7 +2239,7 @@ def test_linestring_and_multilinestring(geometry: object) -> None:
 
 ### `test_points_inside_boundary_outside_and_multipoint`
 
-**Purpose:** Regression invariant: points inside boundary outside and multipoint. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: points inside boundary outside and multipoint. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2336,7 +2336,7 @@ def test_points_inside_boundary_outside_and_multipoint() -> None:
 
 ### `test_missing_optional_layer_families_return_stable_empty_catalogs`
 
-**Purpose:** Regression invariant: missing optional layer families return stable empty catalogs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: missing optional layer families return stable empty catalogs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2411,7 +2411,7 @@ def test_missing_optional_layer_families_return_stable_empty_catalogs() -> None:
 
 ### `test_optional_raw_source_fields_are_not_fabricated`
 
-**Purpose:** Regression invariant: optional raw source fields are not fabricated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: optional raw source fields are not fabricated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2460,7 +2460,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]).drop(<br>        columns=["LIBELLE", "TXT", "NOMFIC", "URLFIC", "DATVALID"]<br>    )` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -2488,7 +2488,7 @@ def test_optional_raw_source_fields_are_not_fabricated() -> None:
 
 ### `test_epsg4326_parcels_are_measured_in_lambert93_but_preserved`
 
-**Purpose:** Regression invariant: epsg4326 parcels are measured in lambert93 but preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: epsg4326 parcels are measured in lambert93 but preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2572,7 +2572,7 @@ def test_epsg4326_parcels_are_measured_in_lambert93_but_preserved() -> None:
 
 ### `test_invalid_parcel_ids_are_rejected`
 
-**Purpose:** Regression invariant: invalid parcel ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: invalid parcel ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2638,7 +2638,7 @@ def test_invalid_parcel_ids_are_rejected(bad_id: object) -> None:
 
 ### `test_duplicate_parcel_ids_are_rejected`
 
-**Purpose:** Regression invariant: duplicate parcel ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: duplicate parcel ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2705,7 +2705,7 @@ def test_duplicate_parcel_ids_are_rejected() -> None:
 
 ### `test_duplicate_source_ids_are_rejected`
 
-**Purpose:** Regression invariant: duplicate source ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: duplicate source ids are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2775,7 +2775,7 @@ def test_duplicate_source_ids_are_rejected() -> None:
 
 ### `test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent`
 
-**Purpose:** Regression invariant: prescription surface uses validated source ogr fid when cnig id absent. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: prescription surface uses validated source ogr fid when cnig id absent. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2830,11 +2830,11 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `gpd.read_file` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | frame.to_file writes synthetic Shapefile components. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame("prescription_surface", [_rectangle(0, 0, 10, 10)]).drop(<br>        columns="LIB_IDPSC"<br>    )` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -2880,7 +2880,7 @@ def test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent(
 
 ### `test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback`
 
-**Purpose:** Regression invariant: geopackage prescription surface uses sealed ogr fid fallback. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: geopackage prescription surface uses sealed ogr fid fallback. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -2931,7 +2931,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame("prescription_surface", [_rectangle(0, 0, 10, 10)]).drop(<br>        columns="LIB_IDPSC"<br>    )` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -2957,7 +2957,7 @@ def test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback() -> None:
 
 ### `test_idurba_mismatch_is_rejected`
 
-**Purpose:** Regression invariant: idurba mismatch is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: idurba mismatch is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3025,7 +3025,7 @@ def test_idurba_mismatch_is_rejected() -> None:
 
 ### `test_missing_required_source_fields_fail`
 
-**Purpose:** Regression invariant: missing required source fields fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: missing required source fields fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3077,7 +3077,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]).drop(<br>        columns=missing<br>    )` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3097,7 +3097,7 @@ def test_missing_required_source_fields_fail(missing: str) -> None:
 
 ### `test_wrong_geometry_kind_is_rejected`
 
-**Purpose:** Regression invariant: wrong geometry kind is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: wrong geometry kind is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3174,7 +3174,7 @@ def test_wrong_geometry_kind_is_rejected(logical: str, geometry: object) -> None
 
 ### `test_invalid_surface_geometry_is_rejected_without_repair`
 
-**Purpose:** Regression invariant: invalid surface geometry is rejected without repair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: invalid surface geometry is rejected without repair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3247,7 +3247,7 @@ def test_invalid_surface_geometry_is_rejected_without_repair() -> None:
 
 ### `test_null_or_empty_source_geometry_is_rejected`
 
-**Purpose:** Regression invariant: null or empty source geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: null or empty source geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3319,7 +3319,7 @@ def test_null_or_empty_source_geometry_is_rejected(geometry: object) -> None:
 
 ### `test_missing_crs_is_rejected`
 
-**Purpose:** Regression invariant: missing crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: missing crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3394,7 +3394,7 @@ def test_missing_crs_is_rejected(target: str) -> None:
 
 ### `test_unusable_source_crs_is_rejected`
 
-**Purpose:** Regression invariant: unusable source crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: unusable source crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3443,7 +3443,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `_source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]).set_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]).set_crs(<br>        LOCAL_ENGINEERING_CRS, allow_override=True<br>    )` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3463,7 +3463,7 @@ def test_unusable_source_crs_is_rejected() -> None:
 
 ### `test_mutated_source_summary_is_rejected`
 
-**Purpose:** Regression invariant: mutated source summary is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: mutated source summary is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3552,7 +3552,7 @@ def test_mutated_source_summary_is_rejected(field: str, value: object) -> None:
 
 ### `test_source_summary_counts_are_strict_integers`
 
-**Purpose:** Regression invariant: source summary counts are strict integers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source summary counts are strict integers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3637,7 +3637,7 @@ def test_source_summary_counts_are_strict_integers(bad_count: object) -> None:
 
 ### `test_reserved_output_column_collision_is_rejected`
 
-**Purpose:** Regression invariant: reserved output column collision is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: reserved output column collision is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3702,7 +3702,7 @@ def test_reserved_output_column_collision_is_rejected() -> None:
 
 ### `test_inputs_and_all_existing_parcel_fields_are_preserved`
 
-**Purpose:** Regression invariant: inputs and all existing parcel fields are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: inputs and all existing parcel fields are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3795,7 +3795,7 @@ def test_inputs_and_all_existing_parcel_fields_are_preserved() -> None:
 
 ### `test_relations_are_unique_deterministic_and_summaries_agree`
 
-**Purpose:** Regression invariant: relations are unique deterministic and summaries agree. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: relations are unique deterministic and summaries agree. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -3852,7 +3852,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `(<br>            (result.relations["parcel_id"] == "P-B")<br>            & (result.relations["geometry_kind"] == "SURFACE")<br>        ).sum`<br>`result.relations.loc[<br>            (result.relations["parcel_id"] == "P-B")<br>            & (result.relations["geometry_kind"] == "LINE"),<br>            "intersection_length_m",<br>        ].sum` |
+| CRS/geometry/spatial calculation | None directly; scalar comparisons and tabular sums are not geometry operations. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -3897,7 +3897,7 @@ def test_relations_are_unique_deterministic_and_summaries_agree() -> None:
 
 ### `test_result_frames_are_independent_from_mutable_inputs`
 
-**Purpose:** Regression invariant: result frames are independent from mutable inputs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mutates original parcels and the pre-materialization layer frame, then compares saved result.relations; it does not mutate the fresh document-held source frame or every output frame.
 
 **Exact signature**
 
@@ -3970,7 +3970,7 @@ def test_result_frames_are_independent_from_mutable_inputs() -> None:
 
 ### `test_present_empty_optional_layer_is_valid`
 
-**Purpose:** Regression invariant: present empty optional layer is valid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Uses three physical empty source kinds. The spy named unexpected_fid_read counts delegated FID reads and the test requires exactly one, rather than forbidding them.
 
 **Exact signature**
 
@@ -4042,7 +4042,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `frame.drop(columns="LIB_IDPSC")` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -4087,7 +4087,7 @@ def test_present_empty_optional_layer_is_valid(
 
 ### `test_present_empty_optional_layer_is_valid.unexpected_fid_read`
 
-**Purpose:** Implements `unexpected fid read` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `unexpected fid read` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4153,7 +4153,7 @@ def unexpected_fid_read(*args: object, **kwargs: object) -> object:
 
 ### `_contract_result`
 
-**Purpose:** Implements `contract result` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `contract result` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4274,7 +4274,7 @@ def _contract_result() -> tuple[
 
 ### `_source_complete_contract`
 
-**Purpose:** Implements `source complete contract` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `source complete contract` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4572,7 +4572,7 @@ def _two_parcel_source_complete_contract() -> tuple[
 
 ### `_validate_source_complete`
 
-**Purpose:** Implements `validate source complete` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `validate source complete` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4737,7 +4737,7 @@ def _validate_source_complete(
 
 ### `_replace_related_layer`
 
-**Purpose:** Implements `replace related layer` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `replace related layer` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4824,7 +4824,7 @@ def _replace_related_layer(
 
 ### `_without_related_layer`
 
-**Purpose:** Implements `without related layer` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `without related layer` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4901,7 +4901,7 @@ def _without_related_layer(
 
 ### `_refresh_extraction_inventory`
 
-**Purpose:** Implements `refresh extraction inventory` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `refresh extraction inventory` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -4990,7 +4990,7 @@ def _refresh_extraction_inventory(
 
 ### `_replace_layer_reference`
 
-**Purpose:** Implements `replace layer reference` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `replace layer reference` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -5083,7 +5083,7 @@ def _replace_layer_reference(
 
 ### `test_public_normalized_input_contract_validates_step_7d_3_1_result`
 
-**Purpose:** Regression invariant: public normalized input contract validates step 7d 3 1 result. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: public normalized input contract validates step 7d 3 1 result. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5169,7 +5169,7 @@ def test_public_normalized_input_contract_validates_step_7d_3_1_result() -> None
 
 ### `test_public_normalized_input_contract_wraps_malformed_document_context`
 
-**Purpose:** Regression invariant: public normalized input contract wraps malformed document context. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: public normalized input contract wraps malformed document context. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5239,7 +5239,7 @@ def test_public_normalized_input_contract_wraps_malformed_document_context() -> 
 
 ### `test_source_complete_contract_binds_inspected_spatial_inventory`
 
-**Purpose:** Regression invariant: source complete contract binds inspected spatial inventory. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract binds inspected spatial inventory. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5305,7 +5305,7 @@ def test_source_complete_contract_binds_inspected_spatial_inventory() -> None:
 
 ### `test_public_normalized_input_contract_is_exported`
 
-**Purpose:** Regression invariant: public normalized input contract is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: public normalized input contract is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5374,7 +5374,7 @@ def test_public_normalized_input_contract_is_exported() -> None:
 
 ### `test_public_source_validation_hashes_survive_parquet_readback`
 
-**Purpose:** Regression invariant: public source validation hashes survive parquet readback. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: public source validation hashes survive parquet readback. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5468,7 +5468,7 @@ def test_public_source_validation_hashes_survive_parquet_readback(
 
 ### `test_public_normalized_input_contract_rejects_stripped_catalog`
 
-**Purpose:** Regression invariant: public normalized input contract rejects stripped catalog. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: public normalized input contract rejects stripped catalog. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5515,7 +5515,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `result.surface_features.drop(columns="label_raw")` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -5541,7 +5541,7 @@ def test_public_normalized_input_contract_rejects_stripped_catalog() -> None:
 
 ### `test_empty_and_nonempty_catalogs_have_identical_kind_schemas`
 
-**Purpose:** Regression invariant: empty and nonempty catalogs have identical kind schemas. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Direct assertions compare ordered column names only. Other tests and public validators cover dtypes/index/CRS; this case alone does not prove full schema equality.
 
 **Exact signature**
 
@@ -5615,7 +5615,7 @@ def test_empty_and_nonempty_catalogs_have_identical_kind_schemas() -> None:
 
 ### `test_strict_relation_integer_counts_are_enforced`
 
-**Purpose:** Regression invariant: strict relation integer counts are enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** The mutated count column is first cast to object, so the canonical dtype gate can reject before checking the injected scalar. The exception match explicitly allows dtype/schema.
 
 **Exact signature**
 
@@ -5696,7 +5696,7 @@ def test_strict_relation_integer_counts_are_enforced(bad_count: object) -> None:
 
 ### `test_strict_parcel_summary_integer_counts_are_enforced`
 
-**Purpose:** Regression invariant: strict parcel summary integer counts are enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: strict parcel summary integer counts are enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5780,7 +5780,7 @@ def test_strict_parcel_summary_integer_counts_are_enforced(
 
 ### `test_corrupted_relation_semantics_are_rejected`
 
-**Purpose:** Regression invariant: corrupted relation semantics are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Each affected column is first cast to object; failure may be canonical schema rejection rather than the named semantic branch. The separate shared-intrinsic test preserves dtypes and directly exercises 13 semantic cases.
 
 **Exact signature**
 
@@ -5879,7 +5879,7 @@ def test_corrupted_relation_semantics_are_rejected(
 
 ### `test_point_member_relation_semantics_are_exact`
 
-**Purpose:** Regression invariant: point member relation semantics are exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: point member relation semantics are exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -5953,7 +5953,7 @@ def test_point_member_relation_semantics_are_exact() -> None:
 
 ### `test_shared_intrinsic_relation_semantics_reject_every_invalid_case`
 
-**Purpose:** Regression invariant: shared intrinsic relation semantics reject every invalid case. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Directly invokes the shared intrinsic validator on 13 specified invalid combinations. This is not a claim of exhaustive coverage of every possible malformed relation.
 
 **Exact signature**
 
@@ -6022,7 +6022,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `relations["geometry_kind"].eq` |
+| CRS/geometry/spatial calculation | None directly; scalar comparisons and tabular sums are not geometry operations. |
 | External process/environment | None directly present. |
 | In-memory mutation | `relations.loc[surface, "relation_type"] = "INSIDE"`<br>`relations.loc[line, "relation_type"] = "AREA_OVERLAP"`<br>`relations.loc[point, "relation_type"] = "TOUCH_ONLY"`<br>`relations.loc[<br>            surface, ["intersection_area_m2", "parcel_share_pct", "feature_share_pct"]<br>        ] = 0.0`<br>`relations.loc[surface, "relation_type"] = "TOUCH_ONLY"`<br>`relations.loc[line, "intersection_length_m"] = 0.0`<br>`relations.loc[line, "relation_type"] = "TOUCH_ONLY"`<br>`relations.loc[point, "point_members_inside_count"] = 0`<br>`relations.loc[point, "relation_type"] = "BOUNDARY_TOUCH"`<br>`relations.loc[point, "point_members_boundary_count"] = 1`<br>`relations.loc[surface, "intersection_area_m2"] = (<br>            float(relations.loc[surface, "feature_area_m2"]) + 1.0<br>        )`<br>`relations.loc[surface, "parcel_share_pct"] = 42.0`<br>`relations.loc[surface, "feature_share_pct"] = float("inf")`<br>`relations.loc[surface, "intersection_area_m2"] = -1.0` |
 | Direct parameter mutation | None directly present. |
@@ -6079,7 +6079,7 @@ def test_shared_intrinsic_relation_semantics_reject_every_invalid_case(
 
 ### `test_relation_must_match_feature_catalog`
 
-**Purpose:** Regression invariant: relation must match feature catalog. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: relation must match feature catalog. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6178,7 +6178,7 @@ def test_relation_must_match_feature_catalog(
 
 ### `test_feature_ids_are_globally_unique_across_catalogs`
 
-**Purpose:** Regression invariant: feature ids are globally unique across catalogs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assigns a surface planning ID to the point catalog. Deterministic logical-layer identity can reject before the later global uniqueness gate; both are permitted by the match.
 
 **Exact signature**
 
@@ -6252,7 +6252,7 @@ def test_feature_ids_are_globally_unique_across_catalogs() -> None:
 
 ### `test_same_source_id_is_allowed_in_distinct_logical_layers`
 
-**Purpose:** Regression invariant: same source id is allowed in distinct logical layers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: same source id is allowed in distinct logical layers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6336,7 +6336,7 @@ def test_same_source_id_is_allowed_in_distinct_logical_layers() -> None:
 
 ### `test_corrupted_parcel_summary_is_rejected`
 
-**Purpose:** Regression invariant: corrupted parcel summary is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: corrupted parcel summary is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6408,7 +6408,7 @@ def test_corrupted_parcel_summary_is_rejected() -> None:
 
 ### `test_corrupted_surface_union_contract_is_rejected`
 
-**Purpose:** Regression invariant: corrupted surface union contract is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: corrupted surface union contract is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6480,7 +6480,7 @@ def test_corrupted_surface_union_contract_is_rejected() -> None:
 
 ### `test_geospatial_operation_failure_is_controlled_and_chained`
 
-**Purpose:** Regression invariant: geospatial operation failure is controlled and chained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: geospatial operation failure is controlled and chained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6564,7 +6564,7 @@ def test_geospatial_operation_failure_is_controlled_and_chained(
 
 ### `test_geospatial_operation_failure_is_controlled_and_chained.fail_join`
 
-**Purpose:** Implements `fail join` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `fail join` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -6626,7 +6626,7 @@ def fail_join(*args: object, **kwargs: object) -> object:
 
 ### `test_source_complete_contract_rejects_unknown_relation_parcel`
 
-**Purpose:** Regression invariant: source complete contract rejects unknown relation parcel. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects unknown relation parcel. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6695,7 +6695,7 @@ def test_source_complete_contract_rejects_unknown_relation_parcel() -> None:
 
 ### `test_source_complete_contract_rejects_coherent_parcel_metric_mutation`
 
-**Purpose:** Regression invariant: source complete contract rejects coherent parcel metric mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects coherent parcel metric mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6767,7 +6767,7 @@ def test_source_complete_contract_rejects_coherent_parcel_metric_mutation() -> N
 
 ### `test_source_complete_contract_rejects_same_area_wrong_parcel_relation`
 
-**Purpose:** Regression invariant: source complete contract rejects same area wrong parcel relation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects same area wrong parcel relation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6836,7 +6836,7 @@ def test_source_complete_contract_rejects_same_area_wrong_parcel_relation() -> N
 
 ### `test_source_complete_contract_rejects_missing_expected_relation`
 
-**Purpose:** Regression invariant: source complete contract rejects missing expected relation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Drops the first relation without resetting index. Canonical zero-based RangeIndex validation may reject before the reconstructed count comparison.
 
 **Exact signature**
 
@@ -6903,7 +6903,7 @@ def test_source_complete_contract_rejects_missing_expected_relation() -> None:
 
 ### `test_source_complete_contract_rejects_extra_geometrically_false_relation`
 
-**Purpose:** Regression invariant: source complete contract rejects extra geometrically false relation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects extra geometrically false relation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -6974,7 +6974,7 @@ def test_source_complete_contract_rejects_extra_geometrically_false_relation() -
 
 ### `test_source_complete_contract_rejects_reordered_relations`
 
-**Purpose:** Regression invariant: source complete contract rejects reordered relations. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects reordered relations. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7042,7 +7042,7 @@ def test_source_complete_contract_rejects_reordered_relations() -> None:
 
 ### `test_source_complete_contract_rejects_noncanonical_relation_dtype`
 
-**Purpose:** Regression invariant: source complete contract rejects noncanonical relation dtype. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects noncanonical relation dtype. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7130,7 +7130,7 @@ def test_source_complete_contract_rejects_noncanonical_relation_dtype(
 
 ### `test_source_complete_contract_rejects_relation_index_name_change`
 
-**Purpose:** Regression invariant: source complete contract rejects relation index name change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects relation index name change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7201,7 +7201,7 @@ def test_source_complete_contract_rejects_relation_index_name_change() -> None:
 
 ### `test_source_complete_contract_rejects_relation_index_dtype_change`
 
-**Purpose:** Regression invariant: source complete contract rejects relation index dtype change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects relation index dtype change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7280,7 +7280,7 @@ def test_source_complete_contract_rejects_relation_index_dtype_change() -> None:
 
 ### `test_source_complete_contract_rejects_relation_index_class_change`
 
-**Purpose:** Regression invariant: source complete contract rejects relation index class change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects relation index class change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7362,7 +7362,7 @@ def test_source_complete_contract_rejects_relation_index_class_change() -> None:
 
 ### `test_expected_relation_hash_binds_dtype_and_index_metadata`
 
-**Purpose:** Regression invariant: expected relation hash binds dtype and index metadata. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: expected relation hash binds dtype and index metadata. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7460,7 +7460,7 @@ def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
 
 ### `test_source_complete_contract_rejects_coherent_but_wrong_line_metric`
 
-**Purpose:** Regression invariant: source complete contract rejects coherent but wrong line metric. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects coherent but wrong line metric. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7531,7 +7531,7 @@ def test_source_complete_contract_rejects_coherent_but_wrong_line_metric() -> No
 
 ### `test_source_complete_contract_accepts_complete_parcel_output_summaries`
 
-**Purpose:** Regression invariant: source complete contract accepts complete parcel output summaries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract accepts complete parcel output summaries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7591,7 +7591,7 @@ def test_source_complete_contract_accepts_complete_parcel_output_summaries() -> 
 
 ### `test_source_complete_contract_rejects_partial_parcel_output_columns`
 
-**Purpose:** Regression invariant: source complete contract rejects partial parcel output columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects partial parcel output columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7658,7 +7658,7 @@ def test_source_complete_contract_rejects_partial_parcel_output_columns() -> Non
 
 ### `test_source_complete_contract_rejects_corrupted_complete_parcel_summaries`
 
-**Purpose:** Regression invariant: source complete contract rejects corrupted complete parcel summaries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects corrupted complete parcel summaries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7725,7 +7725,7 @@ def test_source_complete_contract_rejects_corrupted_complete_parcel_summaries() 
 
 ### `test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype`
 
-**Purpose:** Regression invariant: source complete contract rejects noncanonical parcel summary dtype. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects noncanonical parcel summary dtype. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7795,7 +7795,7 @@ def test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype() ->
 
 ### `test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact`
 
-**Purpose:** Regression invariant: source complete contract rejects each corrupted parcel summary fact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects each corrupted parcel summary fact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7885,7 +7885,7 @@ def test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact(
 
 ### `test_source_complete_contract_rejects_duplicate_parcel_ids`
 
-**Purpose:** Regression invariant: source complete contract rejects duplicate parcel ids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects duplicate parcel ids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -7953,7 +7953,7 @@ def test_source_complete_contract_rejects_duplicate_parcel_ids() -> None:
 
 ### `test_source_complete_contract_rejects_invalid_parcel_geometry`
 
-**Purpose:** Regression invariant: source complete contract rejects invalid parcel geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects invalid parcel geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8023,7 +8023,7 @@ def test_source_complete_contract_rejects_invalid_parcel_geometry() -> None:
 
 ### `test_source_complete_contract_accepts_epsg4326_parcels`
 
-**Purpose:** Regression invariant: source complete contract accepts epsg4326 parcels. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract accepts epsg4326 parcels. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8087,7 +8087,7 @@ def test_source_complete_contract_accepts_epsg4326_parcels() -> None:
 
 ### `test_source_document_reference_allows_one_archive_zip_suffix`
 
-**Purpose:** Regression invariant: source document reference allows one archive zip suffix. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source document reference allows one archive zip suffix. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8172,7 +8172,7 @@ def test_source_document_reference_allows_one_archive_zip_suffix() -> None:
 
 ### `test_source_complete_contract_rejects_coherently_renamed_feature_identity`
 
-**Purpose:** Regression invariant: source complete contract rejects coherently renamed feature identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects coherently renamed feature identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8260,7 +8260,7 @@ def test_source_complete_contract_rejects_coherently_renamed_feature_identity(
 
 ### `test_source_complete_contract_rejects_independent_gpu_lineage_mutation`
 
-**Purpose:** Regression invariant: source complete contract rejects independent gpu lineage mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects independent gpu lineage mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8357,7 +8357,7 @@ def test_source_complete_contract_rejects_independent_gpu_lineage_mutation(
 
 ### `test_source_complete_contract_binds_gpu_document_context`
 
-**Purpose:** Regression invariant: source complete contract binds gpu document context. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract binds gpu document context. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8453,7 +8453,7 @@ def test_source_complete_contract_binds_gpu_document_context(
 
 ### `test_source_complete_contract_reloads_and_compares_source_catalog`
 
-**Purpose:** Regression invariant: source complete contract reloads and compares source catalog. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Changes the caller-held source frame and its summary, leaving actual GPKG bytes unchanged; physical source reload rejects the mismatch. Separate tests rewrite real files.
 
 **Exact signature**
 
@@ -8558,7 +8558,7 @@ def test_source_complete_contract_reloads_and_compares_source_catalog(
 
 ### `test_source_complete_contract_rejects_catalog_for_absent_gpu_layer`
 
-**Purpose:** Regression invariant: source complete contract rejects catalog for absent gpu layer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects catalog for absent gpu layer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8624,7 +8624,7 @@ def test_source_complete_contract_rejects_catalog_for_absent_gpu_layer() -> None
 
 ### `test_three_dimensional_normalized_catalogs_are_rejected`
 
-**Purpose:** Regression invariant: three dimensional normalized catalogs are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: three dimensional normalized catalogs are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8717,7 +8717,7 @@ def test_three_dimensional_normalized_catalogs_are_rejected(
 
 ### `test_two_dimensional_normalized_catalogs_remain_valid`
 
-**Purpose:** Regression invariant: two dimensional normalized catalogs remain valid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: two dimensional normalized catalogs remain valid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8786,7 +8786,7 @@ def test_two_dimensional_normalized_catalogs_remain_valid() -> None:
 
 ### `test_gpu_source_z_is_normalized_to_canonical_2d`
 
-**Purpose:** Regression invariant: gpu source z is normalized to canonical 2d. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: gpu source z is normalized to canonical 2d. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8883,7 +8883,7 @@ def test_gpu_source_z_is_normalized_to_canonical_2d(
 
 ### `test_source_complete_contract_rejects_tampered_gpkg_inventory_hash`
 
-**Purpose:** Regression invariant: source complete contract rejects tampered gpkg inventory hash. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects tampered gpkg inventory hash. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -8929,7 +8929,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `layer.reference.dataset_path.relative_to(<br>        planning_document.extraction.extraction_root<br>    ).as_posix` |
+| Filesystem/archive write or publication | None directly; relative_to/as_posix derives a path string without writing. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -8963,7 +8963,7 @@ def test_source_complete_contract_rejects_tampered_gpkg_inventory_hash() -> None
 
 ### `test_source_complete_contract_rejects_tampered_gpkg_size`
 
-**Purpose:** Regression invariant: source complete contract rejects tampered gpkg size. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects tampered gpkg size. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9009,7 +9009,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `layer.reference.dataset_path.relative_to(<br>        planning_document.extraction.extraction_root<br>    ).as_posix` |
+| Filesystem/archive write or publication | None directly; relative_to/as_posix derives a path string without writing. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9045,7 +9045,7 @@ def test_source_complete_contract_rejects_tampered_gpkg_size() -> None:
 
 ### `test_source_complete_contract_rejects_changed_gpkg_bytes`
 
-**Purpose:** Regression invariant: source complete contract rejects changed gpkg bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects changed gpkg bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9088,8 +9088,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.open` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive read or metadata access | No direct byte read: open uses append mode; public validation rereads/hashes the file. |
+| Filesystem/archive write or publication | path.open("ab") and stream.write append tamper bytes to the synthetic GPKG. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9114,7 +9114,7 @@ def test_source_complete_contract_rejects_changed_gpkg_bytes() -> None:
 
 ### `test_source_complete_contract_rejects_same_size_gpkg_byte_tamper`
 
-**Purpose:** Regression invariant: source complete contract rejects same size gpkg byte tamper. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects same size gpkg byte tamper. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9185,7 +9185,7 @@ def test_source_complete_contract_rejects_same_size_gpkg_byte_tamper() -> None:
 
 ### `test_source_complete_contract_rejects_coherently_changed_physical_gpkg`
 
-**Purpose:** Regression invariant: source complete contract rejects coherently changed physical gpkg. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects coherently changed physical gpkg. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9230,7 +9230,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | changed_source.to_file rewrites the GPKG; refreshed inventory helper rewrites its extraction marker. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9263,7 +9263,7 @@ def test_source_complete_contract_rejects_coherently_changed_physical_gpkg() -> 
 
 ### `test_source_complete_contract_rejects_changed_physical_gpkg_geometry`
 
-**Purpose:** Regression invariant: source complete contract rejects changed physical gpkg geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects changed physical gpkg geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9309,7 +9309,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | changed_source.to_file rewrites geometry in the GPKG; refreshed inventory helper rewrites its extraction marker. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9342,7 +9342,7 @@ def test_source_complete_contract_rejects_changed_physical_gpkg_geometry() -> No
 
 ### `test_source_complete_contract_rejects_reordered_physical_gpkg_rows`
 
-**Purpose:** Regression invariant: source complete contract rejects reordered physical gpkg rows. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects reordered physical gpkg rows. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9392,7 +9392,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | to_file rewrites reversed source rows; refreshed inventory helper rewrites its extraction marker. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9438,7 +9438,7 @@ def test_source_complete_contract_rejects_reordered_physical_gpkg_rows() -> None
 
 ### `test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk`
 
-**Purpose:** Regression invariant: source complete contract rejects loaded source attrs not on disk. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects loaded source attrs not on disk. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9515,7 +9515,7 @@ def test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk() -> N
 
 ### `test_source_complete_contract_rejects_dataset_outside_extraction_root`
 
-**Purpose:** Regression invariant: source complete contract rejects dataset outside extraction root. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects dataset outside extraction root. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -9593,7 +9593,7 @@ def test_source_complete_contract_rejects_dataset_outside_extraction_root(
 
 ### `test_source_complete_contract_rejects_linked_spatial_dataset`
 
-**Purpose:** Regression invariant: source complete contract rejects linked spatial dataset. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Injects a True result into the link/junction detector for the actual dataset path; no real filesystem link is created.
 
 **Exact signature**
 
@@ -9675,7 +9675,7 @@ def test_source_complete_contract_rejects_linked_spatial_dataset(
 
 ### `test_source_complete_contract_rejects_linked_spatial_dataset.synthetic_link`
 
-**Purpose:** Implements `synthetic link` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `synthetic link` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -9736,7 +9736,7 @@ def synthetic_link(path: Path) -> bool:
 
 ### `_shapefile_source_complete_contract`
 
-**Purpose:** Implements `shapefile source complete contract` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `shapefile source complete contract` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -9796,7 +9796,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `gpd.read_file` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | frame.to_file writes synthetic Shapefile components. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9837,7 +9837,7 @@ def _shapefile_source_complete_contract(
 
 ### `_shapefile_ogr_fid_source_complete_contract`
 
-**Purpose:** Implements `shapefile ogr fid source complete contract` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `shapefile ogr fid source complete contract` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -9892,11 +9892,11 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `gpd.read_file` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | frame.to_file writes synthetic Shapefile components. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_source_frame(<br>        "prescription_surface",<br>        [_rectangle(0, 0, 5, 10), _rectangle(5, 0, 10, 10)],<br>        ids=["DROP-ONE", "DROP-TWO"],<br>        type_codes=["07", "07"],<br>        subtype_codes=["04", "04"],<br>    ).drop(columns="LIB_IDPSC")` |
+| In-memory mutation | Non-inplace drop/set_crs constructs another frame; no receiver mutation through these calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -9933,7 +9933,7 @@ def _shapefile_ogr_fid_source_complete_contract(
 
 ### `test_source_complete_contract_binds_every_shapefile_sidecar`
 
-**Purpose:** Regression invariant: source complete contract binds every shapefile sidecar. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Removes the .prj inventory record in this fixture; together with core-member and .cpg-byte tests this covers selected sidecar failures, not every possible extension.
 
 **Exact signature**
 
@@ -10025,7 +10025,7 @@ def test_source_complete_contract_binds_every_shapefile_sidecar(
 
 ### `test_source_complete_contract_rejects_changed_or_reordered_ogr_fids`
 
-**Purpose:** Regression invariant: source complete contract rejects changed or reordered ogr fids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Performs a real physical reread but substitutes its returned FID index for fid_as_index requests. Does not rewrite stored physical FIDs.
 
 **Exact signature**
 
@@ -10118,7 +10118,7 @@ def test_source_complete_contract_rejects_changed_or_reordered_ogr_fids(
 
 ### `test_source_complete_contract_rejects_changed_or_reordered_ogr_fids.changed_fid_read`
 
-**Purpose:** Implements `changed fid read` within the file role: Provides complete unit and regression coverage for the `enrich_planning_features` contracts exercised in this file.
+**Purpose:** Implements `changed fid read` within the file role: Exercises synthetic parcel-feature geometry, canonical schemas, source-complete validation, integrity hashes and GPU physical-file tampering contracts.
 
 **Exact signature**
 
@@ -10185,7 +10185,7 @@ def changed_fid_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 
 ### `test_source_complete_contract_requires_shapefile_core_members`
 
-**Purpose:** Regression invariant: source complete contract requires shapefile core members. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract requires shapefile core members. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10259,7 +10259,7 @@ def test_source_complete_contract_requires_shapefile_core_members(
 
 ### `test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes`
 
-**Purpose:** Regression invariant: source complete contract rejects changed shapefile sidecar bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: source complete contract rejects changed shapefile sidecar bytes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10337,7 +10337,7 @@ def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
 
 ### `test_dotted_sibling_dataset_is_not_a_sidecar_and_makes_role_ambiguous`
 
-**Purpose:** Regression invariant: dotted sibling dataset is not a sidecar and makes role ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: dotted sibling dataset is not a sidecar and makes role ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10388,9 +10388,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | GeoDataFrame.to_file writes a separate synthetic .archive.shp dataset; refreshed inventory helper rewrites its extraction marker. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `gpd.GeoDataFrame(<br>        {"sibling": [1]},<br>        geometry=[_rectangle(20, 20, 21, 21)],<br>        crs="EPSG:2154",<br>    ).to_file` |
+| CRS/geometry/spatial calculation | Constructs a synthetic polygon/GeoDataFrame; to_file is a filesystem write, not a reprojection. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -10424,7 +10424,7 @@ def test_dotted_sibling_dataset_is_not_a_sidecar_and_makes_role_ambiguous(
 
 ### `test_batch_gpu_revalidation_rejects_malformed_layer_items`
 
-**Purpose:** Regression invariant: batch gpu revalidation rejects malformed layer items. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: batch gpu revalidation rejects malformed layer items. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10499,7 +10499,7 @@ def test_batch_gpu_revalidation_rejects_malformed_layer_items(
 
 ### `test_batch_gpu_revalidation_rejects_malformed_planning_document`
 
-**Purpose:** Regression invariant: batch gpu revalidation rejects malformed planning document. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: batch gpu revalidation rejects malformed planning document. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10565,7 +10565,7 @@ def test_batch_gpu_revalidation_rejects_malformed_planning_document() -> None:
 
 ### `test_batch_gpu_revalidation_rejects_duplicate_logical_name`
 
-**Purpose:** Regression invariant: batch gpu revalidation rejects duplicate logical name. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: batch gpu revalidation rejects duplicate logical name. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10633,7 +10633,7 @@ def test_batch_gpu_revalidation_rejects_duplicate_logical_name() -> None:
 
 ### `test_common_planning_contracts_import_without_initializing_stages`
 
-**Purpose:** Regression invariant: common planning contracts import without initializing stages. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercises the named regression case: common planning contracts import without initializing stages. Exact mutation, invocation, expected exception, and assertions are reproduced below.
 
 **Exact signature**
 
@@ -10729,108 +10729,112 @@ def test_common_planning_contracts_import_without_initializing_stages(
 - Test functions: **98**.
 - Pytest fixtures (decorator-proven): **0**.
 
+Fixture helpers create real synthetic GPKG/Shapefile bytes and schema-2 extraction markers with a fabricated archive envelope (ARCHIVE_SHA is a repeated character), not downloaded official ZIPs. Some roots use tempfile.mkdtemp rather than tmp_path and this file declares no cleanup fixture. Physical-file mutation tests are distinct from patched reader/link-detector responses. Parquet readback and subprocess import isolation are real local I/O. No production acquisition, real-data audit or test execution was performed for this documentation review.
+
+The counts below count Python test definitions and AST assert statements, not parameterized executions; pytest.raises and assertion helper calls are separate evidence.
+
 ### Per-test regression index
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_only_high_level_api_is_exported` | none | none | 6 | Proves only high level api is exported using the exact source reproduced in section 7. |
-| `test_result_is_frozen` | none | pytest.raises(FrozenInstanceError) | 0 | Proves result is frozen using the exact source reproduced in section 7. |
-| `test_surface_full_overlap_normalizes_raw_values_and_lineage` | none | none | 29 | Proves surface full overlap normalizes raw values and lineage using the exact source reproduced in section 7. |
-| `test_surface_partial_and_touch_relations` | none | none | 5 | Proves surface partial and touch relations using the exact source reproduced in section 7. |
-| `test_overlapping_surface_union_is_not_double_counted` | none | none | 5 | Proves overlapping surface union is not double counted using the exact source reproduced in section 7. |
-| `test_polygon_and_multipolygon_surfaces` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        _rectangle(0, 0, 10, 10),<br>        MultiPolygon([_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]),<br>    ],<br>) | none | 2 | Proves polygon and multipolygon surfaces using the exact source reproduced in section 7. |
-| `test_line_crossing_and_partly_inside` | none | none | 6 | Proves line crossing and partly inside using the exact source reproduced in section 7. |
-| `test_line_boundary_touch_is_zero_length` | none | none | 3 | Proves line boundary touch is zero length using the exact source reproduced in section 7. |
-| `test_linestring_and_multilinestring` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        LineString([(-1, 5), (11, 5)]),<br>        MultiLineString([[(-1, 2), (11, 2)], [(-1, 8), (11, 8)]]),<br>    ],<br>) | none | 1 | Proves linestring and multilinestring using the exact source reproduced in section 7. |
-| `test_points_inside_boundary_outside_and_multipoint` | none | none | 9 | Proves points inside boundary outside and multipoint using the exact source reproduced in section 7. |
-| `test_missing_optional_layer_families_return_stable_empty_catalogs` | none | none | 7 | Proves missing optional layer families return stable empty catalogs using the exact source reproduced in section 7. |
-| `test_optional_raw_source_fields_are_not_fabricated` | none | none | 1 | Proves optional raw source fields are not fabricated using the exact source reproduced in section 7. |
-| `test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` | none | none | 3 | Proves epsg4326 parcels are measured in lambert93 but preserved using the exact source reproduced in section 7. |
-| `test_invalid_parcel_ids_are_rejected` | pytest.mark.parametrize("bad_id", [None, "", "   ", " X", "X ", 7]) | pytest.raises(PlanningFeaturesError, match="parcel_id") | 0 | Proves invalid parcel ids are rejected using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_ids_are_rejected` | none | pytest.raises(PlanningFeaturesError, match="unique") | 0 | Proves duplicate parcel ids are rejected using the exact source reproduced in section 7. |
-| `test_duplicate_source_ids_are_rejected` | none | pytest.raises(PlanningFeaturesError, match="unique") | 0 | Proves duplicate source ids are rejected using the exact source reproduced in section 7. |
-| `test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` | none | none | 4 | Proves prescription surface uses validated source ogr fid when cnig id absent using the exact source reproduced in section 7. |
-| `test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` | none | none | 4 | Proves geopackage prescription surface uses sealed ogr fid fallback using the exact source reproduced in section 7. |
-| `test_idurba_mismatch_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="IDURBA") | 0 | Proves idurba mismatch is rejected using the exact source reproduced in section 7. |
-| `test_missing_required_source_fields_fail` | pytest.mark.parametrize("missing", ["TYPEPSC", "STYPEPSC", "IDURBA", "LIB_IDPSC"]) | pytest.raises(PlanningFeaturesError, match=missing) | 0 | Proves missing required source fields fail using the exact source reproduced in section 7. |
-| `test_wrong_geometry_kind_is_rejected` | pytest.mark.parametrize(<br>    ("logical", "geometry"),<br>    [<br>        ("prescription_surface", LineString([(0, 0), (1, 1)])),<br>        ("prescription_line", Point(1, 1)),<br>        ("prescription_point", LineString([(0, 0), (1, 1)])),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="geometry") | 0 | Proves wrong geometry kind is rejected using the exact source reproduced in section 7. |
-| `test_invalid_surface_geometry_is_rejected_without_repair` | none | pytest.raises(PlanningFeaturesError, match="valid") | 0 | Proves invalid surface geometry is rejected without repair using the exact source reproduced in section 7. |
-| `test_null_or_empty_source_geometry_is_rejected` | pytest.mark.parametrize("geometry", [None, Polygon()]) | pytest.raises(PlanningFeaturesError, match="geometry") | 0 | Proves null or empty source geometry is rejected using the exact source reproduced in section 7. |
-| `test_missing_crs_is_rejected` | pytest.mark.parametrize("target", ["parcel", "source"]) | pytest.raises(PlanningFeaturesError, match="CRS\|physical revalidation") | 0 | Proves missing crs is rejected using the exact source reproduced in section 7. |
-| `test_unusable_source_crs_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="CRS") | 0 | Proves unusable source crs is rejected using the exact source reproduced in section 7. |
-| `test_mutated_source_summary_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_document_id", "other"),<br>        ("source_archive_sha256", "b" * 64),<br>        ("source_layer", "other"),<br>        ("feature_count", 99),<br>        ("geometry_types", (("Point", 1),)),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="summary\|physical revalidation") | 0 | Proves mutated source summary is rejected using the exact source reproduced in section 7. |
-| `test_source_summary_counts_are_strict_integers` | pytest.mark.parametrize("bad_count", [True, -1, 1.5, float("inf"), "1"]) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="integer count\|non-negative\|summary\|physical revalidation",<br>    ) | 0 | Proves source summary counts are strict integers using the exact source reproduced in section 7. |
-| `test_reserved_output_column_collision_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="output columns") | 0 | Proves reserved output column collision is rejected using the exact source reproduced in section 7. |
-| `test_inputs_and_all_existing_parcel_fields_are_preserved` | none | none | 4 | Proves inputs and all existing parcel fields are preserved using the exact source reproduced in section 7. |
-| `test_relations_are_unique_deterministic_and_summaries_agree` | none | none | 4 | Proves relations are unique deterministic and summaries agree using the exact source reproduced in section 7. |
-| `test_result_frames_are_independent_from_mutable_inputs` | none | none | 0 | Proves result frames are independent from mutable inputs using the exact source reproduced in section 7. |
-| `test_present_empty_optional_layer_is_valid` | pytest.mark.parametrize(<br>    ("logical", "catalog_name"),<br>    [<br>        ("prescription_surface", "surface_features"),<br>        ("prescription_line", "line_features"),<br>        ("prescription_point", "point_features"),<br>    ],<br>) | none | 6 | Proves present empty optional layer is valid using the exact source reproduced in section 7. |
-| `test_public_normalized_input_contract_validates_step_7d_3_1_result` | none | none | 5 | Proves public normalized input contract validates step 7d 3 1 result using the exact source reproduced in section 7. |
-| `test_public_normalized_input_contract_wraps_malformed_document_context` | none | pytest.raises(PlanningFeaturesError) | 1 | Proves public normalized input contract wraps malformed document context using the exact source reproduced in section 7. |
-| `test_source_complete_contract_binds_inspected_spatial_inventory` | none | pytest.raises(PlanningFeaturesError, match="inventory\|reference") | 0 | Proves source complete contract binds inspected spatial inventory using the exact source reproduced in section 7. |
-| `test_public_normalized_input_contract_is_exported` | none | none | 4 | Proves public normalized input contract is exported using the exact source reproduced in section 7. |
-| `test_public_source_validation_hashes_survive_parquet_readback` | none | none | 1 | Proves public source validation hashes survive parquet readback using the exact source reproduced in section 7. |
-| `test_public_normalized_input_contract_rejects_stripped_catalog` | none | pytest.raises(PlanningFeaturesError, match="schema\|label_raw") | 0 | Proves public normalized input contract rejects stripped catalog using the exact source reproduced in section 7. |
-| `test_empty_and_nonempty_catalogs_have_identical_kind_schemas` | none | none | 1 | Proves empty and nonempty catalogs have identical kind schemas using the exact source reproduced in section 7. |
-| `test_strict_relation_integer_counts_are_enforced` | pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True]) | pytest.raises(<br>        PlanningFeaturesError, match="integer count\|non-negative\|dtype\|schema"<br>    ) | 0 | Proves strict relation integer counts are enforced using the exact source reproduced in section 7. |
-| `test_strict_parcel_summary_integer_counts_are_enforced` | pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True]) | pytest.raises(PlanningFeaturesError, match="integer count\|non-negative") | 0 | Proves strict parcel summary integer counts are enforced using the exact source reproduced in section 7. |
-| `test_corrupted_relation_semantics_are_rejected` | pytest.mark.parametrize(<br>    ("kind", "column", "value"),<br>    [<br>        ("SURFACE", "relation_type", "TOUCH_ONLY"),<br>        ("SURFACE", "parcel_share_pct", 42.0),<br>        ("SURFACE", "intersection_area_m2", None),<br>        ("SURFACE", "source_line_length_m", 0.0),<br>        ("LINE", "relation_type", "TOUCH_ONLY"),<br>        ("LINE", "intersection_length_m", 999.0),<br>        ("POINT", "relation_type", "BOUNDARY_TOUCH"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError) | 0 | Proves corrupted relation semantics are rejected using the exact source reproduced in section 7. |
-| `test_point_member_relation_semantics_are_exact` | none | pytest.raises(PlanningFeaturesError, match="relation type") | 0 | Proves point member relation semantics are exact using the exact source reproduced in section 7. |
-| `test_shared_intrinsic_relation_semantics_reject_every_invalid_case` | pytest.mark.parametrize(<br>    "case",<br>    [<br>        "surface-inside",<br>        "line-area",<br>        "point-touch",<br>        "area-zero",<br>        "surface-touch-positive",<br>        "length-zero",<br>        "line-touch-positive",<br>        "inside-zero",<br>        "boundary-with-inside",<br>        "area-exceeds-feature",<br>        "share-inconsistent",<br>        "non-finite",<br>        "negative",<br>    ],<br>) | pytest.raises((TypeError, ValueError)) | 0 | Proves shared intrinsic relation semantics reject every invalid case using the exact source reproduced in section 7. |
-| `test_relation_must_match_feature_catalog` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("source_identity_kind", "NOT_A_KIND"),<br>        ("source_identity_field", "WRONG_FIELD"),<br>        ("feature_family", "INFORMATION"),<br>        ("geometry_kind", "LINE"),<br>        ("type_code_raw", "MUTATED"),<br>        ("source_archive_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="catalog\|geometry kind\|LINE relation\|unrelated metric",<br>    ) | 0 | Proves relation must match feature catalog using the exact source reproduced in section 7. |
-| `test_feature_ids_are_globally_unique_across_catalogs` | none | pytest.raises(PlanningFeaturesError, match="globally unique\|deterministic") | 0 | Proves feature ids are globally unique across catalogs using the exact source reproduced in section 7. |
-| `test_same_source_id_is_allowed_in_distinct_logical_layers` | none | none | 2 | Proves same source id is allowed in distinct logical layers using the exact source reproduced in section 7. |
-| `test_corrupted_parcel_summary_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="inconsistent with relations") | 0 | Proves corrupted parcel summary is rejected using the exact source reproduced in section 7. |
-| `test_corrupted_surface_union_contract_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="union") | 0 | Proves corrupted surface union contract is rejected using the exact source reproduced in section 7. |
-| `test_geospatial_operation_failure_is_controlled_and_chained` | none | pytest.raises(PlanningFeaturesError, match="spatial join") | 1 | Proves geospatial operation failure is controlled and chained using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_unknown_relation_parcel` | none | pytest.raises(PlanningFeaturesError, match="parcel\|source") | 0 | Proves source complete contract rejects unknown relation parcel using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_coherent_parcel_metric_mutation` | none | pytest.raises(PlanningFeaturesError, match="parcel\|metric\|source") | 0 | Proves source complete contract rejects coherent parcel metric mutation using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_same_area_wrong_parcel_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|parcel\|rebuilt\|source") | 0 | Proves source complete contract rejects same area wrong parcel relation using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_missing_expected_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|rebuilt\|source") | 0 | Proves source complete contract rejects missing expected relation using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_extra_geometrically_false_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|rebuilt\|source") | 0 | Proves source complete contract rejects extra geometrically false relation using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_reordered_relations` | none | pytest.raises(PlanningFeaturesError, match="relation\|order\|rebuilt") | 0 | Proves source complete contract rejects reordered relations using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_noncanonical_relation_dtype` | pytest.mark.parametrize(<br>    ("column", "dtype"),<br>    [<br>        ("intersection_area_m2", "object"),<br>        ("point_member_count", "object"),<br>        ("relation_type", "category"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="schema\|dtype\|relation") | 0 | Proves source complete contract rejects noncanonical relation dtype using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_relation_index_name_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 0 | Proves source complete contract rejects relation index name change using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_relation_index_dtype_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 1 | Proves source complete contract rejects relation index dtype change using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_relation_index_class_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 2 | Proves source complete contract rejects relation index class change using the exact source reproduced in section 7. |
-| `test_expected_relation_hash_binds_dtype_and_index_metadata` | none | none | 4 | Proves expected relation hash binds dtype and index metadata using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_coherent_but_wrong_line_metric` | none | pytest.raises(PlanningFeaturesError, match="relation\|metric\|rebuilt") | 0 | Proves source complete contract rejects coherent but wrong line metric using the exact source reproduced in section 7. |
-| `test_source_complete_contract_accepts_complete_parcel_output_summaries` | none | none | 0 | Proves source complete contract accepts complete parcel output summaries using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_partial_parcel_output_columns` | none | pytest.raises(PlanningFeaturesError, match="[Pp]arcel\|output\|summary\|columns") | 0 | Proves source complete contract rejects partial parcel output columns using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` | none | pytest.raises(PlanningFeaturesError, match="parcel\|summary\|relation") | 0 | Proves source complete contract rejects corrupted complete parcel summaries using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` | none | pytest.raises(PlanningFeaturesError, match="parcel\|schema\|dtype\|summary") | 0 | Proves source complete contract rejects noncanonical parcel summary dtype using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("planning_feature_document_id", "other-document"),<br>        ("planning_feature_archive_sha256", "f" * 64),<br>        ("planning_surface_covered_union_area_m2", 50.0),<br>        ("planning_surface_covered_pct", 50.0),<br>        ("planning_line_intersection_length_sum_m", 5.0),<br>        ("planning_point_inside_count", 0),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="parcel\|summary\|relation\|lineage\|document\|archive\|union\|percentage",<br>    ) | 0 | Proves source complete contract rejects each corrupted parcel summary fact using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_duplicate_parcel_ids` | none | pytest.raises(PlanningFeaturesError, match="parcel_id\|unique") | 0 | Proves source complete contract rejects duplicate parcel ids using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_invalid_parcel_geometry` | none | pytest.raises(PlanningFeaturesError, match="valid\|geometry") | 0 | Proves source complete contract rejects invalid parcel geometry using the exact source reproduced in section 7. |
-| `test_source_complete_contract_accepts_epsg4326_parcels` | none | none | 0 | Proves source complete contract accepts epsg4326 parcels using the exact source reproduced in section 7. |
-| `test_source_document_reference_allows_one_archive_zip_suffix` | none | none | 2 | Proves source document reference allows one archive zip suffix using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_coherently_renamed_feature_identity` | pytest.mark.parametrize(<br>    "identity_column", ["planning_feature_id", "source_feature_id"]<br>) | pytest.raises(PlanningFeaturesError, match="source\|identity\|rebuilt\|catalog") | 0 | Proves source complete contract rejects coherently renamed feature identity using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_independent_gpu_lineage_mutation` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("source_provider", "Another provider"),<br>        ("source_portal", "https://example.invalid"),<br>        ("source_commune_code", "99999"),<br>        ("source_document_type", "CC"),<br>        ("source_archive_name", "OTHER_ARCHIVE"),<br>        ("source_document_reference_raw", "OTHER_ARCHIVE"),<br>        ("source_layer", "OTHER_SOURCE_LAYER"),<br>        ("source_crs", "EPSG:4326"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="source\|lineage\|catalog\|rebuilt") | 0 | Proves source complete contract rejects independent gpu lineage mutation using the exact source reproduced in section 7. |
-| `test_source_complete_contract_binds_gpu_document_context` | pytest.mark.parametrize(<br>    ("metadata_field", "value"),<br>    [<br>        ("provider", "Another provider"),<br>        ("portal", "https://example.invalid"),<br>        ("commune_code", "99999"),<br>        ("document_type", "CC"),<br>        ("archive_name", "OTHER_ARCHIVE"),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="source\|lineage\|document\|rebuilt\|IDURBA\|archive",<br>    ) | 0 | Proves source complete contract binds gpu document context using the exact source reproduced in section 7. |
-| `test_source_complete_contract_reloads_and_compares_source_catalog` | pytest.mark.parametrize("mutation", ["geometry", "raw", "code", "remove", "extra"]) | pytest.raises(<br>        PlanningFeaturesError, match="source\|catalog\|rebuilt\|normalized"<br>    ) | 0 | Proves source complete contract reloads and compares source catalog using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` | none | pytest.raises(PlanningFeaturesError, match="source\|layer\|catalog\|rebuilt") | 0 | Proves source complete contract rejects catalog for absent gpu layer using the exact source reproduced in section 7. |
-| `test_three_dimensional_normalized_catalogs_are_rejected` | pytest.mark.parametrize(<br>    ("catalog_name", "geometry"),<br>    [<br>        (<br>            "surface_features",<br>            Polygon([(0, 0, 1), (0, 10, 1), (10, 10, 1), (10, 0, 1)]),<br>        ),<br>        ("line_features", LineString([(-1, 5, 1), (11, 5, 1)])),<br>        ("point_features", Point(5, 5, 1)),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="2D\|dimensional\|Z") | 0 | Proves three dimensional normalized catalogs are rejected using the exact source reproduced in section 7. |
-| `test_two_dimensional_normalized_catalogs_remain_valid` | none | none | 1 | Proves two dimensional normalized catalogs remain valid using the exact source reproduced in section 7. |
-| `test_gpu_source_z_is_normalized_to_canonical_2d` | pytest.mark.parametrize(<br>    ("logical", "geometry", "catalog_name"),<br>    [<br>        (<br>            "prescription_surface",<br>            Polygon([(0, 0, 1), (0, 10, 1), (10, 10, 1), (10, 0, 1)]),<br>            "surface_features",<br>        ),<br>        (<br>            "prescription_line",<br>            LineString([(0, 5, 1), (10, 5, 1)]),<br>            "line_features",<br>        ),<br>        ("prescription_point", Point(5, 5, 1), "point_features"),<br>    ],<br>) | none | 1 | Proves gpu source z is normalized to canonical 2d using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|SHA") | 0 | Proves source complete contract rejects tampered gpkg inventory hash using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_tampered_gpkg_size` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|size") | 0 | Proves source complete contract rejects tampered gpkg size using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_changed_gpkg_bytes` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|size\|SHA") | 0 | Proves source complete contract rejects changed gpkg bytes using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|SHA") | 0 | Proves source complete contract rejects same size gpkg byte tamper using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_coherently_changed_physical_gpkg` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|loaded\|changed") | 0 | Proves source complete contract rejects coherently changed physical gpkg using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_changed_physical_gpkg_geometry` | none | pytest.raises(PlanningFeaturesError, match="source\|geometry\|loaded\|changed") | 0 | Proves source complete contract rejects changed physical gpkg geometry using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_reordered_physical_gpkg_rows` | none | pytest.raises(PlanningFeaturesError, match="source\|order\|loaded\|changed") | 0 | Proves source complete contract rejects reordered physical gpkg rows using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` | none | pytest.raises(PlanningFeaturesError, match="source\|attrs\|metadata\|loaded") | 0 | Proves source complete contract rejects loaded source attrs not on disk using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_dataset_outside_extraction_root` | none | pytest.raises(PlanningFeaturesError, match="source\|root\|outside\|contain") | 0 | Proves source complete contract rejects dataset outside extraction root using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_linked_spatial_dataset` | none | pytest.raises(PlanningFeaturesError, match="source\|link\|junction\|dataset") | 0 | Proves source complete contract rejects linked spatial dataset using the exact source reproduced in section 7. |
-| `test_source_complete_contract_binds_every_shapefile_sidecar` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="shapefile\|sidecar\|inventory\|physical revalidation",<br>    ) | 0 | Proves source complete contract binds every shapefile sidecar using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` | pytest.mark.parametrize("changed_fids", [(10, 11), (1, 0)]) | pytest.raises(PlanningFeaturesError, match="source\|FID\|identity\|catalog") | 0 | Proves source complete contract rejects changed or reordered ogr fids using the exact source reproduced in section 7. |
-| `test_source_complete_contract_requires_shapefile_core_members` | none | pytest.raises(PlanningFeaturesError, match="shapefile\|shx\|source\|file") | 0 | Proves source complete contract requires shapefile core members using the exact source reproduced in section 7. |
-| `test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="shapefile\|sidecar\|size\|SHA\|physical revalidation",<br>    ) | 0 | Proves source complete contract rejects changed shapefile sidecar bytes using the exact source reproduced in section 7. |
-| `test_dotted_sibling_dataset_is_not_a_sidecar_and_makes_role_ambiguous` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="Related GPU spatial sources failed physical revalidation",<br>    ) | 0 | Proves dotted sibling dataset is not a sidecar and makes role ambiguous using the exact source reproduced in section 7. |
-| `test_batch_gpu_revalidation_rejects_malformed_layer_items` | pytest.mark.parametrize("bad_item", [None, object()]) | pytest.raises(gpu_source_module.GpuSpatialInspectionError) | 0 | Proves batch gpu revalidation rejects malformed layer items using the exact source reproduced in section 7. |
-| `test_batch_gpu_revalidation_rejects_malformed_planning_document` | none | pytest.raises(gpu_source_module.GpuSpatialInspectionError) | 0 | Proves batch gpu revalidation rejects malformed planning document using the exact source reproduced in section 7. |
-| `test_batch_gpu_revalidation_rejects_duplicate_logical_name` | none | pytest.raises(gpu_source_module.GpuSpatialInspectionError, match="duplicate") | 0 | Proves batch gpu revalidation rejects duplicate logical name using the exact source reproduced in section 7. |
-| `test_common_planning_contracts_import_without_initializing_stages` | pytest.mark.parametrize(<br>    "statement",<br>    [<br>        (<br>            "from landscout.common.planning_feature_contract import "<br>            "validate_intrinsic_planning_feature_relations"<br>        ),<br>        (<br>            "from landscout.common.bess_application_contract import "<br>            "validate_bess_application_feature_catalogs"<br>        ),<br>    ],<br>) | none | 1 | Proves common planning contracts import without initializing stages using the exact source reproduced in section 7. |
+| `test_only_high_level_api_is_exported` | none | none | 6 | Asserts the three named builder/error/result re-exports and membership, not absence of every other package export; a separate test checks the independent validator/validation record. |
+| `test_result_is_frozen` | none | pytest.raises(FrozenInstanceError) | 0 | Attempts field reassignment and expects FrozenInstanceError. Does not test or claim that contained DataFrames are immutable. |
+| `test_surface_full_overlap_normalizes_raw_values_and_lineage` | none | none | 29 | Exercises surface full overlap normalizes raw values and lineage for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_surface_partial_and_touch_relations` | none | none | 5 | Exercises surface partial and touch relations for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_overlapping_surface_union_is_not_double_counted` | none | none | 5 | Exercises overlapping surface union is not double counted for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_polygon_and_multipolygon_surfaces` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        _rectangle(0, 0, 10, 10),<br>        MultiPolygon([_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]),<br>    ],<br>) | none | 2 | Exercises polygon and multipolygon surfaces for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_line_crossing_and_partly_inside` | none | none | 6 | Exercises line crossing and partly inside for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_line_boundary_touch_is_zero_length` | none | none | 3 | Exercises line boundary touch is zero length for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_linestring_and_multilinestring` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        LineString([(-1, 5), (11, 5)]),<br>        MultiLineString([[(-1, 2), (11, 2)], [(-1, 8), (11, 8)]]),<br>    ],<br>) | none | 1 | Exercises linestring and multilinestring for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_points_inside_boundary_outside_and_multipoint` | none | none | 9 | Exercises points inside boundary outside and multipoint for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_missing_optional_layer_families_return_stable_empty_catalogs` | none | none | 7 | Exercises missing optional layer families return stable empty catalogs for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_optional_raw_source_fields_are_not_fabricated` | none | none | 1 | Exercises optional raw source fields are not fabricated for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` | none | none | 3 | Exercises epsg4326 parcels are measured in lambert93 but preserved for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_invalid_parcel_ids_are_rejected` | pytest.mark.parametrize("bad_id", [None, "", "   ", " X", "X ", 7]) | pytest.raises(PlanningFeaturesError, match="parcel_id") | 0 | Exercises invalid parcel ids are rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_duplicate_parcel_ids_are_rejected` | none | pytest.raises(PlanningFeaturesError, match="unique") | 0 | Exercises duplicate parcel ids are rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_duplicate_source_ids_are_rejected` | none | pytest.raises(PlanningFeaturesError, match="unique") | 0 | Exercises duplicate source ids are rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` | none | none | 4 | Exercises prescription surface uses validated source ogr fid when cnig id absent for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback` | none | none | 4 | Exercises geopackage prescription surface uses sealed ogr fid fallback for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_idurba_mismatch_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="IDURBA") | 0 | Exercises idurba mismatch is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_missing_required_source_fields_fail` | pytest.mark.parametrize("missing", ["TYPEPSC", "STYPEPSC", "IDURBA", "LIB_IDPSC"]) | pytest.raises(PlanningFeaturesError, match=missing) | 0 | Exercises missing required source fields fail for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_wrong_geometry_kind_is_rejected` | pytest.mark.parametrize(<br>    ("logical", "geometry"),<br>    [<br>        ("prescription_surface", LineString([(0, 0), (1, 1)])),<br>        ("prescription_line", Point(1, 1)),<br>        ("prescription_point", LineString([(0, 0), (1, 1)])),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="geometry") | 0 | Exercises wrong geometry kind is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_invalid_surface_geometry_is_rejected_without_repair` | none | pytest.raises(PlanningFeaturesError, match="valid") | 0 | Exercises invalid surface geometry is rejected without repair for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_null_or_empty_source_geometry_is_rejected` | pytest.mark.parametrize("geometry", [None, Polygon()]) | pytest.raises(PlanningFeaturesError, match="geometry") | 0 | Exercises null or empty source geometry is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_missing_crs_is_rejected` | pytest.mark.parametrize("target", ["parcel", "source"]) | pytest.raises(PlanningFeaturesError, match="CRS\|physical revalidation") | 0 | Exercises missing crs is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_unusable_source_crs_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="CRS") | 0 | Exercises unusable source crs is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_mutated_source_summary_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_document_id", "other"),<br>        ("source_archive_sha256", "b" * 64),<br>        ("source_layer", "other"),<br>        ("feature_count", 99),<br>        ("geometry_types", (("Point", 1),)),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="summary\|physical revalidation") | 0 | Exercises mutated source summary is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_summary_counts_are_strict_integers` | pytest.mark.parametrize("bad_count", [True, -1, 1.5, float("inf"), "1"]) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="integer count\|non-negative\|summary\|physical revalidation",<br>    ) | 0 | Exercises source summary counts are strict integers for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_reserved_output_column_collision_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="output columns") | 0 | Exercises reserved output column collision is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_inputs_and_all_existing_parcel_fields_are_preserved` | none | none | 4 | Exercises inputs and all existing parcel fields are preserved for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_relations_are_unique_deterministic_and_summaries_agree` | none | none | 4 | Exercises relations are unique deterministic and summaries agree for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_result_frames_are_independent_from_mutable_inputs` | none | none | 0 | Mutates original parcels and the pre-materialization layer frame, then compares saved result.relations; it does not mutate the fresh document-held source frame or every output frame. |
+| `test_present_empty_optional_layer_is_valid` | pytest.mark.parametrize(<br>    ("logical", "catalog_name"),<br>    [<br>        ("prescription_surface", "surface_features"),<br>        ("prescription_line", "line_features"),<br>        ("prescription_point", "point_features"),<br>    ],<br>) | none | 6 | Uses three physical empty source kinds. The spy named unexpected_fid_read counts delegated FID reads and the test requires exactly one, rather than forbidding them. |
+| `test_public_normalized_input_contract_validates_step_7d_3_1_result` | none | none | 5 | Exercises public normalized input contract validates step 7d 3 1 result for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_public_normalized_input_contract_wraps_malformed_document_context` | none | pytest.raises(PlanningFeaturesError) | 1 | Exercises public normalized input contract wraps malformed document context for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_binds_inspected_spatial_inventory` | none | pytest.raises(PlanningFeaturesError, match="inventory\|reference") | 0 | Exercises source complete contract binds inspected spatial inventory for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_public_normalized_input_contract_is_exported` | none | none | 4 | Exercises public normalized input contract is exported for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_public_source_validation_hashes_survive_parquet_readback` | none | none | 1 | Exercises public source validation hashes survive parquet readback for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_public_normalized_input_contract_rejects_stripped_catalog` | none | pytest.raises(PlanningFeaturesError, match="schema\|label_raw") | 0 | Exercises public normalized input contract rejects stripped catalog for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_empty_and_nonempty_catalogs_have_identical_kind_schemas` | none | none | 1 | Direct assertions compare ordered column names only. Other tests and public validators cover dtypes/index/CRS; this case alone does not prove full schema equality. |
+| `test_strict_relation_integer_counts_are_enforced` | pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True]) | pytest.raises(<br>        PlanningFeaturesError, match="integer count\|non-negative\|dtype\|schema"<br>    ) | 0 | The mutated count column is first cast to object, so the canonical dtype gate can reject before checking the injected scalar. The exception match explicitly allows dtype/schema. |
+| `test_strict_parcel_summary_integer_counts_are_enforced` | pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True]) | pytest.raises(PlanningFeaturesError, match="integer count\|non-negative") | 0 | Exercises strict parcel summary integer counts are enforced for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_corrupted_relation_semantics_are_rejected` | pytest.mark.parametrize(<br>    ("kind", "column", "value"),<br>    [<br>        ("SURFACE", "relation_type", "TOUCH_ONLY"),<br>        ("SURFACE", "parcel_share_pct", 42.0),<br>        ("SURFACE", "intersection_area_m2", None),<br>        ("SURFACE", "source_line_length_m", 0.0),<br>        ("LINE", "relation_type", "TOUCH_ONLY"),<br>        ("LINE", "intersection_length_m", 999.0),<br>        ("POINT", "relation_type", "BOUNDARY_TOUCH"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError) | 0 | Each affected column is first cast to object; failure may be canonical schema rejection rather than the named semantic branch. The separate shared-intrinsic test preserves dtypes and directly exercises 13 semantic cases. |
+| `test_point_member_relation_semantics_are_exact` | none | pytest.raises(PlanningFeaturesError, match="relation type") | 0 | Exercises point member relation semantics are exact for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_shared_intrinsic_relation_semantics_reject_every_invalid_case` | pytest.mark.parametrize(<br>    "case",<br>    [<br>        "surface-inside",<br>        "line-area",<br>        "point-touch",<br>        "area-zero",<br>        "surface-touch-positive",<br>        "length-zero",<br>        "line-touch-positive",<br>        "inside-zero",<br>        "boundary-with-inside",<br>        "area-exceeds-feature",<br>        "share-inconsistent",<br>        "non-finite",<br>        "negative",<br>    ],<br>) | pytest.raises((TypeError, ValueError)) | 0 | Directly invokes the shared intrinsic validator on 13 specified invalid combinations. This is not a claim of exhaustive coverage of every possible malformed relation. |
+| `test_relation_must_match_feature_catalog` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("source_identity_kind", "NOT_A_KIND"),<br>        ("source_identity_field", "WRONG_FIELD"),<br>        ("feature_family", "INFORMATION"),<br>        ("geometry_kind", "LINE"),<br>        ("type_code_raw", "MUTATED"),<br>        ("source_archive_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="catalog\|geometry kind\|LINE relation\|unrelated metric",<br>    ) | 0 | Exercises relation must match feature catalog for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_feature_ids_are_globally_unique_across_catalogs` | none | pytest.raises(PlanningFeaturesError, match="globally unique\|deterministic") | 0 | Assigns a surface planning ID to the point catalog. Deterministic logical-layer identity can reject before the later global uniqueness gate; both are permitted by the match. |
+| `test_same_source_id_is_allowed_in_distinct_logical_layers` | none | none | 2 | Exercises same source id is allowed in distinct logical layers for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_corrupted_parcel_summary_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="inconsistent with relations") | 0 | Exercises corrupted parcel summary is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_corrupted_surface_union_contract_is_rejected` | none | pytest.raises(PlanningFeaturesError, match="union") | 0 | Exercises corrupted surface union contract is rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_geospatial_operation_failure_is_controlled_and_chained` | none | pytest.raises(PlanningFeaturesError, match="spatial join") | 1 | Exercises geospatial operation failure is controlled and chained for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_unknown_relation_parcel` | none | pytest.raises(PlanningFeaturesError, match="parcel\|source") | 0 | Exercises source complete contract rejects unknown relation parcel for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_coherent_parcel_metric_mutation` | none | pytest.raises(PlanningFeaturesError, match="parcel\|metric\|source") | 0 | Exercises source complete contract rejects coherent parcel metric mutation for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_same_area_wrong_parcel_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|parcel\|rebuilt\|source") | 0 | Exercises source complete contract rejects same area wrong parcel relation for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_missing_expected_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|rebuilt\|source") | 0 | Drops the first relation without resetting index. Canonical zero-based RangeIndex validation may reject before the reconstructed count comparison. |
+| `test_source_complete_contract_rejects_extra_geometrically_false_relation` | none | pytest.raises(PlanningFeaturesError, match="relation\|rebuilt\|source") | 0 | Exercises source complete contract rejects extra geometrically false relation for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_reordered_relations` | none | pytest.raises(PlanningFeaturesError, match="relation\|order\|rebuilt") | 0 | Exercises source complete contract rejects reordered relations for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_noncanonical_relation_dtype` | pytest.mark.parametrize(<br>    ("column", "dtype"),<br>    [<br>        ("intersection_area_m2", "object"),<br>        ("point_member_count", "object"),<br>        ("relation_type", "category"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="schema\|dtype\|relation") | 0 | Exercises source complete contract rejects noncanonical relation dtype for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_relation_index_name_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 0 | Exercises source complete contract rejects relation index name change for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_relation_index_dtype_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 1 | Exercises source complete contract rejects relation index dtype change for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_relation_index_class_change` | none | pytest.raises(PlanningFeaturesError, match="schema\|index\|relation") | 2 | Exercises source complete contract rejects relation index class change for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_expected_relation_hash_binds_dtype_and_index_metadata` | none | none | 4 | Exercises expected relation hash binds dtype and index metadata for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_coherent_but_wrong_line_metric` | none | pytest.raises(PlanningFeaturesError, match="relation\|metric\|rebuilt") | 0 | Exercises source complete contract rejects coherent but wrong line metric for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_accepts_complete_parcel_output_summaries` | none | none | 0 | Exercises source complete contract accepts complete parcel output summaries for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_partial_parcel_output_columns` | none | pytest.raises(PlanningFeaturesError, match="[Pp]arcel\|output\|summary\|columns") | 0 | Exercises source complete contract rejects partial parcel output columns for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` | none | pytest.raises(PlanningFeaturesError, match="parcel\|summary\|relation") | 0 | Exercises source complete contract rejects corrupted complete parcel summaries for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` | none | pytest.raises(PlanningFeaturesError, match="parcel\|schema\|dtype\|summary") | 0 | Exercises source complete contract rejects noncanonical parcel summary dtype for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("planning_feature_document_id", "other-document"),<br>        ("planning_feature_archive_sha256", "f" * 64),<br>        ("planning_surface_covered_union_area_m2", 50.0),<br>        ("planning_surface_covered_pct", 50.0),<br>        ("planning_line_intersection_length_sum_m", 5.0),<br>        ("planning_point_inside_count", 0),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="parcel\|summary\|relation\|lineage\|document\|archive\|union\|percentage",<br>    ) | 0 | Exercises source complete contract rejects each corrupted parcel summary fact for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_duplicate_parcel_ids` | none | pytest.raises(PlanningFeaturesError, match="parcel_id\|unique") | 0 | Exercises source complete contract rejects duplicate parcel ids for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_invalid_parcel_geometry` | none | pytest.raises(PlanningFeaturesError, match="valid\|geometry") | 0 | Exercises source complete contract rejects invalid parcel geometry for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_accepts_epsg4326_parcels` | none | none | 0 | Exercises source complete contract accepts epsg4326 parcels for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_document_reference_allows_one_archive_zip_suffix` | none | none | 2 | Exercises source document reference allows one archive zip suffix for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_coherently_renamed_feature_identity` | pytest.mark.parametrize(<br>    "identity_column", ["planning_feature_id", "source_feature_id"]<br>) | pytest.raises(PlanningFeaturesError, match="source\|identity\|rebuilt\|catalog") | 0 | Exercises source complete contract rejects coherently renamed feature identity for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_independent_gpu_lineage_mutation` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("source_provider", "Another provider"),<br>        ("source_portal", "https://example.invalid"),<br>        ("source_commune_code", "99999"),<br>        ("source_document_type", "CC"),<br>        ("source_archive_name", "OTHER_ARCHIVE"),<br>        ("source_document_reference_raw", "OTHER_ARCHIVE"),<br>        ("source_layer", "OTHER_SOURCE_LAYER"),<br>        ("source_crs", "EPSG:4326"),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="source\|lineage\|catalog\|rebuilt") | 0 | Exercises source complete contract rejects independent gpu lineage mutation for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_binds_gpu_document_context` | pytest.mark.parametrize(<br>    ("metadata_field", "value"),<br>    [<br>        ("provider", "Another provider"),<br>        ("portal", "https://example.invalid"),<br>        ("commune_code", "99999"),<br>        ("document_type", "CC"),<br>        ("archive_name", "OTHER_ARCHIVE"),<br>    ],<br>) | pytest.raises(<br>        PlanningFeaturesError,<br>        match="source\|lineage\|document\|rebuilt\|IDURBA\|archive",<br>    ) | 0 | Exercises source complete contract binds gpu document context for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_reloads_and_compares_source_catalog` | pytest.mark.parametrize("mutation", ["geometry", "raw", "code", "remove", "extra"]) | pytest.raises(<br>        PlanningFeaturesError, match="source\|catalog\|rebuilt\|normalized"<br>    ) | 0 | Changes the caller-held source frame and its summary, leaving actual GPKG bytes unchanged; physical source reload rejects the mismatch. Separate tests rewrite real files. |
+| `test_source_complete_contract_rejects_catalog_for_absent_gpu_layer` | none | pytest.raises(PlanningFeaturesError, match="source\|layer\|catalog\|rebuilt") | 0 | Exercises source complete contract rejects catalog for absent gpu layer for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_three_dimensional_normalized_catalogs_are_rejected` | pytest.mark.parametrize(<br>    ("catalog_name", "geometry"),<br>    [<br>        (<br>            "surface_features",<br>            Polygon([(0, 0, 1), (0, 10, 1), (10, 10, 1), (10, 0, 1)]),<br>        ),<br>        ("line_features", LineString([(-1, 5, 1), (11, 5, 1)])),<br>        ("point_features", Point(5, 5, 1)),<br>    ],<br>) | pytest.raises(PlanningFeaturesError, match="2D\|dimensional\|Z") | 0 | Exercises three dimensional normalized catalogs are rejected for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_two_dimensional_normalized_catalogs_remain_valid` | none | none | 1 | Exercises two dimensional normalized catalogs remain valid for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_gpu_source_z_is_normalized_to_canonical_2d` | pytest.mark.parametrize(<br>    ("logical", "geometry", "catalog_name"),<br>    [<br>        (<br>            "prescription_surface",<br>            Polygon([(0, 0, 1), (0, 10, 1), (10, 10, 1), (10, 0, 1)]),<br>            "surface_features",<br>        ),<br>        (<br>            "prescription_line",<br>            LineString([(0, 5, 1), (10, 5, 1)]),<br>            "line_features",<br>        ),<br>        ("prescription_point", Point(5, 5, 1), "point_features"),<br>    ],<br>) | none | 1 | Exercises gpu source z is normalized to canonical 2d for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_tampered_gpkg_inventory_hash` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|SHA") | 0 | Exercises source complete contract rejects tampered gpkg inventory hash for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_tampered_gpkg_size` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|size") | 0 | Exercises source complete contract rejects tampered gpkg size for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_changed_gpkg_bytes` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|size\|SHA") | 0 | Exercises source complete contract rejects changed gpkg bytes for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_same_size_gpkg_byte_tamper` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|inventory\|SHA") | 0 | Exercises source complete contract rejects same size gpkg byte tamper for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_coherently_changed_physical_gpkg` | none | pytest.raises(PlanningFeaturesError, match="source\|file\|loaded\|changed") | 0 | Exercises source complete contract rejects coherently changed physical gpkg for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_changed_physical_gpkg_geometry` | none | pytest.raises(PlanningFeaturesError, match="source\|geometry\|loaded\|changed") | 0 | Exercises source complete contract rejects changed physical gpkg geometry for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_reordered_physical_gpkg_rows` | none | pytest.raises(PlanningFeaturesError, match="source\|order\|loaded\|changed") | 0 | Exercises source complete contract rejects reordered physical gpkg rows for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk` | none | pytest.raises(PlanningFeaturesError, match="source\|attrs\|metadata\|loaded") | 0 | Exercises source complete contract rejects loaded source attrs not on disk for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_dataset_outside_extraction_root` | none | pytest.raises(PlanningFeaturesError, match="source\|root\|outside\|contain") | 0 | Exercises source complete contract rejects dataset outside extraction root for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_linked_spatial_dataset` | none | pytest.raises(PlanningFeaturesError, match="source\|link\|junction\|dataset") | 0 | Injects a True result into the link/junction detector for the actual dataset path; no real filesystem link is created. |
+| `test_source_complete_contract_binds_every_shapefile_sidecar` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="shapefile\|sidecar\|inventory\|physical revalidation",<br>    ) | 0 | Removes the .prj inventory record in this fixture; together with core-member and .cpg-byte tests this covers selected sidecar failures, not every possible extension. |
+| `test_source_complete_contract_rejects_changed_or_reordered_ogr_fids` | pytest.mark.parametrize("changed_fids", [(10, 11), (1, 0)]) | pytest.raises(PlanningFeaturesError, match="source\|FID\|identity\|catalog") | 0 | Performs a real physical reread but substitutes its returned FID index for fid_as_index requests. Does not rewrite stored physical FIDs. |
+| `test_source_complete_contract_requires_shapefile_core_members` | none | pytest.raises(PlanningFeaturesError, match="shapefile\|shx\|source\|file") | 0 | Exercises source complete contract requires shapefile core members for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="shapefile\|sidecar\|size\|SHA\|physical revalidation",<br>    ) | 0 | Exercises source complete contract rejects changed shapefile sidecar bytes for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_dotted_sibling_dataset_is_not_a_sidecar_and_makes_role_ambiguous` | none | pytest.raises(<br>        PlanningFeaturesError,<br>        match="Related GPU spatial sources failed physical revalidation",<br>    ) | 0 | Exercises dotted sibling dataset is not a sidecar and makes role ambiguous for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_batch_gpu_revalidation_rejects_malformed_layer_items` | pytest.mark.parametrize("bad_item", [None, object()]) | pytest.raises(gpu_source_module.GpuSpatialInspectionError) | 0 | Exercises batch gpu revalidation rejects malformed layer items for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_batch_gpu_revalidation_rejects_malformed_planning_document` | none | pytest.raises(gpu_source_module.GpuSpatialInspectionError) | 0 | Exercises batch gpu revalidation rejects malformed planning document for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_batch_gpu_revalidation_rejects_duplicate_logical_name` | none | pytest.raises(gpu_source_module.GpuSpatialInspectionError, match="duplicate") | 0 | Exercises batch gpu revalidation rejects duplicate logical name for the listed fixture and assertions; complete implementation is in section 6. |
+| `test_common_planning_contracts_import_without_initializing_stages` | pytest.mark.parametrize(<br>    "statement",<br>    [<br>        (<br>            "from landscout.common.planning_feature_contract import "<br>            "validate_intrinsic_planning_feature_relations"<br>        ),<br>        (<br>            "from landscout.common.bess_application_contract import "<br>            "validate_bess_application_feature_catalogs"<br>        ),<br>    ],<br>) | none | 1 | Exercises common planning contracts import without initializing stages for the listed fixture and assertions; complete implementation is in section 6. |
 
 ## 8. Public exports and package ownership
 

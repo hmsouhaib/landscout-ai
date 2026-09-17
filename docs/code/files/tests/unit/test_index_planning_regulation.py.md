@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+- Responsibility: Exercises source-referenced PDF selection with physical synthetic zoning files, mocked page extraction, canonical index/search tampering, Unicode contexts, controlled failures, and successful-path input preservation.
 - Source SHA256: `e36baad245c33bef983f78bb49fc8060bc4e45152c420c5d658f2853d742df8b`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+Exercises source-referenced PDF selection with physical synthetic zoning files, mocked page extraction, canonical index/search tampering, Unicode contexts, controlled failures, and successful-path input preservation.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -139,6 +139,23 @@ PDF_BYTES = b"synthetic-pdf-bytes"
   - No conservative direct import/call/value reference was found outside the declaration.
 
 
+
+### Verified fixture and assertion scope
+
+This file declares 45 test functions representing 114 parametrized cases (16 parametrized definitions), plus 15 helpers/methods/callbacks, two mutable fake classes, and three instance fields. These are static declaration counts, not a report of test execution.
+
+The fixture writes genuine temporary GPKG or Shapefile zoning datasets, rereads them through Pyogrio, and computes physical file inventories. PDF filenames refer to the fixed non-PDF bytes `b"synthetic-pdf-bytes"`; successful extraction is supplied by `_FakeReader`. A schema-2 extraction marker is written, but source.zip is only a fabricated download descriptor (size 100, a*64) and is never created. Thus this file is not full archive-acquisition, real pypdf parsing, or network-safety evidence. The separate integration test provides a different real-PDF chain.
+
+Every `pytest.raises` expectation, parametrized value, and direct/assertion-helper check is described under its callable. Broad expected-message alternatives are not attributed to a later guard when an earlier manifest check can satisfy them. Mutation tests usually retain a stale enclosing hash; they do not claim resistance to coordinated replacement of every hash without an external source lock. The page-state test checks frozen attribute assignment, not deep immutability of pandas tables.
+
+| Declaration | Actual role and consumers |
+|---|---|
+| `regulation_module` | Literal `import_module("landscout.stages.index_planning_regulation")` owner for PdfReader/version monkeypatches and private hash helper/schema references. |
+| `DOCUMENT_ID` | Synthetic doc-1 identity used by metadata and geometry summaries. |
+| `ARCHIVE_SHA` | Fabricated a*64 archive identity in metadata/manifest, not the computed hash of an existing ZIP. |
+| `DEFAULT_PDF` | Default source-referenced fixture basename; the generic-name test also uses an unrelated name. |
+| `PDF_BYTES` | Synthetic byte payload written as .pdf fixture files and hashed by inventory helpers; not parsed as a real PDF. |
+
 ### Executable module-import-time statements
 
 No executable module-import-time statement is declared outside imports, assignments, and definitions.
@@ -147,18 +164,18 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `_FakePage`
 
-**Source purpose:** Defines `_FakePage`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Mutable page test double that returns a stored object or raises a stored exception. It does not read PDF bytes.
 
 - Exact decorators: none.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `result` | `assigned instance field` | `result` | `self.result = result` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `result` | `assigned instance field` | `result` | `self.result = result` | Stored caller-supplied return object or exception, retained by reference. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+These fields belong to mutable test doubles, not production integrity evidence.
 
 **Qualified consumers**
 
@@ -180,19 +197,19 @@ class _FakePage:
 
 ### `_FakeReader`
 
-**Source purpose:** Defines `_FakeReader`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Mutable reader test double exposing a newly built list of `_FakePage` objects and an encryption flag. Used by `_patch_reader` through its captured lambda; no actual PDF parser is invoked.
 
 - Exact decorators: none.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `pages` | `assigned instance field` | `[_FakePage(page) for page in pages]` | `self.pages = [_FakePage(page) for page in pages]` |
-| `is_encrypted` | `assigned instance field` | `encrypted` | `self.is_encrypted = encrypted` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `pages` | `assigned instance field` | `[_FakePage(page) for page in pages]` | `self.pages = [_FakePage(page) for page in pages]` | Newly allocated mutable page-double list; each page stores its supplied result object. |
+| `is_encrypted` | `assigned instance field` | `encrypted` | `self.is_encrypted = encrypted` | Supplied fake-reader flag; default false. No test in this file passes true. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+These fields belong to mutable test doubles, not production integrity evidence.
 
 **Qualified consumers**
 
@@ -212,7 +229,7 @@ class _FakeReader:
 
 ### `_FakePage.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Store the supplied object as mutable `self.result` without copying or validation; the fake reader creates these page doubles. This fixture state is not an immutable production model.
 
 **Exact signature**
 
@@ -227,7 +244,7 @@ def __init__(self, result: object) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | no annotation | `required` |
 | `result` | positional-or-keyword | `object` | `required` |
 
 **Return and exception contract**
@@ -243,20 +260,9 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 - No calls.
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `self.result = result` |
-| Direct parameter mutation | `self.result = result` |
+Store the supplied object as mutable `self.result` without copying or validation; the fake reader creates these page doubles. This fixture state is not an immutable production model.
 
 **Complete source-ordered implementation**
 
@@ -271,7 +277,7 @@ def __init__(self, result: object) -> None:
 
 ### `_FakePage.extract_text`
 
-**Purpose:** Implements `extract text` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Raise the stored object when it is an Exception, otherwise return it unchanged. This simulates page text/None/nontext or extraction failure; it does not parse a PDF or write anything.
 
 **Exact signature**
 
@@ -286,7 +292,7 @@ def extract_text(self) -> object:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | no annotation | `required` |
 
 **Return and exception contract**
 
@@ -305,20 +311,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Raise the stored object when it is an Exception, otherwise return it unchanged. This simulates page text/None/nontext or extraction failure; it does not parse a PDF or write anything.
 
 **Complete source-ordered implementation**
 
@@ -335,7 +330,7 @@ def extract_text(self) -> object:
 
 ### `_FakeReader.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Create a new mutable list of `_FakePage` wrappers for the supplied page-result objects and retain the encryption flag. It exposes the two properties used by indexing; no PDF bytes are interpreted.
 
 **Exact signature**
 
@@ -350,7 +345,7 @@ def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | no annotation | `required` |
 | `pages` | positional-or-keyword | `list[object]` | `required` |
 | `encrypted` | keyword-only | `bool` | `False` |
 
@@ -369,20 +364,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_FakePage` | `tests.unit.test_index_planning_regulation._FakePage` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `self.pages = [_FakePage(page) for page in pages]`<br>`self.is_encrypted = encrypted` |
-| Direct parameter mutation | `self.pages = [_FakePage(page) for page in pages]`<br>`self.is_encrypted = encrypted` |
+Create a new mutable list of `_FakePage` wrappers for the supplied page-result objects and retain the encryption flag. It exposes the two properties used by indexing; no PDF bytes are interpreted.
 
 **Complete source-ordered implementation**
 
@@ -398,7 +382,7 @@ def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
 
 ### `_patch_reader`
 
-**Purpose:** Implements `patch reader` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Monkeypatch the stage module's `PdfReader` name to a lambda that ignores reader arguments and returns `_FakeReader` with captured pages/encryption. The fixture reads physical synthetic file bytes for integrity but bypasses pypdf parsing; monkeypatch restores the binding after the test.
 
 **Exact signature**
 
@@ -456,20 +440,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Monkeypatch the stage module's `PdfReader` name to a lambda that ignores reader arguments and returns `_FakeReader` with captured pages/encryption. The fixture reads physical synthetic file bytes for integrity but bypasses pypdf parsing; monkeypatch restores the binding after the test.
 
 **Complete source-ordered implementation**
 
@@ -493,7 +466,7 @@ def _patch_reader(
 
 ### `_summary`
 
-**Purpose:** Implements `summary` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Construct a GPU summary from the supplied synthetic frame: ordered columns/dtypes/null counts, geometry type counts, null/empty/nonempty-invalid counts, row count, and fixed document/archive/EPSG:2154 lineage. It measures in-memory fixture geometry, not physical archive authenticity.
 
 **Exact signature**
 
@@ -546,20 +519,9 @@ Outbound call expressions and conservative ownership:
 | `(non_null & geometry.is_empty).sum` | `unresolved local/third-party receiver; no ownership inferred` |
 | `(non_empty & ~geometry.is_valid).sum` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `geometry.notna`<br>`geometry.geom_type.value_counts().sort_index().items`<br>`geometry.geom_type.value_counts().sort_index`<br>`geometry.geom_type.value_counts`<br>`(non_null & geometry.is_empty).sum`<br>`(non_empty & ~geometry.is_valid).sum` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Construct a GPU summary from the supplied synthetic frame: ordered columns/dtypes/null counts, geometry type counts, null/empty/nonempty-invalid counts, row count, and fixed document/archive/EPSG:2154 lineage. It measures in-memory fixture geometry, not physical archive authenticity.
 
 **Complete source-ordered implementation**
 
@@ -601,7 +563,7 @@ def _summary(
 
 ### `_zone_frame`
 
-**Purpose:** Implements `zone frame` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Build adjacent unit-square Polygons in EPSG:2154, one per requested filename, with sequential LIB_IDZONE identifiers and optionally NOMFIC. Default None creates one default filename; an explicitly empty filename list creates no rows. Only temporary attributes/geometries are allocated.
 
 **Exact signature**
 
@@ -643,20 +605,9 @@ Outbound call expressions and conservative ownership:
 | `gpd.GeoDataFrame` | `geopandas.GeoDataFrame` |
 | `Polygon` | `shapely.geometry.Polygon` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `attributes["NOMFIC"] = filenames` |
-| Direct parameter mutation | None directly present. |
+Build adjacent unit-square Polygons in EPSG:2154, one per requested filename, with sequential LIB_IDZONE identifiers and optionally NOMFIC. Default None creates one default filename; an explicitly empty filename list creates no rows. Only temporary attributes/geometries are allocated.
 
 **Complete source-ordered implementation**
 
@@ -697,7 +648,7 @@ def _zone_frame(
 
 ### `_inventory_item`
 
-**Purpose:** Implements `inventory item` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Compute size and SHA256 of supplied fixture bytes and return a PDF/WRITTEN_REGULATION inventory record for the requested relative path. It hashes memory and does not create the file.
 
 **Exact signature**
 
@@ -735,20 +686,9 @@ Outbound call expressions and conservative ownership:
 | `sha256(data).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sha256` | `hashlib.sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `sha256(data).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Compute size and SHA256 of supplied fixture bytes and return a PDF/WRITTEN_REGULATION inventory record for the requested relative path. It hashes memory and does not create the file.
 
 **Complete source-ordered implementation**
 
@@ -769,7 +709,7 @@ def _inventory_item(relative_path: str, data: bytes = PDF_BYTES) -> GpuExtracted
 
 ### `_spatial_inventory_item`
 
-**Purpose:** Implements `spatial inventory item` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Read an existing temporary spatial file's bytes, hash them, and record its root-relative POSIX path, lowercase suffix or binary fallback, size, and SPATIAL_DATA category. This is a local file read, not remote acquisition.
 
 **Exact signature**
 
@@ -812,20 +752,9 @@ Outbound call expressions and conservative ownership:
 | `sha256(data).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sha256` | `hashlib.sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.read_bytes` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `sha256(data).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Read an existing temporary spatial file's bytes, hash them, and record its root-relative POSIX path, lowercase suffix or binary fallback, size, and SPATIAL_DATA category. This is a local file read, not remote acquisition.
 
 **Complete source-ordered implementation**
 
@@ -847,7 +776,7 @@ def _spatial_inventory_item(root: Path, path: Path) -> GpuExtractedFile:
 
 ### `_write_zoning_source`
 
-**Purpose:** Implements `write zoning source` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Create temporary spatial directories, write the provided frame as real GPKG ZONE or ESRI Shapefile ZONE, then reread it through Pyogrio. For Shapefile, inventory all existing same-stem files in sorted path order. Return a retained inspected layer with fresh summary plus byte-hashed inventory; unsupported fixture formats raise AssertionError. The to_file calls are actual filesystem writes.
 
 **Exact signature**
 
@@ -876,7 +805,7 @@ def _write_zoning_source(
 - Exact observed return expressions:
   - `layer, inventory`
 - Explicit raise paths:
-  - `AssertionError(f"Unsupported test source format: {source_format}")` under lexical guard `source_format == "GPKG"`.
+  - `AssertionError(f"Unsupported test source format: {source_format}")` in the final else branch, when the format is neither GPKG nor ESRI Shapefile.
 
 **Qualified relationships**
 
@@ -900,20 +829,9 @@ Outbound call expressions and conservative ownership:
 | `_summary` | `tests.unit.test_index_planning_regulation._summary` |
 | `_spatial_inventory_item` | `tests.unit.test_index_planning_regulation._spatial_inventory_item` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gpd.read_file`<br>`path.parent.glob`<br>`candidate.is_file` |
-| Filesystem/archive write or publication | `spatial_root.mkdir` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Create temporary spatial directories, write the provided frame as real GPKG ZONE or ESRI Shapefile ZONE, then reread it through Pyogrio. For Shapefile, inventory all existing same-stem files in sorted path order. Return a retained inspected layer with fresh summary plus byte-hashed inventory; unsupported fixture formats raise AssertionError. The to_file calls are actual filesystem writes.
 
 **Complete source-ordered implementation**
 
@@ -963,7 +881,7 @@ def _write_zoning_source(
 
 ### `_document`
 
-**Purpose:** Implements `document` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Sort the inventory, load the checked-in GPU YAML, construct synthetic DU/PLU metadata and config-derived quoted written-file URLs, and write a schema-2 extraction manifest. Revalidate a dumped config with zoning match_tokens set to ZONE, hash that config, and assemble a retained source-bound document. The archive descriptor is fabricated with a*64, size 100, and source.zip path; no ZIP is written. The `zoning_filenames` parameter is accepted but unused in this helper.
 
 **Exact signature**
 
@@ -1024,20 +942,9 @@ Outbound call expressions and conservative ownership:
 | `GpuPlanningDocument` | `landscout.sources.gpu_fr.GpuPlanningDocument` |
 | `gpu_source_module._source_config_sha256` | `landscout.sources.gpu_fr._source_config_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `marker.write_text` |
-| Hashing/byte identity | `gpu_source_module._source_config_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `config_payload["spatial_layers"]["zoning"]["match_tokens"] = ["ZONE"]` |
-| Direct parameter mutation | None directly present. |
+Sort the inventory, load the checked-in GPU YAML, construct synthetic DU/PLU metadata and config-derived quoted written-file URLs, and write a schema-2 extraction manifest. Revalidate a dumped config with zoning match_tokens set to ZONE, hash that config, and assemble a retained source-bound document. The archive descriptor is fabricated with a*64, size 100, and source.zip path; no ZIP is written. The `zoning_filenames` parameter is accepted but unused in this helper.
 
 **Complete source-ordered implementation**
 
@@ -1143,7 +1050,7 @@ def _document(
 
 ### `_fixture_document`
 
-**Purpose:** Implements `fixture document` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Create synthetic PDF byte files under numbered written directories, build a real zoning source in the requested format, combine inventories, and delegate metadata/manifest/config assembly to `_document`. Optional filename inventories deliberately support missing/duplicate selection regressions. No archive download or real PDF text parsing occurs.
 
 **Exact signature**
 
@@ -1253,20 +1160,9 @@ Outbound call expressions and conservative ownership:
 | `_document` | `tests.unit.test_index_planning_regulation._document` |
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.parent.mkdir`<br>`path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `inventory.append(_inventory_item(relative))`<br>`inventory.extend(spatial_inventory)` |
-| Direct parameter mutation | None directly present. |
+Create synthetic PDF byte files under numbered written directories, build a real zoning source in the requested format, combine inventories, and delegate metadata/manifest/config assembly to `_document`. Optional filename inventories deliberately support missing/duplicate selection regressions. No archive download or real PDF text parsing occurs.
 
 **Complete source-ordered implementation**
 
@@ -1318,7 +1214,7 @@ def _fixture_document(
 
 ### `_one_page_index`
 
-**Purpose:** Implements `one page index` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Create the physical synthetic document, replace PDF parsing with one chosen text result (default Énergie), and run the real public indexing stage. Return its PlanningRegulationIndex; the function has no declared return annotation, not a None return contract.
 
 **Exact signature**
 
@@ -1331,7 +1227,7 @@ def _one_page_index(
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- No return annotation is declared; the actual returned object is described above.
 
 **Inputs**
 
@@ -1382,20 +1278,9 @@ Outbound call expressions and conservative ownership:
 | `_patch_reader` | `tests.unit.test_index_planning_regulation._patch_reader` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Create the physical synthetic document, replace PDF parsing with one chosen text result (default Énergie), and run the real public indexing stage. Return its PlanningRegulationIndex; the function has no declared return annotation, not a None return contract.
 
 **Complete source-ordered implementation**
 
@@ -1416,7 +1301,7 @@ def _one_page_index(
 
 ### `test_public_api_exports_immutable_models_and_validators`
 
-**Purpose:** Regression invariant: public api exports immutable models and validators. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Loop over seven expected stage export names and assert both __all__ membership and attribute presence. Despite the test name, these assertions do not construct models or attempt immutability mutations.
 
 **Exact signature**
 
@@ -1449,20 +1334,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `hasattr` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Loop over seven expected stage export names and assert both __all__ membership and attribute presence. Despite the test name, these assertions do not construct models or attempt immutability mutations.
 
 **Complete source-ordered implementation**
 
@@ -1487,7 +1361,7 @@ def test_public_api_exports_immutable_models_and_validators() -> None:
 
 ### `test_source_nomfic_resolves_generic_filename`
 
-**Purpose:** Regression invariant: source nomfic resolves generic filename. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For the default basename and an unrelated commune/date-like basename, create matching zoning/written/inventory evidence and a one-page reader double; assert the selected PDF relative path ends in exactly that basename. This checks source-driven selection rather than hardcoded filename identity.
 
 **Exact signature**
 
@@ -1534,20 +1408,9 @@ Outbound call expressions and conservative ownership:
 | `Path` | `pathlib.Path` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1569,7 +1432,7 @@ def test_source_nomfic_resolves_generic_filename(
 
 ### `test_explicit_source_validated_selection_succeeds`
 
-**Purpose:** Regression invariant: explicit source validated selection succeeds. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Build a.pdf and b.pdf in all source inventories, provide an explicit b.pdf request, and assert its selected basename. The reader is mocked; ambiguity is resolved only among source-referenced candidates.
 
 **Exact signature**
 
@@ -1611,20 +1474,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `Path` | `pathlib.Path` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1652,7 +1504,7 @@ def test_explicit_source_validated_selection_succeeds(
 
 ### `test_unchanged_zoning_source_is_revalidated_before_selection`
 
-**Purpose:** Regression invariant: unchanged zoning source is revalidated before selection. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For real temporary GPKG and Shapefile zoning sources, run indexing with a reader double and assert default filename, ZONING_NOMFIC method, and lowercase 64-hex selection digest. The real source validator is not monkeypatched; this test does not instrument its call count.
 
 **Exact signature**
 
@@ -1698,20 +1550,9 @@ Outbound call expressions and conservative ownership:
 | `fullmatch` | `re.fullmatch` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1735,7 +1576,7 @@ def test_unchanged_zoning_source_is_revalidated_before_selection(
 
 ### `test_mutated_loaded_nomfic_is_rejected_before_selection`
 
-**Purpose:** Regression invariant: mutated loaded nomfic is rejected before selection. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Copy the loaded zoning frame, replace NOMFIC without changing physical bytes, and expect a stage error matching zoning/source from public indexing. The inconsistent retained frame cannot select another PDF.
 
 **Exact signature**
 
@@ -1773,20 +1614,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `mutated.loc[0, "NOMFIC"] = "other_reglement.pdf"` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1806,7 +1636,7 @@ def test_mutated_loaded_nomfic_is_rejected_before_selection(tmp_path: Path) -> N
 
 ### `test_mutated_loaded_zoning_geometry_or_order_is_rejected`
 
-**Purpose:** Regression invariant: mutated loaded zoning geometry or order is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use two source rows, then either reverse their retained order or replace one retained Polygon far from the original. Public indexing must fail with zoning/source text in both cases; physical source bytes remain unchanged.
 
 **Exact signature**
 
@@ -1853,20 +1683,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `mutated.geometry.copy`<br>`mutated.set_geometry` |
-| External process/environment | None directly present. |
-| In-memory mutation | `geometry.iloc[0] = Polygon([(20, 0), (20, 1), (21, 1), (21, 0), (20, 0)])`<br>`mutated.set_geometry(geometry)` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1897,7 +1716,7 @@ def test_mutated_loaded_zoning_geometry_or_order_is_rejected(
 
 ### `test_zoning_source_bytes_changed_after_ingestion_are_rejected`
 
-**Purpose:** Regression invariant: zoning source bytes changed after ingestion are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Append b'tamper' to the actual temporary zoning dataset file after fixture ingestion, then expect indexing to fail with size/SHA256/integrity text. This is an intentional local append write, not a read-only operation.
 
 **Exact signature**
 
@@ -1937,20 +1756,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `document.zoning.reference.dataset_path.open` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -1971,7 +1779,7 @@ def test_zoning_source_bytes_changed_after_ingestion_are_rejected(
 
 ### `test_zoning_source_inventory_integrity_mismatch_is_rejected`
 
-**Purpose:** Regression invariant: zoning source inventory integrity mismatch is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the first SPATIAL_DATA inventory record's size with size+1 or SHA with b*64 while keeping the manifest/bytes unchanged. Expect a controlled size/SHA256/integrity failure from indexing; the test does not isolate the later file-byte gate from manifest validation.
 
 **Exact signature**
 
@@ -2017,20 +1825,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `items[position] = replace(current, **{field: replacement})` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2061,7 +1858,7 @@ def test_zoning_source_inventory_integrity_mismatch_is_rejected(
 
 ### `test_missing_nomfic_field_is_rejected`
 
-**Purpose:** Regression invariant: missing nomfic field is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write and load a physical zoning source without NOMFIC; public indexing must fail with missing NOMFIC. This differs from mutating only the retained frame.
 
 **Exact signature**
 
@@ -2097,20 +1894,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2127,7 +1913,7 @@ def test_missing_nomfic_field_is_rejected(tmp_path: Path) -> None:
 
 ### `test_null_nomfic_is_rejected`
 
-**Purpose:** Regression invariant: null nomfic is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write a physical source whose sole NOMFIC is null, then expect no regulation filename from indexing. No PDF reader double is needed because source selection fails first.
 
 **Exact signature**
 
@@ -2163,20 +1949,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2193,7 +1968,7 @@ def test_null_nomfic_is_rejected(tmp_path: Path) -> None:
 
 ### `test_multiple_nomfic_values_are_ambiguous`
 
-**Purpose:** Regression invariant: multiple nomfic values are ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Provide two fully inventoried/source-referenced PDF names and omit an explicit choice. Require an ambiguity error; no automatic filename/title preference is asserted.
 
 **Exact signature**
 
@@ -2229,20 +2004,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2265,7 +2029,7 @@ def test_multiple_nomfic_values_are_ambiguous(tmp_path: Path) -> None:
 
 ### `test_unsafe_explicit_filename_is_rejected`
 
-**Purpose:** Regression invariant: unsafe explicit filename is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercise eight explicit strings: empty, leading/trailing whitespace, traversal, POSIX separator, Windows drive/backslash spelling, NUL, and non-PDF suffix. Every public call must fail with filename text; this is a bounded lexical test set, not exhaustive filesystem path coverage.
 
 **Exact signature**
 
@@ -2315,20 +2079,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2345,7 +2098,7 @@ def test_unsafe_explicit_filename_is_rejected(tmp_path: Path, filename: str) -> 
 
 ### `test_explicit_filename_not_referenced_by_zoning_fails`
 
-**Purpose:** Regression invariant: explicit filename not referenced by zoning fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Request other.pdf against a default-only physical zoning source and require a not referenced error. A syntactically valid PDF name alone does not authorize selection.
 
 **Exact signature**
 
@@ -2381,20 +2134,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2411,7 +2153,7 @@ def test_explicit_filename_not_referenced_by_zoning_fails(tmp_path: Path) -> Non
 
 ### `test_filename_absent_from_written_files_fails`
 
-**Purpose:** Regression invariant: filename absent from written files fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Keep default NOMFIC/inventory but provide only other.pdf in written_files; expect the written_files error. The exact cross-inventory basename match is tested.
 
 **Exact signature**
 
@@ -2447,20 +2189,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2477,7 +2208,7 @@ def test_filename_absent_from_written_files_fails(tmp_path: Path) -> None:
 
 ### `test_unrelated_non_pdf_written_file_does_not_block_selection`
 
-**Purpose:** Regression invariant: unrelated non pdf written file does not block selection. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Add technical-note.txt beside the valid default PDF in written metadata, use a one-page reader double, and assert a one-page index. Unrelated non-PDF metadata must not block the selected source-referenced regulation.
 
 **Exact signature**
 
@@ -2517,20 +2248,9 @@ Outbound call expressions and conservative ownership:
 | `_patch_reader` | `tests.unit.test_index_planning_regulation._patch_reader` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2552,7 +2272,7 @@ def test_unrelated_non_pdf_written_file_does_not_block_selection(
 
 ### `test_filename_absent_from_inventory_fails`
 
-**Purpose:** Regression invariant: filename absent from inventory fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Change the retained regulation inventory path to other.pdf while leaving physical files and marker unchanged. Require either missing from GPU inventory or verified manifest text; this test permits rejection at the earlier manifest boundary.
 
 **Exact signature**
 
@@ -2593,20 +2313,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `items[item_position] = replace(<br>        items[item_position], relative_path="written/other.pdf"<br>    )` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2639,7 +2348,7 @@ def test_filename_absent_from_inventory_fails(tmp_path: Path) -> None:
 
 ### `test_duplicate_inventory_basename_fails`
 
-**Purpose:** Regression invariant: duplicate inventory basename fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Create two physical files with the same selected basename in distinct numbered directories and a matching inventory. Public indexing must reject the ambiguous basename even though the relative paths differ.
 
 **Exact signature**
 
@@ -2675,20 +2384,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2707,7 +2405,7 @@ def test_duplicate_inventory_basename_fails(tmp_path: Path) -> None:
 
 ### `test_path_outside_root_is_rejected`
 
-**Purpose:** Regression invariant: path outside root is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the first sorted retained inventory item with a ../ PDF spelling and discard the other retained entries. Expect unsafe or verified manifest text. No outside-root file is read or created; the broad expected alternative does not prove a specific path-resolution branch was reached.
 
 **Exact signature**
 
@@ -2744,20 +2442,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2782,7 +2469,7 @@ def test_path_outside_root_is_rejected(tmp_path: Path) -> None:
 
 ### `test_pdf_inventory_integrity_mismatch_fails`
 
-**Purpose:** Regression invariant: pdf inventory integrity mismatch fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the WRITTEN_REGULATION inventory size or SHA without rewriting the manifest or PDF bytes, then require a controlled error containing differs. This protects consistency but does not isolate manifest mismatch from the later physical PDF comparison.
 
 **Exact signature**
 
@@ -2826,20 +2513,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `items[item_position] = replace(items[item_position], **{field: value})` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2868,7 +2544,7 @@ def test_pdf_inventory_integrity_mismatch_fails(tmp_path: Path, field: str) -> N
 
 ### `test_page_states_numbering_and_hashes`
 
-**Purpose:** Regression invariant: page states numbering and hashes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mock three pages: accented/multiline text, whitespace-only text, and RuntimeError. Assert exact seven-column schema, ordered page numbers, TEXT/EMPTY/ERROR states, retained raw text, expected normalization, and digest spelling; run intrinsic validation. An attempted total_page_count reassignment must immediately raise FrozenInstanceError; mutable page-cell changes are not prohibited by this test.
 
 **Exact signature**
 
@@ -2925,20 +2601,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
 | `pytest.raises` | `pytest.raises` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `result.pages.extraction_status.tolist` |
-| Hashing/byte identity | `result.pages.page_content_sha256.str.fullmatch(r"[0-9a-f]{64}").all`<br>`result.pages.page_content_sha256.str.fullmatch` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `result.total_page_count = 9` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -2960,7 +2625,7 @@ def test_page_states_numbering_and_hashes(
     assert fullmatch(r"[0-9a-f]{64}", result.pages_content_sha256)
     validate_planning_regulation_index(result)
     with pytest.raises(FrozenInstanceError):
-        result.total_page_count = 9
+        result.total_page_count = 9  # type: ignore[misc]
 ```
 
 **Business boundary**
@@ -2969,7 +2634,7 @@ def test_page_states_numbering_and_hashes(
 
 ### `test_zero_page_pdf_is_rejected`
 
-**Purpose:** Regression invariant: zero page pdf is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Return an empty fake reader page list and require the at least one page stage error. This tests zero pages, not encryption rejection or a real malformed PDF.
 
 **Exact signature**
 
@@ -3010,20 +2675,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3044,7 +2698,7 @@ def test_zero_page_pdf_is_rejected(
 
 ### `test_pdf_reader_failure_is_controlled_and_chained`
 
-**Purpose:** Regression invariant: pdf reader failure is controlled and chained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace PdfReader with the nested callback that raises RuntimeError. Public indexing must raise the opened or parsed stage error and retain RuntimeError as __cause__; fixture bytes are not actually parsed.
 
 **Exact signature**
 
@@ -3088,20 +2742,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3129,7 +2772,7 @@ def test_pdf_reader_failure_is_controlled_and_chained(
 
 ### `test_pdf_reader_failure_is_controlled_and_chained.fail_reader`
 
-**Purpose:** Implements `fail reader` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Ignore all reader arguments and raise RuntimeError('broken xref'). Installed as the stage's PdfReader binding by the enclosing test; never returns normally.
 
 **Exact signature**
 
@@ -3149,7 +2792,7 @@ def fail_reader(*args: object, **kwargs: object) -> object:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- This callback always raises; it has no successful normal return.
 - Explicit raise paths:
   - `RuntimeError("broken xref")`.
 
@@ -3163,20 +2806,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `RuntimeError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Ignore all reader arguments and raise RuntimeError('broken xref'). Installed as the stage's PdfReader binding by the enclosing test; never returns normally.
 
 **Complete source-ordered implementation**
 
@@ -3191,7 +2823,7 @@ def fail_reader(*args: object, **kwargs: object) -> object:
 
 ### `test_french_literal_normalization`
 
-**Purpose:** Regression invariant: french literal normalization. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert eight exact source-to-normalized strings for case/accent folding, curly apostrophe, œ/Æ expansion, long dash, soft hyphen, and whitespace collapse. This directly calls the common planning-text owner; no index or files are constructed.
 
 **Exact signature**
 
@@ -3239,20 +2871,9 @@ Outbound call expressions and conservative ownership:
 | `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Assert eight exact source-to-normalized strings for case/accent folding, curly apostrophe, œ/Æ expansion, long dash, soft hyphen, and whitespace collapse. This directly calls the common planning-text owner; no index or files are constructed.
 
 **Complete source-ordered implementation**
 
@@ -3267,7 +2888,7 @@ def test_french_literal_normalization(source: str, term: str) -> None:
 
 ### `test_raw_context_preserves_source_typography`
 
-**Purpose:** Regression invariant: raw context preserves source typography. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Index an accented French phrase through the reader double, search its normalized literal with a four-character context margin, and assert page 1, one occurrence, raw/normalized phrase presence, and unchanged raw indexed text.
 
 **Exact signature**
 
@@ -3310,20 +2931,9 @@ Outbound call expressions and conservative ownership:
 | `_one_page_index` | `tests.unit.test_index_planning_regulation._one_page_index` |
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3351,7 +2961,7 @@ def test_raw_context_preserves_source_typography(
 
 ### `test_zero_context_preserves_complete_raw_unicode_span`
 
-**Purpose:** Regression invariant: zero context preserves complete raw unicode span. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For eight precomposed/decomposed accent, ligature, curly-apostrophe, and leading/internal/trailing soft-hyphen examples, search with zero margin and assert exact raw and normalized contexts plus substring membership and unchanged indexed raw text. The regression verifies Unicode span mapping, not UTF-8 byte offsets.
 
 **Exact signature**
 
@@ -3414,20 +3024,9 @@ Outbound call expressions and conservative ownership:
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3455,7 +3054,7 @@ def test_zero_context_preserves_complete_raw_unicode_span(
 
 ### `test_literal_search_does_not_add_semantic_synonyms`
 
-**Purpose:** Regression invariant: literal search does not add semantic synonyms. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Index text mentioning batterie and search accumulateur; assert an empty hit table. This checks one absent synonym pair, not any policy conclusion about batteries.
 
 **Exact signature**
 
@@ -3494,20 +3093,9 @@ Outbound call expressions and conservative ownership:
 | `_one_page_index` | `tests.unit.test_index_planning_regulation._one_page_index` |
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3527,7 +3115,7 @@ def test_literal_search_does_not_add_semantic_synonyms(
 
 ### `test_version_discovery_failure_is_controlled_and_chained`
 
-**Purpose:** Regression invariant: version discovery failure is controlled and chained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use a successful reader double but replace the stage's imported distribution-version function with a failing callback. Require a version error whose __cause__ is RuntimeError; no environment package is changed.
 
 **Exact signature**
 
@@ -3572,20 +3160,9 @@ Outbound call expressions and conservative ownership:
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3612,7 +3189,7 @@ def test_version_discovery_failure_is_controlled_and_chained(
 
 ### `test_version_discovery_failure_is_controlled_and_chained.fail_version`
 
-**Purpose:** Implements `fail version` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Raise RuntimeError carrying the supplied distribution name. The enclosing test monkeypatches the stage's `version` binding to this callback; it never returns a version.
 
 **Exact signature**
 
@@ -3631,7 +3208,7 @@ def fail_version(name: str) -> str:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- This callback always raises; it has no successful normal return.
 - Explicit raise paths:
   - `RuntimeError(name)`.
 
@@ -3645,20 +3222,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `RuntimeError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Raise RuntimeError carrying the supplied distribution name. The enclosing test monkeypatches the stage's `version` binding to this callback; it never returns a version.
 
 **Complete source-ordered implementation**
 
@@ -3673,7 +3239,7 @@ def fail_version(name: str) -> str:
 
 ### `test_coordinated_page_mutation_fails_envelope_hash`
 
-**Purpose:** Regression invariant: coordinated page mutation fails envelope hash. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Copy the page table, change raw/normalized text and character count coherently, and recompute only that page's hash. Intrinsic validation must fail with envelope text because the retained pages/outer envelopes remain unchanged. It does not test a coordinated rehash of every envelope.
 
 **Exact signature**
 
@@ -3712,25 +3278,14 @@ Outbound call expressions and conservative ownership:
 | `_one_page_index` | `tests.unit.test_index_planning_regulation._one_page_index` |
 | `index.pages.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pages.iloc[0].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
-| `regulation_module._page_content_sha256` | `unresolved local/third-party receiver; no ownership inferred` |
+| `regulation_module._page_content_sha256` | `landscout.stages.index_planning_regulation._page_content_sha256`, through the literal import_module binding |
 | `pytest.raises` | `pytest.raises` |
 | `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
 | `replace` | `dataclasses.replace` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `regulation_module._page_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `pages.loc[0, "raw_text"] = "Nouveau"`<br>`pages.loc[0, "normalized_search_text"] = "nouveau"`<br>`pages.loc[0, "character_count"] = 7`<br>`pages.loc[0, "page_content_sha256"] = regulation_module._page_content_sha256(row)` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3756,7 +3311,7 @@ def test_coordinated_page_mutation_fails_envelope_hash(
 
 ### `test_index_integrity_mutations_fail`
 
-**Purpose:** Regression invariant: index integrity mutations fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Against a two-page index, corrupt one page hash, the pages envelope digest, the normalization profile, or page order. Each bounded mutation must cause the public intrinsic validator to raise a stage error; no physical files are changed.
 
 **Exact signature**
 
@@ -3814,20 +3369,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `pages.loc[0, "page_content_sha256"] = value` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3861,7 +3405,7 @@ def test_index_integrity_mutations_fail(
 
 ### `test_complete_index_envelope_mutation_is_rejected`
 
-**Purpose:** Regression invariant: complete index envelope mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Individually replace fifteen retained metadata/envelope fields, including the extractor version, without recomputing all hashes. Expect a stage error for every replacement. The version case proves the old outer hash binds its value, not a requirement to match the installed package version.
 
 **Exact signature**
 
@@ -3927,20 +3471,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -3962,7 +3495,7 @@ def test_complete_index_envelope_mutation_is_rejected(
 
 ### `test_unsupported_or_malformed_index_hash_schema_is_rejected`
 
-**Purpose:** Regression invariant: unsupported or malformed index hash schema is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the index schema with 0, -1, 1.5, string '1', or unsupported 2; require a controlled intrinsic error. These five cases do not include a boolean.
 
 **Exact signature**
 
@@ -4006,20 +3539,9 @@ Outbound call expressions and conservative ownership:
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4042,7 +3564,7 @@ def test_unsupported_or_malformed_index_hash_schema_is_rejected(
 
 ### `test_malformed_page_hash_schema_is_rejected_as_controlled_error`
 
-**Purpose:** Regression invariant: malformed page hash schema is rejected as controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the page schema with 0, -1, 1.5, or string '1' and require a controlled intrinsic error. Unsupported integer 2 is separately represented in the metadata mutation matrix.
 
 **Exact signature**
 
@@ -4086,20 +3608,9 @@ Outbound call expressions and conservative ownership:
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4122,7 +3633,7 @@ def test_malformed_page_hash_schema_is_rejected_as_controlled_error(
 
 ### `_valid_search_result`
 
-**Purpose:** Implements `valid search result` within the file role: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
+**Purpose:** Build a one-page index whose reader text contains two energy occurrences and one collective-equipment phrase, then search the two requested literals. Return the index and search result; no return annotation is declared.
 
 **Exact signature**
 
@@ -4134,7 +3645,7 @@ def _valid_search_result(
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- No return annotation is declared; the actual returned object is described above.
 
 **Inputs**
 
@@ -4171,20 +3682,9 @@ Outbound call expressions and conservative ownership:
 | `_one_page_index` | `tests.unit.test_index_planning_regulation._one_page_index` |
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Build a one-page index whose reader text contains two energy occurrences and one collective-equipment phrase, then search the two requested literals. Return the index and search result; no return annotation is declared.
 
 **Complete source-ordered implementation**
 
@@ -4210,7 +3710,7 @@ def _valid_search_result(
 
 ### `test_search_result_envelope_is_valid_and_deterministic`
 
-**Purpose:** Regression invariant: search result envelope is valid and deterministic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Repeat the same two-term search and assert hit-column order, normalization profile, index digest, search schema, two term/page rows, exact pandas frame equality, equal hits digest, and successful result validation. The helper text has two energy occurrences, but this test does not directly assert that occurrence_count equals two.
 
 **Exact signature**
 
@@ -4257,20 +3757,9 @@ Outbound call expressions and conservative ownership:
 | `assert_frame_equal` | `pandas.testing.assert_frame_equal` |
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4299,7 +3788,7 @@ def test_search_result_envelope_is_valid_and_deterministic(
 
 ### `test_search_index_identity_schema_and_terms_are_sealed`
 
-**Purpose:** Regression invariant: search index identity schema and terms are sealed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Individually replace the referenced index digest, five unsupported/malformed search-schema values, or requested raw terms. Require a controlled search-result error in all seven cases; replacements retain the previous hits hash.
 
 **Exact signature**
 
@@ -4356,20 +3845,9 @@ Outbound call expressions and conservative ownership:
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4394,7 +3872,7 @@ def test_search_index_identity_schema_and_terms_are_sealed(
 
 ### `test_search_requested_terms_must_be_an_immutable_exact_tuple`
 
-**Purpose:** Regression invariant: search requested terms must be an immutable exact tuple. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the tuple of requested terms with a list and require the validator's tuple error. This tests immediate boundary type rejection, not attempted in-place mutation of the valid tuple.
 
 **Exact signature**
 
@@ -4436,20 +3914,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4473,7 +3940,7 @@ def test_search_requested_terms_must_be_an_immutable_exact_tuple(
 
 ### `test_search_result_integrity_mutations_fail`
 
-**Purpose:** Regression invariant: search result integrity mutations fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercise nine retained result/hit mutations: wrong envelope document/PDF identity, unknown page, duplicated hit with updated row count, zero/fractional/string occurrence count, altered raw context, or wrong hits hash. Expect a controlled error in every case; copied frames isolate edits from the original result and hashes are not coordinated to the edits.
 
 **Exact signature**
 
@@ -4536,20 +4003,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `hits[target] = hits[target].astype(object)`<br>`hits.loc[0, target] = value` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4582,7 +4038,7 @@ def test_search_result_integrity_mutations_fail(
 
 ### `test_search_hit_lineage_mutation_fails`
 
-**Purpose:** Regression invariant: search hit lineage mutation fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Change one hit's document_id or pdf_sha256 while retaining correct outer lineage and expect the specific lineage error. This independently targets row lineage rather than only the envelope.
 
 **Exact signature**
 
@@ -4627,20 +4083,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `hits.loc[0, column] = "b" * 64 if column == "pdf_sha256" else "wrong"` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4664,7 +4109,7 @@ def test_search_hit_lineage_mutation_fails(
 
 ### `test_invalid_search_term_is_rejected`
 
-**Purpose:** Regression invariant: invalid search term is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass one empty, whitespace-only, edge-whitespace, or nonstring integer term in a list; require a search term error for all five cases. Input list typing is intentionally violated for the integer case.
 
 **Exact signature**
 
@@ -4707,20 +4152,9 @@ Outbound call expressions and conservative ownership:
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4732,7 +4166,7 @@ def test_invalid_search_term_is_rejected(
 ) -> None:
     index = _one_page_index(tmp_path, monkeypatch)
     with pytest.raises(PlanningRegulationIndexError, match="search term"):
-        search_planning_regulation(index, [term])
+        search_planning_regulation(index, [term])  # type: ignore[list-item]
 ```
 
 **Business boundary**
@@ -4741,7 +4175,7 @@ def test_invalid_search_term_is_rejected(
 
 ### `test_duplicate_normalized_search_terms_are_rejected`
 
-**Purpose:** Regression invariant: duplicate normalized search terms are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Search both énergie and ENERGIE and require a unique error, showing duplicate detection occurs after normalization rather than on raw spelling.
 
 **Exact signature**
 
@@ -4781,20 +4215,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `search_planning_regulation` | `landscout.stages.index_planning_regulation.search_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4814,7 +4237,7 @@ def test_duplicate_normalized_search_terms_are_rejected(
 
 ### `test_empty_search_result_has_stable_schema_and_lineage`
 
-**Purpose:** Regression invariant: empty search result has stable schema and lineage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Search batterie in a nonmatching page, then assert zero count, empty hits, exact column order, retained document/PDF identity, and successful validation. This is a no-match request, not an empty requested-term tuple test; it does not directly assert each dtype.
 
 **Exact signature**
 
@@ -4859,20 +4282,9 @@ Outbound call expressions and conservative ownership:
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4897,7 +4309,7 @@ def test_empty_search_result_has_stable_schema_and_lineage(
 
 ### `test_malformed_page_value_raises_controlled_index_error`
 
-**Purpose:** Regression invariant: malformed page value raises controlled index error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Put a list in the copied page extraction_error cell and require the public index validator to return a controlled stage error rather than leaking pandas ambiguous-null behavior. No exact message or cause is required.
 
 **Exact signature**
 
@@ -4939,20 +4351,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
 | `replace` | `dataclasses.replace` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `pages.at[0, "extraction_error"] = ["ambiguous", "value"]` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -4974,7 +4375,7 @@ def test_malformed_page_value_raises_controlled_index_error(
 
 ### `test_malformed_hit_value_raises_controlled_index_error`
 
-**Purpose:** Regression invariant: malformed hit value raises controlled index error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Put a list into a copied hit raw_context cell and require a controlled result-validation error. No real PDF text or original hit table is modified.
 
 **Exact signature**
 
@@ -5017,20 +4418,9 @@ Outbound call expressions and conservative ownership:
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 | `replace` | `dataclasses.replace` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `hits["raw_context"] = hits["raw_context"].astype(object)`<br>`hits.at[0, "raw_context"] = ["not", "text"]` |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -5056,7 +4446,7 @@ def test_malformed_hit_value_raises_controlled_index_error(
 
 ### `test_canonical_hash_serialization_failure_is_controlled_and_chained`
 
-**Purpose:** Regression invariant: canonical hash serialization failure is controlled and chained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass a bare object leaf to the private canonical JSON hasher. Require a serialized stage error with a TypeError cause; no digest is successfully produced and no fallback repr is accepted.
 
 **Exact signature**
 
@@ -5090,23 +4480,12 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `object` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `regulation_module._canonical_sha256` | `unresolved local/third-party receiver; no ownership inferred` |
+| `regulation_module._canonical_sha256` | `landscout.stages.index_planning_regulation._canonical_sha256`, through the literal import_module binding |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `regulation_module._canonical_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Pass a bare object leaf to the private canonical JSON hasher. Require a serialized stage error with a TypeError cause; no digest is successfully produced and no fallback repr is accepted.
 
 **Complete source-ordered implementation**
 
@@ -5127,7 +4506,7 @@ def test_canonical_hash_serialization_failure_is_controlled_and_chained() -> Non
 
 ### `test_malformed_source_metadata_raises_controlled_index_error`
 
-**Purpose:** Regression invariant: malformed source metadata raises controlled index error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace written_files with an exact tuple containing a bare object and expect controlled public indexing failure. The test deliberately constructs an invalid dataclass graph and does not assert a particular inner metadata gate.
 
 **Exact signature**
 
@@ -5167,20 +4546,9 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `index_planning_regulation` | `landscout.stages.index_planning_regulation.index_planning_regulation` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -5208,7 +4576,7 @@ def test_malformed_source_metadata_raises_controlled_index_error(
 
 ### `test_extraction_and_search_do_not_mutate_inputs`
 
-**Purpose:** Regression invariant: extraction and search do not mutate inputs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Deep-copy extraction metadata and zoning data, index through a reader double, snapshot the pages, then search. Assert extraction equality, exact GeoDataFrame equality for zoning, and pandas frame equality for pages. This is a bounded successful-path no-input-mutation regression, not deep immutability of the output tables.
 
 **Exact signature**
 
@@ -5254,20 +4622,9 @@ Outbound call expressions and conservative ownership:
 | `assert_geodataframe_equal` | `geopandas.testing.assert_geodataframe_equal` |
 | `assert_frame_equal` | `pandas.testing.assert_frame_equal` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+Constructs temporary on-disk fixture files through the documented helpers and exercises the real indexing/validation functions. PDF parsing is mocked where execution reaches successful extraction; negative source-selection tests fail earlier. Deliberate copied-frame/envelope changes, scoped monkeypatches, or physical tampering are described above. No live GPU request, production cache modification, or parcel policy decision occurs.
 
 **Complete source-ordered implementation**
 
@@ -5295,58 +4652,60 @@ def test_extraction_and_search_do_not_mutate_inputs(
 
 ## 7. Test-specific regression contract
 
-- Test functions: **45**.
+- Test functions: **45**, expanding to **114 declared cases**; no execution is reported here.
 - Pytest fixtures (decorator-proven): **0**.
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+The numeric column counts only direct Python `assert` syntax. It excludes `pytest.raises` contexts and assertion-helper calls such as `assert_frame_equal`; a zero is not absence of test evidence. Complete callable source is in section 6 and the full-file snapshot in section 11.
+
+| Test | Parametrization | Expected exception contexts | Direct AST assert statements | Verified regression scope |
 |---|---|---|---:|---|
-| `test_public_api_exports_immutable_models_and_validators` | none | none | 2 | Proves public api exports immutable models and validators using the exact source reproduced in section 7. |
-| `test_source_nomfic_resolves_generic_filename` | pytest.mark.parametrize(<br>    "filename",<br>    [DEFAULT_PDF, "98765_reglement_20300102.pdf"],<br>) | none | 1 | Proves source nomfic resolves generic filename using the exact source reproduced in section 7. |
-| `test_explicit_source_validated_selection_succeeds` | none | none | 1 | Proves explicit source validated selection succeeds using the exact source reproduced in section 7. |
-| `test_unchanged_zoning_source_is_revalidated_before_selection` | pytest.mark.parametrize("source_format", ["GPKG", "ESRI Shapefile"]) | none | 3 | Proves unchanged zoning source is revalidated before selection using the exact source reproduced in section 7. |
-| `test_mutated_loaded_nomfic_is_rejected_before_selection` | none | pytest.raises(PlanningRegulationIndexError, match="zoning\|source") | 0 | Proves mutated loaded nomfic is rejected before selection using the exact source reproduced in section 7. |
-| `test_mutated_loaded_zoning_geometry_or_order_is_rejected` | pytest.mark.parametrize("mutation", ["reorder", "geometry"]) | pytest.raises(PlanningRegulationIndexError, match="zoning\|source") | 0 | Proves mutated loaded zoning geometry or order is rejected using the exact source reproduced in section 7. |
-| `test_zoning_source_bytes_changed_after_ingestion_are_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="size\|SHA256\|integrity") | 0 | Proves zoning source bytes changed after ingestion are rejected using the exact source reproduced in section 7. |
-| `test_zoning_source_inventory_integrity_mismatch_is_rejected` | pytest.mark.parametrize("field", ["size_bytes", "sha256"]) | pytest.raises(PlanningRegulationIndexError, match="size\|SHA256\|integrity") | 0 | Proves zoning source inventory integrity mismatch is rejected using the exact source reproduced in section 7. |
-| `test_missing_nomfic_field_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="missing NOMFIC") | 0 | Proves missing nomfic field is rejected using the exact source reproduced in section 7. |
-| `test_null_nomfic_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="no regulation filename") | 0 | Proves null nomfic is rejected using the exact source reproduced in section 7. |
-| `test_multiple_nomfic_values_are_ambiguous` | none | pytest.raises(PlanningRegulationIndexError, match="ambiguous") | 0 | Proves multiple nomfic values are ambiguous using the exact source reproduced in section 7. |
-| `test_unsafe_explicit_filename_is_rejected` | pytest.mark.parametrize(<br>    "filename",<br>    [<br>        "",<br>        " file.pdf",<br>        "file.pdf ",<br>        "../file.pdf",<br>        "a/b.pdf",<br>        "C:\\a.pdf",<br>        "bad\x00.pdf",<br>        "file.txt",<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError, match="filename") | 0 | Proves unsafe explicit filename is rejected using the exact source reproduced in section 7. |
-| `test_explicit_filename_not_referenced_by_zoning_fails` | none | pytest.raises(PlanningRegulationIndexError, match="not referenced") | 0 | Proves explicit filename not referenced by zoning fails using the exact source reproduced in section 7. |
-| `test_filename_absent_from_written_files_fails` | none | pytest.raises(PlanningRegulationIndexError, match="written_files") | 0 | Proves filename absent from written files fails using the exact source reproduced in section 7. |
-| `test_unrelated_non_pdf_written_file_does_not_block_selection` | none | none | 1 | Proves unrelated non pdf written file does not block selection using the exact source reproduced in section 7. |
-| `test_filename_absent_from_inventory_fails` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="missing from GPU inventory\|verified manifest",<br>    ) | 0 | Proves filename absent from inventory fails using the exact source reproduced in section 7. |
-| `test_duplicate_inventory_basename_fails` | none | pytest.raises(PlanningRegulationIndexError, match="ambiguous") | 0 | Proves duplicate inventory basename fails using the exact source reproduced in section 7. |
-| `test_path_outside_root_is_rejected` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="unsafe\|verified manifest",<br>    ) | 0 | Proves path outside root is rejected using the exact source reproduced in section 7. |
-| `test_pdf_inventory_integrity_mismatch_fails` | pytest.mark.parametrize("field", ["size_bytes", "sha256"]) | pytest.raises(PlanningRegulationIndexError, match="differs") | 0 | Proves pdf inventory integrity mismatch fails using the exact source reproduced in section 7. |
-| `test_page_states_numbering_and_hashes` | none | pytest.raises(FrozenInstanceError) | 7 | Proves page states numbering and hashes using the exact source reproduced in section 7. |
-| `test_zero_page_pdf_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="at least one page") | 0 | Proves zero page pdf is rejected using the exact source reproduced in section 7. |
-| `test_pdf_reader_failure_is_controlled_and_chained` | none | pytest.raises(<br>        PlanningRegulationIndexError, match="opened or parsed"<br>    ) | 1 | Proves pdf reader failure is controlled and chained using the exact source reproduced in section 7. |
-| `test_french_literal_normalization` | pytest.mark.parametrize(<br>    ("source", "term"),<br>    [<br>        ("ÉNERGIE", "energie"),<br>        ("intérêt", "interet"),<br>        ("d’intérêt", "d'interet"),<br>        ("œuvre", "oeuvre"),<br>        ("ÆTHER", "aether"),<br>        ("poste—source", "poste-source"),<br>        ("inter\u00adruption", "interruption"),<br>        ("ligne\n   électrique", "ligne electrique"),<br>    ],<br>) | none | 1 | Proves french literal normalization using the exact source reproduced in section 7. |
-| `test_raw_context_preserves_source_typography` | none | none | 5 | Proves raw context preserves source typography using the exact source reproduced in section 7. |
-| `test_zero_context_preserves_complete_raw_unicode_span` | pytest.mark.parametrize(<br>    ("raw", "term", "expected_raw", "expected_normalized"),<br>    [<br>        ("café", "cafe", "café", "cafe"),<br>        ("cafe\u0301", "cafe", "cafe\u0301", "cafe"),<br>        ("œuvre", "oeuvre", "œuvre", "oeuvre"),<br>        ("æther", "aether", "æther", "aether"),<br>        ("d’intérêt", "d'interet", "d’intérêt", "d'interet"),<br>        ("inter\u00adruption", "interruption", "inter\u00adruption", "interruption"),<br>        ("\u00adcafe", "cafe", "\u00adcafe", "cafe"),<br>        ("cafe\u00ad", "cafe", "cafe\u00ad", "cafe"),<br>    ],<br>) | none | 4 | Proves zero context preserves complete raw unicode span using the exact source reproduced in section 7. |
-| `test_literal_search_does_not_add_semantic_synonyms` | none | none | 1 | Proves literal search does not add semantic synonyms using the exact source reproduced in section 7. |
-| `test_version_discovery_failure_is_controlled_and_chained` | none | pytest.raises(PlanningRegulationIndexError, match="version") | 1 | Proves version discovery failure is controlled and chained using the exact source reproduced in section 7. |
-| `test_coordinated_page_mutation_fails_envelope_hash` | none | pytest.raises(PlanningRegulationIndexError, match="envelope") | 0 | Proves coordinated page mutation fails envelope hash using the exact source reproduced in section 7. |
-| `test_index_integrity_mutations_fail` | pytest.mark.parametrize(<br>    ("target", "value"),<br>    [<br>        ("page_hash", "b" * 64),<br>        ("envelope_hash", "b" * 64),<br>        ("profile", "other_v1"),<br>        ("order", None),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves index integrity mutations fail using the exact source reproduced in section 7. |
-| `test_complete_index_envelope_mutation_is_rejected` | pytest.mark.parametrize(<br>    ("field", "replacement"),<br>    [<br>        ("document_id", "other-document"),<br>        ("archive_sha256", "b" * 64),<br>        ("regulation_filename", "other_reglement.pdf"),<br>        ("source_selection_method", "EXPLICIT_FILENAME"),<br>        ("source_selection_sha256", "b" * 64),<br>        ("pdf_relative_path", "written-0/other_reglement.pdf"),<br>        ("pdf_size_bytes", len(PDF_BYTES) + 1),<br>        ("pdf_sha256", "b" * 64),<br>        ("extraction_library", "other-reader"),<br>        ("extraction_library_version", "0.0.0"),<br>        ("search_normalization_profile", "other-profile"),<br>        ("page_hash_schema_version", 2),<br>        ("total_page_count", 2),<br>        ("pages_content_sha256", "b" * 64),<br>        ("index_content_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves complete index envelope mutation is rejected using the exact source reproduced in section 7. |
-| `test_unsupported_or_malformed_index_hash_schema_is_rejected` | pytest.mark.parametrize("replacement", [0, -1, 1.5, "1", 2]) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves unsupported or malformed index hash schema is rejected using the exact source reproduced in section 7. |
-| `test_malformed_page_hash_schema_is_rejected_as_controlled_error` | pytest.mark.parametrize("replacement", [0, -1, 1.5, "1"]) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves malformed page hash schema is rejected as controlled error using the exact source reproduced in section 7. |
-| `test_search_result_envelope_is_valid_and_deterministic` | none | none | 6 | Proves search result envelope is valid and deterministic using the exact source reproduced in section 7. |
-| `test_search_index_identity_schema_and_terms_are_sealed` | pytest.mark.parametrize(<br>    ("field", "replacement"),<br>    [<br>        ("index_content_sha256", "b" * 64),<br>        ("search_hash_schema_version", 2),<br>        ("search_hash_schema_version", 0),<br>        ("search_hash_schema_version", -1),<br>        ("search_hash_schema_version", 1.5),<br>        ("search_hash_schema_version", "1"),<br>        ("requested_terms", ("other-term",)),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves search index identity schema and terms are sealed using the exact source reproduced in section 7. |
-| `test_search_requested_terms_must_be_an_immutable_exact_tuple` | none | pytest.raises(PlanningRegulationIndexError, match="tuple") | 0 | Proves search requested terms must be an immutable exact tuple using the exact source reproduced in section 7. |
-| `test_search_result_integrity_mutations_fail` | pytest.mark.parametrize(<br>    ("target", "value"),<br>    [<br>        ("document_id", "wrong"),<br>        ("pdf_sha256", "b" * 64),<br>        ("page_number", 99),<br>        ("duplicate", None),<br>        ("occurrence_count", 0),<br>        ("occurrence_count", 1.5),<br>        ("occurrence_count", "1"),<br>        ("raw_context", "corrupted"),<br>        ("hits_content_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Proves search result integrity mutations fail using the exact source reproduced in section 7. |
-| `test_search_hit_lineage_mutation_fails` | pytest.mark.parametrize("column", ["document_id", "pdf_sha256"]) | pytest.raises(PlanningRegulationIndexError, match="lineage") | 0 | Proves search hit lineage mutation fails using the exact source reproduced in section 7. |
-| `test_invalid_search_term_is_rejected` | pytest.mark.parametrize("term", ["", "   ", " term", "term ", 7]) | pytest.raises(PlanningRegulationIndexError, match="search term") | 0 | Proves invalid search term is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_normalized_search_terms_are_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="unique") | 0 | Proves duplicate normalized search terms are rejected using the exact source reproduced in section 7. |
-| `test_empty_search_result_has_stable_schema_and_lineage` | none | none | 5 | Proves empty search result has stable schema and lineage using the exact source reproduced in section 7. |
-| `test_malformed_page_value_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Proves malformed page value raises controlled index error using the exact source reproduced in section 7. |
-| `test_malformed_hit_value_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Proves malformed hit value raises controlled index error using the exact source reproduced in section 7. |
-| `test_canonical_hash_serialization_failure_is_controlled_and_chained` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="serialized",<br>    ) | 1 | Proves canonical hash serialization failure is controlled and chained using the exact source reproduced in section 7. |
-| `test_malformed_source_metadata_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Proves malformed source metadata raises controlled index error using the exact source reproduced in section 7. |
-| `test_extraction_and_search_do_not_mutate_inputs` | none | none | 1 | Proves extraction and search do not mutate inputs using the exact source reproduced in section 7. |
+| `test_public_api_exports_immutable_models_and_validators` | none | none | 2 | Loop over seven expected stage export names and assert both __all__ membership and attribute presence. Despite the test name, these assertions do not construct models or attempt immutability mutations. |
+| `test_source_nomfic_resolves_generic_filename` | pytest.mark.parametrize(<br>    "filename",<br>    [DEFAULT_PDF, "98765_reglement_20300102.pdf"],<br>) | none | 1 | For the default basename and an unrelated commune/date-like basename, create matching zoning/written/inventory evidence and a one-page reader double; assert the selected PDF relative path ends in exactly that basename. This checks source-driven selection rather than hardcoded filename identity. |
+| `test_explicit_source_validated_selection_succeeds` | none | none | 1 | Build a.pdf and b.pdf in all source inventories, provide an explicit b.pdf request, and assert its selected basename. The reader is mocked; ambiguity is resolved only among source-referenced candidates. |
+| `test_unchanged_zoning_source_is_revalidated_before_selection` | pytest.mark.parametrize("source_format", ["GPKG", "ESRI Shapefile"]) | none | 3 | For real temporary GPKG and Shapefile zoning sources, run indexing with a reader double and assert default filename, ZONING_NOMFIC method, and lowercase 64-hex selection digest. The real source validator is not monkeypatched; this test does not instrument its call count. |
+| `test_mutated_loaded_nomfic_is_rejected_before_selection` | none | pytest.raises(PlanningRegulationIndexError, match="zoning\|source") | 0 | Copy the loaded zoning frame, replace NOMFIC without changing physical bytes, and expect a stage error matching zoning/source from public indexing. The inconsistent retained frame cannot select another PDF. |
+| `test_mutated_loaded_zoning_geometry_or_order_is_rejected` | pytest.mark.parametrize("mutation", ["reorder", "geometry"]) | pytest.raises(PlanningRegulationIndexError, match="zoning\|source") | 0 | Use two source rows, then either reverse their retained order or replace one retained Polygon far from the original. Public indexing must fail with zoning/source text in both cases; physical source bytes remain unchanged. |
+| `test_zoning_source_bytes_changed_after_ingestion_are_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="size\|SHA256\|integrity") | 0 | Append b'tamper' to the actual temporary zoning dataset file after fixture ingestion, then expect indexing to fail with size/SHA256/integrity text. This is an intentional local append write, not a read-only operation. |
+| `test_zoning_source_inventory_integrity_mismatch_is_rejected` | pytest.mark.parametrize("field", ["size_bytes", "sha256"]) | pytest.raises(PlanningRegulationIndexError, match="size\|SHA256\|integrity") | 0 | Replace the first SPATIAL_DATA inventory record's size with size+1 or SHA with b*64 while keeping the manifest/bytes unchanged. Expect a controlled size/SHA256/integrity failure from indexing; the test does not isolate the later file-byte gate from manifest validation. |
+| `test_missing_nomfic_field_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="missing NOMFIC") | 0 | Write and load a physical zoning source without NOMFIC; public indexing must fail with missing NOMFIC. This differs from mutating only the retained frame. |
+| `test_null_nomfic_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="no regulation filename") | 0 | Write a physical source whose sole NOMFIC is null, then expect no regulation filename from indexing. No PDF reader double is needed because source selection fails first. |
+| `test_multiple_nomfic_values_are_ambiguous` | none | pytest.raises(PlanningRegulationIndexError, match="ambiguous") | 0 | Provide two fully inventoried/source-referenced PDF names and omit an explicit choice. Require an ambiguity error; no automatic filename/title preference is asserted. |
+| `test_unsafe_explicit_filename_is_rejected` | pytest.mark.parametrize(<br>    "filename",<br>    [<br>        "",<br>        " file.pdf",<br>        "file.pdf ",<br>        "../file.pdf",<br>        "a/b.pdf",<br>        "C:\\a.pdf",<br>        "bad\x00.pdf",<br>        "file.txt",<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError, match="filename") | 0 | Exercise eight explicit strings: empty, leading/trailing whitespace, traversal, POSIX separator, Windows drive/backslash spelling, NUL, and non-PDF suffix. Every public call must fail with filename text; this is a bounded lexical test set, not exhaustive filesystem path coverage. |
+| `test_explicit_filename_not_referenced_by_zoning_fails` | none | pytest.raises(PlanningRegulationIndexError, match="not referenced") | 0 | Request other.pdf against a default-only physical zoning source and require a not referenced error. A syntactically valid PDF name alone does not authorize selection. |
+| `test_filename_absent_from_written_files_fails` | none | pytest.raises(PlanningRegulationIndexError, match="written_files") | 0 | Keep default NOMFIC/inventory but provide only other.pdf in written_files; expect the written_files error. The exact cross-inventory basename match is tested. |
+| `test_unrelated_non_pdf_written_file_does_not_block_selection` | none | none | 1 | Add technical-note.txt beside the valid default PDF in written metadata, use a one-page reader double, and assert a one-page index. Unrelated non-PDF metadata must not block the selected source-referenced regulation. |
+| `test_filename_absent_from_inventory_fails` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="missing from GPU inventory\|verified manifest",<br>    ) | 0 | Change the retained regulation inventory path to other.pdf while leaving physical files and marker unchanged. Require either missing from GPU inventory or verified manifest text; this test permits rejection at the earlier manifest boundary. |
+| `test_duplicate_inventory_basename_fails` | none | pytest.raises(PlanningRegulationIndexError, match="ambiguous") | 0 | Create two physical files with the same selected basename in distinct numbered directories and a matching inventory. Public indexing must reject the ambiguous basename even though the relative paths differ. |
+| `test_path_outside_root_is_rejected` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="unsafe\|verified manifest",<br>    ) | 0 | Replace the first sorted retained inventory item with a ../ PDF spelling and discard the other retained entries. Expect unsafe or verified manifest text. No outside-root file is read or created; the broad expected alternative does not prove a specific path-resolution branch was reached. |
+| `test_pdf_inventory_integrity_mismatch_fails` | pytest.mark.parametrize("field", ["size_bytes", "sha256"]) | pytest.raises(PlanningRegulationIndexError, match="differs") | 0 | Replace the WRITTEN_REGULATION inventory size or SHA without rewriting the manifest or PDF bytes, then require a controlled error containing differs. This protects consistency but does not isolate manifest mismatch from the later physical PDF comparison. |
+| `test_page_states_numbering_and_hashes` | none | pytest.raises(FrozenInstanceError) | 7 | Mock three pages: accented/multiline text, whitespace-only text, and RuntimeError. Assert exact seven-column schema, ordered page numbers, TEXT/EMPTY/ERROR states, retained raw text, expected normalization, and digest spelling; run intrinsic validation. An attempted total_page_count reassignment must immediately raise FrozenInstanceError; mutable page-cell changes are not prohibited by this test. |
+| `test_zero_page_pdf_is_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="at least one page") | 0 | Return an empty fake reader page list and require the at least one page stage error. This tests zero pages, not encryption rejection or a real malformed PDF. |
+| `test_pdf_reader_failure_is_controlled_and_chained` | none | pytest.raises(<br>        PlanningRegulationIndexError, match="opened or parsed"<br>    ) | 1 | Replace PdfReader with the nested callback that raises RuntimeError. Public indexing must raise the opened or parsed stage error and retain RuntimeError as __cause__; fixture bytes are not actually parsed. |
+| `test_french_literal_normalization` | pytest.mark.parametrize(<br>    ("source", "term"),<br>    [<br>        ("ÉNERGIE", "energie"),<br>        ("intérêt", "interet"),<br>        ("d’intérêt", "d'interet"),<br>        ("œuvre", "oeuvre"),<br>        ("ÆTHER", "aether"),<br>        ("poste—source", "poste-source"),<br>        ("inter\u00adruption", "interruption"),<br>        ("ligne\n   électrique", "ligne electrique"),<br>    ],<br>) | none | 1 | Assert eight exact source-to-normalized strings for case/accent folding, curly apostrophe, œ/Æ expansion, long dash, soft hyphen, and whitespace collapse. This directly calls the common planning-text owner; no index or files are constructed. |
+| `test_raw_context_preserves_source_typography` | none | none | 5 | Index an accented French phrase through the reader double, search its normalized literal with a four-character context margin, and assert page 1, one occurrence, raw/normalized phrase presence, and unchanged raw indexed text. |
+| `test_zero_context_preserves_complete_raw_unicode_span` | pytest.mark.parametrize(<br>    ("raw", "term", "expected_raw", "expected_normalized"),<br>    [<br>        ("café", "cafe", "café", "cafe"),<br>        ("cafe\u0301", "cafe", "cafe\u0301", "cafe"),<br>        ("œuvre", "oeuvre", "œuvre", "oeuvre"),<br>        ("æther", "aether", "æther", "aether"),<br>        ("d’intérêt", "d'interet", "d’intérêt", "d'interet"),<br>        ("inter\u00adruption", "interruption", "inter\u00adruption", "interruption"),<br>        ("\u00adcafe", "cafe", "\u00adcafe", "cafe"),<br>        ("cafe\u00ad", "cafe", "cafe\u00ad", "cafe"),<br>    ],<br>) | none | 4 | For eight precomposed/decomposed accent, ligature, curly-apostrophe, and leading/internal/trailing soft-hyphen examples, search with zero margin and assert exact raw and normalized contexts plus substring membership and unchanged indexed raw text. The regression verifies Unicode span mapping, not UTF-8 byte offsets. |
+| `test_literal_search_does_not_add_semantic_synonyms` | none | none | 1 | Index text mentioning batterie and search accumulateur; assert an empty hit table. This checks one absent synonym pair, not any policy conclusion about batteries. |
+| `test_version_discovery_failure_is_controlled_and_chained` | none | pytest.raises(PlanningRegulationIndexError, match="version") | 1 | Use a successful reader double but replace the stage's imported distribution-version function with a failing callback. Require a version error whose __cause__ is RuntimeError; no environment package is changed. |
+| `test_coordinated_page_mutation_fails_envelope_hash` | none | pytest.raises(PlanningRegulationIndexError, match="envelope") | 0 | Copy the page table, change raw/normalized text and character count coherently, and recompute only that page's hash. Intrinsic validation must fail with envelope text because the retained pages/outer envelopes remain unchanged. It does not test a coordinated rehash of every envelope. |
+| `test_index_integrity_mutations_fail` | pytest.mark.parametrize(<br>    ("target", "value"),<br>    [<br>        ("page_hash", "b" * 64),<br>        ("envelope_hash", "b" * 64),<br>        ("profile", "other_v1"),<br>        ("order", None),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Against a two-page index, corrupt one page hash, the pages envelope digest, the normalization profile, or page order. Each bounded mutation must cause the public intrinsic validator to raise a stage error; no physical files are changed. |
+| `test_complete_index_envelope_mutation_is_rejected` | pytest.mark.parametrize(<br>    ("field", "replacement"),<br>    [<br>        ("document_id", "other-document"),<br>        ("archive_sha256", "b" * 64),<br>        ("regulation_filename", "other_reglement.pdf"),<br>        ("source_selection_method", "EXPLICIT_FILENAME"),<br>        ("source_selection_sha256", "b" * 64),<br>        ("pdf_relative_path", "written-0/other_reglement.pdf"),<br>        ("pdf_size_bytes", len(PDF_BYTES) + 1),<br>        ("pdf_sha256", "b" * 64),<br>        ("extraction_library", "other-reader"),<br>        ("extraction_library_version", "0.0.0"),<br>        ("search_normalization_profile", "other-profile"),<br>        ("page_hash_schema_version", 2),<br>        ("total_page_count", 2),<br>        ("pages_content_sha256", "b" * 64),<br>        ("index_content_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Individually replace fifteen retained metadata/envelope fields, including the extractor version, without recomputing all hashes. Expect a stage error for every replacement. The version case proves the old outer hash binds its value, not a requirement to match the installed package version. |
+| `test_unsupported_or_malformed_index_hash_schema_is_rejected` | pytest.mark.parametrize("replacement", [0, -1, 1.5, "1", 2]) | pytest.raises(PlanningRegulationIndexError) | 0 | Replace the index schema with 0, -1, 1.5, string '1', or unsupported 2; require a controlled intrinsic error. These five cases do not include a boolean. |
+| `test_malformed_page_hash_schema_is_rejected_as_controlled_error` | pytest.mark.parametrize("replacement", [0, -1, 1.5, "1"]) | pytest.raises(PlanningRegulationIndexError) | 0 | Replace the page schema with 0, -1, 1.5, or string '1' and require a controlled intrinsic error. Unsupported integer 2 is separately represented in the metadata mutation matrix. |
+| `test_search_result_envelope_is_valid_and_deterministic` | none | none | 6 | Repeat the same two-term search and assert hit-column order, normalization profile, index digest, search schema, two term/page rows, exact pandas frame equality, equal hits digest, and successful result validation. The helper text has two energy occurrences, but this test does not directly assert that occurrence_count equals two. |
+| `test_search_index_identity_schema_and_terms_are_sealed` | pytest.mark.parametrize(<br>    ("field", "replacement"),<br>    [<br>        ("index_content_sha256", "b" * 64),<br>        ("search_hash_schema_version", 2),<br>        ("search_hash_schema_version", 0),<br>        ("search_hash_schema_version", -1),<br>        ("search_hash_schema_version", 1.5),<br>        ("search_hash_schema_version", "1"),<br>        ("requested_terms", ("other-term",)),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Individually replace the referenced index digest, five unsupported/malformed search-schema values, or requested raw terms. Require a controlled search-result error in all seven cases; replacements retain the previous hits hash. |
+| `test_search_requested_terms_must_be_an_immutable_exact_tuple` | none | pytest.raises(PlanningRegulationIndexError, match="tuple") | 0 | Replace the tuple of requested terms with a list and require the validator's tuple error. This tests immediate boundary type rejection, not attempted in-place mutation of the valid tuple. |
+| `test_search_result_integrity_mutations_fail` | pytest.mark.parametrize(<br>    ("target", "value"),<br>    [<br>        ("document_id", "wrong"),<br>        ("pdf_sha256", "b" * 64),<br>        ("page_number", 99),<br>        ("duplicate", None),<br>        ("occurrence_count", 0),<br>        ("occurrence_count", 1.5),<br>        ("occurrence_count", "1"),<br>        ("raw_context", "corrupted"),<br>        ("hits_content_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationIndexError) | 0 | Exercise nine retained result/hit mutations: wrong envelope document/PDF identity, unknown page, duplicated hit with updated row count, zero/fractional/string occurrence count, altered raw context, or wrong hits hash. Expect a controlled error in every case; copied frames isolate edits from the original result and hashes are not coordinated to the edits. |
+| `test_search_hit_lineage_mutation_fails` | pytest.mark.parametrize("column", ["document_id", "pdf_sha256"]) | pytest.raises(PlanningRegulationIndexError, match="lineage") | 0 | Change one hit's document_id or pdf_sha256 while retaining correct outer lineage and expect the specific lineage error. This independently targets row lineage rather than only the envelope. |
+| `test_invalid_search_term_is_rejected` | pytest.mark.parametrize("term", ["", "   ", " term", "term ", 7]) | pytest.raises(PlanningRegulationIndexError, match="search term") | 0 | Pass one empty, whitespace-only, edge-whitespace, or nonstring integer term in a list; require a search term error for all five cases. Input list typing is intentionally violated for the integer case. |
+| `test_duplicate_normalized_search_terms_are_rejected` | none | pytest.raises(PlanningRegulationIndexError, match="unique") | 0 | Search both énergie and ENERGIE and require a unique error, showing duplicate detection occurs after normalization rather than on raw spelling. |
+| `test_empty_search_result_has_stable_schema_and_lineage` | none | none | 5 | Search batterie in a nonmatching page, then assert zero count, empty hits, exact column order, retained document/PDF identity, and successful validation. This is a no-match request, not an empty requested-term tuple test; it does not directly assert each dtype. |
+| `test_malformed_page_value_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Put a list in the copied page extraction_error cell and require the public index validator to return a controlled stage error rather than leaking pandas ambiguous-null behavior. No exact message or cause is required. |
+| `test_malformed_hit_value_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Put a list into a copied hit raw_context cell and require a controlled result-validation error. No real PDF text or original hit table is modified. |
+| `test_canonical_hash_serialization_failure_is_controlled_and_chained` | none | pytest.raises(<br>        PlanningRegulationIndexError,<br>        match="serialized",<br>    ) | 1 | Pass a bare object leaf to the private canonical JSON hasher. Require a serialized stage error with a TypeError cause; no digest is successfully produced and no fallback repr is accepted. |
+| `test_malformed_source_metadata_raises_controlled_index_error` | none | pytest.raises(PlanningRegulationIndexError) | 0 | Replace written_files with an exact tuple containing a bare object and expect controlled public indexing failure. The test deliberately constructs an invalid dataclass graph and does not assert a particular inner metadata gate. |
+| `test_extraction_and_search_do_not_mutate_inputs` | none | none | 1 | Deep-copy extraction metadata and zoning data, index through a reader double, snapshot the pages, then search. Assert extraction equality, exact GeoDataFrame equality for zoning, and pandas frame equality for pages. This is a bounded successful-path no-input-mutation regression, not deep immutability of the output tables. |
 
 ## 8. Public exports and package ownership
 
@@ -5356,7 +4715,7 @@ This module declares no `__all__`; no package-level public guarantee is inferred
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Temporary fixture writes, source-validator reads, hash calculations, copied-frame mutations, failed frozen assignment, and restored monkeypatches are distinguished in each callable's effects and limits.
 
 ## 10. Change impact
 

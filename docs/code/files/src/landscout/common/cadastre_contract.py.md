@@ -11,7 +11,7 @@
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Centralizes the canonical normalized parcel identity, 2D geometry/status, deterministic index/schema, and independently recomputed EPSG:2154 area contract.
+- Centralizes normalized parcel identity, column-prefix order, geometry/status and independently recomputed EPSG:2154 areas. The validator neither requires nor creates a RangeIndex; normalization owns index construction. Its non-null dimension guard inspects `has_z`, not coordinate dimension or `has_m`.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
 ## 2. Purpose and architectural position
@@ -218,7 +218,7 @@ def validate_cadastre_geometry_statuses(values: Iterable[object]) -> None:
 
 ### `_require_exact_strings`
 
-**Purpose:** Implements `require exact strings` within the file role: Validates the canonical normalized Cadastre prefix, identity, 2D geometry/status facts, and recomputed EPSG:2154 parcel areas.
+**Purpose:** Materialize the iterable as a tuple, reject scalar pandas-null values, then require every item to be an exact built-in string, nonempty and equal to its stripped form. It performs no coercion or trimming. The helper assumes scalar candidates; arbitrary nonscalar pandas-null results are not a separate supported input contract.
 
 **Exact signature**
 
@@ -294,7 +294,7 @@ def _require_exact_strings(values: Iterable[object], label: str) -> None:
 
 ### `validate_normalized_cadastre_parcels`
 
-**Purpose:** Validate the canonical normalized Cadastre prefix and cross-field facts.
+**Purpose:** Require a GeoDataFrame, unique columns, the exact ordered 12-column prefix, active geometry and WGS84-equivalent CRS. Validate exact identity strings, unique parcel IDs and their commune/prefix/zero-filled section/number concatenation. Check the two status strings against actual non-null/nonempty/valid polygon geometry, rejecting non-null Z geometry. VALID areas must be nonboolean finite positive numbers; INVALID areas must be null. Reproject a valid-row calculation copy to EPSG:2154 and compare each retained area within `max(1e-6, abs(measured) * 1e-12)`. Return the input frame itself without mutation, copying, index normalization or source-byte reread. Extra columns after the prefix are retained and not generically validated.
 
 **Exact signature**
 
@@ -522,7 +522,7 @@ def validate_normalized_cadastre_parcels(
 
 ## 7. Validation and data-contract summary
 
-- Canonical schema/mapping declarations inventoried above: none at module scope.
+- `CADASTRE_NORMALIZED_PREFIX` is the canonical ordered frame-column prefix, not a generic module constant without schema meaning. The four `source_*` fact columns are retained values; this validator does not interpret their cadastral semantics or compare them to archive bytes.
 - Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
 ## 8. Public exports and package ownership

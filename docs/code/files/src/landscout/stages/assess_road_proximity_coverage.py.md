@@ -18,6 +18,14 @@
 
 Diagnoses road proxy proximity against the verified IGN department coverage boundary.
 
+### Audited source chain and diagnostic meaning
+
+The public function accepts parcels plus exact road-source/config types and optional Path, not a caller-produced proximity result or boundary. It calls public proximity once, reloads policy bytes and validates the returned table before calling the configured department loader once with the same extraction. The returned coverage must retain that exact extraction object, identify the configured physical layer and contain one valid polygonal EPSG:2154 feature with matching source/frame/summary lineage. These are distinct checks from the loader's physical package reconstruction. No archive is downloaded or output published here.
+
+Only calculation copies are transformed to EPSG:2154 and forced to XY. A parcel is FULLY_COVERED when the department polygon covers its full geometry and the department boundary does not intersect it; touching, crossing and outside parcels share the conservative alternative position and receive boundary margin zero. For each class, NO_MATCH takes precedence. A matched fully covered parcel is NOT_BOUNDARY_LIMITED only if its already-computed road distance is strictly less than the boundary margin; equality is BOUNDARY_LIMITED. The stage does not build another road index, recalculate road distance, infer road presence outside the package or make access/suitability decisions.
+
+All four result fields are required. `parcels` is an unchanged independent copy; `class_proximity` retains the exact 27-column upstream prefix and appends eleven diagnostic/lineage columns; `class_coverage` retains the upstream tuple by identity; `source_coverage` retains the loaded coverage by identity. The result wrapper is frozen, but its frames are mutable. Final validation recomputes boundary geometry diagnostics and exact-compares their values/dtypes, while checking original facts and selected road department/edition/archive lineage. Lower ordinary errors are chained into RoadProximityCoverageError; an existing error of that type is preserved.
+
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
@@ -489,7 +497,7 @@ class RoadProximityCoverageAssessmentResult:
 
 ### `_validated_crs`
 
-**Purpose:** Implements `validated crs` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Reject missing/unreadable CRS, parse with PyProj and require equality to the requested EPSG; return the parsed CRS without transformation.
 
 **Exact signature**
 
@@ -547,7 +555,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | CRS.from_user_input parses and checks CRS metadata; no coordinate transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -574,7 +582,7 @@ def _validated_crs(value: object, expected_epsg: int, label: str) -> CRS:
 
 ### `_normalized_identity`
 
-**Purpose:** Implements `normalized identity` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require exact nonempty text, NFKD-normalize and casefold it, retaining only alphanumeric characters for provider/product comparison; this is not filesystem or source-data mutation.
 
 **Exact signature**
 
@@ -649,7 +657,7 @@ def _normalized_identity(value: object, label: str) -> str:
 
 ### `_exact_string`
 
-**Purpose:** Implements `exact string` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require nonempty string text without edge whitespace and return it unchanged. No current repository caller is present; it is not an additional executed public gate.
 
 **Exact signature**
 
@@ -716,7 +724,7 @@ def _exact_string(value: object, label: str) -> str:
 
 ### `_null_safe_scalar_equal`
 
-**Purpose:** Implements `null safe scalar equal` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** When expected is None, compare via Pandas missingness; otherwise convert scalar equality to bool and return false on TypeError/ValueError. Nonscalar failures in the None branch can propagate to the public controlled-error wrapper.
 
 **Exact signature**
 
@@ -787,7 +795,7 @@ def _null_safe_scalar_equal(actual: object, expected: object) -> bool:
 
 ### `_exact_ids`
 
-**Purpose:** Implements `exact ids` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require non-null unique string identifiers that are nonempty and unchanged by strip; reject rather than coerce malformed parcel IDs.
 
 **Exact signature**
 
@@ -871,7 +879,7 @@ def _exact_ids(values: pd.Series, label: str) -> None:
 
 ### `_validate_parcel_frame`
 
-**Purpose:** Implements `validate parcel frame` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Validate a GeoDataFrame with unique columns, parcel ID, active geometry, EPSG:4326, strict unique IDs and actual non-null/nonempty valid polygonal geometry; return the original frame unchanged.
 
 **Exact signature**
 
@@ -983,7 +991,7 @@ def _validate_parcel_frame(frame: object, label: str) -> gpd.GeoDataFrame:
 
 ### `_same_index`
 
-**Purpose:** Implements `same index` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Compare exact index class, level names, dtype string and ordered values; return one Boolean preservation result.
 
 **Exact signature**
 
@@ -1056,7 +1064,7 @@ def _same_index(left: pd.Index, right: pd.Index) -> bool:
 
 ### `_require_same_parcels`
 
-**Purpose:** Implements `require same parcels` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require unchanged ordered columns, dtypes, exact index metadata/values, EPSG:4326 CRS, geometry WKB and nongeometry facts. Temporary non-inplace drop results are used only for comparison.
 
 **Exact signature**
 
@@ -1124,10 +1132,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `actual.geometry.to_wkb().equals`<br>`actual.geometry.to_wkb`<br>`expected.geometry.to_wkb`<br>`actual.drop(columns="geometry").equals` |
+| CRS/geometry/spatial calculation | Compares equivalent CRS and exact geometry WKB. Non-geometry DataFrame.drop(...).equals is ordinary value comparison. |
 | External process/environment | None directly present. |
-| In-memory mutation | `actual.drop(columns="geometry")`<br>`expected.drop(columns="geometry")` |
-| Direct parameter mutation | `actual.drop(columns="geometry")`<br>`expected.drop(columns="geometry")` |
+| In-memory mutation | None; non-inplace drop creates separate comparison frames and does not modify either caller frame. |
+| Direct parameter mutation | None; DataFrame.drop without inplace=True returns separate comparison frames. |
 
 **Complete source-ordered implementation**
 
@@ -1159,7 +1167,7 @@ def _require_same_parcels(
 
 ### `_finite_nonnegative`
 
-**Purpose:** Implements `finite nonnegative` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Accept Real numeric scalars excluding Python/NumPy booleans, convert to float, require finite nonnegative values and return a new float64 array; numeric-looking strings and nulls are rejected.
 
 **Exact signature**
 
@@ -1240,7 +1248,7 @@ def _finite_nonnegative(values: pd.Series, label: str) -> np.ndarray:
 
 ### `_validate_class_coverage`
 
-**Purpose:** Implements `validate class coverage` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require the six-entry tuple of exact coverage records in policy order with built-in nonnegative integer counts and correct Boolean distance eligibility; return the five eligible classes. This local validator does not recount physical roads.
 
 **Exact signature**
 
@@ -1297,7 +1305,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates parcel validation/preservation and independently recalculates coverage-position/boundary diagnostics; does not repeat road-nearest search. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1341,7 +1349,7 @@ def _validate_class_coverage(
 
 ### `_validate_match_rows`
 
-**Purpose:** Implements `validate match rows` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** For absent eligible classes require no distance or selected evidence; for present classes require every parcel matched, finite nonnegative distance, complete required evidence and non-Boolean integer ties at least one.
 
 **Exact signature**
 
@@ -1408,7 +1416,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `rows["nearest_road_proxy_distance_m"].notna` |
+| CRS/geometry/spatial calculation | None; the distance Series is tested for missing scalar evidence, not recomputed geometrically. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1474,7 +1482,7 @@ def _validate_match_rows(
 
 ### `_validate_upstream_result`
 
-**Purpose:** Implements `validate upstream result` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Check exact upstream result/plain-table types, preserved valid parcels, coverage structure, exact schema and canonical RangeIndex, five rows per parcel in deterministic order, unique pairs, independent policy lineage and match completeness before coverage loading.
 
 **Exact signature**
 
@@ -1618,7 +1626,7 @@ def _validate_upstream_result(
 
 ### `_validate_coverage_summary`
 
-**Purpose:** Implements `validate coverage summary` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Check exact summary type, selected layer/CRS/count, source count lower bound, ordered original columns/dtypes plus appended lineage, configured department field/value and boundary role. This helper does not recount summary defect/type fields; source-loader validation owns their physical derivation.
 
 **Exact signature**
 
@@ -1753,7 +1761,7 @@ def _validate_coverage_summary(
 
 ### `_validate_source_coverage`
 
-**Purpose:** Implements `validate source coverage` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Require exact coverage type and original extraction identity; validate IGN/BD TOPO/config identity, roles and archive digest syntax; rediscover the configured layer; compare all scalar and row lineage; then require exactly one active valid nonempty polygonal EPSG:2154 frame and its matching summary. Return the same coverage/frame, not a new physical read.
 
 **Exact signature**
 
@@ -1846,7 +1854,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| Hashing/byte identity | No byte hashing; `_SHA256_PATTERN.fullmatch` validates supplied archive digest syntax only. |
 | CRS/geometry/spatial calculation | `geometry.isna().any`<br>`geometry.isna`<br>`geometry.is_empty.any`<br>`geometry.is_valid.all`<br>`geometry.geom_type.dropna` |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -1956,7 +1964,7 @@ def _validate_source_coverage(
 
 ### `_coverage_lineage`
 
-**Purpose:** Implements `coverage lineage` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Allocate an eight-key dictionary mapping source coverage provider/product/department/edition/optional version/archive/layer/role to the appended diagnostic lineage columns.
 
 **Exact signature**
 
@@ -2029,7 +2037,7 @@ def _coverage_lineage(
 
 ### `_parcel_coverage_diagnostics`
 
-**Purpose:** Implements `parcel coverage diagnostics` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Reproject parcel calculation copies and force both parcel/coverage geometry to XY; compute boundary, full-geometry covers and boundary intersection, measure finite nonnegative distance, and force zero margin for any touching/crossing/outside parcel.
 
 **Exact signature**
 
@@ -2091,7 +2099,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `parcels.to_crs`<br>`distance` |
+| CRS/geometry/spatial calculation | `parcels.to_crs`, `force_2d`, `boundary`, `covers`, `intersects`, and `distance` operate on calculation copies. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2137,7 +2145,7 @@ def _parcel_coverage_diagnostics(
 
 ### `_coverage_statuses`
 
-**Purpose:** Implements `coverage statuses` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Initialize NO_MATCH, mark matched noncovered parcels OUTSIDE_OR_CROSSING_COVERAGE, and split matched fully covered rows using strict road-distance < boundary-margin versus >=; return a new status array without geometry calls.
 
 **Exact signature**
 
@@ -2190,7 +2198,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `distances.to_numpy` |
+| CRS/geometry/spatial calculation | None; array conversion and comparisons use already-derived distances and positions. |
 | External process/environment | None directly present. |
 | In-memory mutation | `statuses[outside] = "OUTSIDE_OR_CROSSING_COVERAGE"`<br>`statuses[internal & (numeric < boundary_distances)] = "NOT_BOUNDARY_LIMITED"`<br>`statuses[internal & (numeric >= boundary_distances)] = "BOUNDARY_LIMITED"` |
 | Direct parameter mutation | None directly present. |
@@ -2221,7 +2229,7 @@ def _coverage_statuses(
 
 ### `_expected_diagnostics`
 
-**Purpose:** Implements `expected diagnostics` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Map per-parcel margins/positions by exact parcel ID onto every class row, derive statuses, repeat the eight coverage lineage fields and return the exact eleven-column diagnostic table with copied index.
 
 **Exact signature**
 
@@ -2326,7 +2334,7 @@ def _expected_diagnostics(
 
 ### `_diagnosed_class_proximity`
 
-**Purpose:** Implements `diagnosed class proximity` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Deep-copy the upstream class table and append the expected eleven diagnostics, preserving its existing column prefix and row/index order.
 
 **Exact signature**
 
@@ -2411,7 +2419,7 @@ def _diagnosed_class_proximity(
 
 ### `_validate_selected_road_package`
 
-**Purpose:** Implements `validate selected road package` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** For rows with a distance, require selected-road department, edition and archive SHA to be non-null and equal to the loaded coverage package; do not infer geometry or access from this lineage check.
 
 **Exact signature**
 
@@ -2467,7 +2475,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `table["nearest_road_proxy_distance_m"].notna` |
+| CRS/geometry/spatial calculation | None; distance missingness selects scalar lineage rows only. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2499,7 +2507,7 @@ def _validate_selected_road_package(
 
 ### `_validate_assessment_result`
 
-**Purpose:** Implements `validate assessment result` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Validate result type and retained source/coverage identities, unchanged parcel facts and class-table prefix, exact schema/index, independently recomputed diagnostic values/dtypes, nonnegative margins, closed position/status domains and selected package lineage.
 
 **Exact signature**
 
@@ -2669,7 +2677,7 @@ def _validate_assessment_result(
 
 ### `_assess_road_proximity_coverage`
 
-**Purpose:** Implements `assess road proximity coverage` within the file role: Diagnoses road proxy proximity against the verified IGN department coverage boundary.
+**Purpose:** Validate input parcels; invoke public proximity once; reload policy and check upstream evidence; load department coverage once from the same extraction; validate source and selected package lineage; compute and append diagnostics, then enforce final reconstruction postconditions before returning.
 
 **Exact signature**
 

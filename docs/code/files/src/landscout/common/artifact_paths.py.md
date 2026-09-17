@@ -90,6 +90,12 @@ def validate_portable_parquet_filename(value: object, label: str) -> str:
 
 Return one portable local Parquet basename or raise ``ValueError``.
 
+**Ordered algorithm and limits**
+
+The function rejects a non-string, empty value, or leading/trailing whitespace first. It then rejects ASCII control characters (including DEL), the fixed Windows-forbidden character set, and a terminal dot or space. Both POSIX and Windows path parsers must see exactly one basename with a case-insensitive `.parquet` suffix. Finally, the part preceding the first dot is case-folded and compared with Windows device names, including the listed superscript COM/LPT forms. The accepted string is returned unchanged; neither case nor whitespace is normalized.
+
+`label` is only error-message context. The implementation uses `isinstance(value, str)`, not an exact built-in-type check. This is a lexical filename contract, not a containment, existence, symlink, permissions, byte-integrity or Parquet-format check. It performs no disk access and cannot replace the artifact loader's subsequent path and byte validation.
+
 **Return contract**
 
 - Declared return annotation: `str`.

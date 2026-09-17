@@ -100,7 +100,7 @@ class StrictYamlError(ValueError):
 
 ### `_DuplicateRejectingSafeLoader`
 
-**Source purpose:** Defines `_DuplicateRejectingSafeLoader`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Isolate mapping-constructor registration on a `yaml.SafeLoader` subclass, preserving safe-tag semantics while rejecting duplicate keys. The module registers `_construct_unique_mapping` on this subclass at import time, not on the global PyYAML safe loader.
 
 - Exact decorators: none.
 - Exact bases: `yaml.SafeLoader`.
@@ -126,7 +126,7 @@ class _DuplicateRejectingSafeLoader(yaml.SafeLoader):
 
 ### `_construct_unique_mapping`
 
-**Purpose:** Implements `construct unique mapping` within the file role: Decodes trust-bearing YAML with a SafeLoader subclass that rejects duplicate mapping keys at every depth.
+**Purpose:** Flatten YAML merge keys, construct each key with the caller's `deep` flag, and reject unhashable or duplicate constructed keys before storing its constructed value in a new dictionary. Merge-key overrides therefore fail as duplicates instead of silently replacing values. Key equality uses Python mapping equality; leaf domains and top-level object shape remain the caller's responsibility.
 
 **Exact signature**
 
@@ -235,7 +235,7 @@ def loads_strict_yaml(value: str | bytes) -> object:
   - `yaml.load(document, Loader=_DuplicateRejectingSafeLoader)`
 - Explicit raise paths:
   - `StrictYamlError("YAML document is not valid UTF-8")` under lexical guard `type(value) is bytes`.
-  - `StrictYamlError("YAML input must be an exact string or bytes")` under lexical guard `type(value) is bytes`.
+  - `StrictYamlError("YAML input must be an exact string or bytes")` when neither exact `bytes` nor exact `str` is supplied.
   - `re-raise`.
   - `StrictYamlError("YAML document is invalid")`.
 

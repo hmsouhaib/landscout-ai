@@ -5,7 +5,7 @@
 - Repository path: `tests/unit/test_deep_immutability.py`
 - File type: unit/regression test
 - Layer: test evidence
-- Responsibility: Proves that every loaded trust-bearing configuration/policy family has no reachable mutable collection, rejects all relevant in-place mutation operations, isolates caller aliases, and preserves canonical hashes.
+- Responsibility: Audits mutable-collection reachability in the explicitly listed loaded config/policy/artifact families, exercises representative tuple/FrozenDict/frozenset mutations and input aliases, rejects noncanonical artifact leaves, and locks five canonical hashes.
 - Source SHA256: `325383428aaa376e3b30380bbc8e9a2c925c618e280b254a286aaa15eb80ab1a`
 
 ## 1. STEP 7F.1A.4.2 contract delta
@@ -15,7 +15,7 @@
 
 ## 2. Purpose and architectural position
 
-Proves that every loaded trust-bearing configuration/policy family has no reachable mutable collection, rejects all relevant in-place mutation operations, isolates caller aliases, and preserves canonical hashes.
+Audits mutable-collection reachability in the explicitly listed loaded config/policy/artifact families, exercises representative tuple/FrozenDict/frozenset mutations and input aliases, rejects noncanonical artifact leaves, and locks five canonical hashes.
 
 This companion is source-bound. The SHA and complete snapshot below are authoritative for this file; summaries do not replace the implementation.
 
@@ -126,12 +126,12 @@ ARTIFACT_RECORD_CASES = (
 ### `_loaded_trust_values`
 
 - Exact signature: `def _loaded_trust_values() -> tuple[object, ...]:`
-- Purpose: load every trust-bearing configuration/policy family plus both artifact-record families for recursive reachability inspection.
+- Purpose: load the twelve explicitly enumerated scan/source/planning/policy/artifact values. New families are not discovered automatically, and integrity-cache metadata models are not separately constructed by this helper.
 
 ### `_assert_no_reachable_mutable_collection`
 
 - Exact signature: `def _assert_no_reachable_mutable_collection(value: object, *, seen: set[int]) -> None:`
-- Purpose: recursively traverse Pydantic models, dataclasses, mappings, tuples, and frozensets while rejecting any reachable list, dict, set, or bytearray.
+- Purpose: skip supported scalar/Path leaves, track object identity to avoid repeat traversal, then recursively traverse Pydantic fields, dataclass fields, mapping keys/values, tuples and frozensets while rejecting list/dict/set/bytearray. Unknown custom object attributes are not recursively inspected by this reachability helper; separate artifact-leaf cases exercise strict rejection.
 
 ### `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
 
@@ -171,25 +171,25 @@ ARTIFACT_RECORD_CASES = (
 ### `test_all_loaded_trust_families_have_no_reachable_mutable_collection`
 
 - Exact signature: `def test_all_loaded_trust_families_have_no_reachable_mutable_collection() -> None:`
-- Contract: every loaded trust family passes the recursive mutable-collection reachability audit.
+- Contract: each of the twelve explicitly returned trust values passes recursive mutable-collection inspection; this does not dynamically discover future models.
 
 ### `test_loaded_ordered_sequence_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_ordered_sequence_mutation_fails_immediately(operation: str) -> None:`
 - Decorator: the exact seven-case `operation` parametrization reproduced below.
-- Contract: every relevant list-style mutation fails immediately on a loaded ordered tuple.
+- Contract: seven list-style operations (including item and slice assignment) fail immediately on the loaded scan AOI commune_codes tuple; other ordered fields are covered structurally by reachability inspection, not this mutation loop.
 
 ### `test_loaded_mapping_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_mapping_mutation_fails_immediately(operation: str) -> None:`
 - Decorator: the exact eight-case `operation` parametrization reproduced below.
-- Contract: item, method, in-place union, deletion, and backing-attribute mutation all fail immediately.
+- Contract: eight operations fail immediately on loaded planning zone_aliases: item assignment, update, setdefault, pop, deletion, clear, in-place union and _data assignment, all requiring a TypeError message matching frozen/assignment/deletion.
 
 ### `test_loaded_set_semantics_mutation_fails_immediately`
 
 - Exact signature: `def test_loaded_set_semantics_mutation_fails_immediately(operation: str) -> None:`
 - Decorator: `@pytest.mark.parametrize("operation", ["add", "update", "remove", "discard", "pop"])`.
-- Contract: loaded set-semantics policy domains expose only immutable frozenset behavior.
+- Contract: five mutator attribute lookups fail immediately on road policy nature.general_motor_road; the remaining frozenset domains are covered by reachability inspection.
 
 ### `test_nested_input_aliases_cannot_mutate_validated_models`
 
@@ -204,7 +204,7 @@ ARTIFACT_RECORD_CASES = (
 ## 7. Test inventory
 
 - Exact Python `test_*` function-definition count: 12.
-- Measured pytest collected-case count: 62 (`uv run pytest --collect-only -q tests/unit/test_deep_immutability.py`).
+- Historically recorded pytest collected-case count: 62 (`uv run pytest --collect-only -q tests/unit/test_deep_immutability.py`); not rerun during this file-content audit. Static decorator arithmetic is 2 + 30 + 2 + 2 + 1 + 2 + 1 + 7 + 8 + 5 + 1 + 1 = 62.
 - Exact pytest fixture count: 0.
 - Definitions, in source order:
   1. `test_artifact_integrity_record_rejects_mutable_bytearray_alias`
@@ -325,7 +325,7 @@ The following nine decorators are the complete source-ordered decorator inventor
 
 ## 9. Trust, side effects, and business boundary
 
-- Exact filesystem, network, hashing, serialization, CRS/geometry, and in-memory operations are defined only by the complete current source below.
+- Loads checked-in YAML files via real public loaders and computes five real canonical hashes; no HTTP, archive download, physical source data or artifact persistence is used. Mutable inputs, copy/deepcopy and failed mutation attacks remain local test objects. Public physical-source reconstruction is not exercised by these tests.
 - This file does not by documentation implication create a parcel score, ranking, legal conclusion, access conclusion, grid-capacity conclusion, environmental conclusion, or planning authorization.
 
 ## 10. Change impact

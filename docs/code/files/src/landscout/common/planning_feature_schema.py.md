@@ -12,7 +12,7 @@
 ## 1. STEP 7F.1A.4 contract delta
 
 - Ruff formatting only in STEP 7F.1A.4; executable contract, values, schemas, and test intent are unchanged. The companion is refreshed because its raw bytes and SHA changed.
-- This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+- No behavior change is attributed to that formatting-only delta. Current validation behavior is described separately below.
 
 ## 2. Purpose and architectural position
 
@@ -563,6 +563,10 @@ No top-level class/model/dataclass is declared.
 
 **Purpose:** Return exact factual dtypes, including deterministic all-null raw fields.
 
+Copy the baseline dtype tuple for the requested geometry family into a temporary list. With no frame or an empty frame, return that baseline unchanged. Otherwise inspect only `text_raw`, `regulation_filename_raw`, and `regulation_url_raw` when present: an all-null column requires `object`; a column containing any non-null value requires `str`. Return a new tuple. The function does not cast data, inspect other raw values, or validate missing columns. The caller's schema validator handles missing columns separately. Unknown geometry keys and invalid frame operations can propagate ordinary lookup/type errors.
+
+The baseline SURFACE schema uses `str` for text and filename but `object` for URL; LINE and POINT use `object` for all three optional fields. This explicit empty-frame baseline is distinct from the non-empty all-null rule. Field presence alone never establishes a dtype or source identity.
+
 **Exact signature**
 
 ```python
@@ -628,7 +632,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `NORMALIZED_FEATURE_COLUMNS[geometry_kind].index` |
+| CRS/geometry/spatial calculation | None; tuple `.index` is a column-position lookup, not a spatial calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `dtypes[position] = "object" if frame[column].isna().all() else "str"` |
 | Direct parameter mutation | None directly present. |
@@ -662,6 +666,8 @@ def normalized_feature_dtypes(
 ### `feature_columns`
 
 **Purpose:** Return one exact ordered feature schema with deterministic suffixes.
+
+Concatenate the selected factual feature-column tuple, the seven official-code columns, and the caller's suffix in that order. The result is a new tuple; this helper does not validate suffix uniqueness or elements and does not inspect a frame. `suffix` denotes additional column names here, not dtypes. Unknown geometry keys fail through the dictionary lookup.
 
 **Exact signature**
 
@@ -750,6 +756,8 @@ def feature_columns(
 ### `feature_dtypes`
 
 **Purpose:** Return matching exact feature dtypes with deterministic suffixes.
+
+Call `normalized_feature_dtypes` with the supplied geometry family and optional frame, append the seven official-code `str` dtypes, then append the caller's dtype suffix. This mirrors `feature_columns` positionally, but its `suffix` contains dtype names rather than column names. No casting or suffix-length validation occurs here.
 
 **Exact signature**
 
@@ -855,6 +863,8 @@ def feature_dtypes(
 
 **Purpose:** Return one exact ordered relation schema with deterministic suffixes.
 
+Concatenate factual relation columns, official-code columns and additional caller-supplied column names without sorting or deduplication. The helper does not validate a relation or inspect source geometry; it returns only an immutable ordered tuple.
+
 **Exact signature**
 
 ```python
@@ -938,6 +948,8 @@ def relation_columns(suffix: tuple[str, ...] = ()) -> tuple[str, ...]:
 ### `relation_dtypes`
 
 **Purpose:** Return matching exact relation dtypes with deterministic suffixes.
+
+Concatenate factual relation dtypes, seven official-code `str` dtypes and the caller's dtype suffix. Factual numeric measurements use `float64`; member counts use nullable `Int64`; all remaining factual relation columns use `str`. This declares a representation and does not enforce metric/null semantics or perform conversions.
 
 **Exact signature**
 
@@ -1030,6 +1042,12 @@ def relation_dtypes(suffix: tuple[str, ...] = ()) -> tuple[str, ...]:
 
 **Purpose:** Reject any deviation from one complete persisted frame-schema contract.
 
+First require a DataFrame, reject duplicate columns, and compare the entire ordered column and dtype tuples. Next require exactly the selected Pandas index class, one unnamed index level and dtype `int64`. For `index_class="RangeIndex"`, start/stop/step must be `0/len(frame)/1`; the ordinary `Index` branch does not inspect index values, uniqueness or ordering.
+
+For `geospatial=True`, require a GeoDataFrame with active column `geometry` and a CRS equivalent to EPSG:2154. CRS parsing/equivalence errors are translated to `ValueError`; no geometry coordinates are transformed or validated. For `geospatial=False`, reject GeoDataFrames. Empty frames undergo these same structural checks. The function returns `None` and mutates nothing; row values, null patterns, geometric validity, identity and source authority require other validators.
+
+`GeometryKind` and `IndexClass` are typing Literals, not standalone runtime parsers. Current callers supply their fixed choices; this internal function does not separately reject every unsupported `index_class` argument before selecting its branch. No broader external-input contract is inferred from the annotation.
+
 **Exact signature**
 
 ```python
@@ -1071,7 +1089,7 @@ def validate_canonical_frame_schema(
   - `ValueError(f"{label} canonical geometry or CRS metadata differs")` under lexical guard `geospatial`.
   - `ValueError(f"{label} canonical CRS is invalid")` under lexical guard `geospatial`.
   - `ValueError(f"{label} canonical CRS differs from EPSG:2154")` under lexical guard `geospatial`.
-  - `TypeError(f"{label} must not be a GeoDataFrame")` under lexical guard `geospatial`.
+  - `TypeError(f"{label} must not be a GeoDataFrame")` when `geospatial` is false and the frame is a GeoDataFrame.
 
 **Qualified relationships**
 
@@ -1142,7 +1160,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | PyProj parses and compares the frame CRS to EPSG:2154 for geospatial inputs; no coordinate transformation or geometry calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |

@@ -102,6 +102,14 @@ def normalize_planning_search_text_with_mapping(
 
 Normalize literal-search text and map each output character to a raw span.
 
+**Ordered algorithm and source fidelity**
+
+The scan groups a raw character with its following combining marks, expands the four listed ligatures, applies NFKD decomposition, removes combining marks, canonicalizes the listed apostrophes and dashes, and case-folds other characters. Each emitted character receives the half-open raw Unicode-string span of its originating cluster, so one cluster can produce several mapped characters. These are Python string offsets, not UTF-8 byte offsets.
+
+Leading and trailing whitespace are omitted. Internal runs are delayed and emitted as one ASCII space whose span covers the original run. Soft hyphens emit nothing: they extend the previous mapped span when present and are also included at the beginning of the next emitted cluster's span. Consequently mappings may overlap and are not a disjoint partition of the raw text. Empty or whitespace-only input returns an empty string and empty tuple.
+
+The outer result and every span are tuples; temporary lists are not exposed. Raw text is never rewritten. This function has no explicit input-type validator and does not translate errors from invalid inputs or Unicode operations. It is for literal search, not canonical source identity or legal interpretation.
+
 **Return contract**
 
 - Declared return annotation: `tuple[str, tuple[tuple[int, int], ...]]`.
@@ -128,6 +136,7 @@ Normalize literal-search text and map each output character to a raw span.
 
 **Repository interfaces and consumers**
 
+- Module-qualified alias: `src/landscout/stages/index_planning_regulation.py` imports `planning_text`, then binds `_normalize_search_text_with_mapping` to this exact function. The indexer's search path calls that alias; the implementation remains owned here.
 - import: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
     normalize_planning_search_text,
     normalize_planning_search_text_with_mapping,
@@ -220,6 +229,8 @@ def normalize_planning_search_text(value: str) -> str:
 
 Normalize text using the stable ``fr_literal_v1`` search profile.
 
+This wrapper calls `normalize_planning_search_text_with_mapping` once and discards the span tuple. It inherits that function's normalization, empty-input behavior and unwrapped errors; it does not introduce a second normalization algorithm. `index_planning_regulation.py` binds its `_normalize_search_text` alias and `SEARCH_NORMALIZATION_PROFILE` constant through the imported `planning_text` module. `structure_planning_regulation.py` also binds `_normalize_search_text` to this function.
+
 **Return contract**
 
 - Declared return annotation: `str`.
@@ -288,6 +299,12 @@ def raw_context_from_spans(
 **Purpose**
 
 Return the exact raw substring covering a normalized-text range.
+
+**Ordered algorithm and caller preconditions**
+
+An empty or reversed half-open normalized range returns `""` immediately, without reading the mapping. Otherwise the first selected span supplies the raw start, the last selected span supplies the raw end, and ordinary Python slicing returns the original substring. The helper does not validate mapping length, monotonicity, provenance, non-negative offsets, or alignment with `raw_text`; an out-of-range span index can raise `IndexError`, and Python negative indexing/slice behavior remains possible. Validated search/structure callers must supply the mapping belonging to the exact raw string.
+
+`index_planning_regulation.py` binds `_raw_context` through `planning_text.raw_context_from_spans`; `structure_planning_regulation.py` binds the same alias from its direct import. Both aliases delegate to this common-layer implementation rather than owning separate extraction logic.
 
 **Return contract**
 

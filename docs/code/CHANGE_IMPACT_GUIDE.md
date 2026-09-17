@@ -4,7 +4,7 @@ Use the relevant file companions first: they list exact callers, tests, constant
 
 ## Changing a source adapter
 
-Review the adapter config YAML/model, package exports, shared safe HTTPS boundary, cache sidecar/result dataclasses, archive/extraction validation, physical-source consumers, and all adapter tests. Preserve the ordering of cache checks versus network, before/after hashing, controlled errors, and source-complete consumers. Cadastre changes affect normalization; IGN changes affect grid/road/coverage; GPU changes affect every planning branch; INPN changes affect both fresh extraction authority and the physical metadata catalog; RTE changes affect its source envelopes.
+Review the adapter config YAML/model, package exports, shared safe HTTPS boundary, cache sidecar/result dataclasses, archive/extraction validation, physical-source consumers, and all adapter tests. Preserve the ordering of cache checks versus network, before/after hashing, controlled errors, and source-complete consumers. Cadastre changes affect normalization and downstream parcel validators; IGN changes affect grid/road/coverage; GPU changes affect every planning branch; INPN changes affect extraction authority, catalog, attribute and geometry profiles, and the evidence bundle through their physical validators; RTE changes affect its source envelopes. The RTE adapter is not currently an input to the IGN grid-proximity API.
 
 ## Changing the INPN metadata catalog
 
@@ -100,4 +100,6 @@ Review the exact `__all__` contract for `landscout.sources` and `landscout.stage
 
 ## Changing documentation
 
-Recompute companion SHA256 after any source/project-file byte change. Re-run file/symbol/test completeness audits, verify links/Mermaid/Markdown conflict markers, and remember that `docs/DEV_LOG.md` is historical evidence rather than current implementation authority. `docs/code/files` is deliberately excluded from Ruff because companions reproduce exact source snapshots; do not format those embedded bytes independently of their source.
+Follow [WORKING_RULES.md](../project/WORKING_RULES.md#maintenance-after-every-ticket). Update affected companions, exact algorithm/field/test assertions, cross-file ownership and the impact maps, then current state/backlog/step history and any decision reversals with provenance. Recompute SHA256 from exact Git-content bytes under the explicit portable binding basis; do not change source line endings to satisfy a header. The EOL-only Muret checkout exception remains separately recorded.
+
+Run `uv run python tools/audit_documentation.py --check` against the explicitly staged candidate after semantic review and the required tests. It checks mechanical inventory, fingerprints, snapshots, symbols/anchors, exports/references and ledger consistency; it cannot certify understanding or independent approval. Review every line before explicit-path staging, append actual DEV_LOG evidence after report closure, and synchronize its companion last. `docs/code/files` is deliberately excluded from Ruff because companions reproduce exact source snapshots; do not format those embedded bytes independently of their source. Original documentation, audit outputs and archived receipts follow declared inventory exceptions rather than recursive companions.

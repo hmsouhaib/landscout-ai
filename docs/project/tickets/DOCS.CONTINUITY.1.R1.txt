@@ -1,0 +1,429 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R1
+
+Preserve the partial audit on a reviewable recovery branch; do not finalize or restart it
+
+Repository: C:\souhaib\landscout-ai
+Remote identity: hmsouhaib/landscout-ai
+Expected initial branch: main
+Expected local HEAD and unchanged remote main:
+aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+Recovery branch: recovery/docs-continuity-1-partial
+Checkpoint commit message: wip: preserve partial LandScout documentation audit
+
+0. One objective and narrow publication authorization
+
+Preserve the existing DOCS.CONTINUITY.1 implementation and make its exact partial
+state available for independent read-only review through GitHub.
+
+This is a RECOVERY CHECKPOINT, not completion of DOCS.CONTINUITY.1, not an approval,
+not a new feature, and not authorization to repair production code.
+
+The original ticket prohibited publishing partial work as complete on main and
+required an explicit recovery instruction. THIS instruction permits one clearly
+labelled WIP checkpoint on the dedicated recovery branch only. Main must remain
+unchanged. No merge, squash, pull request, CI, branch deletion or force-push.
+
+Do not restart the audit, regenerate all ledgers/companions, or attempt to finish
+all remaining files in this checkpoint. Do not repeat already completed reviews
+solely because the session changed. ChatGPT remains read-only; Codex performs
+these authorized local Git operations.
+
+1. Reported recovery seed — verify, do not adopt as independent proof
+
+The latest report states:
+
+no commit/push, initial branch main, all known refs at the SHA above;
+
+108 tracked files modified, 29 untracked, no staged changes;
+
+106 pre-existing protected files unchanged;
+
+external bootstrap script preserved outside Git;
+
+245 inventory files: 24 CHECKED, 43 CORRECTED, 141 READ, 37 NOT_READ;
+
+4,769 symbols: 1,387 CHECKED, 1 CORRECTED, 2,078 READ, 1,303 NOT_READ;
+
+67 files / 1,388 symbols closed; 178 files / 3,381 symbols not closed;
+
+32 documented corrections and five open test-evidence limitations;
+
+fragment consolidation incomplete;
+
+23 documentation-checker tests passed; static gates passed;
+
+full pytest NOT RUN; 3,962 is an arithmetic expectation, not an observed pass;
+
+index-based documentation check failed because its registry was not in the index;
+
+global link/snapshot checks incomplete and no visual Markdown rendering;
+
+a bounded fresh-context exercise was reported executed and separately verified,
+but independent acceptance remains pending.
+
+Do not replace the last item with NOT_EXECUTED merely because an older ticket
+anticipated that possibility. Preserve its actual report, executor/access scope,
+answers and verification evidence. Mark it REPORTED_EXECUTED_PENDING_REVIEW until
+its evidence is independently accepted.
+
+Three reported application findings require separate review, NOT fixes here:
+
+Cadastre intrinsic contract may accept XYM geometry.
+
+RTE may leak TypeError for some malformed runtime values.
+
+Planning constructor may retain raw " Label " that its validator rejects.
+
+Keep each reproduction and exact affected symbol when available. Missing evidence
+stays missing. These are Codex-reported findings, not new independent verdicts.
+
+2. Read the existing recovery authorities first
+
+Read, if present, without overwriting them:
+
+AGENTS.md
+
+docs/project/CURRENT_STATE.md
+
+docs/project/WORKING_RULES.md
+
+the archived original DOCS.CONTINUITY.1 ticket, located through existing links;
+
+docs/code/audit/RECOVERY_STATUS_2026-09-17.md
+
+docs/code/audit/recovery_evidence_2026-09-17.json
+
+docs/code/audit/recovery_file_matrix_2026-09-17.json
+
+docs/code/audit/DOCUMENTATION_AUDIT.md
+
+docs/code/audit/coverage.json and its referenced fragments;
+
+docs/code/audit/cold_start_resume_2026-09-17.md and its verification receipt.
+
+Do not assume that 49, 137 or 245 are interchangeable: they describe different
+editor/worktree/audit inventories. Determine each actual inventory independently.
+Do not declare a source symbol reviewed just because AST extraction found it.
+
+3. Establish safe Git execution without a reset or security reconfiguration
+
+First inspect the normal shell's identity, Git version and the repository root.
+Prefer the user's ordinary authorized execution context that owns this repository.
+The user has identified this exact LandScout checkout as their own trusted project.
+
+Collect:
+
+whoami
+git --version
+git -C C:/souhaib/landscout-ai rev-parse --show-toplevel
+git -C C:/souhaib/landscout-ai status --short
+
+If and only if Git reports detected dubious ownership for THIS exact checkout:
+
+record the exact error, current execution identity and filesystem owner;
+
+verify the canonical directory is the intended checkout, not an unexpected link
+or different/nested repository;
+
+a COMMAND-SCOPED trust exception for this one user-authorized directory is
+permitted with a Git version supporting it:
+
+git -c safe.directory=C:/souhaib/landscout-ai -C C:/souhaib/landscout-ai status --short
+
+This is not a wildcard and does not write global/system configuration. Use the same
+explicit prefix for subsequent commands requiring it. Do not silently fall back to
+persistent global configuration if the installed version does not support it.
+
+Never set safe.directory=* or a parent-directory wildcard; never change ownership,
+ACLs, Smart App Control, WDAC, antivirus, execution policy, hooks or TLS verification.
+Do not treat unrelated authentication/network/permission errors as ownership errors.
+Do not bypass sandbox/tool permission checks; use normal authorized tool access.
+
+Official Git semantics:
+https://git-scm.com/docs/git-config#Documentation/git-config.txt-safedirectory
+https://git-scm.com/docs/git-config#SCOPES
+
+All commands below mean Git in that SAME verified repository/context.
+If authorized Git execution remains unavailable, finish an external byte-preserving
+backup as described below where possible, report BLOCKED, and do not fabricate a
+publication or ask the user to weaken system security.
+
+4. Inspect local and actual remote state
+
+Run:
+
+git status
+git status --short --untracked-files=all
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/main
+git log --oneline origin/main..HEAD
+git diff --name-status
+git diff --cached --name-status
+git ls-files --others --exclude-standard
+git ls-files -u
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+
+Confirm origin identifies the intended repository; do not print credentials.
+Use normal git fetch origin when it succeeds. A read-only API observation from an
+earlier chat is not evidence that a failed fetch just succeeded. ls-remote can
+independently establish the actual advertised remote refs.
+
+Expected local state: main at required base, dirty worktree, empty index, no local
+commits ahead and no merge/rebase/cherry-pick/revert in progress. A clean worktree is
+NOT a precondition for preserving these known interrupted modifications.
+
+If a local commit or recovery branch already exists, inspect it rather than
+resetting, amending or creating duplicate empty commits. Continue only if it is an
+unambiguous previous execution of this exact recovery task with no unrelated work.
+Otherwise preserve the work and report the differing state.
+
+If remote main differs from the required base, do not integrate or push anything
+based on the stale assumption. Preserve locally and report the exact difference.
+
+5. Back up the actual local work before any documentary reconciliation
+
+Create a uniquely named recovery directory OUTSIDE the repository. Do not delete
+or overwrite earlier backups. Copy the exact bytes of every modified/untracked
+project file into a local backup, preserving relative paths and recording deletions.
+Do not follow links into unrelated directories or copy .git, .venv, real-source
+caches or unrelated personal files.
+
+Record each copied file's relative path, byte size and raw SHA256. Verify the copy
+against the source. Retain original fragment files and the external bootstrap
+script separately at their known locations; do not add the bootstrap to Git.
+
+Optionally also save tracked changes directly with Git:
+
+git diff --binary --full-index --output="<external-backup-directory>/tracked.patch" HEAD
+
+Use Git's direct output, not a PowerShell text-encoding pipeline. This patch does
+NOT include untracked files; it does not replace their byte backup.
+
+No git stash/reset/restore/clean, no blind file deletion and no line-ending rewrite.
+The backup stays local and outside the commit. Do not include credentials in reports.
+
+6. Reconcile only the named planning handoff ambiguity
+
+The report says protected sources are unchanged but also mentions reconciling
+“modifications” of enrich_planning_features source/test and their companions.
+Resolve exactly what that wording refers to before publishing the checkpoint.
+
+Inspect these actual files and their existing ledger/fragment entries:
+
+src/landscout/stages/enrich_planning_features.py
+tests/unit/test_enrich_planning_features.py
+docs/code/files/src/landscout/stages/enrich_planning_features.py.md
+docs/code/files/tests/unit/test_enrich_planning_features.py.md
+
+For EACH distinguish:
+
+actual source/test content change;
+
+companion-only change;
+
+fragment/status discrepancy;
+
+known Git-versus-checkout line-ending difference.
+
+Compare with the required base, current index, worktree and the originally recorded
+checkout-byte manifest. Do not silently normalize line endings and call that exact
+byte identity. Verify staged Git content separately from checkout bytes.
+
+If source/test content really differs unexpectedly, preserve it and report the exact
+hunks. Do not automatically restore it, alter it, or stage it in this docs checkpoint.
+An unexplained protected-file difference blocks publication, not the local backup.
+
+If only documentation/ledger entries changed, correct the description and point the
+resume queue at the real remaining semantic-review task. A NOT_READ fragment may
+be superseded only by evidence that the matching source fingerprint was actually
+reviewed. Do not promote it based on the existence of a draft companion.
+
+No production fix and no fresh global audit in this section.
+
+7. Preserve partial status and open findings without regenerating the ledger
+
+Make only minimal necessary continuity updates, preferably in the current recovery
+report and CURRENT_STATE rather than creating several new competing authorities.
+
+Retain:
+
+original input/last published main SHA;
+
+actual current recovery branch name;
+
+audit PARTIAL, independent review PENDING;
+
+last approved functional boundary 7F.1B.4;
+
+7F.1C.1 research draft, exhaustive semantic review still pending;
+
+honest file/symbol closure totals, with basis/fragment references;
+
+three reported application findings and five test-evidence limitations;
+
+no visual rendering claim;
+
+the bounded cold-start execution report and unaccepted scope;
+
+exact first unfinished file/symbol or unresolved handoff item.
+
+Do not change incomplete statuses to pass a checker. Preserve fragments and their
+provenance. Global fragment reconciliation remains unfinished unless actually done.
+Do not rewrite an old “not yet pushed” report as though it described the future:
+append a checkpoint-preparation note or link a current status clearly.
+
+Do not embed the future checkpoint's own SHA in itself. The final report supplies
+that SHA after Git creates it. No final DOCS.CONTINUITY.1 completion DEV_LOG entry.
+
+8. Protected scope and checkpoint inventory
+
+Recompute the complete candidate list instead of blindly staging 137 paths.
+Expected candidates belong to the original authorized documentation, root agent/
+README links, audit ledgers, new local audit tool and narrowly scoped NEW tool tests.
+
+Check ALL pre-existing protected paths against the required base, especially:
+
+every pre-existing src/** and tests/** path;
+
+configs/**, .python-version, pyproject.toml, uv.lock.
+
+A new auditor test file is not a pre-existing application test. Enumerate exact
+paths from base Git, not a glob that either excludes too much or blocks new tooling.
+Retain the protected-byte manifest and explain any known EOL representation only.
+
+No application/config/dependency change is authorized.
+
+For every candidate classify: checkpointed / retained locally only / excluded with
+reason. Review content for accidental credentials, real datasets, binary references,
+external scripts, temporary dumps or unrelated personal context. Reject those from
+staging without deleting them. Do not publish a bootstrap generator as a production
+component. Include the recovery reports and actual cold-start evidence needed to
+review this partial state, subject to the same sensitive-data check.
+
+This inventory review is NOT another claim that every semantic explanation has been
+reviewed. A WIP branch can preserve unfinished prose and ledgers honestly labelled so.
+
+9. Create the dedicated recovery branch and stage explicit paths
+
+Only after the state, backup, protected-file proof and candidate review are safe:
+
+git switch -c recovery/docs-continuity-1-partial
+
+Do not overwrite an existing local/remote branch. See Section 4 for idempotent
+recovery of an earlier exact execution. Verify that switching preserved the worktree.
+
+Stage ONLY the exact allowlisted reviewed paths. An explicitly generated pathspec
+file from the reviewed manifest is acceptable; generic directory-wide staging is not.
+
+Do not use git add ., git add -A, git commit -a, or git add -f.
+
+Inspect:
+
+git diff --cached --name-status
+git diff --cached --stat
+git diff --cached --check
+
+Recheck protected staged Git content against the base. No source/config/application
+test content may enter this checkpoint as a modification. Keep raw checkout backup
+identity distinct from Git's existing clean/EOL-filter representation.
+
+10. Checker status is not a completion gate for this WIP snapshot
+
+The previous index-based auditor could not see an untracked registry. After explicit
+staging, run the tool ONCE using its existing documented interface if executable.
+Inspect the tool/help first; do not invent a --worktree or other unsupported flag.
+
+Report separately:
+
+index/scope readiness;
+
+mechanical failures;
+
+open semantic coverage;
+
+unaccepted cold-start/independent review.
+
+An index-ready check or exit 0 does not turn PARTIAL into COMPLETE. Conversely,
+expected unfinished-audit findings may remain on a clearly labelled WIP checkpoint.
+Do not modify the tool, its statuses or exclusions just to obtain a green result.
+Do not disable hooks or bypass an environment restriction to force the commit.
+
+Do NOT run the full 3,962-case suite merely to preserve this checkpoint. No fresh
+application test success is claimed. Preserve the reported 23 auditor-test result;
+rerun only a narrowly affected tool test if its executable code was changed in this
+recovery operation. Use the established SHORT unique --basetemp in that case.
+
+If recording the current checker result changes a report, stage that exact report
+again and rerun the staged path/scope/whitespace checks. Do not create recursive
+self-hashes or pretend a staged-state observation was taken after commit.
+
+11. WIP publication and verification
+
+Commit and push ONLY the recovery branch:
+
+git commit -m "wip: preserve partial LandScout documentation audit"
+git push -u origin recovery/docs-continuity-1-partial
+
+Do not use the original final-completion commit message. Do not merge, squash,
+cherry-pick, push to main, create a PR/CI workflow, delete a branch or force-push.
+
+If push fails, keep the local checkpoint commit and report the exact failure and
+local SHA. Do not remove the commit or mislabel it as remotely available.
+
+Verify using actual refs:
+
+git branch --show-current
+git status --short --untracked-files=all
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+git log -1 --oneline
+
+Require remote recovery SHA == local checkpoint SHA and actual remote main remains
+aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02.
+
+Prefer a clean tracked worktree. If intentionally excluded temporary files remain,
+list them and do not claim a clean worktree. Do not delete them to manufacture it.
+Everything not checkpointed must have a stated reason and preserved local location.
+
+12. Final report and stop
+
+Return one of:
+
+DOCS.CONTINUITY.1 recovery checkpoint pushed — audit PARTIAL
+
+or:
+
+DOCS.CONTINUITY.1 recovery checkpoint BLOCKED — local work preserved
+
+Report:
+
+Initial branch/local/base/remote SHAs and ownership execution context.
+
+Whether command-scoped safe.directory was used, exact scope and no persistent
+configuration/security change.
+
+Local byte-backup path and manifest hash; modified/untracked counts.
+
+Planning source/test/companion/fragment reconciliation: four exact paths and facts.
+
+Protected-file count and Git/index/checkout comparison results.
+
+Exact checkpointed paths and explicit preserved exclusions.
+
+File/symbol closure totals and remaining counts; no invented progress.
+
+Three findings and five test-evidence limitations, with actual evidence pointers.
+
+Cold-start execution and verification artifacts, status pending independent review.
+
+Current auditor command/exit/issues; full pytest NOT RUN for this checkpoint.
+
+Checkpoint commit SHA, actual remote recovery SHA and unchanged main SHA.
+
+Worktree state and exact next unfinished item from the preserved ledger.
+
+Then STOP. Do not continue the 178-file audit automatically and do not fix production.
+The independent reviewer will inspect the published reports and checker before
+issuing the next bounded continuation of the same audit.

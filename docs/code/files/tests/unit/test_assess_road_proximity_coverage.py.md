@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+- Responsibility: Exercises coverage diagnostics and boundary validation with synthetic source records, mocked upstream proximity and mocked department loading.
 - Source SHA256: `c596dc762bf271879f6ca0361a2126147f9b251eb0710d1d6613ac6597a926c1`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,15 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+Exercises coverage diagnostics and boundary validation with synthetic source records, mocked upstream proximity and mocked department loading.
+
+### Audited test boundaries and limitations
+
+The 28 test definitions use twelve top-level helpers and two nested corruption callbacks, with no local Pytest fixture definitions. The source config is loaded at import; policy loading remains real. `_archive`, `_extraction` and `_road_source` fabricate lineage and synthetic paths without writing or reading an archive/GPKG. `_coverage` constructs an in-memory polygon frame, summary and matching lineage. `_proximity` fabricates class distances/evidence and stable dtypes; `_assess` replaces both public proximity and the physical department loader. Actual parcel CRS transformation, boundary, covers/intersects and distance operations remain active. This suite therefore tests assessment geometry/local trust checks, not physical IGN reconstruction or road nearest search.
+
+The source-chain test asserts each mock is called once with exact arguments; the source code establishes their order, while no separate combined mock-call ordering assertion exists. Failure tests explicitly require downstream coverage loading not to occur. The “real alternate layer” test uses a layer name included in the fabricated inventory, not a real physical alternate layer. By contrast the separate normalization suite writes such a real synthetic alternate layer. Here the demonstrated contract is configured-name rejection at the mocked loader boundary.
+
+Position cases cover inside, touching, crossing, outside and a crossing parcel with inside centroid; Polygon and MultiPolygon acceptance is explicit. Status cases use the measured boundary margin minus 50, minus 0.001, equal and plus 50, proving the strict comparison for those fixtures. Missing class evidence retains NO_MATCH for both inside and outside parcels. Preservation assertions cover input/result frames, config dump, source summary/extraction, exact upstream prefix and retained class/source coverage identities. Output-corruption helpers invoke the real diagnostic builder first; object-dtype mutations may be rejected by exact reconstruction/dtype comparison before later specific numeric/domain gates. Frozen-result tests cover field reassignment, not deep frame immutability.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -274,7 +282,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_archive`
 
-**Purpose:** Implements `archive` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Fabricate an IGN download record with deterministic lineage and a synthetic path; cache_hit=True is fixture data, not evidence of actual cache verification.
 
 **Exact signature**
 
@@ -356,7 +364,7 @@ def _archive() -> IgnBdTopoDownload:
 
 ### `_extraction`
 
-**Purpose:** Implements `extraction` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Fabricate extraction paths, package digest/size and configured/alternate layer inventory around the synthetic archive record; no package is materialized.
 
 **Exact signature**
 
@@ -439,7 +447,7 @@ def _extraction() -> IgnBdTopoExtraction:
 
 ### `_road_source`
 
-**Purpose:** Implements `road source` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Wrap one synthetic line and derived summary in the selected extraction identity for exact public type and same-object lineage tests; raw road normalization fields are intentionally absent because upstream proximity is mocked.
 
 **Exact signature**
 
@@ -552,7 +560,7 @@ def _road_source(
 
 ### `_coverage`
 
-**Purpose:** Implements `coverage` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Construct configurable in-memory coverage geometries/CRS, original department/name columns, derived geometry/schema summary and appended matching lineage in a department coverage record; None chooses default geometry while an empty list remains genuinely empty.
 
 **Exact signature**
 
@@ -750,7 +758,7 @@ def _coverage(
 
 ### `_metric_parcels`
 
-**Purpose:** Implements `metric parcels` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Create deterministic metric polygon parcels with IDs, preserved values and nondefault index for geometric and preservation assertions; a falsey geometry sequence chooses the default fixture.
 
 **Exact signature**
 
@@ -834,7 +842,7 @@ def _metric_parcels(
 
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Transform metric parcel fixtures to EPSG:4326 through the real GeoPandas/PyProj path so production calculation copies must transform back.
 
 **Exact signature**
 
@@ -942,7 +950,7 @@ def _parcels(
 
 ### `_proximity`
 
-**Purpose:** Implements `proximity` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Fabricate five ordered class rows per parcel with configured scalar distances, selected-road evidence and real policy lineage, impose distance/tie/toll dtypes, and return six fixed-count coverage records; no road distance is computed.
 
 **Exact signature**
 
@@ -1033,7 +1041,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `configured_distances.get`<br>`table[<br>        "nearest_road_proxy_distance_m"<br>    ].astype` |
+| CRS/geometry/spatial calculation | None directly; dictionary lookup and casting supplied distance values do not calculate geometry. Default parcel creation transforms a fixture transitively. |
 | External process/environment | None directly present. |
 | In-memory mutation | `rows.append(<br>                {<br>                    "parcel_id": parcel_id,<br>                    "road_proxy_class": road_class,<br>                    "nearest_road_proxy_distance_m": distance_m,<br>                    "nearest_road_feature_id": f"ROAD-{road_class}",<br>                    "nearest_source_feature_id": f"SOURCE-{road_class}",<br>                    "nearest_road_tie_count": 1,<br>                    "nearest_road_primary_rule": primary_rule,<br>                    "nearest_road_rule_trace_json": f'["{primary_rule}"]',<br>                    "nearest_road_unknown_fields_json": "[]",<br>                    "nearest_road_toll_evidence": False,<br>                    "nearest_nature_raw": "Route à 1 chaussée",<br>                    "nearest_importance_raw": "2",<br>                    "nearest_asset_status_raw": "En service",<br>                    "nearest_private_raw": 0.0,<br>                    "nearest_light_vehicle_access_raw": "Libre",<br>                    "nearest_carriageway_width_raw": 7.0,<br>                    "nearest_closure_period_raw": None,<br>                    "nearest_restriction_nature_raw": None,<br>                    "nearest_source_layer": "troncon_de_route",<br>                    "nearest_source_department_code": "31",<br>                    "nearest_source_edition": EDITION,<br>                    "nearest_source_archive_sha256": ARCHIVE_SHA256,<br>                    "road_proxy_policy_id": policy.policy_id,<br>                    "road_proxy_policy_schema_version": policy.schema_version,<br>                    "road_proxy_policy_config_sha256": policy.config_sha256,<br>                    "road_proxy_heavy_vehicle_access": policy.heavy_vehicle_access,<br>                    "proximity_scope": "WITHIN_VERIFIED_SOURCE_PACKAGE",<br>                }<br>            )`<br>`table["nearest_road_proxy_distance_m"] = table[<br>        "nearest_road_proxy_distance_m"<br>    ].astype("float64")`<br>`table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype("Int64")`<br>`table["nearest_road_toll_evidence"] = table["nearest_road_toll_evidence"].astype(<br>        "boolean"<br>    )` |
 | Direct parameter mutation | None directly present. |
@@ -1117,7 +1125,7 @@ def _proximity(
 
 ### `_without_match`
 
-**Purpose:** Implements `without match` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Copy the proximity table, null all selected evidence for one class, restore stable nullable dtypes and replace that class's count with zero in a new coverage tuple.
 
 **Exact signature**
 
@@ -1171,7 +1179,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `table[<br>        "nearest_road_proxy_distance_m"<br>    ].astype` |
+| CRS/geometry/spatial calculation | None; only scalar nulls, dtypes and coverage counts are changed in copied fixtures. |
 | External process/environment | None directly present. |
 | In-memory mutation | `table.loc[mask, column] = pd.NA`<br>`table["nearest_road_proxy_distance_m"] = table[<br>        "nearest_road_proxy_distance_m"<br>    ].astype("float64")`<br>`table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype("Int64")`<br>`table["nearest_road_toll_evidence"] = table["nearest_road_toll_evidence"].astype(<br>        "boolean"<br>    )` |
 | Direct parameter mutation | None directly present. |
@@ -1207,7 +1215,7 @@ def _without_match(
 
 ### `_measured_boundary_distance`
 
-**Purpose:** Implements `measured boundary distance` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Compute the first parcel's full-geometry metric distance to the synthetic coverage boundary with the real Shapely operation, providing a fixture-specific expected margin independent of the production helper.
 
 **Exact signature**
 
@@ -1283,7 +1291,7 @@ def _measured_boundary_distance(
 
 ### `_assess`
 
-**Purpose:** Implements `assess` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Select fixture parcels/proximity/coverage/source with matching extraction identity, patch both upstream proximity and department loading in scoped contexts, and call the real public assessment with the chosen policy path.
 
 **Exact signature**
 
@@ -1432,7 +1440,7 @@ def _assess(
 
 ### `_first_row`
 
-**Purpose:** Implements `first row` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Select the first result row of a requested class for one-parcel diagnostic assertions; it does not establish whole-table validity.
 
 **Exact signature**
 
@@ -2211,7 +2219,7 @@ def test_coverage_package_lineage_must_match_road_archive(
 
 ### `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
 
-**Purpose:** Regression invariant: configured coverage layer cannot be replaced by real alternate layer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject a synthetic coverage record naming an alternate layer from a fabricated inventory. The physical department loader is mocked, so this does not itself prove rejection of an actual alternate GeoPackage layer.
 
 **Exact signature**
 
@@ -3556,7 +3564,7 @@ def test_result_preserves_every_upstream_fact_and_input_object() -> None:
 
 ### `_corrupt_generated`
 
-**Purpose:** Implements `corrupt generated` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Prepare inside or outside parcel fixtures, wrap the real diagnostic builder with an output-corruption callback and require a controlled assessment postcondition failure.
 
 **Exact signature**
 
@@ -3650,7 +3658,7 @@ def _corrupt_generated(column: str, value: object, *, outside: bool = False) -> 
 
 ### `_corrupt_generated.corrupt`
 
-**Purpose:** Implements `corrupt` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Delegate to the original diagnostic producer, convert the chosen column to object dtype and inject its parametrized value in row zero. The output is newly produced fixture state; dtype rejection can precede the targeted scalar-value check.
 
 **Exact signature**
 
@@ -3881,7 +3889,7 @@ def test_inconsistent_generated_status_is_rejected(
 
 ### `test_inconsistent_generated_status_is_rejected.corrupt`
 
-**Purpose:** Implements `corrupt` within the file role: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
+**Purpose:** Delegate to the original diagnostic producer and change only row zero's coverage-status value to the parametrized contradictory status. The final validator must reject the inconsistency against the supplied distance and recalculated boundary margin.
 
 **Exact signature**
 
@@ -4051,7 +4059,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `forbidden.isdisjoint` |
+| CRS/geometry/spatial calculation | None; forbidden.isdisjoint compares output column-name strings. |
 | External process/environment | None directly present. |
 | In-memory mutation | `result.parcels = _parcels()` |
 | Direct parameter mutation | None directly present. |
@@ -4091,34 +4099,34 @@ def test_result_is_frozen_and_has_no_business_decision_fields() -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_public_api_exports_only_stable_symbols` | none | none | 4 | Proves public api exports only stable symbols using the exact source reproduced in section 7. |
-| `test_wrong_public_input_type_is_controlled_and_fast` | pytest.mark.parametrize(<br>    "argument", ["parcels", "road_source", "source_config", "policy_path"]<br>) | pytest.raises(RoadProximityCoverageError) | 0 | Proves wrong public input type is controlled and fast using the exact source reproduced in section 7. |
-| `test_source_chain_calls_proximity_then_coverage_exactly_once` | none | none | 0 | Proves source chain calls proximity then coverage exactly once using the exact source reproduced in section 7. |
-| `test_proximity_failure_stops_coverage_loading` | none | pytest.raises(RoadProximityCoverageError) | 0 | Proves proximity failure stops coverage loading using the exact source reproduced in section 7. |
-| `test_coverage_loader_failure_is_controlled` | none | pytest.raises(RoadProximityCoverageError) | 0 | Proves coverage loader failure is controlled using the exact source reproduced in section 7. |
-| `test_stage_does_not_construct_a_road_spatial_index` | none | none | 2 | Proves stage does not construct a road spatial index using the exact source reproduced in section 7. |
-| `test_malformed_upstream_result_fails_before_coverage_load` | pytest.mark.parametrize(<br>    "mutation",<br>    [<br>        lambda result: object(),<br>        lambda result: replace(result, parcels=result.parcels.drop(columns="geometry")),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.drop(<br>                columns="nearest_road_proxy_distance_m"<br>            ),<br>        ),<br>        lambda result: replace(<br>            result, class_proximity=result.class_proximity.iloc[:-1].copy()<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.iloc[<br>                [1, 0, *range(2, 5)]<br>            ].reset_index(drop=True),<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.assign(<br>                proximity_scope="GLOBAL_NEAREST"<br>            ),<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.assign(<br>                road_proxy_policy_config_sha256=["c" * 64, *["d" * 64] * 4]<br>            ),<br>        ),<br>    ],<br>    ids=[<br>        "wrong-type",<br>        "bad-parcels",<br>        "missing-column",<br>        "row-count",<br>        "order",<br>        "scope",<br>        "policy-sha",<br>    ],<br>) | pytest.raises(RoadProximityCoverageError) | 0 | Proves malformed upstream result fails before coverage load using the exact source reproduced in section 7. |
-| `test_coverage_package_lineage_must_match_road_archive` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_provider", "Other provider"),<br>        ("source_product", "Other product"),<br>        ("source_department_code", "32"),<br>        ("source_edition", "2099-01-01"),<br>        ("source_product_version", "99"),<br>        ("source_archive_sha256", "c" * 64),<br>    ],<br>) | pytest.raises(<br>        RoadProximityCoverageError, match="package\|lineage\|provider\|product"<br>    ) | 0 | Proves coverage package lineage must match road archive using the exact source reproduced in section 7. |
-| `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` | none | pytest.raises(RoadProximityCoverageError, match="configured\|layer") | 0 | Proves configured coverage layer cannot be replaced by real alternate layer using the exact source reproduced in section 7. |
-| `test_selected_department_identity_is_exact` | none | pytest.raises(RoadProximityCoverageError, match="department") | 0 | Proves selected department identity is exact using the exact source reproduced in section 7. |
-| `test_coverage_spatial_role_and_source_type_are_controlled` | none | pytest.raises(RoadProximityCoverageError, match="spatial\|lineage"); pytest.raises(RoadProximityCoverageError) | 0 | Proves coverage spatial role and source type are controlled using the exact source reproduced in section 7. |
-| `test_coverage_must_retain_same_extraction_object` | none | pytest.raises(RoadProximityCoverageError, match="extraction") | 0 | Proves coverage must retain same extraction object using the exact source reproduced in section 7. |
-| `test_invalid_coverage_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometries", "crs", "message"),<br>    [<br>        ([], "EPSG:2154", "one\|exactly"),<br>        (<br>            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])] * 2,<br>            "EPSG:2154",<br>            "one\|exactly",<br>        ),<br>        ([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])], None, "CRS"),<br>        ([Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])], "EPSG:4326", "2154"),<br>        ([None], "EPSG:2154", "null"),<br>        ([Polygon()], "EPSG:2154", "empty"),<br>        ([Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)])], "EPSG:2154", "valid"),<br>        ([Point(0, 0)], "EPSG:2154", "Polygon"),<br>        ([LineString([(0, 0), (10, 10)])], "EPSG:2154", "Polygon"),<br>    ],<br>    ids=[<br>        "zero",<br>        "two",<br>        "no-crs",<br>        "wrong-crs",<br>        "null",<br>        "empty",<br>        "invalid",<br>        "point",<br>        "line",<br>    ],<br>) | pytest.raises(RoadProximityCoverageError, match=message) | 0 | Proves invalid coverage geometry is rejected using the exact source reproduced in section 7. |
-| `test_polygonal_coverage_geometry_is_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]),<br>    ],<br>) | none | 1 | Proves polygonal coverage geometry is accepted using the exact source reproduced in section 7. |
-| `test_full_parcel_coverage_position_is_conservative` | pytest.mark.parametrize(<br>    ("geometry", "position"),<br>    [<br>        (<br>            Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),<br>            "FULLY_COVERED",<br>        ),<br>        (<br>            Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>        (<br>            Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>        (<br>            Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>    ],<br>    ids=["inside", "touching", "crossing", "outside"],<br>) | none | 2 | Proves full parcel coverage position is conservative using the exact source reproduced in section 7. |
-| `test_position_uses_full_geometry_not_centroid` | none | none | 2 | Proves position uses full geometry not centroid using the exact source reproduced in section 7. |
-| `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` | none | none | 3 | Proves internal boundary distance is full geometry finite and nonnegative using the exact source reproduced in section 7. |
-| `test_strict_boundary_status_logic` | pytest.mark.parametrize(<br>    ("offset", "expected"),<br>    [<br>        (-50.0, "NOT_BOUNDARY_LIMITED"),<br>        (-0.001, "NOT_BOUNDARY_LIMITED"),<br>        (0.0, "BOUNDARY_LIMITED"),<br>        (50.0, "BOUNDARY_LIMITED"),<br>    ],<br>) | none | 1 | Proves strict boundary status logic using the exact source reproduced in section 7. |
-| `test_matched_outside_or_crossing_status` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]),<br>        Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>        Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>    ],<br>    ids=["crossing", "touching", "outside"],<br>) | none | 1 | Proves matched outside or crossing status using the exact source reproduced in section 7. |
-| `test_no_match_takes_precedence_over_coverage_position` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),<br>        Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>    ],<br>    ids=["inside", "outside"],<br>) | none | 1 | Proves no match takes precedence over coverage position using the exact source reproduced in section 7. |
-| `test_classes_are_diagnosed_independently` | none | none | 2 | Proves classes are diagnosed independently using the exact source reproduced in section 7. |
-| `test_exact_coverage_lineage_is_appended_to_every_row` | none | none | 1 | Proves exact coverage lineage is appended to every row using the exact source reproduced in section 7. |
-| `test_matched_road_lineage_must_match_coverage` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_source_department_code", "32"),<br>        ("nearest_source_edition", "2099-01-01"),<br>        ("nearest_source_archive_sha256", "c" * 64),<br>    ],<br>) | pytest.raises(RoadProximityCoverageError, match="lineage\|package") | 0 | Proves matched road lineage must match coverage using the exact source reproduced in section 7. |
-| `test_result_preserves_every_upstream_fact_and_input_object` | none | none | 7 | Proves result preserves every upstream fact and input object using the exact source reproduced in section 7. |
-| `test_malformed_generated_value_is_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("road_source_boundary_distance_m", -1.0),<br>        ("road_source_boundary_distance_m", float("nan")),<br>        ("road_source_boundary_distance_m", float("inf")),<br>        ("road_source_coverage_position", "INVENTED"),<br>        ("road_proximity_coverage_status", "INVENTED"),<br>    ],<br>) | none | 0 | Proves malformed generated value is rejected using the exact source reproduced in section 7. |
-| `test_inconsistent_generated_status_is_rejected` | pytest.mark.parametrize(<br>    ("distance", "wrong_status"),<br>    [(50.0, "BOUNDARY_LIMITED"), (150.0, "NOT_BOUNDARY_LIMITED")],<br>) | pytest.raises(RoadProximityCoverageError) | 0 | Proves inconsistent generated status is rejected using the exact source reproduced in section 7. |
-| `test_outside_position_requires_zero_boundary_distance` | none | none | 0 | Proves outside position requires zero boundary distance using the exact source reproduced in section 7. |
-| `test_result_is_frozen_and_has_no_business_decision_fields` | none | pytest.raises(FrozenInstanceError) | 2 | Proves result is frozen and has no business decision fields using the exact source reproduced in section 7. |
+| `test_public_api_exports_only_stable_symbols` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_public_input_type_is_controlled_and_fast` | pytest.mark.parametrize(<br>    "argument", ["parcels", "road_source", "source_config", "policy_path"]<br>) | pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_source_chain_calls_proximity_then_coverage_exactly_once` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_proximity_failure_stops_coverage_loading` | none | pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_coverage_loader_failure_is_controlled` | none | pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_stage_does_not_construct_a_road_spatial_index` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_upstream_result_fails_before_coverage_load` | pytest.mark.parametrize(<br>    "mutation",<br>    [<br>        lambda result: object(),<br>        lambda result: replace(result, parcels=result.parcels.drop(columns="geometry")),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.drop(<br>                columns="nearest_road_proxy_distance_m"<br>            ),<br>        ),<br>        lambda result: replace(<br>            result, class_proximity=result.class_proximity.iloc[:-1].copy()<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.iloc[<br>                [1, 0, *range(2, 5)]<br>            ].reset_index(drop=True),<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.assign(<br>                proximity_scope="GLOBAL_NEAREST"<br>            ),<br>        ),<br>        lambda result: replace(<br>            result,<br>            class_proximity=result.class_proximity.assign(<br>                road_proxy_policy_config_sha256=["c" * 64, *["d" * 64] * 4]<br>            ),<br>        ),<br>    ],<br>    ids=[<br>        "wrong-type",<br>        "bad-parcels",<br>        "missing-column",<br>        "row-count",<br>        "order",<br>        "scope",<br>        "policy-sha",<br>    ],<br>) | pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_coverage_package_lineage_must_match_road_archive` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_provider", "Other provider"),<br>        ("source_product", "Other product"),<br>        ("source_department_code", "32"),<br>        ("source_edition", "2099-01-01"),<br>        ("source_product_version", "99"),<br>        ("source_archive_sha256", "c" * 64),<br>    ],<br>) | pytest.raises(<br>        RoadProximityCoverageError, match="package\|lineage\|provider\|product"<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` | none | pytest.raises(RoadProximityCoverageError, match="configured\|layer") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_selected_department_identity_is_exact` | none | pytest.raises(RoadProximityCoverageError, match="department") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_coverage_spatial_role_and_source_type_are_controlled` | none | pytest.raises(RoadProximityCoverageError, match="spatial\|lineage"); pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_coverage_must_retain_same_extraction_object` | none | pytest.raises(RoadProximityCoverageError, match="extraction") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_invalid_coverage_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometries", "crs", "message"),<br>    [<br>        ([], "EPSG:2154", "one\|exactly"),<br>        (<br>            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])] * 2,<br>            "EPSG:2154",<br>            "one\|exactly",<br>        ),<br>        ([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])], None, "CRS"),<br>        ([Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])], "EPSG:4326", "2154"),<br>        ([None], "EPSG:2154", "null"),<br>        ([Polygon()], "EPSG:2154", "empty"),<br>        ([Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)])], "EPSG:2154", "valid"),<br>        ([Point(0, 0)], "EPSG:2154", "Polygon"),<br>        ([LineString([(0, 0), (10, 10)])], "EPSG:2154", "Polygon"),<br>    ],<br>    ids=[<br>        "zero",<br>        "two",<br>        "no-crs",<br>        "wrong-crs",<br>        "null",<br>        "empty",<br>        "invalid",<br>        "point",<br>        "line",<br>    ],<br>) | pytest.raises(RoadProximityCoverageError, match=message) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_polygonal_coverage_geometry_is_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]),<br>    ],<br>) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_full_parcel_coverage_position_is_conservative` | pytest.mark.parametrize(<br>    ("geometry", "position"),<br>    [<br>        (<br>            Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),<br>            "FULLY_COVERED",<br>        ),<br>        (<br>            Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>        (<br>            Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>        (<br>            Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>            "OUTSIDE_OR_CROSSING_COVERAGE",<br>        ),<br>    ],<br>    ids=["inside", "touching", "crossing", "outside"],<br>) | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_position_uses_full_geometry_not_centroid` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_strict_boundary_status_logic` | pytest.mark.parametrize(<br>    ("offset", "expected"),<br>    [<br>        (-50.0, "NOT_BOUNDARY_LIMITED"),<br>        (-0.001, "NOT_BOUNDARY_LIMITED"),<br>        (0.0, "BOUNDARY_LIMITED"),<br>        (50.0, "BOUNDARY_LIMITED"),<br>    ],<br>) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_matched_outside_or_crossing_status` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(-10, 100), (-10, 200), (100, 200), (100, 100), (-10, 100)]),<br>        Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>        Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>    ],<br>    ids=["crossing", "touching", "outside"],<br>) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_no_match_takes_precedence_over_coverage_position` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),<br>        Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]),<br>    ],<br>    ids=["inside", "outside"],<br>) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_classes_are_diagnosed_independently` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_exact_coverage_lineage_is_appended_to_every_row` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_matched_road_lineage_must_match_coverage` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_source_department_code", "32"),<br>        ("nearest_source_edition", "2099-01-01"),<br>        ("nearest_source_archive_sha256", "c" * 64),<br>    ],<br>) | pytest.raises(RoadProximityCoverageError, match="lineage\|package") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_result_preserves_every_upstream_fact_and_input_object` | none | none | 7 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_generated_value_is_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("road_source_boundary_distance_m", -1.0),<br>        ("road_source_boundary_distance_m", float("nan")),<br>        ("road_source_boundary_distance_m", float("inf")),<br>        ("road_source_coverage_position", "INVENTED"),<br>        ("road_proximity_coverage_status", "INVENTED"),<br>    ],<br>) | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_inconsistent_generated_status_is_rejected` | pytest.mark.parametrize(<br>    ("distance", "wrong_status"),<br>    [(50.0, "BOUNDARY_LIMITED"), (150.0, "NOT_BOUNDARY_LIMITED")],<br>) | pytest.raises(RoadProximityCoverageError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_outside_position_requires_zero_boundary_distance` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_result_is_frozen_and_has_no_business_decision_fields` | none | pytest.raises(FrozenInstanceError) | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
 
 ## 8. Public exports and package ownership
 

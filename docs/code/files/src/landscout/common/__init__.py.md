@@ -104,3 +104,11 @@ Test consumers and framework invocation are included in per-symbol interfaces. T
 ## 17. Change impact
 
 Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+
+## 18. Complete source snapshot
+
+The following complete UTF-8 source matches the basis commit's Git blob content exactly. It is repeated here for readable audit continuity; it does not replace the symbol-level semantic review above.
+
+```python
+"""Shared LandScout domain utilities."""
+```

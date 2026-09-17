@@ -27,26 +27,30 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 |---|---|---|---|---|---|
 | `country` | `"FR"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is France/FR | Configures `country` under the exact parent path `<root>`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `technology` | `"BESS"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is BESS | Configures `technology` under the exact parent path `<root>`. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `parcel.min_area_m2` | `2000` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; parsed as float only after `_strict_finite_number`; Boolean rejected; must be finite and > 0; unit m² | Configures min area m2 in square metres. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `parcel.max_area_m2` | `15000` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; parsed as float only after `_strict_finite_number`; Boolean rejected; must be finite, > 0, and > min_area_m2; unit m² | Configures max area m2 in square metres. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `parcel.min_area_m2` | `2000` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; parsed as float only after `_strict_finite_number`; Boolean rejected; must be finite and > 0; unit m² | Configures min area m2 in square metres. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `parcel.max_area_m2` | `15000` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; parsed as float only after `_strict_finite_number`; Boolean rejected; must be finite, > 0, and > min_area_m2; unit m² | Configures max area m2 in square metres. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.enabled` | `true` | `bool` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict Boolean model field; when true, all dependent shape-policy fields are required | Enables/disables the exact enabled behavior; Boolean coercion rules belong to the consuming model. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `shape_screening.min_width_m` | `15` | `int` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required and > 0 when shape screening is enabled; metres | Configures min width m in metres. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `shape_screening.max_length_width_ratio` | `10` | `int` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required and >= 1 when shape screening is enabled; dimensionless | Configures `max length width ratio` under the exact parent path `shape_screening`. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `shape_screening.min_width_m` | `15` | `float` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required and > 0 when shape screening is enabled; metres | Configures min width m in metres. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `shape_screening.max_length_width_ratio` | `10` | `float` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required and >= 1 when shape screening is enabled; dimensionless | Configures `max length width ratio` under the exact parent path `shape_screening`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.policy_version` | `"muret_empirical_v1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `policy version` under the exact parent path `shape_screening.calibration`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.method` | `"empirical_distribution"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `method` under the exact parent path `shape_screening.calibration`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.calibration_scope` | `"Muret 31395"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `calibration scope` under the exact parent path `shape_screening.calibration`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.sample_size` | `4013` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict positive integer; Boolean rejected | Configures `sample size` under the exact parent path `shape_screening.calibration`. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.calibrated_at` | `"2026-08-11"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `calibrated at` under the exact parent path `shape_screening.calibration`. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `shape_screening.calibration.target_retention_pct` | `90` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict finite number in (0, 100] | Configures target retention pct as a percentage. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `shape_screening.calibration.target_retention_pct` | `90` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict finite number in (0, 100] | Configures target retention pct as a percentage. | `landscout.config.load_scan_config via ProfileReference.path` |
 | `shape_screening.calibration.observed_retention_pct` | `90.65537` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict finite number in [0, 100] | Configures observed retention pct as a percentage. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `crs.storage` | `"EPSG:4326"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required exact EPSG:4326 | Configures `storage` under the exact parent path `crs`. | `landscout.config.load_scan_config via ProfileReference.path` |
-| `crs.calculation` | `"EPSG:2154"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required exact EPSG:2154 | Configures `calculation` under the exact parent path `crs`. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `crs.storage` | `"EPSG:4326"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required CRS equivalent to EPSG:4326; the validated input text is retained | Configures `storage` under the exact parent path `crs`. | `landscout.config.load_scan_config via ProfileReference.path` |
+| `crs.calculation` | `"EPSG:2154"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required CRS equivalent to EPSG:2154; the validated input text is retained | Configures `calculation` under the exact parent path `crs`. | `landscout.config.load_scan_config via ProfileReference.path` |
 
 ## STEP 7F.1A.4 dependent-model refresh
 
 - The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.config.load_scan_config (through ProfileReference.path)`; section 5 now embeds the exact current owning model sources and qualified consumers.
 - Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
 - No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+
+## Runtime interpretation reviewed for DOCS.CONTINUITY.1
+
+Runtime numbers are floats after strict finite-number validation even where YAML uses integer syntax. Area thresholds are inclusive when passed to `filter_parcels_by_area`; shape screening requires width ≥ 15 m and ratio ≤ 10 and records the configured calibration policy version. Calibration sample/count/date/percentages are retained provenance declarations, not recomputed by the loader; the date is only a nonempty string. No retention target becomes a dynamic optimization rule. Country/technology are matching nonempty labels, not closed FR/BESS-only model enums.
 
 ## 5. Classes / models / dataclasses
 
@@ -57,7 +61,7 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 ### `_ConfigModel`
 
-**Source purpose:** Defines `_ConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Shared Pydantic base: reject undeclared fields and ordinary attribute reassignment. Deep immutability additionally comes from nested frozen models and the AOI tuple, not from `frozen=True` alone.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -83,7 +87,7 @@ class _ConfigModel(BaseModel):
 
 ### `ParcelConfig`
 
-**Source purpose:** Defines `ParcelConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required inclusive screening limits `min_area_m2` and `max_area_m2`, in square metres, consumed by the area filter. Both accept finite real numbers excluding booleans and numeric strings; both must be positive and the maximum must strictly exceed the minimum. They do not measure parcel geometry.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -142,7 +146,7 @@ class ParcelConfig(_ConfigModel):
 
 ### `ShapeCalibrationConfig`
 
-**Source purpose:** Defines `ShapeCalibrationConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required provenance for an enabled shape policy. `policy_version` identifies the applied rule; `method` names calibration methodology; `calibration_scope` labels the calibration sample; `sample_size` is a strict positive integer. `calibrated_at` is a trimmed nonempty label, not a parsed timestamp. The target percentage is finite in `(0,100]`, while the observed percentage is finite in `[0,100]`; neither is recalculated by this loader.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -186,7 +190,7 @@ class ShapeCalibrationConfig(_ConfigModel):
 
 ### `ShapeScreeningConfig`
 
-**Source purpose:** Defines `ShapeScreeningConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Strict Boolean `enabled` selects screening. Optional `min_width_m` is a positive metre limit; optional `max_length_width_ratio` is finite and at least one; optional `calibration` carries policy provenance. All three default to `None` and are mandatory together when enabled. Supplied values are still field-validated when disabled.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -266,7 +270,7 @@ class ShapeScreeningConfig(_ConfigModel):
 
 ### `CrsConfig`
 
-**Source purpose:** Defines `CrsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nonempty `storage` and `calculation` strings must parse to CRS objects equivalent to EPSG:4326 and EPSG:2154 respectively. Validation preserves the trimmed strings; it does not rewrite equivalent spellings to canonical EPSG text or reproject any geometry.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -308,7 +312,7 @@ class CrsConfig(_ConfigModel):
 
 ### `BessProfile`
 
-**Source purpose:** Defines `BessProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required `country` and `technology` labels plus nested `parcel`, `shape_screening`, and `crs` contracts. The two labels are nonempty trimmed strings, not closed FR/BESS enums; equality with scan metadata is checked by the loaded envelope.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -350,11 +354,11 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `landscout.config.load_scan_config via ProfileReference.path`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime consumers: `landscout.config.load_scan_config via ProfileReference.path`. Scan loading resolves `ProfileReference.path` relative to the assumed repository root three ancestors above the scan file. This file does not call the road policy loader.
 
 ## 9. Error handling
 
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
+The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; this loader propagates filesystem errors, strict YAML errors and Pydantic ValidationError without a single source-adapter wrapper.
 
 ## 10. Side effects
 

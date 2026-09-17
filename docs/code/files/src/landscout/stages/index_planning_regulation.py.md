@@ -380,6 +380,43 @@ _validate_index = validate_planning_regulation_index
   - No conservative direct import/call/value reference was found outside the declaration.
 
 
+
+### Reviewed ownership and consumers
+
+| Declaration | Meaning and actual local consumers |
+|---|---|
+| `__all__` | Seven public names, also re-exported by `landscout.stages`; an export list, not configuration or frame data. |
+| `SEARCH_NORMALIZATION_PROFILE` | Alias of `landscout.common.planning_text.SEARCH_NORMALIZATION_PROFILE`, bound into page/index/search hashes and required by their validators. |
+| `_normalize_search_text` | Alias of the common normalization function, used by page extraction/validation and term validation; also imported by structure/interpretation test fixtures. |
+| `_normalize_search_text_with_mapping` | Alias of the common normalized-text/raw-span mapper, called by `_build_hits`. |
+| `_raw_context` | Alias of the common raw-context slicer, called by `_build_hits`; it uses raw character spans, not byte offsets. |
+| `PAGE_HASH_SCHEMA_VERSION` | Version 1 for individual pages and their ordered envelope; defaults of page hash helpers and intrinsic acceptance gate. |
+| `INDEX_HASH_SCHEMA_VERSION` | Version 1 for the full index envelope; builder value and intrinsic acceptance gate. |
+| `SEARCH_HASH_SCHEMA_VERSION` | Version 1 for the request/hit envelope; hash-helper default, builder value, and validator acceptance gate. |
+| `PAGE_COLUMNS` | Ordered seven-column page table schema used for construction, validation, and canonical serialization. |
+| `SEARCH_HIT_COLUMNS` | Ordered ten-column hit schema used for construction, reconstruction, validation, and canonical serialization. |
+| `ExtractionStatus` | TEXT/EMPTY/ERROR type annotation for local extraction; runtime acceptance is separately enforced by `_validate_pages`. |
+| `_validate_index` | Module alias of public intrinsic `validate_planning_regulation_index`; not a different source-complete validator. |
+
+### Page and hit column semantics
+
+| Table / column | Factual meaning |
+|---|---|
+| pages.page_number | One-based PDF page position, ordered uniquely from 1 through the declared count. |
+| pages.extraction_status | TEXT if normalized text is nonempty; EMPTY for successfully extracted empty/normalization-empty text; ERROR when page extraction raised. |
+| pages.raw_text | Original string returned by pypdf, or empty for None/errors. Whitespace is retained on successful extraction. |
+| pages.normalized_search_text | Exact common normalization of raw_text; empty on ERROR. |
+| pages.character_count | Python `len(raw_text)`, not UTF-8 byte count, token count, or rendered glyph count. |
+| pages.extraction_error | None for TEXT/EMPTY; nonempty normalized exception description for ERROR. |
+| pages.page_content_sha256 | Canonical digest of the other six fields plus page schema/profile. |
+| hits.document_id / archive_sha256 / pdf_sha256 / search_normalization_profile | Exact corresponding supplied-index lineage values repeated on every row. |
+| hits.search_term | Caller-supplied raw term, preserving requested spelling. |
+| hits.normalized_search_term | The common-normalized literal search string, not an inferred synonym. |
+| hits.page_number | Known one-based page containing the term. |
+| hits.occurrence_count | Number of non-overlapping literal substring matches for this term on this page. |
+| hits.raw_context | Source-text slice corresponding to normalized context around the first match; preserves original typography through span mapping. |
+| hits.normalized_context | Normalized-text slice around the first match with bounded left/right context margins. |
+
 ### Executable module-import-time statements
 
 No executable module-import-time statement is declared outside imports, assignments, and definitions.
@@ -388,7 +425,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `PlanningRegulationIndexError`
 
-**Source purpose:** Raised when regulation indexing or search integrity cannot be proven.
+**Source purpose:** Stage-specific ValueError for unprovable indexing or search integrity. It adds no fields; public validation/indexing wrappers preserve these errors and chain unexpected failures.
 
 - Exact decorators: none.
 - Exact bases: `ValueError`.
@@ -510,34 +547,34 @@ class PlanningRegulationIndexError(ValueError):
 
 ### `PlanningRegulationIndex`
 
-**Source purpose:** Immutable lineage envelope around a deterministic page text table.
+**Source purpose:** Frozen dataclass envelope for selected PDF lineage, source-selection digest, extraction identity, page content, and hashes. Field reassignment fails, but the retained pandas `pages` table remains mutable and construction itself does not validate annotations. Public intrinsic validation detects inconsistencies; it is not a fresh source read.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `document_id` | `str` | `required` | `document_id: str` |
-| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
-| `regulation_filename` | `str` | `required` | `regulation_filename: str` |
-| `source_selection_method` | `str` | `required` | `source_selection_method: str` |
-| `source_selection_sha256` | `str` | `required` | `source_selection_sha256: str` |
-| `pdf_relative_path` | `str` | `required` | `pdf_relative_path: str` |
-| `pdf_size_bytes` | `int` | `required` | `pdf_size_bytes: int` |
-| `pdf_sha256` | `str` | `required` | `pdf_sha256: str` |
-| `extraction_library` | `str` | `required` | `extraction_library: str` |
-| `extraction_library_version` | `str` | `required` | `extraction_library_version: str` |
-| `search_normalization_profile` | `str` | `required` | `search_normalization_profile: str` |
-| `page_hash_schema_version` | `int` | `required` | `page_hash_schema_version: int` |
-| `index_hash_schema_version` | `int` | `required` | `index_hash_schema_version: int` |
-| `total_page_count` | `int` | `required` | `total_page_count: int` |
-| `pages_content_sha256` | `str` | `required` | `pages_content_sha256: str` |
-| `index_content_sha256` | `str` | `required` | `index_content_sha256: str` |
-| `pages` | `pd.DataFrame` | `required` | `pages: pd.DataFrame` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `document_id` | `str` | `required` | `document_id: str` | GPU document identifier from validated retained lineage. |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` | Lowercase SHA256 identity of the retained ZIP archive; copied lineage, not a digest of text. |
+| `regulation_filename` | `str` | `required` | `regulation_filename: str` | Exact selected PDF basename present in fresh zoning NOMFIC, written-file metadata, and extraction inventory. |
+| `source_selection_method` | `str` | `required` | `source_selection_method: str` | ZONING_NOMFIC for a unique automatic candidate, or EXPLICIT_ZONING_NOMFIC for a source-referenced explicit selection. |
+| `source_selection_sha256` | `str` | `required` | `source_selection_sha256: str` | Canonical digest of filename/method, freshly validated zoning-file evidence, written-file metadata, and selected PDF inventory. |
+| `pdf_relative_path` | `str` | `required` | `pdf_relative_path: str` | Canonical POSIX inventory path relative to the extraction root; this relative path is retained and hashed. |
+| `pdf_size_bytes` | `int` | `required` | `pdf_size_bytes: int` | Positive physical PDF byte count compared with the extraction inventory before and after text extraction. |
+| `pdf_sha256` | `str` | `required` | `pdf_sha256: str` | Physical PDF SHA256 compared with the extraction inventory before and after text extraction. |
+| `extraction_library` | `str` | `required` | `extraction_library: str` | Extractor name, required to be pypdf during intrinsic validation. |
+| `extraction_library_version` | `str` | `required` | `extraction_library_version: str` | Nonempty recorded pypdf distribution version from indexing time; intrinsic validation does not compare it with the currently installed version. |
+| `search_normalization_profile` | `str` | `required` | `search_normalization_profile: str` | Common planning-text normalization profile identifier; intrinsic validation requires the supported profile. |
+| `page_hash_schema_version` | `int` | `required` | `page_hash_schema_version: int` | Supported page-record/envelope schema version, currently 1. |
+| `index_hash_schema_version` | `int` | `required` | `index_hash_schema_version: int` | Supported whole-index envelope schema version, currently 1. |
+| `total_page_count` | `int` | `required` | `total_page_count: int` | Positive PDF page count; all pages have one row, including EMPTY and ERROR pages. |
+| `pages_content_sha256` | `str` | `required` | `pages_content_sha256: str` | Canonical digest of the ordered page records including their page hashes and schema/profile. |
+| `index_content_sha256` | `str` | `required` | `index_content_sha256: str` | Canonical whole-index digest of retained metadata and pages digest, excluding itself. |
+| `pages` | `pd.DataFrame` | `required` | `pages: pd.DataFrame` | Mutable pandas table of the seven ordered PAGE_COLUMNS. The builder uses int64 page/count columns; intrinsic validation enforces values/order, not frame indexes or all dtypes. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+All fields above are required constructor arguments. The dataclass annotations do not enforce runtime validation; construction and successful public validation are separate events.
 
 **Qualified consumers**
 
@@ -665,28 +702,28 @@ class PlanningRegulationIndex:
 
 ### `PlanningRegulationSearchResult`
 
-**Source purpose:** Immutable lineage envelope around deterministic factual search hits.
+**Source purpose:** Frozen dataclass envelope for an ordered search request and digest-bound hit table. `requested_terms` must be an exact tuple at validation; the retained pandas `hits` table remains mutable. Constructors do not enforce the annotations or validate the digest.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `document_id` | `str` | `required` | `document_id: str` |
-| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
-| `pdf_sha256` | `str` | `required` | `pdf_sha256: str` |
-| `search_normalization_profile` | `str` | `required` | `search_normalization_profile: str` |
-| `search_hash_schema_version` | `int` | `required` | `search_hash_schema_version: int` |
-| `index_content_sha256` | `str` | `required` | `index_content_sha256: str` |
-| `requested_terms` | `tuple[str, ...]` | `required` | `requested_terms: tuple[str, ...]` |
-| `context_characters` | `int` | `required` | `context_characters: int` |
-| `hit_count` | `int` | `required` | `hit_count: int` |
-| `hits_content_sha256` | `str` | `required` | `hits_content_sha256: str` |
-| `hits` | `pd.DataFrame` | `required` | `hits: pd.DataFrame` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `document_id` | `str` | `required` | `document_id: str` | Document ID copied from the validated supplied index. |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` | Archive identity copied from the supplied index and repeated on each hit. |
+| `pdf_sha256` | `str` | `required` | `pdf_sha256: str` | PDF identity copied from the supplied index and repeated on each hit. |
+| `search_normalization_profile` | `str` | `required` | `search_normalization_profile: str` | Supported index normalization profile, repeated on each hit. |
+| `search_hash_schema_version` | `int` | `required` | `search_hash_schema_version: int` | Supported search-envelope schema version, currently 1. |
+| `index_content_sha256` | `str` | `required` | `index_content_sha256: str` | Complete index digest that this search result references. |
+| `requested_terms` | `tuple[str, ...]` | `required` | `requested_terms: tuple[str, ...]` | Exact tuple of caller's ordered raw terms, each nonempty and distinct after normalization; an empty tuple is allowed. |
+| `context_characters` | `int` | `required` | `context_characters: int` | Nonnegative integral margin in normalized Python-string characters around the first match on each matching page. |
+| `hit_count` | `int` | `required` | `hit_count: int` | Nonnegative number of term/page hit rows, not the sum of occurrence_count. |
+| `hits_content_sha256` | `str` | `required` | `hits_content_sha256: str` | Canonical digest of index/request lineage and the ordered hit records. |
+| `hits` | `pd.DataFrame` | `required` | `hits: pd.DataFrame` | Mutable pandas table of SEARCH_HIT_COLUMNS. Validation rebuilds rows and compares values/order/dtypes after discarding its original index. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+All fields above are required constructor arguments. The dataclass annotations do not enforce runtime validation; construction and successful public validation are separate events.
 
 **Qualified consumers**
 
@@ -725,20 +762,20 @@ class PlanningRegulationSearchResult:
 
 ### `_ZoningSourceFileIntegrity`
 
-**Source purpose:** Defines `_ZoningSourceFileIntegrity`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Private frozen scalar record copied from a successfully revalidated GPU source-file inventory for source-selection hashing. No Path object or file handle is retained.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `relative_path` | `str` | `required` | `relative_path: str` |
-| `size_bytes` | `int` | `required` | `size_bytes: int` |
-| `sha256` | `str` | `required` | `sha256: str` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `relative_path` | `str` | `required` | `relative_path: str` | Source-file relative inventory path copied from GPU revalidation, retained in selection hashing. |
+| `size_bytes` | `int` | `required` | `size_bytes: int` | Physical source-file byte count copied from GPU revalidation. |
+| `sha256` | `str` | `required` | `sha256: str` | Physical source-file SHA256 copied from GPU revalidation. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+All fields above are required constructor arguments. The dataclass annotations do not enforce runtime validation; construction and successful public validation are separate events.
 
 **Qualified consumers**
 
@@ -756,20 +793,20 @@ class _ZoningSourceFileIntegrity:
 
 ### `_ZoningSourceEvidence`
 
-**Source purpose:** Defines `_ZoningSourceEvidence`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Private frozen zoning-source record containing physical layer name, driver, and an ordered tuple of frozen file-integrity records. Constructed after delegated source validation and consumed by selection hashing; it carries no GeoDataFrame.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `source_layer` | `str` | `required` | `source_layer: str` |
-| `driver` | `str` | `required` | `driver: str` |
-| `files` | `tuple[_ZoningSourceFileIntegrity, ...]` | `required` | `files: tuple[_ZoningSourceFileIntegrity, ...]` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Meaning |
+|---|---|---|---|---|
+| `source_layer` | `str` | `required` | `source_layer: str` | Physical zoning layer name returned by GPU source revalidation. |
+| `driver` | `str` | `required` | `driver: str` | Physical source driver returned by GPU source revalidation. |
+| `files` | `tuple[_ZoningSourceFileIntegrity, ...]` | `required` | `files: tuple[_ZoningSourceFileIntegrity, ...]` | Ordered tuple of newly constructed frozen source-file integrity records; no caller-owned mutable list is retained. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+All fields above are required constructor arguments. The dataclass annotations do not enforce runtime validation; construction and successful public validation are separate events.
 
 **Qualified consumers**
 
@@ -792,7 +829,7 @@ class _ZoningSourceEvidence:
 
 ### `_strict_string`
 
-**Purpose:** Implements `strict string` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Accept a nonempty, already trimmed string and return it unchanged; `isinstance` permits string subclasses. Reject nonstrings and leading/trailing whitespace with the caller's label. This is lexical validation, not normalization or source proof.
 
 **Exact signature**
 
@@ -846,20 +883,9 @@ Outbound call expressions and conservative ownership:
 | `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -876,7 +902,7 @@ def _strict_string(value: object, label: str) -> str:
 
 ### `_strict_nonnegative_integer`
 
-**Purpose:** Implements `strict nonnegative integer` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Reject booleans and non-`numbers.Integral` values, require a value at least zero, and return built-in `int`. NumPy integral scalars are accepted and converted; floats and numeric strings are not. Used for byte/page/context/count evidence rather than enforcing a DataFrame dtype.
 
 **Exact signature**
 
@@ -921,20 +947,9 @@ Outbound call expressions and conservative ownership:
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 | `int` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -953,7 +968,7 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 ### `_strict_positive_integer`
 
-**Purpose:** Implements `strict positive integer` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Reuse `_strict_nonnegative_integer`, then reject zero. The resulting built-in integer is positive; this is the page/size/schema scalar gate, not a source-count reconstruction.
 
 **Exact signature**
 
@@ -998,20 +1013,9 @@ Outbound call expressions and conservative ownership:
 | `_strict_nonnegative_integer` | `landscout.stages.index_planning_regulation._strict_nonnegative_integer` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1029,7 +1033,7 @@ def _strict_positive_integer(value: object, label: str) -> int:
 
 ### `_supported_schema_version`
 
-**Purpose:** Implements `supported schema version` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require a positive integral version via `_strict_positive_integer` and equality to the supplied supported version. Current callers pass the module's version-1 constants; malformed, zero, boolean, or unsupported versions fail before hash comparison.
 
 **Exact signature**
 
@@ -1069,20 +1073,9 @@ Outbound call expressions and conservative ownership:
 | `_strict_positive_integer` | `landscout.stages.index_planning_regulation._strict_positive_integer` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1102,7 +1095,7 @@ def _supported_schema_version(value: object, supported: int, label: str) -> int:
 
 ### `_validated_sha256`
 
-**Purpose:** Implements `validated sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require an already trimmed string of exactly 64 lowercase hexadecimal characters. Return the same text; this helper neither computes a digest nor verifies physical bytes.
 
 **Exact signature**
 
@@ -1148,20 +1141,9 @@ Outbound call expressions and conservative ownership:
 | `fullmatch` | `re.fullmatch` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1181,7 +1163,7 @@ def _validated_sha256(value: object, label: str) -> str:
 
 ### `_canonical_sha256`
 
-**Purpose:** Implements `canonical sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Serialize the supplied payload as UTF-8 JSON with Unicode retained, sorted object keys, compact separators, and non-finite numbers forbidden; return SHA256 of those bytes. Serialization failures are chained into `PlanningRegulationIndexError`. Ordered arrays retain their order; Python repr, DataFrame indexes, and arbitrary objects are not a fallback.
 
 **Exact signature**
 
@@ -1228,20 +1210,9 @@ Outbound call expressions and conservative ownership:
 | `sha256(payload).hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sha256` | `hashlib.sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -1268,7 +1239,7 @@ def _canonical_sha256(value: object) -> str:
 
 ### `_is_link_or_junction`
 
-**Purpose:** Implements `is link or junction` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Read path metadata using `is_symlink()` or, if needed, `is_junction()` and return their disjunction. Translate `OSError` into the stage error. This is a filesystem check; it does not delete or resolve the path.
 
 **Exact signature**
 
@@ -1305,20 +1276,9 @@ Outbound call expressions and conservative ownership:
 | `path.is_junction` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1338,7 +1298,7 @@ def _is_link_or_junction(path: Path) -> bool:
 
 ### `_validated_relative_path`
 
-**Purpose:** Implements `validated relative path` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Validate a nonempty trimmed POSIX relative spelling: reject backslashes, NUL, absolute paths, empty/dot/dot-dot components, and a spelling changed by `PurePosixPath.as_posix()`. Return `PurePosixPath`; this performs no filesystem access and is not a universal Windows-component validator.
 
 **Exact signature**
 
@@ -1383,20 +1343,9 @@ Outbound call expressions and conservative ownership:
 | `relative.is_absolute` | `unresolved local/third-party receiver; no ownership inferred` |
 | `relative.as_posix` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1420,7 +1369,7 @@ def _validated_relative_path(value: object) -> PurePosixPath:
 
 ### `_validated_pdf_basename`
 
-**Purpose:** Implements `validated pdf basename` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require a nonempty trimmed basename, reject dot/dot-dot, either slash, a platform `Path.name` mismatch, control characters including DEL, and a suffix other than case-insensitive `.pdf`. It neither guesses a regulation filename nor proves that a file exists.
 
 **Exact signature**
 
@@ -1465,20 +1414,9 @@ Outbound call expressions and conservative ownership:
 | `ord` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1505,7 +1443,7 @@ def _validated_pdf_basename(value: object) -> str:
 
 ### `_file_sha256`
 
-**Purpose:** Implements `file sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Open the given path read-only and feed successive 1 MiB chunks into a local SHA256 digest. Return its lowercase hexadecimal value; translate read/open `OSError` into the PDF checksum error. No write or caller-object mutation is performed.
 
 **Exact signature**
 
@@ -1547,20 +1485,9 @@ Outbound call expressions and conservative ownership:
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 | `digest.hexdigest` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.open` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `digest.update(chunk)` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -1584,7 +1511,7 @@ def _file_sha256(path: Path) -> str:
 
 ### `_revalidate_zoning_source`
 
-**Purpose:** Re-read immutable zoning bytes before trusting source PDF references.
+**Purpose:** Call `landscout.sources.gpu_fr.revalidate_gpu_spatial_layer_source` for the retained zoning layer before selection, obtaining a fresh source-matched GeoDataFrame and validated source-file evidence. Require `NOMFIC`, then copy relative paths, sizes, hashes, driver, and layer into private frozen records. GPU spatial failures and unexpected delegated failures become chained stage errors. Physical filesystem and byte checks belong to the delegated GPU validator; this is not an in-memory-only equality check.
 
 **Exact signature**
 
@@ -1628,20 +1555,9 @@ Outbound call expressions and conservative ownership:
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_ZoningSourceFileIntegrity` | `landscout.stages.index_planning_regulation._ZoningSourceFileIntegrity` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network acquisition, filesystem publication, or caller-owned frame mutation is performed. Delegated GPU checks read source geometry and compare it; this stage adds no parcel overlay or reprojection. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -1687,7 +1603,7 @@ def _revalidate_zoning_source(
 
 ### `_validate_document_lineage`
 
-**Purpose:** Implements `validate document lineage` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Check the retained planning-document/download/extraction/metadata types and identifiers, lowercase archive-SHA spelling, ZIP format, DU/current statuses, exact tuple reference containers, zoning reference membership, and every populated layer summary's document/archive/layer/count equality. Return document ID and archive SHA. This helper checks retained lineage only; physical source revalidation happens separately in `_revalidate_zoning_source`.
 
 **Exact signature**
 
@@ -1738,20 +1654,9 @@ Outbound call expressions and conservative ownership:
 | `type` | `unresolved local/third-party receiver; no ownership inferred` |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_validated_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1817,7 +1722,7 @@ def _validate_document_lineage(
 
 ### `_zoning_regulation_filenames`
 
-**Purpose:** Implements `zoning regulation filenames` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Read `NOMFIC` from the fresh zoning frame; skip None, pandas NA, and floating NaN, validate every remaining PDF basename, and collect exact unique names. Reject an empty set and return names sorted by casefold. No filename keywords, title guesses, or semantic synonyms are used; multiple unique names remain an ambiguity for automatic selection.
 
 **Exact signature**
 
@@ -1863,20 +1768,9 @@ Outbound call expressions and conservative ownership:
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `values.add(_validated_pdf_basename(value))` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -1914,7 +1808,7 @@ def _zoning_regulation_filenames(zoning: gpd.GeoDataFrame) -> tuple[str, ...]:
 
 ### `_written_file_matches`
 
-**Purpose:** Implements `written file matches` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require the document's written-file inventory to be an exact tuple of `GpuWrittenFile` objects with valid nonempty filenames, and find exactly one filename-equal match. Return a one-item tuple; unrelated non-PDF entries are not parsed as regulation candidates. Titles, paths, and URLs are retained metadata, not proof established by this helper.
 
 **Exact signature**
 
@@ -1961,20 +1855,9 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `matches.append(item)` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -2011,7 +1894,7 @@ def _written_file_matches(
 
 ### `_resolve_regulation_filename`
 
-**Purpose:** Implements `resolve regulation filename` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Revalidate the physical zoning source first and derive its distinct `NOMFIC` basenames. With no explicit filename, require exactly one candidate and mark `ZONING_NOMFIC`; otherwise validate the requested basename, require its exact presence, and mark `EXPLICIT_ZONING_NOMFIC`. Require exactly one matching written-file record, then return filename, method, source evidence, and that record.
 
 **Exact signature**
 
@@ -2037,8 +1920,8 @@ def _resolve_regulation_filename(
 - Exact observed return expressions:
   - `selected, method, zoning_evidence, written_file`
 - Explicit raise paths:
-  - `PlanningRegulationIndexError(<br>                "GPU zoning NOMFIC regulation selection is ambiguous"<br>            )` under lexical guard `regulation_filename is None`.
-  - `PlanningRegulationIndexError(<br>                "Explicit regulation filename is not referenced by zoning NOMFIC"<br>            )` under lexical guard `regulation_filename is None`.
+  - `PlanningRegulationIndexError(<br>                "GPU zoning NOMFIC regulation selection is ambiguous"<br>            )` when `regulation_filename is None` and `len(filenames) != 1`.
+  - `PlanningRegulationIndexError(<br>                "Explicit regulation filename is not referenced by zoning NOMFIC"<br>            )` in the explicit-filename `else` branch when `filename not in filenames`.
 
 **Qualified relationships**
 
@@ -2056,20 +1939,9 @@ Outbound call expressions and conservative ownership:
 | `_validated_pdf_basename` | `landscout.stages.index_planning_regulation._validated_pdf_basename` |
 | `_written_file_matches` | `landscout.stages.index_planning_regulation._written_file_matches` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network acquisition, filesystem publication, or caller-owned frame mutation is performed. Delegated GPU checks read source geometry and compare it; this stage adds no parcel overlay or reprojection. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -2104,7 +1976,7 @@ def _resolve_regulation_filename(
 
 ### `_locate_regulation_pdf`
 
-**Purpose:** Implements `locate regulation pdf` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Validate the extraction root, reject root/component links or junctions, validate all inventory relative paths and duplicates, and require exactly one selected basename anywhere in the inventory. Require PDF/WRITTEN_REGULATION classification, strict resolution inside the root, and a regular file. Compare its positive inventory size and lowercase SHA with current stat and streamed file bytes before returning path and inventory record. It reads metadata/bytes and writes nothing.
 
 **Exact signature**
 
@@ -2174,20 +2046,9 @@ Outbound call expressions and conservative ownership:
 | `_validated_sha256` | `landscout.stages.index_planning_regulation._validated_sha256` |
 | `_file_sha256` | `landscout.stages.index_planning_regulation._file_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `root.is_dir`<br>`path.is_file`<br>`path.stat` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_validated_sha256`<br>`_file_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `inventory_paths.add(item.relative_path)`<br>`matches.append((relative, item))` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -2279,7 +2140,7 @@ def _locate_regulation_pdf(
 
 ### `_page_error`
 
-**Purpose:** Implements `page error` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Collapse whitespace in an exception's text, strip its edges, and return `ExceptionClass: message`, or only the class name when no message remains. The string is factual per-page extraction evidence, not an exception raised by this helper.
 
 **Exact signature**
 
@@ -2316,20 +2177,9 @@ Outbound call expressions and conservative ownership:
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
 | `type` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here.
 
 **Complete source-ordered implementation**
 
@@ -2345,7 +2195,7 @@ def _page_error(error: Exception) -> str:
 
 ### `_canonical_page_record`
 
-**Purpose:** Implements `canonical page record` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Create a new dictionary containing the first six `PAGE_COLUMNS` fields, excluding the page hash itself; canonicalize a pandas-null extraction error to None. Only the newly allocated mapping is changed; the input row is not modified.
 
 **Exact signature**
 
@@ -2382,20 +2232,9 @@ Outbound call expressions and conservative ownership:
 | `bool` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pd.isna` | `pandas.isna` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `record["extraction_error"] = None` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -2413,7 +2252,7 @@ def _canonical_page_record(row: dict[str, object]) -> dict[str, object]:
 
 ### `_page_hash_payload`
 
-**Purpose:** Implements `page hash payload` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Create the page-hash envelope from the supplied schema version, normalization profile, and `_canonical_page_record`. Defaults use the current version/profile. The mutable temporary mapping is for serialization, not a public immutable trust object; this helper does not hash by itself.
 
 **Exact signature**
 
@@ -2453,20 +2292,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_canonical_page_record` | `landscout.stages.index_planning_regulation._canonical_page_record` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -2489,7 +2317,7 @@ def _page_hash_payload(
 
 ### `_page_content_sha256`
 
-**Purpose:** Implements `page content sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Hash `_page_hash_payload` through `_canonical_sha256`. The page's raw text, normalized text, status, number, character count, canonical error, schema, and normalization profile are bound; the hash field itself is excluded to avoid self-reference.
 
 **Exact signature**
 
@@ -2560,20 +2388,9 @@ Outbound call expressions and conservative ownership:
 | `_canonical_sha256` | `landscout.stages.index_planning_regulation._canonical_sha256` |
 | `_page_hash_payload` | `landscout.stages.index_planning_regulation._page_hash_payload` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_canonical_sha256`<br>`_page_hash_payload` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -2598,7 +2415,7 @@ def _page_content_sha256(
 
 ### `_pages_content_sha256`
 
-**Purpose:** Implements `pages content sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Read page rows in frame order using exactly `PAGE_COLUMNS`, combine each canonical six-field record with its supplied page hash, and hash the ordered pages plus schema/profile. Row order is meaningful. This allocates temporary dictionaries/list and does not mutate the frame; DataFrame index and dtype metadata are not part of this payload.
 
 **Exact signature**
 
@@ -2671,20 +2488,9 @@ Outbound call expressions and conservative ownership:
 | `pages.append` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_canonical_sha256` | `landscout.stages.index_planning_regulation._canonical_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_canonical_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `canonical["page_content_sha256"] = row["page_content_sha256"]`<br>`pages.append(canonical)` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -2714,7 +2520,7 @@ def _pages_content_sha256(
 
 ### `_pages_frame`
 
-**Purpose:** Implements `pages frame` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Build a new DataFrame in exact `PAGE_COLUMNS` order from accumulated page records and cast page number and character count columns to int64. Other column dtypes are inferred by pandas. Mutations are confined to this newly allocated result.
 
 **Exact signature**
 
@@ -2750,20 +2556,9 @@ Outbound call expressions and conservative ownership:
 | `frame["page_number"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `frame["character_count"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `frame["page_number"] = frame["page_number"].astype("int64")`<br>`frame["character_count"] = frame["character_count"].astype("int64")` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -2781,7 +2576,7 @@ def _pages_frame(rows: list[dict[str, object]]) -> pd.DataFrame:
 
 ### `_index_hash_payload`
 
-**Purpose:** Implements `index hash payload` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Create the `landscout.planning_regulation.index` envelope containing index schema, document/archive identity, selection filename/method/hash, relative PDF path/size/hash, extractor identity/version, normalization/page schema, page count, and pages digest. It excludes the self hash and embeds the pages digest rather than raw DataFrame storage. Relative paths are retained; absolute filesystem roots, indexes, and dtypes are not included.
 
 **Exact signature**
 
@@ -2813,20 +2608,9 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 - No calls.
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -2858,7 +2642,7 @@ def _index_hash_payload(index: PlanningRegulationIndex) -> dict[str, object]:
 
 ### `_index_content_sha256`
 
-**Purpose:** Implements `index content sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Return the canonical SHA256 of `_index_hash_payload`. This binds the retained index envelope, not a new read of the source PDF or GPU layer.
 
 **Exact signature**
 
@@ -2923,20 +2707,9 @@ Outbound call expressions and conservative ownership:
 | `_canonical_sha256` | `landscout.stages.index_planning_regulation._canonical_sha256` |
 | `_index_hash_payload` | `landscout.stages.index_planning_regulation._index_hash_payload` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_canonical_sha256`<br>`_index_hash_payload` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -2951,7 +2724,7 @@ def _index_content_sha256(index: PlanningRegulationIndex) -> str:
 
 ### `_source_selection_sha256`
 
-**Purpose:** Implements `source selection sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Hash the `landscout.planning_regulation.source_selection` envelope: chosen filename/method; zoning layer, driver, and ordered source relative-path/size/SHA records; written filename/title/document path/source URL; and PDF relative-path/size/SHA/type/category inventory. This binds the selection evidence assembled earlier without rereading files. Relative paths and the metadata URL remain in the hash; absolute extraction roots do not.
 
 **Exact signature**
 
@@ -2995,20 +2768,9 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_canonical_sha256` | `landscout.stages.index_planning_regulation._canonical_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_canonical_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -3060,7 +2822,7 @@ def _source_selection_sha256(
 
 ### `_validate_pages`
 
-**Purpose:** Implements `validate pages` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require a DataFrame with exact seven-column order, declared row count, and page numbers ordered uniquely from 1. Validate integral numbers, legal TEXT/EMPTY/ERROR states, string text, Python-character count, exact common-text normalization, and each recomputed page hash. EMPTY permits raw whitespace with empty normalized text; ERROR requires empty text and a nonempty error. No DataFrame index or dtype contract is enforced here, and no PDF is reopened.
 
 **Exact signature**
 
@@ -3125,24 +2887,13 @@ Outbound call expressions and conservative ownership:
 | `_strict_nonnegative_integer` | `landscout.stages.index_planning_regulation._strict_nonnegative_integer` |
 | `bool` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pd.isna` | `pandas.isna` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` via the module alias |
 | `_validated_sha256` | `landscout.stages.index_planning_regulation._validated_sha256` |
 | `_page_content_sha256` | `landscout.stages.index_planning_regulation._page_content_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_validated_sha256`<br>`_page_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -3213,7 +2964,7 @@ def _validate_pages(
 
 ### `_pypdf_version`
 
-**Purpose:** Implements `pypdf version` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Read the installed pypdf distribution version through `importlib.metadata.version`; chain any discovery failure into the stage error. This is environment/package-metadata access, not an external process or a source download.
 
 **Exact signature**
 
@@ -3247,20 +2998,9 @@ Outbound call expressions and conservative ownership:
 | `version` | `importlib.metadata.version` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Installed package metadata is read directly or through `_pypdf_version`; no external process is launched.
 
 **Complete source-ordered implementation**
 
@@ -3280,7 +3020,7 @@ def _pypdf_version() -> str:
 
 ### `_index_planning_regulation`
 
-**Purpose:** Index the source-validated primary written regulation page by page.
+**Purpose:** Validate retained lineage, freshly revalidate zoning for NOMFIC selection, verify the selected physical PDF, and seal selection evidence. Open the PDF with `PdfReader(strict=False)`, reject encryption and zero pages, then retain one numbered record per page: extracted/normalized text yields TEXT or EMPTY; per-page extraction exceptions yield ERROR with empty text and normalized error text. No OCR is attempted. Recheck PDF size/hash after extraction, record installed pypdf version, build page and index hashes, and run intrinsic index validation before returning. Reads and hashes local inputs; text extraction does not publish or write a file.
 
 **Exact signature**
 
@@ -3335,7 +3075,7 @@ Outbound call expressions and conservative ownership:
 | `reader.pages[page_index].extract_text` | `unresolved local/third-party receiver; no ownership inferred` |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 | `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` via the module alias |
 | `_page_error` | `landscout.stages.index_planning_regulation._page_error` |
 | `_page_content_sha256` | `landscout.stages.index_planning_regulation._page_content_sha256` |
 | `rows.append` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -3349,20 +3089,9 @@ Outbound call expressions and conservative ownership:
 | `_index_content_sha256` | `landscout.stages.index_planning_regulation._index_content_sha256` |
 | `validate_planning_regulation_index` | `landscout.stages.index_planning_regulation.validate_planning_regulation_index` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.open`<br>`path.stat` |
-| Filesystem/archive write or publication | `reader.pages[page_index].extract_text` |
-| Hashing/byte identity | `_source_selection_sha256`<br>`_page_content_sha256`<br>`_file_sha256`<br>`_pages_content_sha256`<br>`_index_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `row["page_content_sha256"] = _page_content_sha256(row)`<br>`rows.append(row)` |
-| Direct parameter mutation | None directly present. |
+No network acquisition, filesystem publication, or caller-owned frame mutation is performed. Delegated GPU checks read source geometry and compare it; this stage adds no parcel overlay or reprojection. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above. Installed package metadata is read directly or through `_pypdf_version`; no external process is launched. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -3470,7 +3199,7 @@ def _index_planning_regulation(
 
 ### `index_planning_regulation`
 
-**Purpose:** Index one source-validated written regulation with controlled failures.
+**Purpose:** Public source-bound indexing wrapper around `_index_planning_regulation`. Preserve existing stage errors and translate unexpected failures into a chained controlled indexing error. The delegated implementation performs local GPU/PDF revalidation and text extraction; the wrapper does not broaden authority to network acquisition, OCR, planning interpretation, or output publication.
 
 **Exact signature**
 
@@ -3586,20 +3315,9 @@ Outbound call expressions and conservative ownership:
 | `_index_planning_regulation` | `landscout.stages.index_planning_regulation._index_planning_regulation` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network acquisition, filesystem publication, or caller-owned frame mutation is performed. Delegated GPU checks read source geometry and compare it; this stage adds no parcel overlay or reprojection. Local filesystem metadata and/or bytes are read directly or through the named validation helpers above. The digest computation or delegated byte/content checks are described in the algorithm above. Installed package metadata is read directly or through `_pypdf_version`; no external process is launched. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -3626,7 +3344,7 @@ def index_planning_regulation(
 
 ### `_validate_planning_regulation_index`
 
-**Purpose:** Implements `validate planning regulation index` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Validate the retained index type, lexical identifiers/hashes/paths, supported selection method, matching PDF basename, positive size/page count, pypdf name, nonempty recorded version, current normalization profile and schema versions. Recompute each page hash, the ordered pages digest, and the outer index digest. This is intrinsic self-consistency only: it does not reopen GPU/PDF files, reconstruct source-selection evidence, compare the version to the currently installed library, or establish an external expected digest.
 
 **Exact signature**
 
@@ -3676,20 +3394,9 @@ Outbound call expressions and conservative ownership:
 | `_pages_content_sha256` | `landscout.stages.index_planning_regulation._pages_content_sha256` |
 | `_index_content_sha256` | `landscout.stages.index_planning_regulation._index_content_sha256` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_validated_sha256`<br>`_pages_content_sha256`<br>`_index_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -3759,7 +3466,7 @@ def _validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
 
 ### `validate_planning_regulation_index`
 
-**Purpose:** Validate all page, metadata, and complete index integrity contracts.
+**Purpose:** Public controlled-error wrapper for intrinsic `_validate_planning_regulation_index`; return None on success. It rechecks mutable page content against the retained envelopes, but has no physical source argument and does not independently prove a fully coordinated rehash against original PDF bytes.
 
 **Exact signature**
 
@@ -3846,20 +3553,9 @@ Outbound call expressions and conservative ownership:
 | `_validate_planning_regulation_index` | `landscout.stages.index_planning_regulation._validate_planning_regulation_index` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above.
 
 **Complete source-ordered implementation**
 
@@ -3883,7 +3579,7 @@ def validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
 
 ### `_validated_terms`
 
-**Purpose:** Implements `validated terms` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Require a non-string/non-bytes Sequence; validate each raw term as nonempty trimmed text and normalize through the common planning-text function. Reject empty normalized terms and duplicates after normalization. Return ordered `(raw, normalized)` tuple pairs; an empty sequence is allowed. Local list/set construction does not retain a mutable alias to the caller's sequence.
 
 **Exact signature**
 
@@ -3923,25 +3619,14 @@ Outbound call expressions and conservative ownership:
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 | `set` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_strict_string` | `landscout.stages.index_planning_regulation._strict_string` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` via the module alias |
 | `normalized_seen.add` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.append` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `normalized_seen.add(normalized_term)`<br>`result.append((raw_term, normalized_term))` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -3969,7 +3654,7 @@ def _validated_terms(terms: Sequence[str]) -> tuple[tuple[str, str], ...]:
 
 ### `_empty_hits`
 
-**Purpose:** Implements `empty hits` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Return a new empty DataFrame in `SEARCH_HIT_COLUMNS` order, with page number and occurrence count int64 and the other eight columns object. The empty result retains its schema without fabricating a row.
 
 **Exact signature**
 
@@ -4002,20 +3687,9 @@ Outbound call expressions and conservative ownership:
 | `pd.DataFrame` | `pandas.DataFrame` |
 | `pd.Series` | `pandas.Series` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4041,7 +3715,7 @@ def _empty_hits() -> pd.DataFrame:
 
 ### `_build_hits`
 
-**Purpose:** Implements `build hits` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Traverse requested terms in order and indexed pages in order. Escape each normalized term and use non-overlapping literal substring matches, without word-boundary rules or semantic expansion. Emit one row per matching term/page, count all matches, and derive normalized context around the first match plus the requested margin; map that context back to raw Python-string spans using the common mapping helper. Cast the two numeric output columns to int64 or use the empty schema. Only new rows/frame are mutated.
 
 **Exact signature**
 
@@ -4084,7 +3758,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `escape` | `re.escape` |
 | `index.pages.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text_with_mapping` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text_with_mapping` | `landscout.common.planning_text.normalize_planning_search_text_with_mapping` via the module alias |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `finditer` | `re.finditer` |
 | `max` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -4093,26 +3767,15 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `first.end` | `unresolved local/third-party receiver; no ownership inferred` |
 | `hits.append` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_raw_context` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_raw_context` | `landscout.common.planning_text.raw_context_from_spans` via the module alias |
 | `_empty_hits` | `landscout.stages.index_planning_regulation._empty_hits` |
 | `pd.DataFrame` | `pandas.DataFrame` |
 | `frame["page_number"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `frame["occurrence_count"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `hits.append(<br>                {<br>                    "document_id": index.document_id,<br>                    "archive_sha256": index.archive_sha256,<br>                    "pdf_sha256": index.pdf_sha256,<br>                    "search_normalization_profile": SEARCH_NORMALIZATION_PROFILE,<br>                    "search_term": raw_term,<br>                    "normalized_search_term": normalized_term,<br>                    "page_number": page["page_number"],<br>                    "occurrence_count": len(matches),<br>                    "raw_context": _raw_context(<br>                        raw_text, raw_spans, context_start, context_end<br>                    ),<br>                    "normalized_context": normalized_text[context_start:context_end],<br>                }<br>            )`<br>`frame["page_number"] = frame["page_number"].astype("int64")`<br>`frame["occurrence_count"] = frame["occurrence_count"].astype("int64")` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. No digest is computed here. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4164,7 +3827,7 @@ def _build_hits(
 
 ### `_hits_content_sha256`
 
-**Purpose:** Implements `hits content sha256` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Hash the `landscout.planning_regulation.search` envelope including schema, complete index digest, document/archive/PDF/profile lineage, ordered requested terms serialized as a JSON list, context margin, hit count, and exact ordered hit-column records. No DataFrame index/dtype metadata is serialized and no source file is read.
 
 **Exact signature**
 
@@ -4213,20 +3876,9 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `hits.loc[:, SEARCH_HIT_COLUMNS].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_canonical_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4261,7 +3913,7 @@ def _hits_content_sha256(
 
 ### `search_planning_regulation`
 
-**Purpose:** Return sealed literal search hits with raw and normalized contexts.
+**Purpose:** Validate the retained index, normalize and seal ordered requested terms plus a nonnegative integral context margin, construct literal hits and their envelope digest, then call the public search-result validator. Validation independently rebuilds hits, so the current successful path validates the index twice and computes hits twice. The frozen result retains a mutable hits frame; no physical source read, OCR, policy interpretation, or input-frame mutation is performed.
 
 **Exact signature**
 
@@ -4345,20 +3997,9 @@ Outbound call expressions and conservative ownership:
 | `_hits_content_sha256` | `landscout.stages.index_planning_regulation._hits_content_sha256` |
 | `validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation.validate_planning_regulation_search_result` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_hits_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4399,7 +4040,7 @@ def search_planning_regulation(
 
 ### `_validate_planning_regulation_search_result`
 
-**Purpose:** Implements `validate planning regulation search result` within the file role: Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index.
+**Purpose:** Intrinsically validate the index, compare result lineage and schema, require requested_terms to be an exact tuple, and validate terms/context/count and the exact hit-column order. Check row lineage, requested normalized terms, known positive pages, unique page/term pairs, positive occurrence counts, and string contexts; verify the hits digest and rebuild deterministic hits from indexed text. Compare `result.hits.reset_index(drop=True).equals(expected)`: row order, values, and dtypes matter, but the original hit index does not. No GPU/PDF reopening occurs.
 
 **Exact signature**
 
@@ -4467,20 +4108,9 @@ Outbound call expressions and conservative ownership:
 | `result.hits.reset_index(drop=True).equals` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.hits.reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_validated_sha256`<br>`_hits_content_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `seen.add(pair)` |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4575,7 +4205,7 @@ def _validate_planning_regulation_search_result(
 
 ### `validate_planning_regulation_search_result`
 
-**Purpose:** Validate search lineage, schema, rows, hash, and source-derived contexts.
+**Purpose:** Public controlled-error wrapper for `_validate_planning_regulation_search_result`; preserve stage errors and chain unexpected validation failures. Successful return proves consistency with the supplied validated in-memory index and a deterministic rebuilt literal search, not independent physical PDF authority.
 
 **Exact signature**
 
@@ -4648,20 +4278,9 @@ Outbound call expressions and conservative ownership:
 | `_validate_planning_regulation_search_result` | `landscout.stages.index_planning_regulation._validate_planning_regulation_search_result` |
 | `PlanningRegulationIndexError` | `landscout.stages.index_planning_regulation.PlanningRegulationIndexError` |
 
-**Source-observed side-effect matrix**
+**Effects and limits**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+No network, filesystem write, geometry operation, or caller-owned object mutation is performed. No local source file is read. The digest computation or delegated byte/content checks are described in the algorithm above. Temporary records, collections, digests, or returned frames are locally allocated; changes to those objects are not changes to supplied frames.
 
 **Complete source-ordered implementation**
 
@@ -4689,8 +4308,13 @@ def validate_planning_regulation_search_result(
 
 ## 7. Validation and data-contract summary
 
-- Canonical schema/mapping declarations inventoried above: `_normalize_search_text_with_mapping`, `PAGE_HASH_SCHEMA_VERSION`, `INDEX_HASH_SCHEMA_VERSION`, `SEARCH_HASH_SCHEMA_VERSION`, `PAGE_COLUMNS`, `SEARCH_HIT_COLUMNS`.
-- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
+Index construction is source-bound: it revalidates the retained GPU zoning source, selects a PDF only through fresh NOMFIC plus the written/extracted inventories, and compares PDF bytes before and after page extraction. An explicit filename resolves an ambiguity only when that name is still source-referenced. No filename heuristics, OCR, or text-policy interpretation is performed.
+
+The later public index validator is intrinsic. It validates retained scalar/page structure and recomputes page, pages-envelope, and index-envelope hashes; it has no source argument and does not reread a PDF or independently authenticate a coordinated replacement of all retained content and hashes. Structure and interpretation callers apply their additional document/policy locks at their own boundaries.
+
+Search uses normalized literal substrings, returns one row per requested term/page, and counts all non-overlapping occurrences while retaining only the first-match context. Search-result validation reconstructs the hits from the supplied index. Empty requests and no-hit results are valid, not a semantic statement about regulation completeness.
+
+Public dataclass envelopes are frozen at field assignment, but their pandas tables are mutable. Index validation does not bind DataFrame indexes or enforce every dtype. Search validation compares rebuilt hit values/order/dtypes after resetting the supplied hit index. Hashes use canonical ordered records, not pandas object representation.
 
 ## 8. Public exports and package ownership
 
@@ -4710,7 +4334,7 @@ Exact `__all__` members and local origins:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Per-callable effects distinguish lexical SHA validation from hashing, delegated GPU/PDF reads from in-memory validation, and local temporary allocations from caller-object mutation. pypdf text extraction reads; it does not publish a file.
 
 ## 10. Change impact
 

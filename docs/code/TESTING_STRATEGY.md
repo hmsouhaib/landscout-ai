@@ -54,7 +54,7 @@ Tests monkeypatch `Path.replace`, link/junction predicates, open/unlink calls, a
 
 ### Determinism and immutability
 
-Tests reorder rows/input mappings, deep-copy source objects, mutate coordinated hashes/manifests, and compare exact output frames. Frozen dataclass/Pydantic structures are recursively walked to reject reachable built-in mutable collections; tuple, immutable-mapping, and frozenset tests require append/item/update/delete/set mutations to fail immediately, and caller-owned nested payload aliases are mutated after validation. Artifact-integrity tests reject mutable/custom leaves, collection views, sets, NumPy objects, non-finite floats, cycles, and non-string mapping keys; they also prove immutable mapping copy/deep-copy identity, Pydantic deep-copy safety, unchanged canonical JSON dumps, and retained physical schema/CRS comparison. Deterministic tie handling, JSON ordering, pair ordering, section partitioning, and hash payload order receive permanent regressions.
+Tests reorder rows/input mappings, deep-copy source objects, mutate coordinated hashes/manifests, and compare exact output frames. `test_deep_immutability.py` recursively walks twelve explicitly constructed trust-bearing values; it does not dynamically discover every current or future model. Representative tuple, immutable-mapping and frozenset mutations must fail immediately, and caller-owned nested payload aliases are mutated after validation. Frozen dataclass envelopes containing DataFrames remain distinct from these immutable configuration/integrity values. Artifact-integrity tests reject mutable/custom leaves, collection views, sets, NumPy objects, non-finite floats, cycles, and non-string mapping keys; they also prove immutable mapping copy/deep-copy identity, Pydantic deep-copy safety, unchanged canonical JSON dumps, and retained physical schema/CRS comparison. Deterministic tie handling, JSON ordering, pair ordering, section partitioning, and hash payload order receive permanent regressions. None of these finite cases establishes universal future-model coverage.
 
 ### Lightweight versus source-complete validation
 
@@ -89,13 +89,25 @@ uv run ruff format --check .
 uv run mypy src
 uv lock --check
 uv pip check
-uv run python -m compileall -q src tests
+uv run python -m compileall -q src tests tools
+uv run python tools/audit_documentation.py --check
 git diff --check
 ```
 
 Tests must remain offline unless a ticket explicitly authorizes real acquisition. Current source suites use fake transport or verified cache paths; a unit test name is not evidence that live external access occurred.
 
-On this Windows environment, every Pytest invocation supplies a fresh short unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`; the broken default `pytest-current` path is not reused. STEP 7F.1B.4 checks the 803-case existing INPN baseline, the new evidence-bundle suite, all five INPN suites together, and the complete repository (starting baseline 3,798 plus the new bundle cases). Actual final counts/results are recorded only after execution in `docs/DEV_LOG.md`.
+On this Windows environment, every Pytest invocation supplies a fresh short unique `--basetemp` under `%LOCALAPPDATA%\LandScout\pytest-runs`; the problematic default `pytest-current` path is not reused. For example, create a fresh suffix in PowerShell before each invocation:
+
+```powershell
+$landscoutTestTemp = Join-Path $env:LOCALAPPDATA ('LandScout\pytest-runs\d' + [guid]::NewGuid().ToString('N').Substring(0, 5))
+uv run pytest -q --basetemp $landscoutTestTemp
+```
+
+Historical STEP 7F.1B.4 reports cover the 803-case prior INPN baseline, 141 bundle cases and the full 3,939-case repository. They are not executions of this documentation ticket. Record actual final counts, warnings/skips/xfails and the native exit code after cleanup, not just a success-looking progress line. Preserve a failed run; do not reinstall, weaken tests or change security settings to hide it.
+
+### Local documentation checker
+
+`tools/audit_documentation.py --check` reads Git-index candidate bytes and static syntax; it does not import business modules, contact networks or open source caches. Review and explicitly stage intended paths before its final candidate check. Its ledger facts distinguish mechanical consistency from semantic review and independent approval. `tests/unit/test_audit_documentation.py` uses tiny temporary Git repositories, not the real EP snapshot, to exercise accepted fixtures and targeted inventory/hash/signature/export/reference/link/fence/provenance failures. Run it first with its own fresh short basetemp; actual results belong in the audit report. This local tool is not CI or a functional LandScout CLI.
 
 Ruff checks and formats production/test Python, while `pyproject.toml` excludes `docs/code/files`. Those companions embed byte-bound exact source snapshots whose formatting must follow the documented source rather than a second formatter pass; the companion SHA/content audit is their integrity gate.
 

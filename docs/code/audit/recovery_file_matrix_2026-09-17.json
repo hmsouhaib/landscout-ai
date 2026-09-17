@@ -1,0 +1,4848 @@
+{
+  "schema_version": 1,
+  "ticket": "DOCS.CONTINUITY.1",
+  "record_type": "RECOVERY_RECONCILIATION_NOT_SEMANTIC_REAUDIT",
+  "recovery_date": "2026-09-17",
+  "basis_commit": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+  "status": "PARTIAL_WORK_PRESERVED",
+  "scope_notice": "This preserves the reconciled evidence state of the 245 original baseline paths only. It is not a fresh semantic audit, independent approval, final validation, or a completion claim. Existing coverage.json and owner fragment statuses are unchanged. New continuity, checker, test and audit artifacts are outside this original-file matrix.",
+  "authorization": "Root recovery coordination authorized only this new recovery artifact for this subtask. No production, test, configuration, coverage or owner-review file was edited.",
+  "evidence": {
+    "inventory": {
+      "path": "docs/code/audit/coverage.json",
+      "sha256_of_current_file_bytes": "5ae2a994effb59947b0dbe4af97b777bc17fb13998a8ba5b8110f2c42052036c",
+      "status": "IN_PROGRESS",
+      "literal_file_status_totals": {
+        "NOT_READ": 245
+      },
+      "literal_symbol_status_totals": {
+        "NOT_READ": 4769
+      }
+    },
+    "fragments": [
+      {
+        "path": "docs/code/audit/reviews/semantic_reference.json",
+        "sha256_of_current_file_bytes": "dc1ddd7ac38f3166248ddcf60807d21c980cdc0593e58918752993b7cca43abc"
+      },
+      {
+        "path": "docs/code/audit/reviews/root.json",
+        "sha256_of_current_file_bytes": "66bbbe5b0b230ea5dd759dd320b090ddba0b741a3a75d50bac61b52bbc9fcc64"
+      },
+      {
+        "path": "docs/code/audit/reviews/planning.json",
+        "sha256_of_current_file_bytes": "e21eafb2093b57d76eb67793332e44c999a1052e5e2c44e3fa516c65983d2ad2"
+      },
+      {
+        "path": "docs/code/audit/reviews/inpn_roads_extension.json",
+        "sha256_of_current_file_bytes": "d8c9efcae44c5deff84e05f4d24303f749cb8837e06d77c1691eb7bdb5f41163"
+      },
+      {
+        "path": "docs/code/audit/reviews/inpn_roads.json",
+        "sha256_of_current_file_bytes": "a28f2c223a10f9de5e602251cda4b87276a803d0be57bba1e4b42fb2ca48564c"
+      },
+      {
+        "path": "docs/code/audit/reviews/foundations.json",
+        "sha256_of_current_file_bytes": "5886378c845b542138e31ed8f0e3c79592585b8dcbc47c3e8fcb3341bed993fe"
+      }
+    ],
+    "report": "docs/code/audit/DOCUMENTATION_AUDIT.md",
+    "additional_records": [
+      "docs/project/BACKLOG_AND_GAPS.md",
+      "docs/project/COLD_START_EXERCISE.md"
+    ],
+    "hash_notice": "Hashes bind the exact locally read evidence bytes, not Git blob IDs, source semantic accuracy, or independently approved content."
+  },
+  "methodology": {
+    "reading_scope": "Parsed the existing inventory and all six review fragments; inspected file/symbol states and substantive recorded findings. Did not reread or rerun application source as a fresh semantic audit.",
+    "status_definition": "CHECKED and CORRECTED are existing fragment closure labels; READ is complete reading without semantic closure; NOT_READ remains outstanding; no labels are promoted by this artifact.",
+    "baseline_paths": "Use the exact 245 path strings in coverage.json. Resolve evidence only for those paths, retaining the existing inventory separately.",
+    "explicit_rows": 206,
+    "embedded_rows": 43,
+    "embedded_row_rule": "foundations.json stores 43 companion states inside source/config/test records under documentation_path, documentation_status and documentation_read_complete. Expand those existing fields into separate baseline companion records, retaining the containing evidence_record_path.",
+    "deduplication": "249 evidence rows reduce to 245 unique paths. The four planning-feature transfer paths appear in both planning.json and inpn_roads_extension.json; both owners record NOT_READ/read_complete=false. Retain the extension as the operational owner and preserve the planning row as corroborating_duplicate_evidence. No stronger semantic status exists for these duplicates.",
+    "stronger_evidence_rule": "Prefer specific evidenced per-file records over stale aggregate progress prose. This reconciles foundations' two explicitly READ companion records without promoting them to CHECKED. Future conflicting records require their evidence to be reconciled; a status ordering alone is not semantic proof.",
+    "symbol_identity": "Deduplicate transferred ownership by (file path, kind, qualified_name). Preserve six class/function pairs that share a qualified name; name-only deduplication would incorrectly reduce 4769 to 4763.",
+    "symbol_identity_check": {
+      "inventory_identities": 4769,
+      "reconciled_review_identities": 4769,
+      "missing": 0,
+      "extra": 0,
+      "supplied_matching_signature_hashes": 4768,
+      "nonmissing_signature_hash_mismatches": 0,
+      "missing_review_signature_hashes": 1
+    },
+    "semantic_reference_exception": "semantic_reference.json has a two-path files list, not separate status-bearing file records. Its internal consistency evidence supplements the two CHECKED root records without adding files or closing the pending independent external semantic review.",
+    "prohibited_inference": "AST inventory, signature hashes, snapshots, headings and prior edits alone do not establish semantic completion. All READ and NOT_READ records remain unfinished."
+  },
+  "counts": {
+    "mechanically_inventoried_files": 245,
+    "mechanically_inventoried_symbols": 4769,
+    "explicit_fragment_rows": 206,
+    "embedded_companion_rows": 43,
+    "combined_rows_before_deduplication": 249,
+    "duplicate_paths_removed": 4,
+    "reconciled_unique_files": 245,
+    "file_status_totals": {
+      "NOT_READ": 37,
+      "READ": 141,
+      "CHECKED": 24,
+      "CORRECTED": 43,
+      "BLOCKED": 0
+    },
+    "symbol_status_totals": {
+      "NOT_READ": 1303,
+      "READ": 2078,
+      "CHECKED": 1387,
+      "CORRECTED": 1,
+      "BLOCKED": 0
+    },
+    "complete_reading_files": 208,
+    "semantically_closed_files": 67,
+    "semantically_closed_symbols": 1388,
+    "unfinished_files": 178,
+    "unfinished_symbols": 3381
+  },
+  "unfinished_paths": {
+    "NOT_READ": [
+      "configs/planning/cnig_plu_2017_feature_codes.yaml",
+      "configs/planning/muret_bess_cnig_feature_policy.yaml",
+      "configs/planning/muret_bess_zoning_policy.yaml",
+      "configs/planning/muret_plu_structure.yaml",
+      "docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md",
+      "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",
+      "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
+      "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
+      "docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md",
+      "docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md",
+      "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+      "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "docs/code/files/src/landscout/stages/interpret_bess_zoning.py.md",
+      "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+      "docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md",
+      "docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md",
+      "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+      "docs/code/files/tests/unit/test_enrich_grid_proximity.py.md",
+      "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+      "docs/code/files/tests/unit/test_ign_bdtopo_fr.py.md",
+      "docs/code/files/tests/unit/test_interpret_bess_zoning.py.md",
+      "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+      "docs/code/files/tests/unit/test_rte_odre_fr.py.md",
+      "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
+      "src/landscout/stages/aggregate_bess_planning_feature_policy.py",
+      "src/landscout/stages/apply_bess_planning_feature_policy.py",
+      "src/landscout/stages/bess_planning_feature_policy.py",
+      "src/landscout/stages/enrich_planning_features.py",
+      "src/landscout/stages/interpret_bess_zoning.py",
+      "src/landscout/stages/resolve_planning_feature_codes.py",
+      "tests/unit/test_aggregate_bess_planning_feature_policy.py",
+      "tests/unit/test_apply_bess_planning_feature_policy.py",
+      "tests/unit/test_bess_planning_feature_policy.py",
+      "tests/unit/test_enrich_planning_features.py",
+      "tests/unit/test_interpret_bess_zoning.py",
+      "tests/unit/test_resolve_planning_feature_codes.py",
+      "tests/unit/test_structure_planning_regulation.py"
+    ],
+    "READ": [
+      "configs/profiles/bess_default_fr.yaml",
+      "configs/scans/bess_muret.yaml",
+      "configs/sources/gpu_fr.yaml",
+      "configs/sources/ign_bdtopo_fr.yaml",
+      "configs/sources/rte_odre_fr.yaml",
+      "docs/code/ARCHITECTURE.md",
+      "docs/code/CACHE_AND_RECOVERY.md",
+      "docs/code/CADASTRE_PIPELINE.md",
+      "docs/code/CHANGE_IMPACT_GUIDE.md",
+      "docs/code/DATA_FLOW.md",
+      "docs/code/FILE_INDEX.md",
+      "docs/code/files/configs/profiles/bess_default_fr.yaml.md",
+      "docs/code/files/configs/scans/bess_muret.yaml.md",
+      "docs/code/files/configs/sources/gpu_fr.yaml.md",
+      "docs/code/files/configs/sources/ign_bdtopo_fr.yaml.md",
+      "docs/code/files/configs/sources/rte_odre_fr.yaml.md",
+      "docs/code/files/docs/DEV_LOG.md.md",
+      "docs/code/files/pyproject.toml.md",
+      "docs/code/files/src/landscout/common/__init__.py.md",
+      "docs/code/files/src/landscout/common/artifact_paths.py.md",
+      "docs/code/files/src/landscout/common/bess_application_contract.py.md",
+      "docs/code/files/src/landscout/common/cadastre_contract.py.md",
+      "docs/code/files/src/landscout/common/frame_integrity.py.md",
+      "docs/code/files/src/landscout/common/immutable_mapping.py.md",
+      "docs/code/files/src/landscout/common/planning_feature_contract.py.md",
+      "docs/code/files/src/landscout/common/planning_feature_schema.py.md",
+      "docs/code/files/src/landscout/common/planning_overlay.py.md",
+      "docs/code/files/src/landscout/common/planning_text.py.md",
+      "docs/code/files/src/landscout/common/safe_http.py.md",
+      "docs/code/files/src/landscout/common/strict_json.py.md",
+      "docs/code/files/src/landscout/common/strict_yaml.py.md",
+      "docs/code/files/src/landscout/config.py.md",
+      "docs/code/files/src/landscout/geo/__init__.py.md",
+      "docs/code/files/src/landscout/geo/crs.py.md",
+      "docs/code/files/src/landscout/geo/geometry.py.md",
+      "docs/code/files/src/landscout/sources/__init__.py.md",
+      "docs/code/files/src/landscout/sources/cadastre_fr.py.md",
+      "docs/code/files/src/landscout/sources/cadastre_loader_fr.py.md",
+      "docs/code/files/src/landscout/sources/gpu_fr.py.md",
+      "docs/code/files/src/landscout/sources/ign_bdtopo_fr.py.md",
+      "docs/code/files/src/landscout/sources/rte_odre_fr.py.md",
+      "docs/code/files/src/landscout/stages/__init__.py.md",
+      "docs/code/files/src/landscout/stages/assess_grid_coverage.py.md",
+      "docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
+      "docs/code/files/src/landscout/stages/enrich_planning_zoning.py.md",
+      "docs/code/files/src/landscout/stages/enrich_shape.py.md",
+      "docs/code/files/src/landscout/stages/filter_parcels.py.md",
+      "docs/code/files/src/landscout/stages/index_planning_regulation.py.md",
+      "docs/code/files/src/landscout/stages/normalize_cadastre.py.md",
+      "docs/code/files/src/landscout/stages/normalize_grid_ign.py.md",
+      "docs/code/files/src/landscout/stages/planning_overlay.py.md",
+      "docs/code/files/src/landscout/stages/profile_shape.py.md",
+      "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+      "docs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
+      "docs/code/files/tests/unit/test_assess_grid_coverage.py.md",
+      "docs/code/files/tests/unit/test_cadastre_fr.py.md",
+      "docs/code/files/tests/unit/test_cadastre_loader_fr.py.md",
+      "docs/code/files/tests/unit/test_config.py.md",
+      "docs/code/files/tests/unit/test_crs.py.md",
+      "docs/code/files/tests/unit/test_deep_immutability.py.md",
+      "docs/code/files/tests/unit/test_enrich_planning_zoning.py.md",
+      "docs/code/files/tests/unit/test_enrich_shape.py.md",
+      "docs/code/files/tests/unit/test_filter_parcels.py.md",
+      "docs/code/files/tests/unit/test_filter_shape.py.md",
+      "docs/code/files/tests/unit/test_geometry.py.md",
+      "docs/code/files/tests/unit/test_gpu_fr.py.md",
+      "docs/code/files/tests/unit/test_index_planning_regulation.py.md",
+      "docs/code/files/tests/unit/test_normalize_cadastre.py.md",
+      "docs/code/files/tests/unit/test_normalize_grid_ign.py.md",
+      "docs/code/files/tests/unit/test_profile_shape.py.md",
+      "docs/code/files/tests/unit/test_safe_http.py.md",
+      "docs/code/files/tests/unit/test_strict_serialization.py.md",
+      "docs/code/files/uv.lock.md",
+      "docs/code/GIS_AND_CRS.md",
+      "docs/code/GLOSSARY.md",
+      "docs/code/GRID_PIPELINE.md",
+      "docs/code/PLANNING_PIPELINE.md",
+      "docs/code/README.md",
+      "docs/code/SOURCE_TRUST_MODEL.md",
+      "docs/code/TESTING_STRATEGY.md",
+      "docs/DEV_LOG.md",
+      "pyproject.toml",
+      "README.md",
+      "src/landscout/common/__init__.py",
+      "src/landscout/common/artifact_paths.py",
+      "src/landscout/common/bess_application_contract.py",
+      "src/landscout/common/cadastre_contract.py",
+      "src/landscout/common/frame_integrity.py",
+      "src/landscout/common/immutable_mapping.py",
+      "src/landscout/common/planning_feature_contract.py",
+      "src/landscout/common/planning_feature_schema.py",
+      "src/landscout/common/planning_overlay.py",
+      "src/landscout/common/planning_text.py",
+      "src/landscout/common/safe_http.py",
+      "src/landscout/common/strict_json.py",
+      "src/landscout/common/strict_yaml.py",
+      "src/landscout/config.py",
+      "src/landscout/geo/__init__.py",
+      "src/landscout/geo/crs.py",
+      "src/landscout/geo/geometry.py",
+      "src/landscout/sources/__init__.py",
+      "src/landscout/sources/cadastre_fr.py",
+      "src/landscout/sources/cadastre_loader_fr.py",
+      "src/landscout/sources/gpu_fr.py",
+      "src/landscout/sources/ign_bdtopo_fr.py",
+      "src/landscout/sources/rte_odre_fr.py",
+      "src/landscout/stages/__init__.py",
+      "src/landscout/stages/assess_grid_coverage.py",
+      "src/landscout/stages/enrich_grid_proximity.py",
+      "src/landscout/stages/enrich_planning_zoning.py",
+      "src/landscout/stages/enrich_shape.py",
+      "src/landscout/stages/filter_parcels.py",
+      "src/landscout/stages/index_planning_regulation.py",
+      "src/landscout/stages/normalize_cadastre.py",
+      "src/landscout/stages/normalize_grid_ign.py",
+      "src/landscout/stages/planning_overlay.py",
+      "src/landscout/stages/profile_shape.py",
+      "src/landscout/stages/structure_planning_regulation.py",
+      "tests/integration/test_gpu_planning_end_to_end.py",
+      "tests/unit/test_assess_grid_coverage.py",
+      "tests/unit/test_cadastre_fr.py",
+      "tests/unit/test_cadastre_loader_fr.py",
+      "tests/unit/test_config.py",
+      "tests/unit/test_crs.py",
+      "tests/unit/test_deep_immutability.py",
+      "tests/unit/test_enrich_grid_proximity.py",
+      "tests/unit/test_enrich_planning_zoning.py",
+      "tests/unit/test_enrich_shape.py",
+      "tests/unit/test_filter_parcels.py",
+      "tests/unit/test_filter_shape.py",
+      "tests/unit/test_geometry.py",
+      "tests/unit/test_gpu_fr.py",
+      "tests/unit/test_ign_bdtopo_fr.py",
+      "tests/unit/test_index_planning_regulation.py",
+      "tests/unit/test_normalize_cadastre.py",
+      "tests/unit/test_normalize_grid_ign.py",
+      "tests/unit/test_profile_shape.py",
+      "tests/unit/test_rte_odre_fr.py",
+      "tests/unit/test_safe_http.py",
+      "tests/unit/test_strict_serialization.py",
+      "uv.lock"
+    ],
+    "BLOCKED": []
+  },
+  "transferred_owner_recovery": {
+    "owner": "inpn_roads_extension",
+    "paths": [
+      "src/landscout/stages/enrich_planning_features.py",
+      "tests/unit/test_enrich_planning_features.py",
+      "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "docs/code/files/tests/unit/test_enrich_planning_features.py.md"
+    ],
+    "symbol_counts_by_path": {
+      "src/landscout/stages/enrich_planning_features.py": 84,
+      "tests/unit/test_enrich_planning_features.py": 122
+    },
+    "durable_status": "NOT_READ",
+    "duplicate_source_owner": "planning",
+    "prior_message_evidence_notice": "Recovery coordination reports that feature source/test work and prior edits were described in prior agent messages. Those messages are not reproduced in this matrix, and no missing source ranges, prompt text or completed checks are invented. The durable extension still records NOT_READ for all four paths. Reconcile the preserved work, available prior messages and existing diff before deciding what remains; do not blindly restart or overwrite the work, and do not promote statuses solely from the reported edits."
+  },
+  "unresolved_ledger_inconsistencies": [
+    {
+      "id": "RECOVERY-LEDGER-001",
+      "path": "docs/code/audit/coverage.json",
+      "issue": "All 245 baseline file rows and 4769 symbols remain NOT_READ, while fragment evidence records partial progress. Global coverage was not merged.",
+      "disposition": "Preserve literal inventory statuses; expose reconciled fragment states separately here."
+    },
+    {
+      "id": "RECOVERY-LEDGER-002",
+      "path": "docs/code/audit/DOCUMENTATION_AUDIT.md",
+      "line": 9,
+      "issue": "Recovery instructions say three review fragments, but six exist.",
+      "disposition": "Report remains unedited by this subtask."
+    },
+    {
+      "id": "RECOVERY-LEDGER-003",
+      "path": "docs/code/audit/reviews/foundations.json",
+      "line": 32257,
+      "issue": "Aggregate prose says five test companions remain unread and thirteen were read. Specific records for test_assess_grid_coverage.py and test_normalize_grid_ign.py record documentation_read_complete=true, documentation_status=READ and unique_prose_complete=true with substantive contract summaries.",
+      "disposition": "Use the stronger specific records: fifteen test companions READ and three NOT_READ. READ is not CHECKED; aggregate text remains unchanged.",
+      "specific_evidence_record_paths": [
+        "tests/unit/test_assess_grid_coverage.py",
+        "tests/unit/test_normalize_grid_ign.py"
+      ]
+    },
+    {
+      "id": "RECOVERY-LEDGER-004",
+      "paths": [
+        "docs/code/audit/reviews/planning.json",
+        "docs/code/audit/reviews/inpn_roads_extension.json"
+      ],
+      "issue": "The four transferred planning-feature paths and 206 symbols remain in both allocations; naïve summation double-counts them. Prior messages reportedly describe source/test work and edits, but durable extension statuses remain NOT_READ.",
+      "disposition": "Deduplicate once under the extension, preserve both durable records, and reconcile prior-message/diff evidence before resuming."
+    },
+    {
+      "id": "RECOVERY-LEDGER-005",
+      "path": "docs/code/audit/reviews/foundations.json",
+      "issue": "43 companion statuses are embedded rather than represented as separate file rows, unlike other owners.",
+      "disposition": "Expand only the existing documentation fields for the original-path matrix, with containing record pointers retained."
+    },
+    {
+      "id": "RECOVERY-LEDGER-006",
+      "path": "docs/code/audit/reviews/root.json",
+      "line": 449,
+      "issue": "The CORRECTED symbol tests/unit/test_package.py::test_package_import_and_version omits signature_sha256.",
+      "disposition": "Do not invent or insert the missing hash into the owner fragment. The baseline inventory retains it; all 4768 supplied review signature hashes matched."
+    },
+    {
+      "id": "RECOVERY-LEDGER-007",
+      "path": "docs/code/audit/coverage.json",
+      "issue": "The 245-path baseline does not integrate the new continuity/checker/test/audit artifacts.",
+      "disposition": "Do not describe this original-file matrix as complete current-worktree audit coverage."
+    }
+  ],
+  "reported_findings": {
+    "corrected_documentation_findings": 32,
+    "corrected_documentation_findings_by_owner": {
+      "root": 5,
+      "planning": 16,
+      "inpn_roads": 11
+    },
+    "open_test_evidence_limitations": 5,
+    "open_application_findings": [
+      {
+        "id": "A-001",
+        "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+        "status": "OPEN",
+        "summary": "Recorded in-memory reproduction: canonical Cadastre validator admits XYM polygon despite its exactly-2D contract. Not an official-acquisition-path claim."
+      },
+      {
+        "id": "A-002",
+        "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+        "status": "OPEN",
+        "summary": "Recorded pure-helper reproduction: list/dict-valued GeoJSON geometry type leaks TypeError instead of RteOdreDownloadError. Not a network/cache bypass claim."
+      }
+    ],
+    "execution_notice": "Findings and historical interim runs were inspected as retained evidence, not re-executed in this recovery subtask. No application repair is authorized by this artifact."
+  },
+  "remaining_global_work": [
+    "Semantic closure of all 141 READ files and 2078 READ symbols.",
+    "Reconcile existing work before completing the 37 NOT_READ files and 1303 NOT_READ symbols.",
+    "Integrate final global coverage and new artifacts without treating mechanical inventory as semantic review.",
+    "Complete portable source bindings, checker integration and cross-domain documentation consistency.",
+    "Perform required final tests and quality gates only against the actual final executable tooling/tests.",
+    "Preserve honest visual-rendering and genuinely separate cold-start execution evidence.",
+    "Finalize findings/provenance/state records, then DEV_LOG and its companion in the required order.",
+    "Do not publish partial coverage as complete; independent review remains pending."
+  ],
+  "exact_next_unfinished_item": {
+    "action": "Reconcile the preserved source/test edits and available prior agent messages for the transferred planning-feature allocation against its durable extension rows before any fresh reading or editing. Then record only the specifically evidenced remaining read/relationship/signature/test-documentation work; no automatic semantic promotion.",
+    "first_path": "src/landscout/stages/enrich_planning_features.py",
+    "companion_path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+    "subsequent_test_path": "tests/unit/test_enrich_planning_features.py",
+    "subsequent_test_companion_path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+    "evidence_fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+    "current_recorded_status": "NOT_READ",
+    "symbol_count": 206
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": ".env.example",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": ".gitignore",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": ".gitignore",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": ".python-version",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": ".python-version",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/access/ign_bdtopo_vehicle_proxy_policy.yaml",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "configs/access/ign_bdtopo_vehicle_proxy_policy.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/planning/cnig_plu_2017_feature_codes.yaml",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "configs/planning/cnig_plu_2017_feature_codes.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/planning/muret_bess_cnig_feature_policy.yaml",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "configs/planning/muret_bess_cnig_feature_policy.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/planning/muret_bess_zoning_policy.yaml",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "configs/planning/muret_bess_zoning_policy.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/planning/muret_plu_structure.yaml",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "configs/planning/muret_plu_structure.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/profiles/bess_default_fr.yaml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/profiles/bess_default_fr.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/scans/bess_muret.yaml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/scans/bess_muret.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/sources/gpu_fr.yaml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "configs/sources/gpu_fr.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/sources/ign_bdtopo_fr.yaml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/sources/ign_bdtopo_fr.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/sources/inpn_protected_areas_fr.yaml",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "configs/sources/inpn_protected_areas_fr.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "configs/sources/rte_odre_fr.yaml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/sources/rte_odre_fr.yaml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "data/cache/.gitkeep",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "data/cache/.gitkeep",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "data/processed/.gitkeep",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "data/processed/.gitkeep",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "data/raw/.gitkeep",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "data/raw/.gitkeep",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/ARCHITECTURE.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/ARCHITECTURE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/CACHE_AND_RECOVERY.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/CACHE_AND_RECOVERY.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/CADASTRE_PIPELINE.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "docs/code/CADASTRE_PIPELINE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/CHANGE_IMPACT_GUIDE.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/CHANGE_IMPACT_GUIDE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/DATA_FLOW.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/DATA_FLOW.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/ENVIRONMENT_PIPELINE.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/ENVIRONMENT_PIPELINE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/FILE_INDEX.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/FILE_INDEX.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/.env.example.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/.env.example.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/.gitignore.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/.gitignore.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/.python-version.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/.python-version.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/profiles/bess_default_fr.yaml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/profiles/bess_default_fr.yaml",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/scans/bess_muret.yaml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/scans/bess_muret.yaml",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/sources/gpu_fr.yaml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/configs/sources/gpu_fr.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/sources/ign_bdtopo_fr.yaml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/sources/ign_bdtopo_fr.yaml",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/sources/inpn_protected_areas_fr.yaml.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/configs/sources/inpn_protected_areas_fr.yaml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/configs/sources/rte_odre_fr.yaml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "configs/sources/rte_odre_fr.yaml",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/data/cache/.gitkeep.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/data/cache/.gitkeep.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/data/processed/.gitkeep.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/data/processed/.gitkeep.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/data/raw/.gitkeep.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/data/raw/.gitkeep.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/docs/DEV_LOG.md.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/docs/DEV_LOG.md.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/outputs/.gitkeep.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/outputs/.gitkeep.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/pyproject.toml.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/pyproject.toml.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/README.md.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/README.md.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/__init__.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/src/landscout/__init__.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/__init__.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/__init__.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/artifact_paths.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/artifact_paths.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/bess_application_contract.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/bess_application_contract.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/cadastre_contract.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/cadastre_contract.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/frame_integrity.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/frame_integrity.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/immutable_mapping.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/immutable_mapping.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_feature_contract.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/planning_feature_contract.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_feature_schema.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/planning_feature_schema.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_overlay.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/planning_overlay.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_text.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/common/planning_text.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/safe_http.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/safe_http.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/strict_json.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/strict_json.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/strict_yaml.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/strict_yaml.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/config.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/config.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/__init__.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/__init__.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/crs.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/crs.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/geometry.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/geometry.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/__init__.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/__init__.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/cadastre_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/cadastre_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/cadastre_loader_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/cadastre_loader_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/gpu_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/gpu_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/ign_bdtopo_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/ign_bdtopo_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_attributes_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/inpn_protected_areas_attributes_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_catalog_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/inpn_protected_areas_catalog_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_evidence_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/inpn_protected_areas_evidence_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/inpn_protected_areas_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_geometry_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/sources/inpn_protected_areas_geometry_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/rte_odre_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/rte_odre_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/__init__.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/__init__.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/assess_grid_coverage.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/assess_grid_coverage.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/assess_road_proximity_coverage.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/assess_road_proximity_coverage.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/enrich_grid_proximity.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "inpn_roads_extension",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [
+        {
+          "evidence_fragment": "docs/code/audit/reviews/planning.json",
+          "evidence_record_path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+          "status": "NOT_READ",
+          "read_complete": false,
+          "evidence_kind": "explicit_file_row"
+        }
+      ],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_planning_zoning.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/enrich_planning_zoning.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_road_proximity.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/enrich_road_proximity.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_shape.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/enrich_shape.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/filter_parcels.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/filter_parcels.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/index_planning_regulation.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/index_planning_regulation.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/interpret_bess_zoning.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/interpret_bess_zoning.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_access_ign.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/normalize_access_ign.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_cadastre.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/normalize_cadastre.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_grid_ign.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/normalize_grid_ign.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/planning_overlay.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/planning_overlay.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/profile_shape.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/profile_shape.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/road_vehicle_proxy_policy.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/road_vehicle_proxy_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_apply_road_vehicle_proxy_policy.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_apply_road_vehicle_proxy_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_assess_grid_coverage.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_assess_grid_coverage.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_assess_road_proximity_coverage.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_assess_road_proximity_coverage.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_cadastre_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_cadastre_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_cadastre_loader_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_cadastre_loader_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_config.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_config.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_crs.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_crs.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_deep_immutability.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_deep_immutability.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_grid_proximity.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_enrich_grid_proximity.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "inpn_roads_extension",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [
+        {
+          "evidence_fragment": "docs/code/audit/reviews/planning.json",
+          "evidence_record_path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+          "status": "NOT_READ",
+          "read_complete": false,
+          "evidence_kind": "explicit_file_row"
+        }
+      ],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_planning_zoning.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_enrich_planning_zoning.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_road_proximity.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_enrich_road_proximity.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_shape.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_enrich_shape.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_filter_parcels.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_filter_parcels.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_filter_shape.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_filter_shape.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_geometry.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_geometry.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_gpu_fr.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_gpu_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_ign_bdtopo_fr.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_ign_bdtopo_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_index_planning_regulation.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_index_planning_regulation.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_attributes_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_inpn_protected_areas_attributes_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_catalog_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_inpn_protected_areas_catalog_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_evidence_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_inpn_protected_areas_evidence_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_inpn_protected_areas_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_geometry_fr.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_inpn_protected_areas_geometry_fr.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_interpret_bess_zoning.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_interpret_bess_zoning.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_access_ign.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_normalize_access_ign.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_cadastre.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_normalize_cadastre.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_grid_ign.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_normalize_grid_ign.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_package.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_package.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_profile_shape.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_profile_shape.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_road_vehicle_proxy_policy.py.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_road_vehicle_proxy_policy.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_rte_odre_fr.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_rte_odre_fr.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_safe_http.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_safe_http.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_strict_serialization.py.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_strict_serialization.py",
+      "evidence_kind": "embedded_documentation_status",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/files/uv.lock.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/files/uv.lock.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/GIS_AND_CRS.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "docs/code/GIS_AND_CRS.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/GLOSSARY.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/GLOSSARY.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/GRID_PIPELINE.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "docs/code/GRID_PIPELINE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/PLANNING_PIPELINE.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "docs/code/PLANNING_PIPELINE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/README.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/README.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/ROAD_PIPELINE.md",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "docs/code/ROAD_PIPELINE.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/SOURCE_TRUST_MODEL.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/SOURCE_TRUST_MODEL.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/code/TESTING_STRATEGY.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/code/TESTING_STRATEGY.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/DEV_LOG.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/DEV_LOG.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/reference/inpn_ep_2026_07_semantic_reference.json",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/reference/inpn_ep_2026_07_semantic_reference.json",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "docs/reference/inpn_ep_2026_07_semantic_reference.md",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "docs/reference/inpn_ep_2026_07_semantic_reference.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "outputs/.gitkeep",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "outputs/.gitkeep",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "pyproject.toml",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "pyproject.toml",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "README.md",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "README.md",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/__init__.py",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "src/landscout/__init__.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/__init__.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/__init__.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/artifact_paths.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/artifact_paths.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 1,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 1,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/bess_application_contract.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/bess_application_contract.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 12,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 12,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/cadastre_contract.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/cadastre_contract.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 3,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 3,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/frame_integrity.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/frame_integrity.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 1,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 1,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/immutable_mapping.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/immutable_mapping.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 20,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 20,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/planning_feature_contract.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/planning_feature_contract.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 5,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 5,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/planning_feature_schema.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/planning_feature_schema.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 6,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 6,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/planning_overlay.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/planning_overlay.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 1,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 1,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/planning_text.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/common/planning_text.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 3,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 3,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/safe_http.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/safe_http.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 32,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 32,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/strict_json.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/strict_json.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 6,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 6,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/common/strict_yaml.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/common/strict_yaml.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 4,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 4,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/config.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/config.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 54,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 54,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/geo/__init__.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/__init__.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/geo/crs.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/crs.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/geo/geometry.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/geo/geometry.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 24,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 24,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/__init__.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "src/landscout/sources/__init__.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/cadastre_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/cadastre_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 33,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 33,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/cadastre_loader_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/cadastre_loader_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 14,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 14,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/gpu_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/sources/gpu_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 200,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 200,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/ign_bdtopo_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/ign_bdtopo_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 250,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 250,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/inpn_protected_areas_attributes_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/sources/inpn_protected_areas_attributes_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 84,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 84,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/inpn_protected_areas_catalog_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/sources/inpn_protected_areas_catalog_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 72,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 72,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/inpn_protected_areas_evidence_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/sources/inpn_protected_areas_evidence_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 27,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 27,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/inpn_protected_areas_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/sources/inpn_protected_areas_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 108,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 108,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/inpn_protected_areas_geometry_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/sources/inpn_protected_areas_geometry_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 145,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 145,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/sources/rte_odre_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/sources/rte_odre_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 79,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 79,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/__init__.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "src/landscout/stages/__init__.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/aggregate_bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/aggregate_bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 107,
+      "symbol_status_totals": {
+        "NOT_READ": 107,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/apply_bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/apply_bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 109,
+      "symbol_status_totals": {
+        "NOT_READ": 109,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/apply_road_vehicle_proxy_policy.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/stages/apply_road_vehicle_proxy_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 20,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 20,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/assess_grid_coverage.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/assess_grid_coverage.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 55,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 55,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/assess_road_proximity_coverage.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/stages/assess_road_proximity_coverage.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 29,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 29,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 110,
+      "symbol_status_totals": {
+        "NOT_READ": 110,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/enrich_grid_proximity.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/enrich_grid_proximity.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 64,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 64,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/enrich_planning_features.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "inpn_roads_extension",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+      "evidence_record_path": "src/landscout/stages/enrich_planning_features.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [
+        {
+          "evidence_fragment": "docs/code/audit/reviews/planning.json",
+          "evidence_record_path": "src/landscout/stages/enrich_planning_features.py",
+          "status": "NOT_READ",
+          "read_complete": false,
+          "evidence_kind": "explicit_file_row"
+        }
+      ],
+      "symbol_count": 84,
+      "symbol_status_totals": {
+        "NOT_READ": 84,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/enrich_planning_zoning.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/enrich_planning_zoning.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 37,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 37,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/enrich_road_proximity.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/stages/enrich_road_proximity.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 30,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 30,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/enrich_shape.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/enrich_shape.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 2,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 2,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/filter_parcels.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/filter_parcels.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 9,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 9,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/index_planning_regulation.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/index_planning_regulation.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 77,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 77,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/interpret_bess_zoning.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/interpret_bess_zoning.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 133,
+      "symbol_status_totals": {
+        "NOT_READ": 133,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/normalize_access_ign.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/stages/normalize_access_ign.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 24,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 24,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/normalize_cadastre.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/normalize_cadastre.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 2,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 2,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/normalize_grid_ign.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/normalize_grid_ign.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 39,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 39,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/planning_overlay.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/planning_overlay.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/profile_shape.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "src/landscout/stages/profile_shape.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 17,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 17,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/resolve_planning_feature_codes.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/resolve_planning_feature_codes.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 92,
+      "symbol_status_totals": {
+        "NOT_READ": 92,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/road_vehicle_proxy_policy.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "src/landscout/stages/road_vehicle_proxy_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 159,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 159,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "src/landscout/stages/structure_planning_regulation.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "src/landscout/stages/structure_planning_regulation.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 143,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 143,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/integration/test_gpu_planning_end_to_end.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/integration/test_gpu_planning_end_to_end.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 21,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 21,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_aggregate_bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_aggregate_bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 91,
+      "symbol_status_totals": {
+        "NOT_READ": 91,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_apply_bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_apply_bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 110,
+      "symbol_status_totals": {
+        "NOT_READ": 110,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_apply_road_vehicle_proxy_policy.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_apply_road_vehicle_proxy_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 34,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 34,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_assess_grid_coverage.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_assess_grid_coverage.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 32,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 32,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_assess_road_proximity_coverage.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_assess_road_proximity_coverage.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 42,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 42,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_bess_planning_feature_policy.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_bess_planning_feature_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 73,
+      "symbol_status_totals": {
+        "NOT_READ": 73,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_cadastre_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_cadastre_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 41,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 41,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_cadastre_loader_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_cadastre_loader_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 19,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 19,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_config.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_config.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 28,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 28,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_crs.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_crs.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 3,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 3,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_deep_immutability.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_deep_immutability.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 23,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 23,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_enrich_grid_proximity.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_enrich_grid_proximity.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 77,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 77,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_enrich_planning_features.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "inpn_roads_extension",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+      "evidence_record_path": "tests/unit/test_enrich_planning_features.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [
+        {
+          "evidence_fragment": "docs/code/audit/reviews/planning.json",
+          "evidence_record_path": "tests/unit/test_enrich_planning_features.py",
+          "status": "NOT_READ",
+          "read_complete": false,
+          "evidence_kind": "explicit_file_row"
+        }
+      ],
+      "symbol_count": 122,
+      "symbol_status_totals": {
+        "NOT_READ": 122,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_enrich_planning_zoning.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_enrich_planning_zoning.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 45,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 45,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_enrich_road_proximity.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_enrich_road_proximity.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 59,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 59,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_enrich_shape.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_enrich_shape.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 18,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 18,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_filter_parcels.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_filter_parcels.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 22,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 22,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_filter_shape.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_filter_shape.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 27,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 27,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_geometry.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_geometry.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 29,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 29,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_gpu_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_gpu_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 106,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 106,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_ign_bdtopo_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_ign_bdtopo_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 105,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 105,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_index_planning_regulation.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_index_planning_regulation.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 62,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 62,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_inpn_protected_areas_attributes_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_inpn_protected_areas_attributes_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 99,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 99,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_inpn_protected_areas_catalog_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_inpn_protected_areas_catalog_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 91,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 91,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_inpn_protected_areas_evidence_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_inpn_protected_areas_evidence_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 56,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 56,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_inpn_protected_areas_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_inpn_protected_areas_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 138,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 138,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_inpn_protected_areas_geometry_fr.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_inpn_protected_areas_geometry_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 96,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 96,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_interpret_bess_zoning.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_interpret_bess_zoning.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 96,
+      "symbol_status_totals": {
+        "NOT_READ": 96,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_normalize_access_ign.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_normalize_access_ign.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 36,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 36,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_normalize_cadastre.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_normalize_cadastre.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 25,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 25,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_normalize_grid_ign.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_normalize_grid_ign.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 59,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 59,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_package.py",
+      "status": "CORRECTED",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "tests/unit/test_package.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 1,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 1,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_profile_shape.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_profile_shape.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 23,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 23,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_resolve_planning_feature_codes.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_resolve_planning_feature_codes.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 102,
+      "symbol_status_totals": {
+        "NOT_READ": 102,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_road_vehicle_proxy_policy.py",
+      "status": "CHECKED",
+      "read_complete": true,
+      "owner": "inpn_roads",
+      "evidence_fragment": "docs/code/audit/reviews/inpn_roads.json",
+      "evidence_record_path": "tests/unit/test_road_vehicle_proxy_policy.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 38,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 38,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_rte_odre_fr.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_rte_odre_fr.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 66,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 66,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_safe_http.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_safe_http.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 47,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 47,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_strict_serialization.py",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "foundations",
+      "evidence_fragment": "docs/code/audit/reviews/foundations.json",
+      "evidence_record_path": "tests/unit/test_strict_serialization.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 7,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 7,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "tests/unit/test_structure_planning_regulation.py",
+      "status": "NOT_READ",
+      "read_complete": false,
+      "owner": "planning",
+      "evidence_fragment": "docs/code/audit/reviews/planning.json",
+      "evidence_record_path": "tests/unit/test_structure_planning_regulation.py",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 74,
+      "symbol_status_totals": {
+        "NOT_READ": 74,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "path": "uv.lock",
+      "status": "READ",
+      "read_complete": true,
+      "owner": "root",
+      "evidence_fragment": "docs/code/audit/reviews/root.json",
+      "evidence_record_path": "uv.lock",
+      "evidence_kind": "explicit_file_row",
+      "corroborating_duplicate_evidence": [],
+      "symbol_count": 0,
+      "symbol_status_totals": {
+        "NOT_READ": 0,
+        "READ": 0,
+        "CHECKED": 0,
+        "CORRECTED": 0,
+        "BLOCKED": 0
+      }
+    }
+  ]
+}

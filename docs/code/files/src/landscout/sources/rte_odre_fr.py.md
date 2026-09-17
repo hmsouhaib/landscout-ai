@@ -243,7 +243,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `RteDatasetConfig`
 
-**Source purpose:** Defines `RteDatasetConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen configuration for one logical dataset: dataset_id is a validated nonempty dataset identifier used in encoded API/cache paths, and preferred_format is the geojson-only export choice. The model validates an identifier domain, not a hardcoded equality to the three checked-in IDs.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -287,7 +287,7 @@ class RteDatasetConfig(BaseModel):
 
 ### `RteDatasetsConfig`
 
-**Source purpose:** Defines `RteDatasetsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Requires exactly the three logical dataset slots sites, overhead_lines and underground_lines, each a frozen RteDatasetConfig. These are logical acquisition roles, not geometry classifications or frame columns.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -320,7 +320,7 @@ class RteDatasetsConfig(BaseModel):
 
 ### `RteOdreApiConfig`
 
-**Source purpose:** Defines `RteOdreApiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen base_url HttpUrl constrained to the official HTTPS host odre.opendatasoft.com, default/443 port and /api/explore/v2.1 path without credentials, query or fragment. It validates configuration only; per-request DNS/TLS validation belongs to safe_http.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -366,7 +366,7 @@ class RteOdreApiConfig(BaseModel):
 
 ### `RteOdreCacheConfig`
 
-**Source purpose:** Defines `RteOdreCacheConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen cache freshness configuration: max_age_hours is a strict finite nonnegative number, normalized to float; bool and numeric text are rejected. The current value 168 means a maximum age of seven days, not a scheduler.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -395,7 +395,7 @@ class RteOdreCacheConfig(BaseModel):
 
 ### `RteOdreSourceConfig`
 
-**Source purpose:** Defines `RteOdreSourceConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen RTE/ODRE identity plus nested API, three dataset and cache models, with extra keys forbidden. These runtime objects contain no mutable list/dict/set. Public acquisition boundaries reconstruct and revalidate even a supplied model.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -591,7 +591,7 @@ class RteOdreDownloadError(RuntimeError):
 
 ### `RteOdreDatasetMetadata`
 
-**Source purpose:** Defines `RteOdreDatasetMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen scalar metadata captured from the official dataset response: identity, optional textual publisher/license/timestamps, optional count and conservative precision status. Post-init validates count only; fetch/cache helpers establish the other input contracts. No precise geometry claim is inferred from missing metadata.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -658,7 +658,7 @@ class RteOdreDatasetMetadata:
 
 ### `RteOdreExportSummary`
 
-**Source purpose:** Defines `RteOdreExportSummary`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen file-derived counts and immutable tuple of sorted observed root geometry types. Counts concern JSON geometry presence, not Shapely validity; GeometryCollection children are structurally validated but not expanded into the root type inventory.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -742,7 +742,7 @@ class RteOdreExportSummary:
 
 ### `RteOdreDownload`
 
-**Source purpose:** Defines `RteOdreDownload`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen acquisition envelope for one configured logical dataset, its official URL/local file identity, cache flag and frozen metadata/export summary. The local file remains mutable outside the envelope; only cache reuse reparses and rehashes it. The model does not pin a publication version.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -813,7 +813,7 @@ class RteOdreDownload:
 
 ### `_strict_nonnegative_finite_number`
 
-**Purpose:** Implements `strict nonnegative finite number` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Pydantic pre-validator rejects booleans/non-Real inputs, failed float conversion, nonfinite values and negatives before the annotated float field converts an accepted value. Zero cache age is allowed; this function is invoked via BeforeValidator, not by a direct repository call.
 
 **Exact signature**
 
@@ -892,7 +892,7 @@ def _strict_nonnegative_finite_number(value: object) -> object:
 
 ### `RteOdreApiConfig._official_api_origin`
 
-**Purpose:** Implements `official api origin` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** After HttpUrl parsing, requires HTTPS on odre.opendatasoft.com, no credentials/query/fragment, default or 443 port and the `/api/explore/v2.1` path after trimming trailing slashes. It returns the validated URL; DNS/public-address/TLS binding belongs to safe_http at request time.
 
 **Exact signature**
 
@@ -971,7 +971,7 @@ def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
 
 ### `RteOdreDatasetMetadata.__post_init__`
 
-**Purpose:** Implements `post init` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Dataclass construction validates only records_count: None or a nonnegative Python int excluding bool. Other annotations are not runtime Pydantic validation; the public fetch/cache reconstruction supplies the additional string/domain checks.
 
 **Exact signature**
 
@@ -1038,7 +1038,7 @@ def __post_init__(self) -> None:
 
 ### `RteOdreExportSummary.__post_init__`
 
-**Purpose:** Implements `post init` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires nonnegative Python integer counts excluding bool, null plus non-null equal total, and a tuple of nonempty string geometry names. It does not itself require sorted/unique/closed-domain names; physical export parsing produces that canonical tuple and cache validation compares against it.
 
 **Exact signature**
 
@@ -1121,7 +1121,7 @@ def __post_init__(self) -> None:
 
 ### `load_rte_odre_source_config`
 
-**Purpose:** Implements `load rte odre source config` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reads the exact requested YAML bytes through strict duplicate-aware YAML, requires a mapping and validates a frozen extra-forbidden nested source config. Filesystem, strict-YAML and Pydantic errors propagate; this loader does not acquire a dataset or hash a fixed source publication.
 
 **Exact signature**
 
@@ -1220,7 +1220,7 @@ def load_rte_odre_source_config(
 
 ### `_validated_source_config`
 
-**Purpose:** Implements `validated source config` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires the exact RteOdreSourceConfig type, dumps it to ordinary Python values and reconstructs it so bypassed/forged frozen models cannot alter the official API contract. Wraps type/validation failures as RteOdreDownloadError before URL construction or requests.
 
 **Exact signature**
 
@@ -1301,7 +1301,7 @@ def _validated_source_config(config: object) -> RteOdreSourceConfig:
 
 ### `_get_dataset_config`
 
-**Purpose:** Implements `get dataset config` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Accepts only the three declared logical dataset slots and retrieves that nested configured dataset. It does not hardcode the chosen dataset identifier; the YAML values remain authoritative.
 
 **Exact signature**
 
@@ -1380,7 +1380,7 @@ def _get_dataset_config(
 
 ### `_dataset_api_url`
 
-**Purpose:** Implements `dataset api url` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Selects the logical dataset, percent-encodes its ID with no safe path characters and joins it to the configured API base plus the private caller's suffix. It assumes the public caller reconstructed config and performs no request.
 
 **Exact signature**
 
@@ -1466,7 +1466,7 @@ def _dataset_api_url(
 
 ### `build_rte_odre_metadata_url`
 
-**Purpose:** Implements `build rte odre metadata url` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reconstructs/validates the supplied source config and returns the selected dataset's metadata URL with no suffix. It is a read-only string-building boundary.
 
 **Exact signature**
 
@@ -1560,7 +1560,7 @@ def build_rte_odre_metadata_url(
 
 ### `build_rte_odre_export_url`
 
-**Purpose:** Implements `build rte odre export url` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reconstructs/validates config, chooses the configured GeoJSON format and percent-encodes it before building the selected dataset export URL. It performs no network call or cache access.
 
 **Exact signature**
 
@@ -1660,7 +1660,7 @@ def build_rte_odre_export_url(
 
 ### `_optional_string`
 
-**Purpose:** Implements `optional string` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reads an optional metadata key, returns None for nonstrings or blank strings and otherwise strips edge whitespace. It does not fabricate a missing title/publisher/date/license or parse timestamp semantics.
 
 **Exact signature**
 
@@ -1730,7 +1730,7 @@ def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
 
 ### `_metadata_precision_status`
 
-**Purpose:** Implements `metadata precision status` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Returns GENERALIZED_OR_RESTRICTED only when a present case-folded description contains both the exact accented phrases 'données gps' and 'sécurité publique'; otherwise returns UNKNOWN. It does not measure positional error and never produces EXACT_NOT_CLAIMED in this path.
 
 **Exact signature**
 
@@ -1798,7 +1798,7 @@ def _metadata_precision_status(description: str | None) -> GeometryPrecisionStat
 
 ### `_read_response_json`
 
-**Purpose:** Implements `read response json` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Uses the shared safe HTTPS transport in a context manager and strictly decodes the entire response as finite duplicate-free UTF-8 JSON object. Expected HTTP/URL/filesystem/JSON failures are wrapped with the URL; it writes no cache.
 
 **Exact signature**
 
@@ -1874,7 +1874,7 @@ def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
 
 ### `fetch_rte_odre_dataset_metadata`
 
-**Purpose:** Implements `fetch rte odre dataset metadata` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reconstructs config, selects the dataset and fetches its metadata through safe HTTPS. It requires response dataset_id equality, treats malformed/missing metas/default mappings as absent optional metadata, and accepts records_count only as nonnegative int excluding bool or None. It records trimmed optional text fields and the conservative description-based precision status; source timestamps remain strings, not verified dates or pinned editions.
 
 **Exact signature**
 
@@ -1903,8 +1903,8 @@ def fetch_rte_odre_dataset_metadata(
   - `RteOdreDatasetMetadata(<br>        dataset_id=dataset.dataset_id,<br>        title=_optional_string(default_metas, "title"),<br>        publisher=_optional_string(default_metas, "publisher"),<br>        modified=_optional_string(default_metas, "modified"),<br>        data_processed=_optional_string(default_metas, "data_processed"),<br>        metadata_processed=_optional_string(default_metas, "metadata_processed"),<br>        license=_optional_string(default_metas, "license"),<br>        records_count=records_count,<br>        geometry_precision_status=_metadata_precision_status(description),<br>    )`
 - Explicit raise paths:
   - `RteOdreDownloadError(<br>            f"Unexpected dataset metadata response for {dataset.dataset_id}"<br>        )` under lexical guard `response_dataset_id != dataset.dataset_id`.
-  - `RteOdreDownloadError("RTE/ODRE records_count must be an integer or null")` under lexical guard `records_count_value is None`.
-  - `RteOdreDownloadError("RTE/ODRE records_count must not be negative")` under lexical guard `records_count_value is None`.
+  - `RteOdreDownloadError("RTE/ODRE records_count must be an integer or null")` when the non-null value is not an int or is a bool.
+  - `RteOdreDownloadError("RTE/ODRE records_count must not be negative")` when the non-null integer is negative.
 
 **Qualified relationships**
 
@@ -1965,7 +1965,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | None directly present. |
+| Network I/O | Delegated `_read_response_json` opens safe HTTPS and reads the metadata response. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -2027,7 +2027,7 @@ def fetch_rte_odre_dataset_metadata(
 
 ### `_sha256`
 
-**Purpose:** Implements `sha256` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Streams exact downloaded GeoJSON file bytes in fixed chunks into SHA256. It does not hash reserialized JSON or the sidecar.
 
 **Exact signature**
 
@@ -2099,7 +2099,7 @@ def _sha256(path: Path) -> str:
 
 ### `_validate_geojson`
 
-**Purpose:** Implements `validate geojson` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires a nonempty file and finite strict UTF-8 JSON FeatureCollection with a features list of Feature objects. Missing/null geometry is counted as null; other geometry must be an object and pass recursive structural coordinate validation. Returns total/null/non-null counts and sorted unique root geometry-type names, not a GeoDataFrame. It does not validate topology, CRS ranges, ring closure, polygon area or positional accuracy.
 
 **Exact signature**
 
@@ -2227,7 +2227,7 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
 
 ### `_validate_position`
 
-**Purpose:** Implements `validate position` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires a JSON list with at least X/Y and every supplied ordinate a finite Real excluding bool. Extra ordinates are allowed; neither geographic coordinate ranges nor exact dimensionality are enforced.
 
 **Exact signature**
 
@@ -2308,7 +2308,7 @@ def _validate_position(value: object, geometry_type: str) -> None:
 
 ### `_validate_nested_coordinates`
 
-**Purpose:** Implements `validate nested coordinates` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires lists at the declared nesting depth, recursively descends to positions and delegates their finite numeric validation. Empty arrays at a non-position level are accepted; this is structural nesting, not minimum vertex count or ring closure validation.
 
 **Exact signature**
 
@@ -2400,7 +2400,7 @@ def _validate_nested_coordinates(
 
 ### `_validate_geojson_geometry`
 
-**Purpose:** Implements `validate geojson geometry` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires a geometry object and a supported type, recursively validates each GeometryCollection member or the required coordinate nesting for its coordinate type, and returns the root type name. It does not call Shapely. Known limitation FOUNDATIONS-APP-002: a list/dict `type` value raises raw unhashable TypeError at set membership before the intended controlled unsupported-type error; no production fix is made in this documentation ticket.
 
 **Exact signature**
 
@@ -2504,7 +2504,7 @@ def _validate_geojson_geometry(geometry: object) -> str:
 
 ### `_metadata_from_dict`
 
-**Purpose:** Implements `metadata from dict` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires exactly the cached metadata keys and exact built-in string/null/integer values plus the closed precision-status domain. It constructs a new frozen metadata record; post-init rejects negative counts. Source metadata strings are not reparsed or fetched on this cache path.
 
 **Exact signature**
 
@@ -2630,7 +2630,7 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
 
 ### `_export_summary_from_dict`
 
-**Purpose:** Implements `export summary from dict` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires exactly four cached summary keys and a JSON list of exact string geometry names, converts that list to a new tuple and lets the frozen summary's post-init enforce counts/closure/nonempty members. Cache reuse separately compares this record to a freshly parsed export summary.
 
 **Exact signature**
 
@@ -2721,7 +2721,7 @@ def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
 
 ### `_validate_records_count`
 
-**Purpose:** Implements `validate records count` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** If source metadata contains a count, requires it equal the physically parsed export feature count; missing count is explicitly allowed. It does not replace unavailable metadata with an inferred source claim.
 
 **Exact signature**
 
@@ -2797,7 +2797,7 @@ def _validate_records_count(
 
 ### `_replace_file`
 
-**Purpose:** Implements `replace file` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Performs one Path.replace filesystem operation. It is the fault-injection seam for pair publication, not a complete transaction by itself.
 
 **Exact signature**
 
@@ -2859,7 +2859,7 @@ def _replace_file(source: Path, target: Path) -> None:
 
 ### `_is_link_or_junction`
 
-**Purpose:** Implements `is link or junction` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Inspects filesystem symlink/junction flags and returns true on OSError to fail closed. It is used for temporary/recovery safety, not by this adapter's primary-cache hit helper.
 
 **Exact signature**
 
@@ -2904,7 +2904,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `path.is_symlink()` / `path.is_junction()` inspect filesystem metadata. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -2928,7 +2928,7 @@ def _is_link_or_junction(path: Path) -> bool:
 
 ### `_cache_recovery_paths`
 
-**Purpose:** Implements `cache recovery paths` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Derives archive and metadata sibling `.bak` paths without filesystem I/O.
 
 **Exact signature**
 
@@ -3003,7 +3003,7 @@ def _cache_recovery_paths(
 
 ### `_require_no_cache_recovery_material`
 
-**Purpose:** Implements `require no cache recovery material` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Rejects existing or link/junction backup paths before any cache hit or network attempt, leaves them untouched and demands manual recovery rather than overwriting evidence.
 
 **Exact signature**
 
@@ -3084,7 +3084,7 @@ def _require_no_cache_recovery_material(
 
 ### `_prepare_temporary_cache_file`
 
-**Purpose:** Implements `prepare temporary cache file` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Rejects link/junction or non-regular temporary targets, removes only a stale ordinary temporary file and wraps preparation failures before network access. The later writes use exclusive creation.
 
 **Exact signature**
 
@@ -3106,7 +3106,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `RteOdreDownloadError(<br>                "RTE/ODRE cache temporary path is a link or junction"<br>            )` under lexical guard `_is_link_or_junction(path)`.
-  - `RteOdreDownloadError(<br>                    "RTE/ODRE cache temporary path is not a regular file"<br>                )` under lexical guard `path.exists()`.
+  - `RteOdreDownloadError(<br>                    "RTE/ODRE cache temporary path is not a regular file"<br>                )` under lexical guard `path.exists()` followed by `not path.is_file()`.
   - `re-raise`.
   - `RteOdreDownloadError(<br>            "RTE/ODRE cache temporary path cannot be prepared safely"<br>        )`.
 
@@ -3169,7 +3169,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 ### `_cleanup_temporary_cache_files`
 
-**Purpose:** Implements `cleanup temporary cache files` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Attempts all temporary unlinks, remembers the first OSError and raises it as a controlled error only if there is no primary failure. It cannot mask the double-failure recovery error.
 
 **Exact signature**
 
@@ -3248,7 +3248,7 @@ def _cleanup_temporary_cache_files(
 
 ### `_publish_cache_pair`
 
-**Purpose:** Implements `publish cache pair` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Refuses existing backups, copies existing export/sidecar to backup siblings, then replaces export followed by metadata. If publication raises OSError after export replacement, it restores the old export or removes a first export; failed metadata replacement leaves the old metadata in place under the Path.replace contract. A rollback error retains recovery backups and raises the explicit double-failure error. Success or successful rollback removes backups; this is recoverable pair publication, not one atomic two-file operation.
 
 **Exact signature**
 
@@ -3373,7 +3373,7 @@ def _publish_cache_pair(
 
 ### `_load_cached_download`
 
-**Purpose:** Implements `load cached download` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Requires both paths to be files, strict-decodes an exact twelve-key sidecar and validates exact scalar field types. It reparses the physical GeoJSON, rechecks byte size/SHA, source/dataset/format/filename identity and an aware timestamp with nonnegative age within max_age_hours. It reconstructs nested metadata/summary, requires fresh-summary equality and optional source count closure, returning a cache-hit envelope or None on invalidity. It makes no DNS/HTTP call, does not fetch current publication metadata and does not add a schema_version field.
 
 **Exact signature**
 
@@ -3564,7 +3564,7 @@ def _load_cached_download(
 
 ### `download_rte_odre_dataset`
 
-**Purpose:** Implements `download rte odre dataset` within the file role: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
+**Purpose:** Reconstructs config, derives source/cache identity, refuses recovery material and tries a byte/summary-verified offline cache first. On a miss it creates the cache directory and prepares safe temporary files before fetching metadata, then streams safe-HTTPS GeoJSON to an exclusive-created part, validates its structure/counts and marks metadata MISSING when a nonempty export has only null geometries. It records current UTC, size/SHA, metadata and summary, serializes a sidecar without path/cache_hit, publishes the recoverable pair and cleans temporary files without masking failure. No fixed archive edition/hash is pinned in the RTE config and no geometry normalization or grid-capacity interpretation occurs.
 
 **Exact signature**
 

@@ -42,6 +42,8 @@ The caller supplies a cache root; each configured dataset uses `<dataset_id>.geo
 
 Recovery and `.part` checks occur before either network operation. On a miss the adapter requests current ODRÉ dataset metadata, constructs the exact export URL, streams GeoJSON, validates it, and writes the lineage sidecar. Pair publication/rollback/cleanup follows the same recovery-preserving rules as Cadastre. Therefore a manual recovery state performs zero metadata requests and zero export requests.
 
+This workflow description is not a universal controlled-exception guarantee: open finding `A-002` records a malformed list/dict geometry `type` that leaks `TypeError` in the pure GeoJSON helper. No recovery or transport code is changed here; the reproduced scope and required separate correction are in [BACKLOG_AND_GAPS.md](../project/BACKLOG_AND_GAPS.md#application-findings).
+
 ## IGN BD TOPO
 
 ### Download cache
@@ -68,7 +70,7 @@ The extraction marker inventories every extracted regular file with path/categor
 
 ### Download cache
 
-The versioned path is under configured `.cache/landscout/inpn/protected_areas`, dataset `EP`, declared-version segment, and `EP.zip`; the sidecar is adjacent. Cache metadata schema remains `1`. A hit requires exact config identity, expected 99,835,011 bytes, expected SHA256, current physical bytes, strict timestamp/metadata, and complete ZIP validation. There is no age-based refresh for this pinned snapshot.
+The versioned path is under configured `.cache/landscout/inpn/protected_areas`, dataset `EP`, declared-version segment, and `EP.zip`; the sidecar is adjacent. The configured relative root resolves against the process working directory, not by discovering the Git repository. Cache metadata schema remains `1`. A hit requires exact config identity, expected 99,835,011 bytes, expected SHA256, current physical bytes, strict timestamp/metadata, and complete ZIP validation. There is no age-based refresh for this pinned snapshot.
 
 Download publication writes archive/metadata `.part` files, validates configured pins before publication, and uses a recovery-preserving pair transaction. Backup detection includes ordinary paths, symlinks, broken symlinks, and junctions. Unlike blindly deleting stale recovery material, the publisher raises `InpnProtectedAreasSourceError` and leaves operator-recoverable bytes untouched.
 

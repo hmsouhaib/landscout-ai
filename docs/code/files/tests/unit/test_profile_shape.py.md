@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
+- Responsibility: Exercises shape-profile summaries on ten synthetic local rows: selected area quantiles, three bucket totals, six scenario counts, VALID/ERROR denominators, input preservation and metric/ID/CRS/status domain guards; no physical-source or geometry-derived shape-metric equivalence is established.
 - Source SHA256: `b7ab56caf8bf6abb5cac08f9c36f5420dccac713137c6bb95eb0c6dc70530239`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
+Exercises shape-profile summaries on ten synthetic local rows: selected area quantiles, three bucket totals, six scenario counts, VALID/ERROR denominators, input preservation and metric/ID/CRS/status domain guards; no physical-source or geometry-derived shape-metric equivalence is established.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -59,7 +59,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_with_error_row`
 
-**Purpose:** Implements `with error row` within the file role: Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
+**Purpose:** Copy the ten-row fixture, mark row 9 ERROR and null its six shape metrics while retaining valid geometry/area; return the mixed local frame.
 
 **Exact signature**
 
@@ -97,7 +97,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 
 **Source-observed side-effect matrix**
 
@@ -138,7 +138,7 @@ def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 ### `parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
+**Purpose:** Create ten synthetic WGS84 square parcels with independently remeasured EPSG:2154 areas 100..1000, but supply separate internally consistent diagnostic shape metrics. Those metrics are not derived from the fixture squares; this is local profile validation, not source-bound metric recomputation.
 
 **Exact signature**
 
@@ -280,7 +280,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 ### `test_percentile_calculation`
 
-**Purpose:** Regression invariant: percentile calculation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert area minimum 100, median 550 and maximum 1000 plus the exact eleven distribution keys; other quantile values are not individually asserted.
 
 **Exact signature**
 
@@ -365,7 +365,7 @@ def test_percentile_calculation(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_bucket_counts_sum_to_input_count`
 
-**Purpose:** Regression invariant: bucket counts sum to input count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Require each of the width, ratio and compactness bucket totals to equal all ten valid rows.
 
 **Exact signature**
 
@@ -438,7 +438,7 @@ def test_bucket_counts_sum_to_input_count(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_existing_all_valid_behavior_is_unchanged`
 
-**Purpose:** Regression invariant: existing all valid behavior is unchanged. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert input=valid=10, error=0 and area maximum 1000 for the baseline all-VALID fixture.
 
 **Exact signature**
 
@@ -509,7 +509,7 @@ def test_existing_all_valid_behavior_is_unchanged(parcels: gpd.GeoDataFrame) -> 
 
 ### `test_diagnostic_scenario_counts`
 
-**Purpose:** Regression invariant: diagnostic scenario counts. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert diagnostic scenarios A..F retain 8, 7, 6, 4, 2 and 1 fixture rows respectively; these are summary scenarios, not new screening policy.
 
 **Exact signature**
 
@@ -583,7 +583,7 @@ def test_diagnostic_scenario_counts(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_input_is_not_mutated`
 
-**Purpose:** Regression invariant: input is not mutated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare the input to a deep copy with pandas.testing.assert_frame_equal after profiling; the helper assertion is not counted as an assert statement in the generated index.
 
 **Exact signature**
 
@@ -613,7 +613,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 | `pd.testing.assert_frame_equal` | `pandas.testing.assert_frame_equal` |
 
@@ -649,7 +649,7 @@ def test_input_is_not_mutated(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_missing_metric_fails`
 
-**Purpose:** Regression invariant: missing metric fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Drop width_m into a new local frame and require a width_m error.
 
 **Exact signature**
 
@@ -681,7 +681,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.drop` | `tests.unit.test_profile_shape.parcels.drop` |
+| `parcels.drop` | `geopandas.GeoDataFrame.drop` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -697,8 +697,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `parcels.drop(columns=["width_m"])` |
-| Direct parameter mutation | `parcels.drop(columns=["width_m"])` |
+| In-memory mutation | None on existing frames; non-inplace `drop` returns a new frame. |
+| Direct parameter mutation | None; `drop` is not inplace. |
 
 **Complete source-ordered implementation**
 
@@ -716,7 +716,7 @@ def test_missing_metric_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_null_parcel_id_fails`
 
-**Purpose:** Regression invariant: null parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace one copied ID with None and require a null-ID error.
 
 **Exact signature**
 
@@ -748,7 +748,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -784,7 +784,7 @@ def test_null_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Duplicate one ID in a copied frame and require the unique-ID guard.
 
 **Exact signature**
 
@@ -816,7 +816,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -852,7 +852,7 @@ def test_duplicate_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_missing_crs_fails`
 
-**Purpose:** Regression invariant: missing crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use non-inplace set_crs(None, allow_override=True) and require a CRS error; the original fixture is not mutated.
 
 **Exact signature**
 
@@ -884,7 +884,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.set_crs` | `tests.unit.test_profile_shape.parcels.set_crs` |
+| `parcels.set_crs` | `geopandas.GeoDataFrame.set_crs` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -900,8 +900,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `parcels.set_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `parcels.set_crs(None, allow_override=True)` |
-| Direct parameter mutation | `parcels.set_crs(None, allow_override=True)` |
+| In-memory mutation | None on existing frames; `set_crs` returns a new frame. |
+| Direct parameter mutation | None; `set_crs` is not inplace. |
 
 **Complete source-ordered implementation**
 
@@ -919,7 +919,7 @@ def test_missing_crs_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_null_metric_on_valid_shape_fails`
 
-**Purpose:** Regression invariant: null metric on valid shape fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Null compactness on a VALID row and require complete metrics.
 
 **Exact signature**
 
@@ -951,7 +951,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -987,7 +987,7 @@ def test_null_metric_on_valid_shape_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_mixed_valid_and_error_rows_are_counted`
 
-**Purpose:** Regression invariant: mixed valid and error rows are counted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mark the final row ERROR through the helper and assert input 10, valid 9, error 1 and count closure.
 
 **Exact signature**
 
@@ -1058,7 +1058,7 @@ def test_mixed_valid_and_error_rows_are_counted(parcels: gpd.GeoDataFrame) -> No
 
 ### `test_error_rows_are_excluded_from_percentiles`
 
-**Purpose:** Regression invariant: error rows are excluded from percentiles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mark the final 1000-square-metre row ERROR and assert the reported area maximum becomes 900.
 
 **Exact signature**
 
@@ -1124,7 +1124,7 @@ def test_error_rows_are_excluded_from_percentiles(parcels: gpd.GeoDataFrame) -> 
 
 ### `test_error_rows_are_excluded_from_buckets`
 
-**Purpose:** Regression invariant: error rows are excluded from buckets. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert all three bucket totals use the nine valid rows, excluding the single ERROR row.
 
 **Exact signature**
 
@@ -1197,7 +1197,7 @@ def test_error_rows_are_excluded_from_buckets(parcels: gpd.GeoDataFrame) -> None
 
 ### `test_scenario_percentages_use_valid_count`
 
-**Purpose:** Regression invariant: scenario percentages use valid count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert scenario A retains seven rows and percentage equals 7/9*100, using valid rather than total count.
 
 **Exact signature**
 
@@ -1265,7 +1265,7 @@ def test_scenario_percentages_use_valid_count(parcels: gpd.GeoDataFrame) -> None
 
 ### `test_unexpected_shape_status_fails`
 
-**Purpose:** Regression invariant: unexpected shape status fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace one shape_status with UNKNOWN and require the unexpected-status error.
 
 **Exact signature**
 
@@ -1297,7 +1297,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -1333,7 +1333,7 @@ def test_unexpected_shape_status_fails(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_non_finite_metric_on_valid_row_fails`
 
-**Purpose:** Regression invariant: non finite metric on valid row fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace a VALID row's length with positive infinity and require a finite-metric error.
 
 **Exact signature**
 
@@ -1365,7 +1365,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
@@ -1402,7 +1402,7 @@ def test_non_finite_metric_on_valid_row_fails(parcels: gpd.GeoDataFrame) -> None
 
 ### `test_zero_valid_rows_fails_clearly`
 
-**Purpose:** Regression invariant: zero valid rows fails clearly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mark every row ERROR and require at least one VALID row; retained nonnull shape metrics are not independently cleared in this fixture.
 
 **Exact signature**
 
@@ -1434,7 +1434,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -1470,7 +1470,7 @@ def test_zero_valid_rows_fails_clearly(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_valid_shape_metrics_require_physical_domains`
 
-**Purpose:** Regression invariant: valid shape metrics require physical domains. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject eight area/length/width/ratio/compactness/latitude/longitude domain violations with their specified error messages.
 
 **Exact signature**
 
@@ -1522,7 +1522,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -1564,7 +1564,7 @@ def test_valid_shape_metrics_require_physical_domains(
 
 ### `test_valid_shape_length_must_not_be_less_than_width`
 
-**Purpose:** Regression invariant: valid shape length must not be less than width. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set length 3 while width remains 4 and require length at least width.
 
 **Exact signature**
 
@@ -1598,7 +1598,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -1636,7 +1636,7 @@ def test_valid_shape_length_must_not_be_less_than_width(
 
 ### `test_valid_shape_ratio_must_match_length_divided_by_width`
 
-**Purpose:** Regression invariant: valid shape ratio must match length divided by width. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set ratio 2 for the 4-by-4 metric row and require consistency with length/width.
 
 **Exact signature**
 
@@ -1670,7 +1670,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
 
@@ -1708,7 +1708,7 @@ def test_valid_shape_ratio_must_match_length_divided_by_width(
 
 ### `test_valid_shape_metrics_reject_bool_and_numeric_strings`
 
-**Purpose:** Regression invariant: valid shape metrics reject bool and numeric strings. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject True and numeric text in area_m2 after casting it to object; this parametrization targets area, not every metric column.
 
 **Exact signature**
 
@@ -1744,7 +1744,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_profile_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["area_m2"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `profile_shape_distribution` | `landscout.stages.profile_shape.profile_shape_distribution` |
@@ -1787,6 +1787,10 @@ def test_valid_shape_metrics_reject_bool_and_numeric_strings(
 
 ## 7. Test-specific regression contract
 
+Exercises shape-profile summaries on ten synthetic local rows: selected area quantiles, three bucket totals, six scenario counts, VALID/ERROR denominators, input preservation and metric/ID/CRS/status domain guards; no physical-source or geometry-derived shape-metric equivalence is established.
+
+The 21 test definitions expand statically to 29 cases; no test run is claimed for this documentation audit. No test here asserts the exact representative/extreme ID ordering.
+
 - Test functions: **21**.
 - Pytest fixtures (decorator-proven): **1**.
 
@@ -1798,27 +1802,27 @@ def test_valid_shape_metrics_reject_bool_and_numeric_strings(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_percentile_calculation` | none | none | 4 | Proves percentile calculation using the exact source reproduced in section 7. |
-| `test_bucket_counts_sum_to_input_count` | none | none | 3 | Proves bucket counts sum to input count using the exact source reproduced in section 7. |
-| `test_existing_all_valid_behavior_is_unchanged` | none | none | 4 | Proves existing all valid behavior is unchanged using the exact source reproduced in section 7. |
-| `test_diagnostic_scenario_counts` | none | none | 6 | Proves diagnostic scenario counts using the exact source reproduced in section 7. |
-| `test_input_is_not_mutated` | none | none | 0 | Proves input is not mutated using the exact source reproduced in section 7. |
-| `test_missing_metric_fails` | none | pytest.raises(ShapeProfileError, match="width_m") | 0 | Proves missing metric fails using the exact source reproduced in section 7. |
-| `test_null_parcel_id_fails` | none | pytest.raises(ShapeProfileError, match="null") | 0 | Proves null parcel id fails using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_fails` | none | pytest.raises(ShapeProfileError, match="unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
-| `test_missing_crs_fails` | none | pytest.raises(ShapeProfileError, match="CRS") | 0 | Proves missing crs fails using the exact source reproduced in section 7. |
-| `test_null_metric_on_valid_shape_fails` | none | pytest.raises(ShapeProfileError, match="complete") | 0 | Proves null metric on valid shape fails using the exact source reproduced in section 7. |
-| `test_mixed_valid_and_error_rows_are_counted` | none | none | 4 | Proves mixed valid and error rows are counted using the exact source reproduced in section 7. |
-| `test_error_rows_are_excluded_from_percentiles` | none | none | 1 | Proves error rows are excluded from percentiles using the exact source reproduced in section 7. |
-| `test_error_rows_are_excluded_from_buckets` | none | none | 3 | Proves error rows are excluded from buckets using the exact source reproduced in section 7. |
-| `test_scenario_percentages_use_valid_count` | none | none | 2 | Proves scenario percentages use valid count using the exact source reproduced in section 7. |
-| `test_unexpected_shape_status_fails` | none | pytest.raises(ShapeProfileError, match="Unexpected") | 0 | Proves unexpected shape status fails using the exact source reproduced in section 7. |
-| `test_non_finite_metric_on_valid_row_fails` | none | pytest.raises(ShapeProfileError, match="finite") | 0 | Proves non finite metric on valid row fails using the exact source reproduced in section 7. |
-| `test_zero_valid_rows_fails_clearly` | none | pytest.raises(ShapeProfileError, match="At least one VALID") | 0 | Proves zero valid rows fails clearly using the exact source reproduced in section 7. |
-| `test_valid_shape_metrics_require_physical_domains` | pytest.mark.parametrize(<br>    ("column", "value", "message"),<br>    [<br>        ("area_m2", 0, "area_m2 must be greater than zero"),<br>        ("length_m", 0, "length_m must be greater than zero"),<br>        ("width_m", -1, "width_m must be greater than zero"),<br>        ("length_width_ratio", 0.99, "length_width_ratio must be at least one"),<br>        ("compactness", 0, "compactness must be greater than zero and at most one"),<br>        ("compactness", 1.01, "compactness must be greater than zero and at most one"),<br>        ("centroid_lat", 90.1, "centroid_lat must be between -90 and 90"),<br>        ("centroid_lon", 180.1, "centroid_lon must be between -180 and 180"),<br>    ],<br>) | pytest.raises(ShapeProfileError, match=message) | 0 | Proves valid shape metrics require physical domains using the exact source reproduced in section 7. |
-| `test_valid_shape_length_must_not_be_less_than_width` | none | pytest.raises(ShapeProfileError, match="length_m must be at least width_m") | 0 | Proves valid shape length must not be less than width using the exact source reproduced in section 7. |
-| `test_valid_shape_ratio_must_match_length_divided_by_width` | none | pytest.raises(ShapeProfileError, match="must equal length_m / width_m") | 0 | Proves valid shape ratio must match length divided by width using the exact source reproduced in section 7. |
-| `test_valid_shape_metrics_reject_bool_and_numeric_strings` | pytest.mark.parametrize("value", [True, "100"]) | pytest.raises(ShapeProfileError, match="numeric and finite") | 0 | Proves valid shape metrics reject bool and numeric strings using the exact source reproduced in section 7. |
+| `test_percentile_calculation` | none | none | 4 | Assert area minimum 100, median 550 and maximum 1000 plus the exact eleven distribution keys; other quantile values are not individually asserted. |
+| `test_bucket_counts_sum_to_input_count` | none | none | 3 | Require each of the width, ratio and compactness bucket totals to equal all ten valid rows. |
+| `test_existing_all_valid_behavior_is_unchanged` | none | none | 4 | Assert input=valid=10, error=0 and area maximum 1000 for the baseline all-VALID fixture. |
+| `test_diagnostic_scenario_counts` | none | none | 6 | Assert diagnostic scenarios A..F retain 8, 7, 6, 4, 2 and 1 fixture rows respectively; these are summary scenarios, not new screening policy. |
+| `test_input_is_not_mutated` | none | none | 0 | Compare the input to a deep copy with pandas.testing.assert_frame_equal after profiling; the helper assertion is not counted as an assert statement in the generated index. |
+| `test_missing_metric_fails` | none | pytest.raises(ShapeProfileError, match="width_m") | 0 | Drop width_m into a new local frame and require a width_m error. |
+| `test_null_parcel_id_fails` | none | pytest.raises(ShapeProfileError, match="null") | 0 | Replace one copied ID with None and require a null-ID error. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(ShapeProfileError, match="unique") | 0 | Duplicate one ID in a copied frame and require the unique-ID guard. |
+| `test_missing_crs_fails` | none | pytest.raises(ShapeProfileError, match="CRS") | 0 | Use non-inplace set_crs(None, allow_override=True) and require a CRS error; the original fixture is not mutated. |
+| `test_null_metric_on_valid_shape_fails` | none | pytest.raises(ShapeProfileError, match="complete") | 0 | Null compactness on a VALID row and require complete metrics. |
+| `test_mixed_valid_and_error_rows_are_counted` | none | none | 4 | Mark the final row ERROR through the helper and assert input 10, valid 9, error 1 and count closure. |
+| `test_error_rows_are_excluded_from_percentiles` | none | none | 1 | Mark the final 1000-square-metre row ERROR and assert the reported area maximum becomes 900. |
+| `test_error_rows_are_excluded_from_buckets` | none | none | 3 | Assert all three bucket totals use the nine valid rows, excluding the single ERROR row. |
+| `test_scenario_percentages_use_valid_count` | none | none | 2 | Assert scenario A retains seven rows and percentage equals 7/9*100, using valid rather than total count. |
+| `test_unexpected_shape_status_fails` | none | pytest.raises(ShapeProfileError, match="Unexpected") | 0 | Replace one shape_status with UNKNOWN and require the unexpected-status error. |
+| `test_non_finite_metric_on_valid_row_fails` | none | pytest.raises(ShapeProfileError, match="finite") | 0 | Replace a VALID row's length with positive infinity and require a finite-metric error. |
+| `test_zero_valid_rows_fails_clearly` | none | pytest.raises(ShapeProfileError, match="At least one VALID") | 0 | Mark every row ERROR and require at least one VALID row; retained nonnull shape metrics are not independently cleared in this fixture. |
+| `test_valid_shape_metrics_require_physical_domains` | pytest.mark.parametrize(<br>    ("column", "value", "message"),<br>    [<br>        ("area_m2", 0, "area_m2 must be greater than zero"),<br>        ("length_m", 0, "length_m must be greater than zero"),<br>        ("width_m", -1, "width_m must be greater than zero"),<br>        ("length_width_ratio", 0.99, "length_width_ratio must be at least one"),<br>        ("compactness", 0, "compactness must be greater than zero and at most one"),<br>        ("compactness", 1.01, "compactness must be greater than zero and at most one"),<br>        ("centroid_lat", 90.1, "centroid_lat must be between -90 and 90"),<br>        ("centroid_lon", 180.1, "centroid_lon must be between -180 and 180"),<br>    ],<br>) | pytest.raises(ShapeProfileError, match=message) | 0 | Reject eight area/length/width/ratio/compactness/latitude/longitude domain violations with their specified error messages. |
+| `test_valid_shape_length_must_not_be_less_than_width` | none | pytest.raises(ShapeProfileError, match="length_m must be at least width_m") | 0 | Set length 3 while width remains 4 and require length at least width. |
+| `test_valid_shape_ratio_must_match_length_divided_by_width` | none | pytest.raises(ShapeProfileError, match="must equal length_m / width_m") | 0 | Set ratio 2 for the 4-by-4 metric row and require consistency with length/width. |
+| `test_valid_shape_metrics_reject_bool_and_numeric_strings` | pytest.mark.parametrize("value", [True, "100"]) | pytest.raises(ShapeProfileError, match="numeric and finite") | 0 | Reject True and numeric text in area_m2 after casting it to object; this parametrization targets area, not every metric column. |
 
 ## 8. Public exports and package ownership
 

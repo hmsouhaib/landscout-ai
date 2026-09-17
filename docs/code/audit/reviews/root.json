@@ -1,0 +1,528 @@
+{
+  "schema_version": 1,
+  "ticket": "DOCS.CONTINUITY.1",
+  "basis_commit": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+  "owner": "root",
+  "status": "IN_PROGRESS",
+  "read_method": "Every allocated original source/config/export body and companion's unique prose read completely including the complete semantic reference Markdown; its JSON schema/unique narrative content and all repeated raw numerical fields were audited with the explicit method in semantic_reference.json. uv.lock all 802 lines read, all 1591 TOML leaf paths/values/types/order and full source snapshot verified (48 packages). DEV_LOG all 99 section narratives read; 1749-line historical EP domain dump preserved mechanically, not reprofiled as new physical evidence. Full historical snapshot equals 600865 Git bytes. External independent semantic review remains PENDING. Cross-domain prose closure and final portable bindings remain pending.",
+  "files": [
+    {
+      "path": ".env.example",
+      "source_sha256": "616b77ac21a8859760937af1ba60a31f55eeecbf15a19bc5b8eef9de7b9aeb5d",
+      "documentation_path": "docs/code/files/.env.example.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": ".gitignore",
+      "source_sha256": "30a170342d89d9cf46755b39b8e22e510caa3d7116232e7f64687d6a14855af6",
+      "documentation_path": "docs/code/files/.gitignore.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": ".python-version",
+      "source_sha256": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
+      "documentation_path": "docs/code/files/.python-version.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "README.md",
+      "source_sha256": "356e0c4cc2a7c52bd798f4ce0d9b0d8230688d9a8298207eef3070e66a6d33bf",
+      "documentation_path": "docs/code/files/README.md.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; minimal continuity links added. Final companion synchronization pending."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "data/cache/.gitkeep",
+      "source_sha256": "7e73b7829d263f4c9bf8da772c44534ccf4512e0e3ef200746d5ac77c2c5615c",
+      "documentation_path": "docs/code/files/data/cache/.gitkeep.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "data/processed/.gitkeep",
+      "source_sha256": "7e73b7829d263f4c9bf8da772c44534ccf4512e0e3ef200746d5ac77c2c5615c",
+      "documentation_path": "docs/code/files/data/processed/.gitkeep.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "data/raw/.gitkeep",
+      "source_sha256": "7e73b7829d263f4c9bf8da772c44534ccf4512e0e3ef200746d5ac77c2c5615c",
+      "documentation_path": "docs/code/files/data/raw/.gitkeep.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/DEV_LOG.md",
+      "source_sha256": "b3c840b8fb5ba75d984375dfcf9c74c679d4f02e4fdeec9d16fc790e8bfa7b1c",
+      "documentation_path": "docs/code/files/docs/DEV_LOG.md.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All 99 section narratives and101 Git publications read;1749-line raw historical EP domain block mechanically retained. Recovery/publication trees exactly equal. Append final evidence only after actual commands."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/ARCHITECTURE.md",
+      "source_sha256": "3e25b17d408d83d3bedfa3aff086a6fd47ae6bf0ec1ad2ec126327a52ec1e026",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; actual AST import directions and ownership corrected, common-to-geo edge, YAML notPythonedge, mutable frames and no finished autonomous orchestration."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/CACHE_AND_RECOVERY.md",
+      "source_sha256": "55972ba13553adf931d41b6c0f649d9b2653aea09a32e8882eeba6e4a48d1c6d",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; distinct schemas/formats/age retained, RTE exception gap A-002 and INPN relative-root CWD semantics corrected."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/CHANGE_IMPACT_GUIDE.md",
+      "source_sha256": "01373bfae0f4ec10fb193889de2d19b058b51858d9b2a5aeeb8d59546c177669",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; expanded INPN downstream impacts and RTE separation from IGN proximity, added durable maintenance and portable Git-content evidence protocol."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/DATA_FLOW.md",
+      "source_sha256": "c96a2af6aa27a10e1e4a02311d84423d23c0b00986760238700263a926fe8e5a",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; corrected conceptual versus API ownership, exact grid/road call trees and zoning intersection versus physical validator. Remaining planning owner closure pending."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/FILE_INDEX.md",
+      "source_sha256": "3e8e7c84acf5e4263aa5d48ea9caaa2a5e730c78705006dfd9773c110edd7d87",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All original path rows read; explicit documentation/receipt/semanticpair exceptions and checker entries added. Generic test-purpose rows pending per-suite manual summaries."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/GLOSSARY.md",
+      "source_sha256": "4bbc988316acf81107c004848d1d037418d943ddecae9992850b4ff04bef1dd9",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; corrected grid representative/count ties versus complete road tie-IDJSON. A-001 crossreference pending."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/README.md",
+      "source_sha256": "cf07d1a0910d1efbe88708d0239efe9fb3a0eb9300275895f7cf809631a1933d",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; canonical docs routing and observed-code versus intended-contract finding rule corrected. Final basis wording pending."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/SOURCE_TRUST_MODEL.md",
+      "source_sha256": "4ff33920e93cdbaffe9d24b3d44ada04df14ffefce244cc34cc9698a4269b7fc",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; corrected deeply immutable config versus mutable frames, exact Cadastre statuses/dimension limit, A-001/A-002, and GPU zoning boundary ownership. Secondary INPN check pending."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/TESTING_STRATEGY.md",
+      "source_sha256": "34a13cfe32f848423075866137b6c7001d8126cae108ddaef2e33e23bfbea219",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Complete read; narrowed finite twelve-value immutability tests; added short basetemp, cleanup codes, local checker limits and actual-versus-historical execution distinction."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/.env.example.md",
+      "source_sha256": "2918a08771b1db6a86defff8e8b95016b2f47a0765713e75a60ff50157c0b270",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/.gitignore.md",
+      "source_sha256": "372d8389a62f7661b5496e8d854e8520b31da8afc72575d48b0616f54f7b9075",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/.python-version.md",
+      "source_sha256": "ffa01b53d710f8957e4cb22705b5725637f658f718a08c84cf23e9e66cfedfcb",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/README.md.md",
+      "source_sha256": "806d130f2720080c2cc700f53ce4f6a067e416735adfc3a9c450ce1a163154c6",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Replaced passive-file boilerplate with precise product-entry/navigation/effects/test limits and current exact README snapshot."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/data/cache/.gitkeep.md",
+      "source_sha256": "7ce3002cfe002020c4bece1e659a630fc984cee449c3da9dab2d3d9b076dbaec",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/data/processed/.gitkeep.md",
+      "source_sha256": "6b661fa8f5f1ed4bcc3043c80ae5ef76d227c372abdc951d966549e0fbc08719",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/data/raw/.gitkeep.md",
+      "source_sha256": "43dd6d7145d4aef97458e16be4476474ebea9afd09033591eb3bf8a458787487",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/docs/DEV_LOG.md.md",
+      "source_sha256": "9feb69249780a13ca53a0338d1a58affb68b9b6fdd865c1491d5b8ee289be4d7",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All unique prose and heading inventory read; full600865-byte Git snapshot equal. Nested outer fence defect deferred to final DEV_LOG synchronization."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/outputs/.gitkeep.md",
+      "source_sha256": "4e63af1c967b80bb646e8197a06fa2a4de6c1e7b533d51584d323341b7fc16f8",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/pyproject.toml.md",
+      "source_sha256": "cc5060c2590c95cdccb8979cb92a45e78b11f1cb461b0fcd8ca9825838ad17c8",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Pending final cross-file closure; partial progress does not establish CHECKED."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/src/landscout/__init__.py.md",
+      "source_sha256": "36cd1b9773a1728d1141d653167ff171987b74ca2f710311dde903895be2d567",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/__init__.py.md",
+      "source_sha256": "f679d947ad5b48eeb6f72ff71aeced3c6cd7378bb0ee8ede44e387f7b91d479f",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Pending final cross-file closure; partial progress does not establish CHECKED."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/__init__.py.md",
+      "source_sha256": "a4b6dccd6bfccc0170fe56563b088f7a4b16e9b07392bac6d1c702ae03a06090",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Pending final cross-file closure; partial progress does not establish CHECKED."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_package.py.md",
+      "source_sha256": "b8c3e14d8a0dcb02e81bfcd56b575722908354dd3de81b3d1ec40b71d4a2cc35",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/code/files/uv.lock.md",
+      "source_sha256": "1c0698831c9948904fb265a2c9877ffe857cd793913d42a950e4fe25c737fdab",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All unique prose read; all passive leaf rows and complete snapshot mechanically compared to fully read source. Added actual dependency families, transitive NumPy and unused pydantic-settings loader distinction."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/reference/inpn_ep_2026_07_semantic_reference.json",
+      "source_sha256": "6f60168a15c32679d55ee86ec45388e4e207fc411ddcd97fce68404739c6bce0",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CHECKED",
+      "review_notes": [
+        "Complete Markdown prose read; all JSON schema variants and7584 leaves inventoried; repeated numerical/domain material exhaustively checked against45 profiles64 entries960 frequencies.1223 section-local narrative strings compared,1221 exact plus2 inspected heading/paraphrase exceptions. See reviews/semantic_reference.json. No external/physical semantic review; independent 7F.1C.1 review remains PENDING; pair unchanged."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "docs/reference/inpn_ep_2026_07_semantic_reference.md",
+      "source_sha256": "3a5b8e1feec130bf01ff1b2a114cfea9396361a822f6cdea2143f3922e08027f",
+      "documentation_path": null,
+      "read_complete": true,
+      "status": "CHECKED",
+      "review_notes": [
+        "Complete Markdown prose read; all JSON schema variants and7584 leaves inventoried; repeated numerical/domain material exhaustively checked against45 profiles64 entries960 frequencies.1223 section-local narrative strings compared,1221 exact plus2 inspected heading/paraphrase exceptions. See reviews/semantic_reference.json. No external/physical semantic review; independent 7F.1C.1 review remains PENDING; pair unchanged."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "outputs/.gitkeep",
+      "source_sha256": "7e73b7829d263f4c9bf8da772c44534ccf4512e0e3ef200746d5ac77c2c5615c",
+      "documentation_path": "docs/code/files/outputs/.gitkeep.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "pyproject.toml",
+      "source_sha256": "9e07f6e2aa5c86dfab991f374412101243bacbf1203d1a1c120486893a513148",
+      "documentation_path": "docs/code/files/pyproject.toml.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "Full dependencies, packaging and tool configuration read. Allowed ranges versus lock/native runtime separated; package version test doesnotprove settings."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "src/landscout/__init__.py",
+      "source_sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+      "documentation_path": "docs/code/files/src/landscout/__init__.py.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "src/landscout/sources/__init__.py",
+      "source_sha256": "70af29a1a8d27e7fdfe07c06f364aa07ec664565fc70988d81cf9ca80dac2177",
+      "documentation_path": "docs/code/files/src/landscout/sources/__init__.py.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All imports and exports read; actual module owners checked. Reexports not service/CLI/orchestrator; __all__ ordinary mutable metadata."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "src/landscout/stages/__init__.py",
+      "source_sha256": "c9f0d43ca4cb37ef2a5a9ca2b25fa5ea18809d4d533644b05f2705f8b62c99be",
+      "documentation_path": "docs/code/files/src/landscout/stages/__init__.py.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All imports and exports read; actual module owners checked. API/results/intrinsic versus source-complete validators distinguished."
+      ],
+      "symbols": []
+    },
+    {
+      "path": "tests/unit/test_package.py",
+      "source_sha256": "217cdd39bf3105ba5d546c822ba2a3d8a13344abf91812f408cec981eb6d8057",
+      "documentation_path": "docs/code/files/tests/unit/test_package.py.md",
+      "read_complete": true,
+      "status": "CORRECTED",
+      "review_notes": [
+        "Complete original content/prose read; replaced irrelevant boilerplate with actual local consumer/operation/exception boundaries; exact snapshot retained or added."
+      ],
+      "symbols": [
+        {
+          "qualified_name": "test_package_import_and_version",
+          "kind": "function",
+          "start_line": 7,
+          "end_line": 9,
+          "status": "CORRECTED",
+          "documentation_anchor": "test_package_import_and_version",
+          "review_notes": [
+            "Exact unparametrized test reads root TOML and asserts version equality only; no package-export assertion."
+          ],
+          "test_references": []
+        }
+      ]
+    },
+    {
+      "path": "uv.lock",
+      "source_sha256": "82f927f72b7f95e2db1d2654bd461dd7eeab15534418ffc7bdeed0cff26d0fa7",
+      "documentation_path": "docs/code/files/uv.lock.md",
+      "read_complete": true,
+      "status": "READ",
+      "review_notes": [
+        "All lock lines read; 48 packages,1591 leaf inventory values/types/order and exact Git snapshot verified. Corrected native/runtime versus lock and allowed versus pinned dependency semantics."
+      ],
+      "symbols": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "ROOT-DOC-001",
+      "kind": "DOCUMENTATION",
+      "status": "CORRECTED",
+      "paths": [
+        "docs/code/files/tests/unit/test_package.py.md"
+      ],
+      "description": "Claimed package export assertions absent from the only test; replaced with actual TOML/version assertion and errors."
+    },
+    {
+      "id": "ROOT-DOC-002",
+      "kind": "DOCUMENTATION",
+      "status": "CORRECTED",
+      "paths": [
+        "docs/code/files/src/landscout/sources/__init__.py.md"
+      ],
+      "description": "INPN no-parcel-load boundary was falsely generalized to all sources including load_cadastre_parcels; now INPN-scoped."
+    },
+    {
+      "id": "ROOT-DOC-003",
+      "kind": "DOCUMENTATION",
+      "status": "CORRECTED",
+      "paths": [
+        "docs/code/files/src/landscout/stages/__init__.py.md"
+      ],
+      "description": "No __all__ consumer claim missed module-qualified test references; added actual examples and initializer rather than stage semantics."
+    },
+    {
+      "id": "ROOT-DOC-004",
+      "kind": "DOCUMENTATION",
+      "status": "CORRECTED",
+      "paths": [
+        "docs/code/files/pyproject.toml.md"
+      ],
+      "description": "Historical formatting-only delta falsely generalized to whole dependency/tool file; clarified allowed ranges, lock/runtime distinction and absent CLI."
+    },
+    {
+      "id": "ROOT-DOC-005",
+      "kind": "DOCUMENTATION",
+      "status": "CORRECTED",
+      "paths": [
+        "docs/code/files/.env.example.md",
+        "docs/code/files/.python-version.md",
+        "docs/code/files/.gitignore.md"
+      ],
+      "description": "Clarified zero declared environment variables, minor-series rather than patch pin, untracked-only ignore behavior; removed irrelevant generic GIS/error boilerplate."
+    }
+  ],
+  "progress": {
+    "allocated_original_files": 41,
+    "read_complete": 41,
+    "semantic_reference_pair_pending": false
+  }
+}

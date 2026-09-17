@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+- Responsibility: Exercises strict voltage/precision parsing and private line/post normalization, plus public source-complete reconstruction against real temporary GeoPackages: schema/identity/lineage/geometry preservation and coordinated forgery rejection; no real archive acquisition or capacity/connectability inference.
 - Source SHA256: `1a25cd5fb8517d9d4065c2af6c5517d6bb75b0ae2a599fc90f3f925ba1659c20`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+Exercises strict voltage/precision parsing and private line/post normalization, plus public source-complete reconstruction against real temporary GeoPackages: schema/identity/lineage/geometry preservation and coordinated forgery rejection; no real archive acquisition or capacity/connectability inference.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -225,7 +225,7 @@ No top-level class/model/dataclass is declared.
 
 ### `normalize_ign_electricity`
 
-**Purpose:** Implements `normalize ign electricity` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Call the public source-complete normalizer with the test's strictly loaded SOURCE_CONFIG; unlike the imported private layer kernels, this wrapper physically revalidates the fixture.
 
 **Exact signature**
 
@@ -323,7 +323,7 @@ def normalize_ign_electricity(
 
 ### `_line_source`
 
-**Purpose:** Implements `line source` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Construct raw IGN-like line rows with configurable geometry, identifiers, voltage, precision, CRS and index plus timestamp and manager/source fields; these are synthetic factual rows.
 
 **Exact signature**
 
@@ -474,7 +474,7 @@ def _line_source(
 
 ### `_post_source`
 
-**Purpose:** Implements `post source` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Construct raw IGN-like polygonal post rows with configurable geometry, identifiers, precision, CRS and index; no voltage is supplied or inferred by this fixture.
 
 **Exact signature**
 
@@ -603,7 +603,7 @@ def _post_source(
 
 ### `_context`
 
-**Purpose:** Implements `context` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Construct the private normalization context with explicit synthetic layer/department/edition/version/timestamp/hash/URL lineage; this is not a public source-authority object.
 
 **Exact signature**
 
@@ -721,7 +721,7 @@ def _context(source_layer: str) -> IgnGridSourceContext:
 
 ### `_summary`
 
-**Purpose:** Implements `summary` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Derive ordered columns/dtypes, count, CRS, null/empty/invalid masks and sorted observed geometry types from a supplied frame for source-summary fixtures.
 
 **Exact signature**
 
@@ -827,7 +827,7 @@ def _summary(
 
 ### `_source_bundle`
 
-**Purpose:** Implements `source bundle` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Write four real temporary GeoPackage layers, reread line/post rows, hash package bytes and publish a schema-3 marker; assemble synthetic archive/extraction evidence and measured summaries. No real 7z acquisition occurs.
 
 **Exact signature**
 
@@ -927,8 +927,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gpd.read_file`<br>`geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction_path.mkdir`<br>`(extraction_path / ".landscout-extraction.json").write_text` |
+| Filesystem/archive read or metadata access | Read fixture GeoPackage bytes, `gpd.read_file` selected rows and `pyogrio.list_layers` inventory; the alternate-layer helper also reads its marker. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe` writes real fixture GeoPackage layers; fixture directory/marker publication is explicit in the implementation. |
 | Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1060,7 +1060,7 @@ def _source_bundle(
 
 ### `_source_bundle_with_archive`
 
-**Purpose:** Implements `source bundle with archive` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Create the physical fixture and use dataclass replacement to forge only the archive envelope fields requested by the negative test.
 
 **Exact signature**
 
@@ -1129,7 +1129,7 @@ def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
 
 ### `test_low_level_normalization_is_not_part_of_stages_public_api`
 
-**Purpose:** Regression invariant: low level normalization is not part of stages public api. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For three former low-level names, assert neither stages.__all__ nor package attributes expose them.
 
 **Exact signature**
 
@@ -1201,7 +1201,7 @@ def test_low_level_normalization_is_not_part_of_stages_public_api(name: str) -> 
 
 ### `test_supported_package_api_keeps_high_level_normalization`
 
-**Purpose:** Regression invariant: supported package api keeps high level normalization. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the supported export set and run public normalization on the physical fixture, checking discovered line/post layer lineage.
 
 **Exact signature**
 
@@ -1282,7 +1282,7 @@ def test_supported_package_api_keeps_high_level_normalization() -> None:
 
 ### `test_internal_source_context_accepts_supported_department_codes`
 
-**Purpose:** Regression invariant: internal source context accepts supported department codes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Call the private context validator successfully for 31, 2A, 2B, 971 and 976; no output assertion or download is involved.
 
 **Exact signature**
 
@@ -1351,7 +1351,7 @@ def test_internal_source_context_accepts_supported_department_codes(
 
 ### `test_internal_source_context_rejects_uppercase_sha256`
 
-**Purpose:** Regression invariant: internal source context rejects uppercase sha256. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject uppercase SHA through the private line kernel before normalization.
 
 **Exact signature**
 
@@ -1419,7 +1419,7 @@ def test_internal_source_context_rejects_uppercase_sha256() -> None:
 
 ### `test_grid_summary_requires_strict_structural_types`
 
-**Purpose:** Regression invariant: grid summary requires strict structural types. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject thirteen forged count/column/dtype/geometry-type shapes, including bool/string/float counts, negative values, mutable list collections and malformed dtype records.
 
 **Exact signature**
 
@@ -1511,7 +1511,7 @@ def test_grid_summary_requires_strict_structural_types(
 
 ### `test_grid_archive_sha256_requires_canonical_lowercase`
 
-**Purpose:** Regression invariant: grid archive sha256 requires canonical lowercase. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject uppercase, short, long and nonhex archive SHA spellings at the public boundary.
 
 **Exact signature**
 
@@ -1579,7 +1579,7 @@ def test_grid_archive_sha256_requires_canonical_lowercase(value: str) -> None:
 
 ### `test_internal_source_context_rejects_invalid_lineage_values`
 
-**Purpose:** Regression invariant: internal source context rejects invalid lineage values. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject thirteen selected empty/padded/wrong-type layer or version, invalid department/date/naive timestamp/SHA/non-HTTPS URL context values.
 
 **Exact signature**
 
@@ -1672,7 +1672,7 @@ def test_internal_source_context_rejects_invalid_lineage_values(
 
 ### `test_exact_voltage_parser_is_generic_and_finite`
 
-**Purpose:** Regression invariant: exact voltage parser is generic and finite. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For seven positive kV spellings, including 110, case/whitespace and decimal comma, retain raw text and emit EXACT with finite numeric voltage and no upper bound.
 
 **Exact signature**
 
@@ -1762,7 +1762,7 @@ def test_exact_voltage_parser_is_generic_and_finite(
 
 ### `test_bounded_voltage_is_generic_finite_and_not_exact`
 
-**Purpose:** Regression invariant: bounded voltage is generic finite and not exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For three less-than kV spellings, retain raw text and emit BELOW with finite upper bound only, never exact voltage.
 
 **Exact signature**
 
@@ -1844,7 +1844,7 @@ def test_bounded_voltage_is_generic_finite_and_not_exact(
 
 ### `test_unknown_voltage_parser`
 
-**Purpose:** Regression invariant: unknown voltage parser. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Map three unknown-language/case forms and None to UNKNOWN with both numeric outputs absent.
 
 **Exact signature**
 
@@ -1915,7 +1915,7 @@ def test_unknown_voltage_parser(raw: str | None) -> None:
 
 ### `test_deenergized_voltage_parser`
 
-**Purpose:** Regression invariant: deenergized voltage parser. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Map two Hors tension spellings to DEENERGIZED while retaining raw text and absent numeric voltage values.
 
 **Exact signature**
 
@@ -1986,7 +1986,7 @@ def test_deenergized_voltage_parser(raw: str) -> None:
 
 ### `test_unexpected_or_non_scalar_voltage_is_controlled_unparsed`
 
-**Purpose:** Regression invariant: unexpected or non scalar voltage is controlled unparsed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Return UNPARSED for unknown text, a list and a NumPy array without leaking scalar-coercion errors.
 
 **Exact signature**
 
@@ -2063,7 +2063,7 @@ def test_unexpected_or_non_scalar_voltage_is_controlled_unparsed(
 
 ### `test_invalid_or_overflowing_numeric_voltage_is_unparsed`
 
-**Purpose:** Regression invariant: invalid or overflowing numeric voltage is unparsed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Return UNPARSED for zero exact/bounded voltage, negative voltage, wrong unit and 400-digit exact/bounded overflow.
 
 **Exact signature**
 
@@ -2135,7 +2135,7 @@ def test_invalid_or_overflowing_numeric_voltage_is_unparsed(raw: str) -> None:
 
 ### `test_valid_line_has_stable_identity_lineage_and_range_index`
 
-**Purpose:** Regression invariant: valid line has stable identity lineage and range index. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert fixed ordered line schema, RangeIndex, namespaced source ID, complete supplied lineage and selected raw manager/status/source/precision facts.
 
 **Exact signature**
 
@@ -2238,7 +2238,7 @@ def test_valid_line_has_stable_identity_lineage_and_range_index() -> None:
 
 ### `test_deenergized_voltage_does_not_override_source_asset_status`
 
-**Purpose:** Regression invariant: deenergized voltage does not override source asset status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert DEENERGIZED voltage evidence coexists with unchanged En service raw asset status.
 
 **Exact signature**
 
@@ -2306,7 +2306,7 @@ def test_deenergized_voltage_does_not_override_source_asset_status() -> None:
 
 ### `test_null_or_empty_line_cleabs_fails`
 
-**Purpose:** Regression invariant: null or empty line cleabs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject null, empty and blank source line identifiers.
 
 **Exact signature**
 
@@ -2375,7 +2375,7 @@ def test_null_or_empty_line_cleabs_fails(identifier: object) -> None:
 
 ### `test_unsafe_source_id_is_rejected_without_rewriting`
 
-**Purpose:** Regression invariant: unsafe source id is rejected without rewriting. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject five padded, colon-containing and newline/tab-containing identifiers rather than cleaning them.
 
 **Exact signature**
 
@@ -2447,7 +2447,7 @@ def test_unsafe_source_id_is_rejected_without_rewriting(identifier: str) -> None
 
 ### `test_duplicate_line_cleabs_fails`
 
-**Purpose:** Regression invariant: duplicate line cleabs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject duplicate line identifiers even when supplied geometry rows differ.
 
 **Exact signature**
 
@@ -2520,7 +2520,7 @@ def test_duplicate_line_cleabs_fails() -> None:
 
 ### `test_line_missing_or_wrong_crs_fails`
 
-**Purpose:** Regression invariant: line missing or wrong crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject missing CRS, EPSG:4326 and EPSG:3857 instead of reprojection.
 
 **Exact signature**
 
@@ -2587,7 +2587,7 @@ def test_line_missing_or_wrong_crs_fails(crs: str | None) -> None:
 
 ### `test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
 
-**Purpose:** Regression invariant: line geometry quality is preserved without row loss or repair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Retain four VALID/NULL/EMPTY/INVALID rows and their identities, including an invalid polygon in a line fixture; exact equality confirms the invalid geometry is not repaired. Valid incompatible types are tested separately.
 
 **Exact signature**
 
@@ -2640,7 +2640,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `normalized["geometry_status"].tolist`<br>`normalized.geometry.iloc[3].equals_exact` |
+| CRS/geometry/spatial calculation | `equals_exact` compares geometry; converting the geometry-status Series to a list does not calculate geometry. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2681,7 +2681,7 @@ def test_line_geometry_quality_is_preserved_without_row_loss_or_repair() -> None
 
 ### `test_z_coordinates_are_preserved`
 
-**Purpose:** Regression invariant: z coordinates are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the source and normalized line have Z and compare equals_exact at zero tolerance; the test does not compare encoded WKB or independently enumerate Z ordinate values.
 
 **Exact signature**
 
@@ -2755,7 +2755,7 @@ def test_z_coordinates_are_preserved() -> None:
 
 ### `test_unusual_duplicate_source_index_is_not_preserved_as_identity`
 
-**Purpose:** Regression invariant: unusual duplicate source index is not preserved as identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace duplicate source index labels with RangeIndex while preserving row order and namespaced CLEABS identity.
 
 **Exact signature**
 
@@ -2842,7 +2842,7 @@ def test_unusual_duplicate_source_index_is_not_preserved_as_identity() -> None:
 
 ### `test_line_normalization_does_not_mutate_input_and_has_stable_columns`
 
-**Purpose:** Regression invariant: line normalization does not mutate input and has stable columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reverse input columns, restore active geometry on the returned frame and use GeoPandas equality to prove the source is unchanged while output order is fixed.
 
 **Exact signature**
 
@@ -2893,7 +2893,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `source.loc[:, list(reversed(source.columns))].set_geometry` |
 | External process/environment | None directly present. |
-| In-memory mutation | `source.loc[:, list(reversed(source.columns))].set_geometry("geometry")` |
+| In-memory mutation | No in-place frame mutation: the selected `set_geometry` or `drop` call returns a new frame. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -2916,7 +2916,7 @@ def test_line_normalization_does_not_mutate_input_and_has_stable_columns() -> No
 
 ### `test_missing_required_line_field_fails`
 
-**Purpose:** Regression invariant: missing required line field fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Individually omit CLEABS, geometry or source identifiers and require the named missing-field error.
 
 **Exact signature**
 
@@ -2967,7 +2967,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `_line_source().drop(columns=column)` |
+| In-memory mutation | No in-place frame mutation: the selected `set_geometry` or `drop` call returns a new frame. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -2986,7 +2986,7 @@ def test_missing_required_line_field_fails(column: str) -> None:
 
 ### `test_valid_or_null_line_precision_is_normalized_to_float`
 
-**Purpose:** Regression invariant: valid or null line precision is normalized to float. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For zero, 2.5, None and NaN precision, assert float64 output and corresponding numeric/null values.
 
 **Exact signature**
 
@@ -3070,7 +3070,7 @@ def test_valid_or_null_line_precision_is_normalized_to_float(
 
 ### `test_invalid_line_precision_fails`
 
-**Purpose:** Regression invariant: invalid line precision fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject negative, positive/negative infinity, bool and numeric-text line precision.
 
 **Exact signature**
 
@@ -3140,7 +3140,7 @@ def test_invalid_line_precision_fails(precision: object) -> None:
 
 ### `test_normalized_voltage_never_emits_non_finite_numeric_values`
 
-**Purpose:** Regression invariant: normalized voltage never emits non finite numeric values. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Normalize four exact/bounded/overflow/unknown rows and assert expected statuses and finite non-null numeric voltage columns.
 
 **Exact signature**
 
@@ -3227,7 +3227,7 @@ def test_normalized_voltage_never_emits_non_finite_numeric_values() -> None:
 
 ### `test_valid_post_has_stable_lineage_and_no_voltage_inference`
 
-**Purpose:** Regression invariant: valid post has stable lineage and no voltage inference. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert fixed post schema, RangeIndex, namespaced ID/lineage/name and UNKNOWN voltage with null numeric value.
 
 **Exact signature**
 
@@ -3315,7 +3315,7 @@ def test_valid_post_has_stable_lineage_and_no_voltage_inference() -> None:
 
 ### `test_post_geometry_crs_and_input_are_preserved`
 
-**Purpose:** Regression invariant: post geometry crs and input are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use GeoPandas equality for input preservation, EPSG:2154 identity and zero-tolerance geometry equality for normalized polygonal posts.
 
 **Exact signature**
 
@@ -3391,7 +3391,7 @@ def test_post_geometry_crs_and_input_are_preserved() -> None:
 
 ### `test_duplicate_post_cleabs_fails`
 
-**Purpose:** Regression invariant: duplicate post cleabs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject repeated post identifiers for a two-row polygon fixture.
 
 **Exact signature**
 
@@ -3461,7 +3461,7 @@ def test_duplicate_post_cleabs_fails() -> None:
 
 ### `test_null_post_geometry_and_precision_are_preserved`
 
-**Purpose:** Regression invariant: null post geometry and precision are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Retain null post geometry, NULL quality status, UNKNOWN/null voltage and null precision.
 
 **Exact signature**
 
@@ -3539,7 +3539,7 @@ def test_null_post_geometry_and_precision_are_preserved() -> None:
 
 ### `test_invalid_post_precision_fails`
 
-**Purpose:** Regression invariant: invalid post precision fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject the selected malformed post precision value through the shared precision guard.
 
 **Exact signature**
 
@@ -3605,7 +3605,7 @@ def test_invalid_post_precision_fails() -> None:
 
 ### `test_appropriate_multigeometry_types_are_accepted`
 
-**Purpose:** Regression invariant: appropriate multigeometry types are accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept MultiLineString for lines and MultiPolygon for posts, preserving their types and VALID statuses.
 
 **Exact signature**
 
@@ -3693,7 +3693,7 @@ def test_appropriate_multigeometry_types_are_accepted() -> None:
 
 ### `test_valid_polygon_or_point_is_rejected_as_electric_line`
 
-**Purpose:** Regression invariant: valid polygon or point is rejected as electric line. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject two valid incompatible electric-line geometry families: Polygon and Point.
 
 **Exact signature**
 
@@ -3774,7 +3774,7 @@ def test_valid_polygon_or_point_is_rejected_as_electric_line(
 
 ### `test_valid_line_or_point_is_rejected_as_transformation_post`
 
-**Purpose:** Regression invariant: valid line or point is rejected as transformation post. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject two valid incompatible transformation-post families: LineString and Point.
 
 **Exact signature**
 
@@ -3849,7 +3849,7 @@ def test_valid_line_or_point_is_rejected_as_transformation_post(
 
 ### `test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
 
-**Purpose:** Regression invariant: high level path uses discovered layer names and archive lineage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Normalize a physical fixture and assert discovered layer names and common department/edition/version/archive SHA/source URL facts on both output frames.
 
 **Exact signature**
 
@@ -3911,7 +3911,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `frame["source_archive_sha256"].unique().tolist`<br>`frame["source_archive_sha256"].unique` |
+| Hashing/byte identity | No hash computation; Series operations compare existing lineage text. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -3943,7 +3943,7 @@ def test_high_level_path_uses_discovered_layer_names_and_archive_lineage() -> No
 
 ### `test_high_level_rejects_coordinated_frame_and_summary_forgery`
 
-**Purpose:** Regression invariant: high level rejects coordinated frame and summary forgery. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Change caller line voltage and recompute its matching summary, then require physical source revalidation to reject the coordinated forgery.
 
 **Exact signature**
 
@@ -4020,7 +4020,7 @@ def test_high_level_rejects_coordinated_frame_and_summary_forgery() -> None:
 
 ### `test_source_complete_grid_validation_does_not_mutate_supplied_frames`
 
-**Purpose:** Regression invariant: source complete grid validation does not mutate supplied frames. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Run public physical revalidation and compare both caller frames against deep copies with GeoPandas equality helpers.
 
 **Exact signature**
 
@@ -4088,7 +4088,7 @@ def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> No
 
 ### `test_grid_normalization_uses_distinct_fresh_revalidated_frames`
 
-**Purpose:** Regression invariant: grid normalization uses distinct fresh revalidated frames. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mock the revalidator to return independent frames while mutating the supplied frame; assert normalization consumes the fresh voltage and the caller mutation remains observable.
 
 **Exact signature**
 
@@ -4142,7 +4142,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `monkeypatch.setattr` temporarily replaces the revalidator; the nested callback separately mutates the closed-over caller frame. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -4184,7 +4184,7 @@ def test_grid_normalization_uses_distinct_fresh_revalidated_frames(
 
 ### `test_grid_normalization_uses_distinct_fresh_revalidated_frames.return_fresh_and_mutate_supplied`
 
-**Purpose:** Implements `return fresh and mutate supplied` within the file role: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
+**Purpose:** Mutate the closed-over supplied line voltage and return previously copied fresh frames; this sentinel proves which object the normalizer consumes, not physical-reader correctness.
 
 **Exact signature**
 
@@ -4251,7 +4251,7 @@ def return_fresh_and_mutate_supplied(
 
 ### `test_high_level_rejects_incompatible_archive_identity`
 
-**Purpose:** Regression invariant: high level rejects incompatible archive identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject three forged archive provider/product/projection values against the configured source.
 
 **Exact signature**
 
@@ -4333,7 +4333,7 @@ def test_high_level_rejects_incompatible_archive_identity(
 
 ### `test_archive_identity_requires_exact_pinned_strings`
 
-**Purpose:** Regression invariant: archive identity requires exact pinned strings. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject semantically similar but nonexact pinned provider/product strings; no normalizing alias is accepted.
 
 **Exact signature**
 
@@ -4403,7 +4403,7 @@ def test_archive_identity_requires_exact_pinned_strings() -> None:
 
 ### `test_high_level_rejects_summary_row_count_mismatch`
 
-**Purpose:** Regression invariant: high level rejects summary row count mismatch. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge the source summary row count and require public rejection.
 
 **Exact signature**
 
@@ -4473,7 +4473,7 @@ def test_high_level_rejects_summary_row_count_mismatch() -> None:
 
 ### `test_high_level_rejects_summary_layer_name_mismatch`
 
-**Purpose:** Regression invariant: high level rejects summary layer name mismatch. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge selected source-layer name in the summary and require rejection.
 
 **Exact signature**
 
@@ -4540,7 +4540,7 @@ def test_high_level_rejects_summary_layer_name_mismatch() -> None:
 
 ### `test_high_level_rejects_wrong_logical_name`
 
-**Purpose:** Regression invariant: high level rejects wrong logical name. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge the line summary's logical role and require rejection.
 
 **Exact signature**
 
@@ -4611,7 +4611,7 @@ def test_high_level_rejects_wrong_logical_name() -> None:
 
 ### `test_high_level_rejects_summary_crs_mismatch`
 
-**Purpose:** Regression invariant: high level rejects summary crs mismatch. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge the summary CRS against the actual selected frame and require rejection.
 
 **Exact signature**
 
@@ -4678,7 +4678,7 @@ def test_high_level_rejects_summary_crs_mismatch() -> None:
 
 ### `test_high_level_rejects_forged_ordered_summary_schema`
 
-**Purpose:** Regression invariant: high level rejects forged ordered summary schema. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject missing, extra, reordered columns and changed dtype declarations against the source summary.
 
 **Exact signature**
 
@@ -4764,7 +4764,7 @@ def test_high_level_rejects_forged_ordered_summary_schema(mutation: str) -> None
 
 ### `test_high_level_rejects_duplicate_or_missing_layer_inventory`
 
-**Purpose:** Regression invariant: high level rejects duplicate or missing layer inventory. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Exercise separate duplicate-inventory and missing-selected-layer guards in one test.
 
 **Exact signature**
 
@@ -4853,7 +4853,7 @@ def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
 
 ### `test_high_level_rejects_colliding_electricity_roles`
 
-**Purpose:** Regression invariant: high level rejects colliding electricity roles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Bind line and post roles to the same selected layer and require an integrity/role error.
 
 **Exact signature**
 
@@ -4936,7 +4936,7 @@ def test_high_level_rejects_colliding_electricity_roles() -> None:
 
 ### `test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
 
-**Purpose:** Regression invariant: high level rejects stale geometry counts after frame mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace caller line geometry with None while retaining the previous summary and require physical/geometry-summary rejection.
 
 **Exact signature**
 
@@ -5008,7 +5008,7 @@ def test_high_level_rejects_stale_geometry_counts_after_frame_mutation() -> None
 
 ### `test_high_level_rejects_stale_geometry_types_after_frame_mutation`
 
-**Purpose:** Regression invariant: high level rejects stale geometry types after frame mutation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace caller LineString with MultiLineString while retaining prior summary and require physical/geometry-summary rejection.
 
 **Exact signature**
 
@@ -5083,7 +5083,7 @@ def test_high_level_rejects_stale_geometry_types_after_frame_mutation() -> None:
 
 ### `test_high_level_rejects_any_spatial_role_mismatch`
 
-**Purpose:** Regression invariant: high level rejects any spatial role mismatch. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge spatial_role separately on source, extraction, archive, line summary and post summary and require controlled rejection.
 
 **Exact signature**
 
@@ -5193,57 +5193,57 @@ def test_high_level_rejects_any_spatial_role_mismatch(component: str) -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_low_level_normalization_is_not_part_of_stages_public_api` | pytest.mark.parametrize(<br>    "name",<br>    [<br>        "IgnGridSourceContext",<br>        "normalize_ign_electric_lines",<br>        "normalize_ign_transformation_posts",<br>    ],<br>) | none | 2 | Proves low level normalization is not part of stages public api using the exact source reproduced in section 7. |
-| `test_supported_package_api_keeps_high_level_normalization` | none | none | 3 | Proves supported package api keeps high level normalization using the exact source reproduced in section 7. |
-| `test_internal_source_context_accepts_supported_department_codes` | pytest.mark.parametrize("department_code", ["31", "2A", "2B", "971", "976"]) | none | 0 | Proves internal source context accepts supported department codes using the exact source reproduced in section 7. |
-| `test_internal_source_context_rejects_uppercase_sha256` | none | pytest.raises(IgnGridNormalizationError, match="archive_sha256") | 0 | Proves internal source context rejects uppercase sha256 using the exact source reproduced in section 7. |
-| `test_grid_summary_requires_strict_structural_types` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("feature_count", True),<br>        ("feature_count", 1.0),<br>        ("feature_count", "1"),<br>        ("feature_count", -1),<br>        ("null_geometry_count", False),<br>        ("null_geometry_count", 0.0),<br>        ("empty_geometry_count", "0"),<br>        ("invalid_geometry_count", -1),<br>        ("columns", ["cleabs", "geometry"]),<br>        ("columns", ("cleabs", "cleabs")),<br>        ("dtypes", [("cleabs", "str")]),<br>        ("dtypes", (("cleabs",),)),<br>        ("geometry_types", ["LineString"]),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError) | 0 | Proves grid summary requires strict structural types using the exact source reproduced in section 7. |
-| `test_grid_archive_sha256_requires_canonical_lowercase` | pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64]) | pytest.raises(IgnGridNormalizationError) | 0 | Proves grid archive sha256 requires canonical lowercase using the exact source reproduced in section 7. |
-| `test_internal_source_context_rejects_invalid_lineage_values` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_layer", ""),<br>        ("source_layer", " LIGNE_ELECTRIQUE "),<br>        ("source_layer", 42),<br>        ("department_code", "XYZ"),<br>        ("edition", "2026-02-31"),<br>        ("download_timestamp", "not-a-datetime"),<br>        ("download_timestamp", "2026-08-11T15:32:03"),<br>        ("archive_sha256", "a" * 63),<br>        ("archive_sha256", "g" * 64),<br>        ("source_url", "not-a-url"),<br>        ("source_url", "file:///tmp/archive.7z"),<br>        ("product_version", ""),<br>        ("product_version", " 3.5 "),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError) | 0 | Proves internal source context rejects invalid lineage values using the exact source reproduced in section 7. |
-| `test_exact_voltage_parser_is_generic_and_finite` | pytest.mark.parametrize(<br>    ("raw", "expected_kv"),<br>    [<br>        ("63 kV", 63.0),<br>        ("150 kV", 150.0),<br>        ("225 kV", 225.0),<br>        ("400 kV", 400.0),<br>        ("110 kV", 110.0),<br>        ("  90 KV  ", 90.0),<br>        ("72,5 kv", 72.5),<br>    ],<br>) | none | 5 | Proves exact voltage parser is generic and finite using the exact source reproduced in section 7. |
-| `test_bounded_voltage_is_generic_finite_and_not_exact` | pytest.mark.parametrize(<br>    ("raw", "expected_upper_bound"),<br>    [("<63 kV", 63.0), ("<90 kV", 90.0), (" < 110 KV ", 110.0)],<br>) | none | 5 | Proves bounded voltage is generic finite and not exact using the exact source reproduced in section 7. |
-| `test_unknown_voltage_parser` | pytest.mark.parametrize("raw", ["Inconnue", " INCONNUE ", "inconnu", None]) | none | 4 | Proves unknown voltage parser using the exact source reproduced in section 7. |
-| `test_deenergized_voltage_parser` | pytest.mark.parametrize("raw", ["Hors tension", " HORS TENSION "]) | none | 4 | Proves deenergized voltage parser using the exact source reproduced in section 7. |
-| `test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` | pytest.mark.parametrize(<br>    "value",<br>    ["Très haute tension future", ["63 kV"], np.array(["63 kV"])],<br>) | none | 3 | Proves unexpected or non scalar voltage is controlled unparsed using the exact source reproduced in section 7. |
-| `test_invalid_or_overflowing_numeric_voltage_is_unparsed` | pytest.mark.parametrize(<br>    "raw",<br>    ["0 kV", "<0 kV", "-63 kV", "63 V", f"{'9' * 400} kV", f"<{'9' * 400} kV"],<br>) | none | 3 | Proves invalid or overflowing numeric voltage is unparsed using the exact source reproduced in section 7. |
-| `test_valid_line_has_stable_identity_lineage_and_range_index` | none | none | 18 | Proves valid line has stable identity lineage and range index using the exact source reproduced in section 7. |
-| `test_deenergized_voltage_does_not_override_source_asset_status` | none | none | 2 | Proves deenergized voltage does not override source asset status using the exact source reproduced in section 7. |
-| `test_null_or_empty_line_cleabs_fails` | pytest.mark.parametrize("identifier", [None, "", "   "]) | pytest.raises(IgnGridNormalizationError, match="cleabs\|null\|empty") | 0 | Proves null or empty line cleabs fails using the exact source reproduced in section 7. |
-| `test_unsafe_source_id_is_rejected_without_rewriting` | pytest.mark.parametrize(<br>    "identifier",<br>    [" leading", "trailing ", "IGN:BAD", "IGN\nCONTROL", "IGN\tCONTROL"],<br>) | pytest.raises(IgnGridNormalizationError, match="cleabs\|whitespace\|control\|:") | 0 | Proves unsafe source id is rejected without rewriting using the exact source reproduced in section 7. |
-| `test_duplicate_line_cleabs_fails` | none | pytest.raises(IgnGridNormalizationError, match="unique") | 0 | Proves duplicate line cleabs fails using the exact source reproduced in section 7. |
-| `test_line_missing_or_wrong_crs_fails` | pytest.mark.parametrize("crs", [None, "EPSG:4326", "EPSG:3857"]) | pytest.raises(IgnGridNormalizationError, match="CRS\|2154") | 0 | Proves line missing or wrong crs fails using the exact source reproduced in section 7. |
-| `test_line_geometry_quality_is_preserved_without_row_loss_or_repair` | none | none | 5 | Proves line geometry quality is preserved without row loss or repair using the exact source reproduced in section 7. |
-| `test_z_coordinates_are_preserved` | none | none | 3 | Proves z coordinates are preserved using the exact source reproduced in section 7. |
-| `test_unusual_duplicate_source_index_is_not_preserved_as_identity` | none | none | 4 | Proves unusual duplicate source index is not preserved as identity using the exact source reproduced in section 7. |
-| `test_line_normalization_does_not_mutate_input_and_has_stable_columns` | none | none | 1 | Proves line normalization does not mutate input and has stable columns using the exact source reproduced in section 7. |
-| `test_missing_required_line_field_fails` | pytest.mark.parametrize("column", ["cleabs", "geometry", "identifiants_sources"]) | pytest.raises(IgnGridNormalizationError, match=column) | 0 | Proves missing required line field fails using the exact source reproduced in section 7. |
-| `test_valid_or_null_line_precision_is_normalized_to_float` | pytest.mark.parametrize("precision", [0, 2.5, None, float("nan")]) | none | 3 | Proves valid or null line precision is normalized to float using the exact source reproduced in section 7. |
-| `test_invalid_line_precision_fails` | pytest.mark.parametrize("precision", [-1, float("inf"), float("-inf"), True, "2.5"]) | pytest.raises(IgnGridNormalizationError, match="precision_planimetrique") | 0 | Proves invalid line precision fails using the exact source reproduced in section 7. |
-| `test_normalized_voltage_never_emits_non_finite_numeric_values` | none | none | 3 | Proves normalized voltage never emits non finite numeric values using the exact source reproduced in section 7. |
-| `test_valid_post_has_stable_lineage_and_no_voltage_inference` | none | none | 10 | Proves valid post has stable lineage and no voltage inference using the exact source reproduced in section 7. |
-| `test_post_geometry_crs_and_input_are_preserved` | none | none | 2 | Proves post geometry crs and input are preserved using the exact source reproduced in section 7. |
-| `test_duplicate_post_cleabs_fails` | none | pytest.raises(IgnGridNormalizationError, match="unique") | 0 | Proves duplicate post cleabs fails using the exact source reproduced in section 7. |
-| `test_null_post_geometry_and_precision_are_preserved` | none | none | 5 | Proves null post geometry and precision are preserved using the exact source reproduced in section 7. |
-| `test_invalid_post_precision_fails` | none | pytest.raises(IgnGridNormalizationError, match="precision_planimetrique") | 0 | Proves invalid post precision fails using the exact source reproduced in section 7. |
-| `test_appropriate_multigeometry_types_are_accepted` | none | none | 4 | Proves appropriate multigeometry types are accepted using the exact source reproduced in section 7. |
-| `test_valid_polygon_or_point_is_rejected_as_electric_line` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 5), (5, 5), (5, 0), (0, 0)]),<br>        Point(1, 1),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError, match="geometry types") | 0 | Proves valid polygon or point is rejected as electric line using the exact source reproduced in section 7. |
-| `test_valid_line_or_point_is_rejected_as_transformation_post` | pytest.mark.parametrize("geometry", [LineString([(0, 0), (10, 10)]), Point(1, 1)]) | pytest.raises(IgnGridNormalizationError, match="geometry types") | 0 | Proves valid line or point is rejected as transformation post using the exact source reproduced in section 7. |
-| `test_high_level_path_uses_discovered_layer_names_and_archive_lineage` | none | none | 7 | Proves high level path uses discovered layer names and archive lineage using the exact source reproduced in section 7. |
-| `test_high_level_rejects_coordinated_frame_and_summary_forgery` | none | pytest.raises(IgnGridNormalizationError, match="physical\|fresh\|source") | 0 | Proves high level rejects coordinated frame and summary forgery using the exact source reproduced in section 7. |
-| `test_source_complete_grid_validation_does_not_mutate_supplied_frames` | none | none | 0 | Proves source complete grid validation does not mutate supplied frames using the exact source reproduced in section 7. |
-| `test_grid_normalization_uses_distinct_fresh_revalidated_frames` | none | none | 2 | Proves grid normalization uses distinct fresh revalidated frames using the exact source reproduced in section 7. |
-| `test_high_level_rejects_incompatible_archive_identity` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "Unrelated data vendor"),<br>        ("product", "OTHER PRODUCT"),<br>        ("projection", "EPSG:4326"),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError, match="lineage\|config") | 0 | Proves high level rejects incompatible archive identity using the exact source reproduced in section 7. |
-| `test_archive_identity_requires_exact_pinned_strings` | none | pytest.raises(IgnGridNormalizationError, match="provider\|product\|config") | 0 | Proves archive identity requires exact pinned strings using the exact source reproduced in section 7. |
-| `test_high_level_rejects_summary_row_count_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Proves high level rejects summary row count mismatch using the exact source reproduced in section 7. |
-| `test_high_level_rejects_summary_layer_name_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Proves high level rejects summary layer name mismatch using the exact source reproduced in section 7. |
-| `test_high_level_rejects_wrong_logical_name` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Proves high level rejects wrong logical name using the exact source reproduced in section 7. |
-| `test_high_level_rejects_summary_crs_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical\|CRS\|2154") | 0 | Proves high level rejects summary crs mismatch using the exact source reproduced in section 7. |
-| `test_high_level_rejects_forged_ordered_summary_schema` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="summary\|physical\|schema\|columns\|dtype",<br>    ) | 0 | Proves high level rejects forged ordered summary schema using the exact source reproduced in section 7. |
-| `test_high_level_rejects_duplicate_or_missing_layer_inventory` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|inventory\|duplicate",<br>    ); pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|inventory\|selected",<br>    ) | 0 | Proves high level rejects duplicate or missing layer inventory using the exact source reproduced in section 7. |
-| `test_high_level_rejects_colliding_electricity_roles` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|same layer\|distinct\|role",<br>    ) | 0 | Proves high level rejects colliding electricity roles using the exact source reproduced in section 7. |
-| `test_high_level_rejects_stale_geometry_counts_after_frame_mutation` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="freshly read physical source\|geometry summary",<br>    ) | 0 | Proves high level rejects stale geometry counts after frame mutation using the exact source reproduced in section 7. |
-| `test_high_level_rejects_stale_geometry_types_after_frame_mutation` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="freshly read physical source\|geometry summary",<br>    ) | 0 | Proves high level rejects stale geometry types after frame mutation using the exact source reproduced in section 7. |
-| `test_high_level_rejects_any_spatial_role_mismatch` | pytest.mark.parametrize(<br>    "component", ["source", "extraction", "archive", "line_summary", "post_summary"]<br>) | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="source-complete\|role\|spatial\|lineage\|integrity\|PROXY_GEOMETRY",<br>    ) | 0 | Proves high level rejects any spatial role mismatch using the exact source reproduced in section 7. |
+| `test_low_level_normalization_is_not_part_of_stages_public_api` | pytest.mark.parametrize(<br>    "name",<br>    [<br>        "IgnGridSourceContext",<br>        "normalize_ign_electric_lines",<br>        "normalize_ign_transformation_posts",<br>    ],<br>) | none | 2 | For three former low-level names, assert neither stages.__all__ nor package attributes expose them. |
+| `test_supported_package_api_keeps_high_level_normalization` | none | none | 3 | Assert the supported export set and run public normalization on the physical fixture, checking discovered line/post layer lineage. |
+| `test_internal_source_context_accepts_supported_department_codes` | pytest.mark.parametrize("department_code", ["31", "2A", "2B", "971", "976"]) | none | 0 | Call the private context validator successfully for 31, 2A, 2B, 971 and 976; no output assertion or download is involved. |
+| `test_internal_source_context_rejects_uppercase_sha256` | none | pytest.raises(IgnGridNormalizationError, match="archive_sha256") | 0 | Reject uppercase SHA through the private line kernel before normalization. |
+| `test_grid_summary_requires_strict_structural_types` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("feature_count", True),<br>        ("feature_count", 1.0),<br>        ("feature_count", "1"),<br>        ("feature_count", -1),<br>        ("null_geometry_count", False),<br>        ("null_geometry_count", 0.0),<br>        ("empty_geometry_count", "0"),<br>        ("invalid_geometry_count", -1),<br>        ("columns", ["cleabs", "geometry"]),<br>        ("columns", ("cleabs", "cleabs")),<br>        ("dtypes", [("cleabs", "str")]),<br>        ("dtypes", (("cleabs",),)),<br>        ("geometry_types", ["LineString"]),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError) | 0 | Reject thirteen forged count/column/dtype/geometry-type shapes, including bool/string/float counts, negative values, mutable list collections and malformed dtype records. |
+| `test_grid_archive_sha256_requires_canonical_lowercase` | pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64]) | pytest.raises(IgnGridNormalizationError) | 0 | Reject uppercase, short, long and nonhex archive SHA spellings at the public boundary. |
+| `test_internal_source_context_rejects_invalid_lineage_values` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("source_layer", ""),<br>        ("source_layer", " LIGNE_ELECTRIQUE "),<br>        ("source_layer", 42),<br>        ("department_code", "XYZ"),<br>        ("edition", "2026-02-31"),<br>        ("download_timestamp", "not-a-datetime"),<br>        ("download_timestamp", "2026-08-11T15:32:03"),<br>        ("archive_sha256", "a" * 63),<br>        ("archive_sha256", "g" * 64),<br>        ("source_url", "not-a-url"),<br>        ("source_url", "file:///tmp/archive.7z"),<br>        ("product_version", ""),<br>        ("product_version", " 3.5 "),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError) | 0 | Reject thirteen selected empty/padded/wrong-type layer or version, invalid department/date/naive timestamp/SHA/non-HTTPS URL context values. |
+| `test_exact_voltage_parser_is_generic_and_finite` | pytest.mark.parametrize(<br>    ("raw", "expected_kv"),<br>    [<br>        ("63 kV", 63.0),<br>        ("150 kV", 150.0),<br>        ("225 kV", 225.0),<br>        ("400 kV", 400.0),<br>        ("110 kV", 110.0),<br>        ("  90 KV  ", 90.0),<br>        ("72,5 kv", 72.5),<br>    ],<br>) | none | 5 | For seven positive kV spellings, including 110, case/whitespace and decimal comma, retain raw text and emit EXACT with finite numeric voltage and no upper bound. |
+| `test_bounded_voltage_is_generic_finite_and_not_exact` | pytest.mark.parametrize(<br>    ("raw", "expected_upper_bound"),<br>    [("<63 kV", 63.0), ("<90 kV", 90.0), (" < 110 KV ", 110.0)],<br>) | none | 5 | For three less-than kV spellings, retain raw text and emit BELOW with finite upper bound only, never exact voltage. |
+| `test_unknown_voltage_parser` | pytest.mark.parametrize("raw", ["Inconnue", " INCONNUE ", "inconnu", None]) | none | 4 | Map three unknown-language/case forms and None to UNKNOWN with both numeric outputs absent. |
+| `test_deenergized_voltage_parser` | pytest.mark.parametrize("raw", ["Hors tension", " HORS TENSION "]) | none | 4 | Map two Hors tension spellings to DEENERGIZED while retaining raw text and absent numeric voltage values. |
+| `test_unexpected_or_non_scalar_voltage_is_controlled_unparsed` | pytest.mark.parametrize(<br>    "value",<br>    ["Très haute tension future", ["63 kV"], np.array(["63 kV"])],<br>) | none | 3 | Return UNPARSED for unknown text, a list and a NumPy array without leaking scalar-coercion errors. |
+| `test_invalid_or_overflowing_numeric_voltage_is_unparsed` | pytest.mark.parametrize(<br>    "raw",<br>    ["0 kV", "<0 kV", "-63 kV", "63 V", f"{'9' * 400} kV", f"<{'9' * 400} kV"],<br>) | none | 3 | Return UNPARSED for zero exact/bounded voltage, negative voltage, wrong unit and 400-digit exact/bounded overflow. |
+| `test_valid_line_has_stable_identity_lineage_and_range_index` | none | none | 18 | Assert fixed ordered line schema, RangeIndex, namespaced source ID, complete supplied lineage and selected raw manager/status/source/precision facts. |
+| `test_deenergized_voltage_does_not_override_source_asset_status` | none | none | 2 | Assert DEENERGIZED voltage evidence coexists with unchanged En service raw asset status. |
+| `test_null_or_empty_line_cleabs_fails` | pytest.mark.parametrize("identifier", [None, "", "   "]) | pytest.raises(IgnGridNormalizationError, match="cleabs\|null\|empty") | 0 | Reject null, empty and blank source line identifiers. |
+| `test_unsafe_source_id_is_rejected_without_rewriting` | pytest.mark.parametrize(<br>    "identifier",<br>    [" leading", "trailing ", "IGN:BAD", "IGN\nCONTROL", "IGN\tCONTROL"],<br>) | pytest.raises(IgnGridNormalizationError, match="cleabs\|whitespace\|control\|:") | 0 | Reject five padded, colon-containing and newline/tab-containing identifiers rather than cleaning them. |
+| `test_duplicate_line_cleabs_fails` | none | pytest.raises(IgnGridNormalizationError, match="unique") | 0 | Reject duplicate line identifiers even when supplied geometry rows differ. |
+| `test_line_missing_or_wrong_crs_fails` | pytest.mark.parametrize("crs", [None, "EPSG:4326", "EPSG:3857"]) | pytest.raises(IgnGridNormalizationError, match="CRS\|2154") | 0 | Reject missing CRS, EPSG:4326 and EPSG:3857 instead of reprojection. |
+| `test_line_geometry_quality_is_preserved_without_row_loss_or_repair` | none | none | 5 | Retain four VALID/NULL/EMPTY/INVALID rows and their identities, including an invalid polygon in a line fixture; exact equality confirms the invalid geometry is not repaired. Valid incompatible types are tested separately. |
+| `test_z_coordinates_are_preserved` | none | none | 3 | Assert the source and normalized line have Z and compare equals_exact at zero tolerance; the test does not compare encoded WKB or independently enumerate Z ordinate values. |
+| `test_unusual_duplicate_source_index_is_not_preserved_as_identity` | none | none | 4 | Replace duplicate source index labels with RangeIndex while preserving row order and namespaced CLEABS identity. |
+| `test_line_normalization_does_not_mutate_input_and_has_stable_columns` | none | none | 1 | Reverse input columns, restore active geometry on the returned frame and use GeoPandas equality to prove the source is unchanged while output order is fixed. |
+| `test_missing_required_line_field_fails` | pytest.mark.parametrize("column", ["cleabs", "geometry", "identifiants_sources"]) | pytest.raises(IgnGridNormalizationError, match=column) | 0 | Individually omit CLEABS, geometry or source identifiers and require the named missing-field error. |
+| `test_valid_or_null_line_precision_is_normalized_to_float` | pytest.mark.parametrize("precision", [0, 2.5, None, float("nan")]) | none | 3 | For zero, 2.5, None and NaN precision, assert float64 output and corresponding numeric/null values. |
+| `test_invalid_line_precision_fails` | pytest.mark.parametrize("precision", [-1, float("inf"), float("-inf"), True, "2.5"]) | pytest.raises(IgnGridNormalizationError, match="precision_planimetrique") | 0 | Reject negative, positive/negative infinity, bool and numeric-text line precision. |
+| `test_normalized_voltage_never_emits_non_finite_numeric_values` | none | none | 3 | Normalize four exact/bounded/overflow/unknown rows and assert expected statuses and finite non-null numeric voltage columns. |
+| `test_valid_post_has_stable_lineage_and_no_voltage_inference` | none | none | 10 | Assert fixed post schema, RangeIndex, namespaced ID/lineage/name and UNKNOWN voltage with null numeric value. |
+| `test_post_geometry_crs_and_input_are_preserved` | none | none | 2 | Use GeoPandas equality for input preservation, EPSG:2154 identity and zero-tolerance geometry equality for normalized polygonal posts. |
+| `test_duplicate_post_cleabs_fails` | none | pytest.raises(IgnGridNormalizationError, match="unique") | 0 | Reject repeated post identifiers for a two-row polygon fixture. |
+| `test_null_post_geometry_and_precision_are_preserved` | none | none | 5 | Retain null post geometry, NULL quality status, UNKNOWN/null voltage and null precision. |
+| `test_invalid_post_precision_fails` | none | pytest.raises(IgnGridNormalizationError, match="precision_planimetrique") | 0 | Reject the selected malformed post precision value through the shared precision guard. |
+| `test_appropriate_multigeometry_types_are_accepted` | none | none | 4 | Accept MultiLineString for lines and MultiPolygon for posts, preserving their types and VALID statuses. |
+| `test_valid_polygon_or_point_is_rejected_as_electric_line` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 5), (5, 5), (5, 0), (0, 0)]),<br>        Point(1, 1),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError, match="geometry types") | 0 | Reject two valid incompatible electric-line geometry families: Polygon and Point. |
+| `test_valid_line_or_point_is_rejected_as_transformation_post` | pytest.mark.parametrize("geometry", [LineString([(0, 0), (10, 10)]), Point(1, 1)]) | pytest.raises(IgnGridNormalizationError, match="geometry types") | 0 | Reject two valid incompatible transformation-post families: LineString and Point. |
+| `test_high_level_path_uses_discovered_layer_names_and_archive_lineage` | none | none | 7 | Normalize a physical fixture and assert discovered layer names and common department/edition/version/archive SHA/source URL facts on both output frames. |
+| `test_high_level_rejects_coordinated_frame_and_summary_forgery` | none | pytest.raises(IgnGridNormalizationError, match="physical\|fresh\|source") | 0 | Change caller line voltage and recompute its matching summary, then require physical source revalidation to reject the coordinated forgery. |
+| `test_source_complete_grid_validation_does_not_mutate_supplied_frames` | none | none | 0 | Run public physical revalidation and compare both caller frames against deep copies with GeoPandas equality helpers. |
+| `test_grid_normalization_uses_distinct_fresh_revalidated_frames` | none | none | 2 | Mock the revalidator to return independent frames while mutating the supplied frame; assert normalization consumes the fresh voltage and the caller mutation remains observable. |
+| `test_high_level_rejects_incompatible_archive_identity` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "Unrelated data vendor"),<br>        ("product", "OTHER PRODUCT"),<br>        ("projection", "EPSG:4326"),<br>    ],<br>) | pytest.raises(IgnGridNormalizationError, match="lineage\|config") | 0 | Reject three forged archive provider/product/projection values against the configured source. |
+| `test_archive_identity_requires_exact_pinned_strings` | none | pytest.raises(IgnGridNormalizationError, match="provider\|product\|config") | 0 | Reject semantically similar but nonexact pinned provider/product strings; no normalizing alias is accepted. |
+| `test_high_level_rejects_summary_row_count_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Forge the source summary row count and require public rejection. |
+| `test_high_level_rejects_summary_layer_name_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Forge selected source-layer name in the summary and require rejection. |
+| `test_high_level_rejects_wrong_logical_name` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical") | 0 | Forge the line summary's logical role and require rejection. |
+| `test_high_level_rejects_summary_crs_mismatch` | none | pytest.raises(IgnGridNormalizationError, match="summary\|physical\|CRS\|2154") | 0 | Forge the summary CRS against the actual selected frame and require rejection. |
+| `test_high_level_rejects_forged_ordered_summary_schema` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="summary\|physical\|schema\|columns\|dtype",<br>    ) | 0 | Reject missing, extra, reordered columns and changed dtype declarations against the source summary. |
+| `test_high_level_rejects_duplicate_or_missing_layer_inventory` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|inventory\|duplicate",<br>    ); pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|inventory\|selected",<br>    ) | 0 | Exercise separate duplicate-inventory and missing-selected-layer guards in one test. |
+| `test_high_level_rejects_colliding_electricity_roles` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="integrity\|same layer\|distinct\|role",<br>    ) | 0 | Bind line and post roles to the same selected layer and require an integrity/role error. |
+| `test_high_level_rejects_stale_geometry_counts_after_frame_mutation` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="freshly read physical source\|geometry summary",<br>    ) | 0 | Replace caller line geometry with None while retaining the previous summary and require physical/geometry-summary rejection. |
+| `test_high_level_rejects_stale_geometry_types_after_frame_mutation` | none | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="freshly read physical source\|geometry summary",<br>    ) | 0 | Replace caller LineString with MultiLineString while retaining prior summary and require physical/geometry-summary rejection. |
+| `test_high_level_rejects_any_spatial_role_mismatch` | pytest.mark.parametrize(<br>    "component", ["source", "extraction", "archive", "line_summary", "post_summary"]<br>) | pytest.raises(<br>        IgnGridNormalizationError,<br>        match="source-complete\|role\|spatial\|lineage\|integrity\|PROXY_GEOMETRY",<br>    ) | 0 | Forge spatial_role separately on source, extraction, archive, line summary and post summary and require controlled rejection. |
 
 ## 8. Public exports and package ownership
 

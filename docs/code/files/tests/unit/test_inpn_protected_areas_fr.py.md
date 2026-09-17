@@ -10,7 +10,17 @@
 
 ## 1. Test architecture and boundary
 
-The test file uses local temporary archives/GeoPackages and controlled monkeypatches. It never depends on live INPN transport. It protects factual byte, archive, extraction, package, metadata, canonicality, and rebuild contracts without adding environmental semantics. Feature rows are used only to construct tiny synthetic fixture files; the production catalog path is explicitly prevented from materializing them.
+This file uses actual temporary ZIP/cache/extraction bytes and controlled monkeypatches. Its `.gpkg`, `.shp` and other member names contain arbitrary small byte payloads, not actual spatial datasets: it neither constructs nor opens GeoPackages and does not invoke the catalog. `_download_with_session` replaces the imported `open_safe_https` context manager, so real acquisition/ZIP/cache code executes but DNS, TLS, address pinning and redirect behavior do not. The separate safe-HTTP suite owns those transport regressions. One valid-cache regression explicitly installs fatal DNS and HTTP hooks and proves neither is reached.
+
+### Audited assertion scope
+
+The production config URLs and identity remain fixed in fixtures, while `_config` changes the expected size/SHA to match each synthetic archive and places cache files below `tmp_path`. Stored ZIP entries use a fixed timestamp in `_zip_bytes`; special Unix-mode fixtures are separate. Empty `members` input falls back to the default member because the helper uses `members or default`. The fake `_Session.open` does not follow redirects: it accepts only 2xx and closes successful responses; unused redirect-building support is not evidence of real redirect safety.
+
+The mutation hooks used by the archive-return regressions assert that the swap actually happened, and distinguish transient A-to-B-to-A path replacement from a persistent B path. Recovery tests preserve either the prior byte tree/pair or recovery backups according to the branch; some intentionally start from an already tampered cache, whereas `test_failed_replacement_restores_a_still_reusable_valid_download_pair` separately proves restoration of a valid reusable pair.
+
+`test_extraction_validates_complete_inventory_before_copying` rewrites the archive and caller size/SHA but leaves the configured pin unchanged. Rejection therefore occurs at download-envelope authority before ZIP inventory traversal; zero copies does not independently prove the ordering of that later extraction branch. `test_complete_zip_inventory_is_validated_before_member_copy` instead pins the unsafe ZIP in config and spies on `ZipFile.open`, so its zero-open assertion does reach namespace validation before CRC/member reads. This is a test-evidence limitation, not an established production defect.
+
+Loaded-config immutability is tested by one field reassignment; result freezing by download/extraction/file-record reassignment. There are no mutable config collections in this family. Simulated link/junction tests patch inspection functions rather than creating OS links. The complete source below contains every assertion and nested callback; no test was rerun merely to perform this documentation read.
 
 ## 2. Imports
 
@@ -129,7 +139,7 @@ from landscout.sources.inpn_protected_areas_fr import (
   - `def close(self) -> None` records closure.
   - `def read(self, size: int=-1) -> bytes` delegates the sequential read to `self.raw`.
   - `def __enter__(self) -> Self` and `def __exit__(self, *args: object) -> None` provide deterministic context-manager lifetime.
-- Invariant protected: the production boundary cannot distinguish trust using mutable aliases, permissive scalar equality, or real network state.
+- Boundary: this object supplies mutable local fake transport state; it does not itself establish model immutability or canonical lineage rejection.
 
 ### `_StringSubclass`
 
@@ -175,7 +185,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _special_zip(name: str, mode: int) -> bytes`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: builds one ZIP member with an explicit Unix mode for symbolic-link, directory, and special-file rejection tests.
+- Purpose: builds one ZIP member with an explicit Unix mode; current rejection cases exercise symbolic links and FIFO special files.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `archive.writestr`, `io.BytesIO`, `stream.getvalue`, `zipfile.ZipFile`, `zipfile.ZipInfo`.
 - Validation behavior: assertions and delegated production validation.
@@ -326,7 +336,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def _force_cache_miss(download: InpnProtectedAreasDownload) -> tuple[Path, bytes]`
 - Decorators: `none`.
 - Kind: fixture/helper.
-- Purpose: corrupts only the cached download metadata SHA and returns the sidecar path plus its original bytes for restoration assertions.
+- Purpose: corrupts the cached download metadata SHA and returns the sidecar path plus the bytes after that corruption, so replacement rollback can be compared with the pre-replacement state.
 - Inputs/outputs: fixed by the exact signature; returned archives, configs, extraction records, catalog records, and monkeypatch closures are local synthetic evidence only.
 - Mechanisms/callees: `_download_metadata_path`, `_read_json`, `_write_json`, `metadata_path.read_bytes`.
 - Validation behavior: assertions and delegated production validation.
@@ -686,7 +696,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def test_extraction_validates_complete_inventory_before_copying(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
 - Parametrization/decorators: none; one collected case.
 - Fixtures/inputs: `tmp_path`, `monkeypatch`.
-- Protected invariant: Extraction validates complete inventory before copying.
+- Protected invariant: changed archive/caller integrity cannot override the unchanged configured pin, and no extraction copy occurs; this fixture rejects before complete ZIP inventory validation.
 - Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
 - Monkeypatch mechanism: `monkeypatch.setattr(inpn, "copyfileobj", record_copy)`.
 - Expected controlled failures: `pytest.raises(InpnProtectedAreasSourceError)`.
@@ -1091,7 +1101,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 - Archive suite: controlled ZIP opening; exact lineage reconstruction; immutable archive bytes; same-snapshot member validation/streaming; archive-derived regular-file hashes; four-way equality; cold/cache-hit/public-validator and pre/post-publication archive checks; cached-candidate post-snapshot mutation rejection with exact online refresh/offline failure behavior; coordinated marker/file mutations; archive member byte/size/path/removal mismatches; cache rebuild without network; effective transient and persistent archive-path swaps.
 - Catalog suite: each package read once; identical built-in bytes supplied to `list_layers`/all `read_info`; narrow known-warning suppression and visible unrelated warnings; transient swap isolation; persistent mutation rejection; required exact `GPKG` driver; schema-2 driver hash binding; schema-1 rejection; exact tuple/float bounds; exact optional CRS strings; independent physical rebuild.
-- Zero materialization: production attempts to call `pyogrio.read_dataframe`, `pyogrio.read_arrow`, `geopandas.read_file`, or `geopandas.read_parquet` fail immediately in the regression.
+- Separate catalog-suite boundary (not executed by this file): catalog tests install fatal feature-reader hooks. This acquisition suite imports no Pyogrio or GeoPandas and uses no feature rows.
 - Semantic non-goals: no protected-area categories, Natura 2000, ZNIEFF, geometry normalization, parcel relation, exclusion, scoring, or ranking.
 
 ## 6. Exact complete current file content

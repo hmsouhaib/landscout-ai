@@ -11,7 +11,7 @@
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Revalidates the immutable source/policy inputs at the public application boundary while preserving factual rows and policy precedence.
+- Revalidates the supplied source through the source-complete normalizer and reloads policy file bytes at the public boundary; preserves factual rows and policy precedence. The source/result GeoDataFrames are not deeply immutable.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
 ## 2. Purpose and architectural position
@@ -19,6 +19,50 @@
 Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
 
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
+
+### Source boundary and ordered classification
+
+`apply_ign_road_vehicle_proxy_policy(source, source_config, policy_path=None)`
+requires exact source/config classes and a `Path` instance or `None`. It invokes
+`normalize_ign_roads` exactly once, checks its result type and factual-frame
+envelope, then loads the default or exact supplied policy path. Callers cannot
+supply an authoritative compiled policy. The private frame classifier is a
+computational helper; it does not repeat the physical source validation.
+
+The classifier copies the normalized frame, derives strict masks for nine facts,
+and records unknown fields in fixed order. Six facts are critical: fictitious,
+asset state, nature, light-vehicle access, private and importance. Missing width,
+closure and restriction nature are allowed absences, whereas malformed present
+values contribute unknown evidence. A positive width strictly below the policy
+threshold triggers narrowing. Exact present closure text triggers review without
+interpreting a calendar; exact present restriction text is either a configured
+restriction or `OTHER_RECORDED_RESTRICTION`, not automatically unknown.
+
+For non-VALID geometry, all business-rule masks are disabled and the sole rule
+trace is `SOURCE_GEOMETRY_NOT_VALID`, class `NOT_DISTANCE_PROXY`; geometry is not
+repaired or removed. Unknown-field and toll evidence are still derived. For VALID
+geometry, all applicable non-general/review/limited triggers are retained in the
+policy order. `OPEN_OR_TOLL` additionally requires known non-fictitious,
+in-service, general nature, open/toll, non-private, known importance, no higher
+trigger and **no** unresolved fact (including malformed optional facts). `UNKNOWN`
+is traced when any fact is unresolved or no other result is determined. A higher
+known rule can remain primary while `UNKNOWN` is also present in the trace.
+
+Primary rule/class are the first matching policy rule/outcome after the technical
+gate. Compact Unicode JSON arrays preserve configured rule order and declared
+unknown-field order; they are not sorted by label. The twelve appended columns
+carry the primary rule, class, two traces, independent Boolean toll evidence and
+seven policy-lineage values. Every original column, row order, index, active
+geometry and CRS is retained. No distance, scoring, parcel join or authorization
+is computed here. `IgnRoadVehicleProxyApplicationResult.roads` is a required
+GeoDataFrame in a frozen wrapper: field reassignment fails, but the frame remains
+mutable for callers, so later source-bound stages must validate their own inputs.
+
+The public wrapper preserves its own domain error and translates other ordinary
+exceptions, retaining the cause. File/physical-GPKG reads occur transitively in
+normalization and policy loading; the classifier itself is in-memory only. The
+unit suite deliberately replaces normalization for scalar/precedence tests; its
+call-count and propagated-failure tests are not physical IGN reconstruction tests.
 
 ## 3. Imports and dependencies
 
@@ -326,7 +370,7 @@ class IgnRoadVehicleProxyApplicationResult:
 
 ### `_false_mask`
 
-**Purpose:** Implements `false mask` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Allocate a fresh Boolean-false Series on the supplied index, including an empty index; used as a mask accumulator without mutating the index.
 
 **Exact signature**
 
@@ -399,6 +443,11 @@ def _false_mask(index: pd.Index) -> pd.Series:
 ### `_object_scalar_mask`
 
 **Purpose:** Apply a strict scalar type gate only for heterogeneous object fixtures.
+
+Mechanically, this branch is selected for any object-dtype Series: wrap the
+predicate with `np.frompyfunc`, apply it to an object array, convert results to a
+Boolean array and restore the original index. It does not coerce source values
+into strings/numbers; predicate exceptions are translated by the public wrapper.
 
 **Exact signature**
 
@@ -479,7 +528,7 @@ def _object_scalar_mask(
 
 ### `_is_strict_numeric_scalar`
 
-**Purpose:** Implements `is strict numeric scalar` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Accept exact Python int/float or NumPy integer/floating scalars, excluding Python/NumPy Booleans. Finiteness and sign are checked by the two callers, not by this predicate.
 
 **Exact signature**
 
@@ -546,7 +595,7 @@ def _is_strict_numeric_scalar(value: object) -> bool:
 
 ### `_is_strict_binary_numeric`
 
-**Purpose:** Implements `is strict binary numeric` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Reject non-numeric scalar types; convert the accepted numeric to float and require finite 0 or 1. This enables observed numeric private-road flags without accepting string encodings.
 
 **Exact signature**
 
@@ -614,7 +663,7 @@ def _is_strict_binary_numeric(value: object) -> bool:
 
 ### `_is_strict_positive_numeric`
 
-**Purpose:** Implements `is strict positive numeric` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Reject non-numeric scalar types; convert the accepted numeric to float and require finite strict positivity. The width threshold comparison is performed later.
 
 **Exact signature**
 
@@ -682,7 +731,7 @@ def _is_strict_positive_numeric(value: object) -> bool:
 
 ### `_strict_boolean_masks`
 
-**Purpose:** Implements `strict boolean masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Return known/true/false masks for fictitious flags. Boolean dtypes use non-null values; object dtypes admit only actual Python/NumPy Booleans; every other dtype is wholly unknown. Numeric 0/1 and string Boolean spellings are not admitted here.
 
 **Exact signature**
 
@@ -770,7 +819,7 @@ def _strict_boolean_masks(
 
 ### `_strict_private_masks`
 
-**Purpose:** Implements `strict private masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Return known/private/non-private masks. Admit Boolean values, or finite numeric 0/1 in a numeric dtype; object dtypes combine actual Boolean and strict binary numeric scalar predicates. Other values/dtypes are unknown, with no string coercion.
 
 **Exact signature**
 
@@ -877,7 +926,7 @@ def _strict_private_masks(
 
 ### `_exact_string_mask`
 
-**Purpose:** Implements `exact string mask` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** For pandas string or object dtypes, identify non-null non-empty strings equal to their stripped form; other dtypes receive an all-false mask. Stripping is used only for comparison and does not rewrite factual values.
 
 **Exact signature**
 
@@ -951,7 +1000,7 @@ def _exact_string_mask(series: pd.Series) -> pd.Series:
 
 ### `_known_string_masks`
 
-**Purpose:** Implements `known string masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Intersect exact-string validity with configured vocabulary membership and return known plus its complement. Missing critical string facts are unknown rather than allowed absence.
 
 **Exact signature**
 
@@ -1023,7 +1072,7 @@ def _known_string_masks(
 
 ### `_optional_exact_string_masks`
 
-**Purpose:** Implements `optional exact string masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Return exact-present and invalid-present masks for optional closure/restriction text; actual nulls are neither present nor invalid. Empty, whitespace-padded or wrong-type present values remain explicit unknown evidence.
 
 **Exact signature**
 
@@ -1093,7 +1142,7 @@ def _optional_exact_string_masks(
 
 ### `_width_masks`
 
-**Purpose:** Implements `width masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Return narrow/unknown masks: null width is allowed absence, finite positive numeric width is known, and only a strict less-than threshold is narrow. Numeric dtypes use array finiteness; object dtypes use the strict scalar predicate; Boolean/string/wrong-dtype present values are unknown.
 
 **Exact signature**
 
@@ -1195,7 +1244,7 @@ def _width_masks(
 
 ### `_json_array_from_masks`
 
-**Purpose:** Implements `json array from masks` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Build one compact JSON array per row by iterating ordered label/mask pairs, treating missing mask entries as false and inserting commas only after the first token. Labels are encoded with Unicode preserved; no match yields exactly `[]`.
 
 **Exact signature**
 
@@ -1276,7 +1325,7 @@ def _json_array_from_masks(
 
 ### `_rule_outcomes`
 
-**Purpose:** Implements `rule outcomes` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Return a fresh local dictionary connecting the sixteen fixed rule names to outcome fields of the loaded policy. The mapping is an ephemeral computational result, not a mutable alias retained by the policy; class values are not duplicated here.
 
 **Exact signature**
 
@@ -1354,7 +1403,7 @@ def _rule_outcomes(policy: IgnRoadVehicleProxyPolicy) -> Mapping[str, str]:
 
 ### `_validate_normalized_frame`
 
-**Purpose:** Implements `validate normalized frame` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Require a GeoDataFrame, unique columns, all policy input columns, no generated-column collision, active `geometry`, a CRS, RangeIndex and known non-null geometry-status values, in that order. Return the same frame without modifying it. This envelope check does not recalculate geometry status or prove source authority; the normalizer supplies those facts.
 
 **Exact signature**
 
@@ -1468,7 +1517,7 @@ def _validate_normalized_frame(frame: object) -> gpd.GeoDataFrame:
 
 ### `_classify_road_frame`
 
-**Purpose:** Implements `classify road frame` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Execute the ordered classification described above on a deep frame copy, keep technical invalid-geometry gating separate from business precedence, retain complete traces and append exact policy lineage. Validate outcome/precedence key equality, total primary assignment and final row/index preservation; return a new GeoDataFrame.
 
 **Exact signature**
 
@@ -1551,7 +1600,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `output["geometry_status"].eq` |
+| CRS/geometry/spatial calculation | None; `output["geometry_status"].eq` compares factual status strings, not geometry. |
 | External process/environment | None directly present. |
 | In-memory mutation | `rule_masks["OPEN_OR_TOLL"] = open_or_toll`<br>`rule_masks["UNKNOWN"] = unknown_any \| ~determined`<br>`primary.loc[technical_geometry] = _TECHNICAL_GEOMETRY_RULE`<br>`proxy_class.loc[technical_geometry] = policy.classes.not_distance_proxy`<br>`primary.loc[first] = rule`<br>`proxy_class.loc[first] = outcomes[rule]`<br>`output["road_proxy_primary_rule"] = primary`<br>`output["road_proxy_class"] = proxy_class`<br>`output["road_proxy_rule_trace_json"] = trace`<br>`output["road_proxy_unknown_fields_json"] = unknown_fields`<br>`output["road_proxy_toll_evidence"] = output["light_vehicle_access_raw"].isin(<br>        access_values.toll<br>    )`<br>`output["road_proxy_policy_id"] = policy.policy_id`<br>`output["road_proxy_policy_schema_version"] = policy.schema_version`<br>`output["road_proxy_policy_config_sha256"] = policy.config_sha256`<br>`output["road_proxy_policy_scope"] = policy.scope`<br>`output["road_proxy_policy_evidence_checked_on"] = policy.evidence_checked_on`<br>`output["road_proxy_vehicle_scope"] = policy.vehicle_scope`<br>`output["road_proxy_heavy_vehicle_access"] = policy.heavy_vehicle_access` |
 | Direct parameter mutation | None directly present. |
@@ -1765,7 +1814,7 @@ def _classify_road_frame(
 
 ### `_apply_ign_road_vehicle_proxy_policy`
 
-**Purpose:** Implements `apply ign road vehicle proxy policy` within the file role: Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation.
+**Purpose:** Call source-complete normalization once, reject a wrong result type or malformed/colliding frame before loading policy, load the default or exact supplied file and wrap the classified frame. This private orchestration helper relies on the public wrapper's input-type and error boundary.
 
 **Exact signature**
 

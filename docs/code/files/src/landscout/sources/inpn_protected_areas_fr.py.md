@@ -14,6 +14,16 @@ The pinned archive is source authority. STEP 7F.1B.1.2 requires `pinned EP.zip b
 
 ## 2. Imports and dependencies
 
+### Audited boundary details
+
+The default config path and relative `cache_root` are resolved by ordinary `Path` operations against the process working directory, not automatically against the module directory. The config has twelve required, non-null fields and no nested mutable collections. Its Pydantic freeze prevents ordinary reassignment; public source boundaries nevertheless require its exact model type and reconstruct it with `model_dump(mode="python")` followed by validation. URL equality is checked after `HttpUrl` parsing. Version grammar, positive size and lowercase SHA grammar are model constraints; the current July 2026 size/SHA values are pinned by checked-in YAML, not hardcoded as model literals.
+
+Public download/extraction dataclasses have required fields but no constructor validation. Their validated public returns contain immutable scalar/Path values and an exact tuple of frozen file records. `_ValidatedZipMember` is private temporary machinery: its `ZipInfo` object is mutable; it is not returned as integrity evidence. Frozen dataclasses are not a substitute for the exact reconstruction and physical checks at public boundaries.
+
+ZIP destination parsing preserves safe source spelling for the destination, converts backslashes to POSIX separators and collapses path syntax through `PurePosixPath`; a separate NFKC/case-folded component tuple detects Windows collisions. Persisted inventory paths must already equal the resulting canonical POSIX spelling. Every member's namespace/kind is checked before `testzip()` reads payloads; `testzip()` checks CRCs, and `_archive_regular_file_inventory` separately hashes every uncompressed regular member. The extraction marker itself is excluded from payload inventory, but is required and strictly validated separately.
+
+Publication uses two sequential file replacements or one directory replacement, with backups and rollback. It is not a multi-file atomic transaction visible to concurrent observers. A rollback failure preserves recovery material; a pre-existing backup blocks publication rather than being silently removed. The final archive reread is an in-operation postcondition, not filesystem locking or a guarantee against changes after return. This adapter opens no GeoPackage and performs no GIS calculation. Actual DNS, address pinning and redirects belong to the shared `open_safe_https` implementation, not a local resolver or HTTP session parameter.
+
 ```python
 from __future__ import annotations
 ```
@@ -266,7 +276,7 @@ __all__ = [
 - Decorators: `none`.
 - Purpose: Raised when the pinned INPN source cannot be handled safely.
 - Exact fields: none declared.
-- Canonicality: the declared frozen/strict model contract is supplemented by exact public boundary reconstruction and scalar/tuple validation.
+- This is a controlled ValueError subclass, not a frozen dataclass or validated Pydantic trust record.
 
 ### `InpnProtectedAreasSourceConfig`
 
@@ -410,7 +420,7 @@ __all__ = [
   - `info: zipfile.ZipInfo`; default `required`.
   - `destination: PurePosixPath`; default `required`.
   - `is_directory: bool`; default `required`.
-- Canonicality: the declared frozen/strict model contract is supplemented by exact public boundary reconstruction and scalar/tuple validation.
+- Private temporary traversal state only: frozen fields prevent reassignment but `info` is a mutable ZipInfo. This record is not returned as public integrity evidence; its member bytes and safe destination are validated before extraction.
 
 ## 5. Function-by-function inventory
 
@@ -444,7 +454,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `ValueError`, `datetime.fromisoformat`, `offset.total_seconds`, `parsed.utcoffset`, `type`, `value.strip`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -466,7 +476,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceConfig.model_validate`, `InpnProtectedAreasSourceError`, `config.model_dump`, `type`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -489,14 +499,14 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceConfig.model_validate`, `InpnProtectedAreasSourceError`, `ValueError`, `isinstance`, `loads_strict_yaml`, `path.read_bytes`, `type`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_checked_in_config_loads_with_exact_source_identity`, `test_source_config_yaml_rejects_duplicate_keys`, `test_loaded_source_config_is_immutable`, `test_config_rejects_noncanonical_values`, `test_download_timeout_is_strict_finite_positive`
+- Direct production-call contexts in this test file: `test_checked_in_config_loads_with_exact_source_identity`, `test_config_rejects_noncanonical_values`, `test_download_timeout_is_strict_finite_positive`, `test_loaded_source_config_is_immutable`, `test_source_config_yaml_rejects_duplicate_keys`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
 ### `_cache_directory`
 
 - Exact signature: `def _cache_directory(config: InpnProtectedAreasSourceConfig) -> Path`
-- Purpose: derives the versioned provider/dataset cache directory from validated source identity.
+- Purpose: replaces the month/year slash with a hyphen and returns `cache_root / dataset_id / version`; no provider directory is added independently of `cache_root`.
 - Inputs: `config: InpnProtectedAreasSourceConfig`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `Path`.
 - Ordered algorithm:
@@ -506,12 +516,12 @@ __all__ = [
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `config.declared_version.replace`
+- Filesystem effects: none; `config.declared_version.replace` transforms a string and constructs a `Path` without accessing storage.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `config.declared_version.replace`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -532,7 +542,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `_cache_directory`.
 - Internal caller/callee relationship: directly calls `_cache_directory`; the public flows below establish external entry points.
-- Direct tests: `test_transient_archive_path_swap_cannot_change_extracted_member_bytes`
+- Direct production-call contexts in this test file: `_local_download_for_bytes`, `test_cold_download_revalidates_archive_after_publication`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -553,7 +563,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `archive_path.with_name`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_valid_zip_download_binds_exact_bytes_and_lineage`, `test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit`, `test_invalid_download_cache_is_a_miss`, `test_successful_first_and_replacement_publication`, `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`, `test_extraction_inventory_is_complete_ordered_and_hashed`, `test_invalid_extraction_cache_is_rebuilt`, `test_strict_metadata_rejects_boolean_numeric_values_as_cache_hits`, `test_cache_path_binds_version_and_filename`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -576,7 +586,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `digest.hexdigest`, `digest.update`, `iter`, `path.open`, `sha256`, `stream.read`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -597,7 +607,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `path.is_junction`, `path.is_symlink`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_extraction_revalidation_rejects_link_or_junction_file`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -618,7 +628,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `_is_link_or_junction`, `path.is_file`.
 - Internal caller/callee relationship: directly calls `_is_link_or_junction`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -639,7 +649,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `loads_strict_json_object`, `path.read_bytes`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -664,7 +674,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `any`, `normalized.casefold`, `normalized.endswith`, `normalized.split`, `normalized.split('.', 1)[0].casefold`, `normalized.strip`, `ord`, `unicodedata.normalize`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -690,12 +700,12 @@ __all__ = [
 
 - Validation: `InpnProtectedAreasSourceError('ZIP member name is empty or invalid')`; `InpnProtectedAreasSourceError('ZIP member name contains control characters')`; `InpnProtectedAreasSourceError(f'Absolute ZIP member path is unsafe: {name}')`; `InpnProtectedAreasSourceError(f'ZIP member traversal is unsafe: {name}')`; `InpnProtectedAreasSourceError('ZIP member has no normalized destination')`; `InpnProtectedAreasSourceError('ZIP member collides with the extraction metadata path')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `name.replace`
+- Filesystem effects: none; `name.replace` is string separator conversion, not a file replacement.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `EXTRACTION_METADATA_FILENAME.casefold`, `InpnProtectedAreasSourceError`, `PurePosixPath`, `PureWindowsPath`, `_windows_component_key`, `any`, `bool`, `name.replace`, `ord`, `posix.is_absolute`, `tuple`, `type`, `windows.is_absolute`.
 - Internal caller/callee relationship: directly calls `_windows_component_key`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -716,7 +726,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `_ValidatedZipMember`, `_canonical_member_destination`, `any`, `archive.infolist`, `archive.testzip`, `directories.add`, `directories.update`, `files.add`, `info.is_dir`, `len`, `name.endswith`, `range`, `raw_names.add`, `set`, `stat.S_IFMT`, `stat.S_ISDIR`, `stat.S_ISLNK`, `tuple`, `validated.append`.
 - Internal caller/callee relationship: directly calls `_canonical_member_destination`; the public flows below establish external entry points.
-- Direct tests: `test_public_api_exports_only_stable_high_level_symbols`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_transient_archive_path_swap_cannot_change_extracted_member_bytes`
+- Direct production-call contexts in this test file: `test_archive_derived_inventory_equals_marker_physical_and_caller`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -737,12 +747,12 @@ __all__ = [
 
 - Validation: `InpnProtectedAreasSourceError('Archive-derived regular-file inventory is empty or ambiguous')`; `InpnProtectedAreasSourceError('Cannot inventory regular files from the verified archive snapshot')`; `InpnProtectedAreasSourceError(f'ZIP member size changed while reading: {member.info.filename}')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `archive.open`
+- Filesystem effects: none directly; `archive.open` reads an uncompressed member from the already-open in-memory archive snapshot.
 - Hashing effects: `sha256`
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasExtractedFile`, `InpnProtectedAreasSourceError`, `archive.open`, `digest.hexdigest`, `digest.update`, `files.append`, `files.sort`, `iter`, `len`, `member.destination.as_posix`, `set`, `sha256`, `source.read`, `tuple`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_archive_derived_inventory_equals_marker_physical_and_caller`
+- Direct production-call contexts in this test file: `test_archive_derived_inventory_equals_marker_physical_and_caller`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -763,7 +773,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `_DownloadMetadata`, `str`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_valid_zip_download_binds_exact_bytes_and_lineage`, `test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit`, `test_invalid_download_cache_is_a_miss`, `test_successful_first_and_replacement_publication`, `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`, `test_strict_metadata_rejects_boolean_numeric_values_as_cache_hits`, `test_cache_path_binds_version_and_filename`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -785,7 +795,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `_DownloadMetadata.model_validate`, `_is_regular_file`, `_read_strict_json`, `_validate_download`, `any`, `expected.items`, `getattr`, `str`.
 - Internal caller/callee relationship: directly calls `_is_regular_file`, `_read_strict_json`, `_validate_download`; the public flows below establish external entry points.
-- Direct tests: `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`, `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -806,7 +816,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `source.replace`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_publication_failure_restores_old_pair`, `test_rollback_failure_preserves_recovery_material`, `test_failed_replacement_restores_a_still_reusable_valid_download_pair`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -828,19 +838,19 @@ __all__ = [
 
 - Validation: `InpnProtectedAreasSourceError('Cache recovery backup already exists; manual recovery is required')`; `InpnProtectedAreasSourceError('INPN cache publication failed')`; `InpnProtectedAreasSourceError('INPN cache publication and rollback both failed')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink`
+- Filesystem effects: `copy2` creates prior-file backups; `_replace_file` replaces final or rollback paths; `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`, `metadata_path.unlink` perform branch-specific cleanup.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `_is_link_or_junction`, `_replace_file`, `any`, `archive_backup.unlink`, `archive_path.is_file`, `archive_path.unlink`, `archive_path.with_name`, `copy2`, `metadata_backup.unlink`, `metadata_path.is_file`, `metadata_path.unlink`, `metadata_path.with_name`, `path.exists`.
 - Internal caller/callee relationship: directly calls `_is_link_or_junction`, `_replace_file`; the public flows below establish external entry points.
-- Direct tests: `test_broken_download_recovery_symlink_is_rejected`, `test_existing_normal_download_recovery_backup_remains_unchanged`
+- Direct production-call contexts in this test file: `test_broken_download_recovery_symlink_is_rejected`, `test_existing_normal_download_recovery_backup_remains_unchanged`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
 ### `_download_archive_bytes`
 
 - Exact signature: `def _download_archive_bytes(configured_url: str, timeout_seconds: float, destination: Path) -> None`
-- Purpose: streams the safe-HTTPS official response into a new temporary archive while rejecting non-ZIP/HTML/empty or malformed response state.
+- Purpose: delegates transport to `open_safe_https`, requires usable response headers, rejects a `text/html` content type, and streams the body to an exclusively created destination. Empty/non-ZIP body and configured size/SHA rejection belong to the public downloader after this helper returns.
 - Inputs: `configured_url: str`, `timeout_seconds: float`, `destination: Path`; exact defaults/keyword-only placement are in the signature and source snapshot.
 - Output: `None`.
 - Ordered algorithm:
@@ -854,7 +864,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `callable`, `content_type.casefold`, `copyfileobj`, `destination.open`, `getattr`, `header_get`, `open_safe_https`, `str`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -881,7 +891,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `InpnProtectedAreasSourceError`, `_archive_path`, `_download_archive_bytes`, `_download_metadata`, `_load_cached_download`, `_metadata_path`, `_open_archive_snapshot`, `_publish_cache_pair`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`, `archive_path.parent.mkdir`, `archive_path.with_name`, `datetime.now`, `datetime.now(UTC).isoformat`, `float`, `isfinite`, `isinstance`, `len`, `metadata.model_dump_json`, `metadata_path.with_name`, `sha256`, `sha256(archive_bytes).hexdigest`, `str`, `temporary_archive.read_bytes`, `temporary_archive.unlink`, `temporary_metadata.unlink`, `temporary_metadata.write_text`, `temporary_path.unlink`.
 - Internal caller/callee relationship: directly calls `_archive_path`, `_download_archive_bytes`, `_download_metadata`, `_load_cached_download`, `_metadata_path`, `_open_archive_snapshot`, `_publish_cache_pair`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: `test_wrong_download_config_type_has_controlled_error`, `test_download_timeout_is_strict_finite_positive`, `test_download_api_has_no_arbitrary_http_session_injection`, `test_valid_physical_and_metadata_cache_is_reused`, `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`
+- Direct production-call contexts in this test file: `_download_with_session`, `test_download_timeout_is_strict_finite_positive`, `test_valid_physical_and_metadata_cache_is_reused`, `test_wrong_download_config_type_has_controlled_error`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -906,7 +916,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `InpnProtectedAreasSourceError`, `ValueError`, `_archive_path`, `_is_regular_file`, `_validate_utc_timestamp`, `any`, `expected_strings.items`, `getattr`, `isinstance`, `re.fullmatch`, `str`, `type`.
 - Internal caller/callee relationship: directly calls `_archive_path`, `_is_regular_file`, `_validate_utc_timestamp`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: `test_download_envelope_rejects_comparison_equal_string_subclasses`, `test_download_envelope_rejects_equality_spoofing_object`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -929,7 +939,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `ValueError`, `_validate_download_envelope`, `_validated_config`, `len`, `sha256`, `sha256(archive_bytes).hexdigest`, `type`, `validated_download.path.read_bytes`.
 - Internal caller/callee relationship: directly calls `_validate_download_envelope`, `_validated_config`; the public flows below establish external entry points.
-- Direct tests: `test_archive_derived_inventory_equals_marker_physical_and_caller`
+- Direct production-call contexts in this test file: `test_archive_derived_inventory_equals_marker_physical_and_caller`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -953,7 +963,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`.
 - Internal caller/callee relationship: directly calls `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: `test_validated_download_is_fresh_and_uses_exact_builtin_strings`, `test_validate_download_rejects_persistent_archive_mutation_after_snapshot`, `test_cached_download_persistent_archive_mutation_is_never_returned`, `test_cached_download_persistent_archive_mutation_fails_when_refresh_is_offline`, `test_internal_download_validation_zip_failures_are_controlled`
+- Direct production-call contexts in this test file: `test_internal_download_validation_zip_failures_are_controlled`, `test_validate_download_rejects_persistent_archive_mutation_after_snapshot`, `test_validated_download_is_fresh_and_uses_exact_builtin_strings`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -985,7 +995,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `ValueError`, `_canonical_member_destination`, `destination.as_posix`, `type`, `value.strip`; the returned spelling is unchanged.
 - Internal caller/callee relationship: directly calls `_canonical_member_destination`; the public flows below establish external entry points.
-- Direct tests: the existing public acquisition/extraction suite plus the STEP 7F.1B.2.2 table-driven extraction/catalog/profile parity test cover the authoritative grammar.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1011,7 +1021,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasExtractedFile`, `InpnProtectedAreasSourceError`, `_is_link_or_junction`, `_sha256_file`, `_validate_inventory_relative_path`, `files.append`, `files.sort`, `path.is_dir`, `path.is_file`, `path.relative_to`, `path.relative_to(root).as_posix`, `path.stat`, `root.is_dir`, `root.rglob`, `tuple`.
 - Internal caller/callee relationship: directly calls `_is_link_or_junction`, `_sha256_file`, `_validate_inventory_relative_path`; the public flows below establish external entry points.
-- Direct tests: `test_complete_zip_inventory_is_validated_before_member_copy`, `test_extraction_validates_complete_inventory_before_copying`, `test_extraction_inventory_is_complete_ordered_and_hashed`, `test_public_api_exports_only_stable_high_level_symbols`, `test_result_schemas_are_factual_inventory_only`, `test_exact_file_inventory_does_not_omit_unknown_suffixes`, `test_extraction_revalidation_rejects_forged_file_inventory`, `test_extraction_revalidation_rejects_physical_inventory_mutation`, `test_archive_derived_inventory_equals_marker_physical_and_caller`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1032,7 +1042,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `_ExtractedFileMetadata`, `_ExtractionMetadata`, `tuple`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_extraction_inventory_is_complete_ordered_and_hashed`, `test_invalid_extraction_cache_is_rebuilt`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1055,7 +1065,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasExtractedFile`, `InpnProtectedAreasSourceError`, `ValueError`, `_ExtractionMetadata.model_validate`, `_inventory`, `_is_regular_file`, `_read_strict_json`, `tuple`.
 - Internal caller/callee relationship: directly calls `_inventory`, `_is_regular_file`, `_read_strict_json`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1076,7 +1086,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `_is_link_or_junction`, `path.exists`, `path.is_symlink`.
 - Internal caller/callee relationship: directly calls `_is_link_or_junction`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1092,12 +1102,12 @@ __all__ = [
 
 - Validation: delegated to the exact callees and library contracts shown.
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `path.unlink`, `shutil.rmtree`
+- Filesystem effects: `path.rmdir` removes a junction entry; `path.unlink` removes a link/file; `shutil.rmtree` removes an existing ordinary directory tree.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `path.exists`, `path.is_file`, `path.is_junction`, `path.is_symlink`, `path.rmdir`, `path.unlink`, `shutil.rmtree`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1118,7 +1128,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `source.replace`.
 - Internal caller/callee relationship: directly calls no module helper; the public flows below establish external entry points.
-- Direct tests: `test_first_extraction_publication_failure_leaves_no_half_root`, `test_extraction_replacement_failure_restores_old_tree`, `test_extraction_rollback_failure_preserves_backup`, `test_extraction_backup_move_failure_leaves_old_tree_untouched`
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1143,7 +1153,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasSourceError`, `_path_exists`, `_remove_path`, `_replace_directory`, `root.with_name`.
 - Internal caller/callee relationship: directly calls `_path_exists`, `_remove_path`, `_replace_directory`; the public flows below establish external entry points.
-- Direct tests: covered transitively through public acquisition/extraction tests.
+- Direct production-call contexts in this test file: none; public-flow coverage and explicit seam monkeypatches are described in the test companion. Similar helper names are not attributed as calls to this symbol.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1165,12 +1175,12 @@ __all__ = [
 
 - Validation: `InpnProtectedAreasSourceError('Extracted files differ from the verified archive inventory')`; `InpnProtectedAreasSourceError('Cannot safely extract the INPN protected-areas archive')`
 - Exceptions: explicit source errors above plus only those library errors not contained by a visible controlled boundary; public APIs normalize failures to `InpnProtectedAreasSourceError`.
-- Filesystem effects: `(temporary_root / EXTRACTION_METADATA_FILENAME).write_text`, `archive.open`, `root.parent.mkdir`, `target.mkdir`, `target.open`, `target.parent.mkdir`, `temporary_root.mkdir`
+- Filesystem effects: `(temporary_root / EXTRACTION_METADATA_FILENAME).write_text`, `root.parent.mkdir`, `target.mkdir`, `target.open`, `target.parent.mkdir`, `temporary_root.mkdir`, plus delegated temporary cleanup and publication. `archive.open` reads snapshot memory rather than a filesystem archive path.
 - Hashing effects: none directly.
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `(temporary_root / EXTRACTION_METADATA_FILENAME).write_text`, `InpnProtectedAreasExtraction`, `InpnProtectedAreasSourceError`, `_archive_regular_file_inventory`, `_extraction_metadata`, `_inventory`, `_is_link_or_junction`, `_open_archive_snapshot`, `_publish_extraction_directory`, `_read_verified_archive_bytes`, `_remove_path`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validate_extraction_cache`, `_validated_config`, `_validated_zip_members`, `archive.open`, `copyfileobj`, `metadata.model_dump_json`, `root.is_dir`, `root.parent.mkdir`, `root.with_name`, `target.mkdir`, `target.open`, `target.parent.mkdir`, `temporary_root.joinpath`, `temporary_root.mkdir`.
 - Internal caller/callee relationship: directly calls `_archive_regular_file_inventory`, `_extraction_metadata`, `_inventory`, `_is_link_or_junction`, `_open_archive_snapshot`, `_publish_extraction_directory`, `_read_verified_archive_bytes`, `_remove_path`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validate_extraction_cache`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: `test_extraction_validates_complete_inventory_before_copying`, `test_extraction_inventory_is_complete_ordered_and_hashed`, `test_valid_extraction_cache_is_reused`, `test_invalid_extraction_cache_is_rebuilt`, `test_first_extraction_publication_failure_leaves_no_half_root`, `test_extraction_replacement_failure_restores_old_tree`, `test_extraction_rollback_failure_preserves_backup`, `test_extraction_backup_move_failure_leaves_old_tree_untouched`, `test_extraction_rejects_wrong_download_type`, `test_extraction_rejects_wrong_config_type`, `test_extraction_cache_setup_failure_is_controlled`, `test_extraction_rejects_stale_download_bytes`, `test_result_dataclasses_are_frozen`, `test_exact_file_inventory_does_not_omit_unknown_suffixes`, `test_archive_and_extraction_cache_reuse_are_independent`, `test_no_stale_parts_after_download_or_extraction_success`, `test_extraction_revalidation_returns_fresh_source_bound_result`, `test_extraction_revalidation_rejects_wrong_path`, `test_extraction_revalidation_rejects_forged_file_inventory`, `test_extraction_revalidation_rejects_physical_inventory_mutation`, `test_extraction_revalidation_rejects_link_or_junction_file`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_coordinated_marker_physical_and_caller_forgery_cannot_override_archive`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`, `test_transient_archive_path_swap_cannot_change_extracted_member_bytes`
+- Direct production-call contexts in this test file: `test_archive_and_extraction_cache_reuse_are_independent`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_archive_mutation_during_extraction_cache_validation_is_not_hidden`, `test_archive_mutation_during_extraction_publication_fails_postcondition`, `test_archive_mutation_during_public_extraction_validation_fails`, `test_coordinated_marker_physical_and_caller_forgery_cannot_override_archive`, `test_exact_file_inventory_does_not_omit_unknown_suffixes`, `test_extraction_backup_move_failure_leaves_old_tree_untouched`, `test_extraction_cache_setup_failure_is_controlled`, `test_extraction_inventory_is_complete_ordered_and_hashed`, `test_extraction_rejects_stale_download_bytes`, `test_extraction_rejects_wrong_config_type`, `test_extraction_rejects_wrong_download_type`, `test_extraction_replacement_failure_restores_old_tree`, `test_extraction_revalidation_rejects_forged_file_inventory`, `test_extraction_revalidation_rejects_link_or_junction_file`, `test_extraction_revalidation_rejects_physical_inventory_mutation`, `test_extraction_revalidation_rejects_wrong_path`, `test_extraction_revalidation_returns_fresh_source_bound_result`, `test_extraction_rollback_failure_preserves_backup`, `test_extraction_validates_complete_inventory_before_copying`, `test_first_extraction_publication_failure_leaves_no_half_root`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`, `test_invalid_extraction_cache_is_rebuilt`, `test_no_stale_parts_after_download_or_extraction_success`, `test_persistent_archive_swap_during_extraction_fails_before_publication`, `test_result_dataclasses_are_frozen`, `test_transient_archive_path_swap_cannot_change_extracted_member_bytes`, `test_valid_extraction_cache_is_reused`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1195,7 +1205,7 @@ __all__ = [
 - Pyogrio calls: none; this adapter does not inspect GeoPackages.
 - Callees: `InpnProtectedAreasDownload`, `InpnProtectedAreasExtraction`, `InpnProtectedAreasSourceError`, `_archive_path`, `_archive_regular_file_inventory`, `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validate_extraction_cache`, `_validate_inventory_relative_path`, `_validated_config`, `_validated_zip_members`, `any`, `isinstance`, `len`, `re.fullmatch`, `sha256`, `sha256(archive_bytes).hexdigest`, `str`, `type`.
 - Internal caller/callee relationship: directly calls `_archive_path`, `_archive_regular_file_inventory`, `_open_archive_snapshot`, `_read_verified_archive_bytes`, `_require_archive_snapshot_unchanged`, `_validate_download_envelope`, `_validate_extraction_cache`, `_validate_inventory_relative_path`, `_validated_config`, `_validated_zip_members`; the public flows below establish external entry points.
-- Direct tests: `test_extraction_revalidation_returns_fresh_source_bound_result`, `test_extraction_revalidation_rejects_wrong_type`, `test_extraction_revalidation_rejects_wrong_path`, `test_extraction_revalidation_rejects_forged_file_inventory`, `test_extraction_revalidation_rejects_physical_inventory_mutation`, `test_extraction_revalidation_rejects_link_or_junction_file`, `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_coordinated_marker_physical_and_caller_forgery_cannot_override_archive`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`
+- Direct production-call contexts in this test file: `test_archive_derived_inventory_equals_marker_physical_and_caller`, `test_archive_mutation_during_public_extraction_validation_fails`, `test_coordinated_marker_physical_and_caller_forgery_cannot_override_archive`, `test_extraction_revalidation_rejects_forged_file_inventory`, `test_extraction_revalidation_rejects_link_or_junction_file`, `test_extraction_revalidation_rejects_physical_inventory_mutation`, `test_extraction_revalidation_rejects_wrong_path`, `test_extraction_revalidation_rejects_wrong_type`, `test_extraction_revalidation_returns_fresh_source_bound_result`, `test_invalid_coordinated_cache_rebuilds_from_local_archive_without_network`, `test_public_extraction_validator_matching_invalid_zip_is_controlled`.
 - Business boundary: official byte acquisition, cache integrity, ZIP safety, extraction, and factual file inventory only.
 - Explicit non-goals: no GeoPackage opening, EP feature rows, categories, Natura 2000/ZNIEFF meaning, geometry normalization, parcels, intersections, exclusions, scores, or rankings.
 
@@ -1230,7 +1240,7 @@ __all__ = [
 
 `tests/unit/test_inpn_protected_areas_fr.py` contains 172 collected cases. It covers strict config/download models, comparison-equal string/equality-spoof rejection, fresh canonical download reconstruction, controlled ZIP constructor/content errors, cache hit/miss/recovery, cached-download mutation rejection with online refresh and offline failure, safe transport delegation, ZIP namespace/content attacks, extraction transactionality, every required archive return postcondition, archive-derived equality, coordinated marker/file forgery, local offline rebuild, and effective transient/persistent archive swaps with asserted hooks. The catalog's 97 cases separately prove authoritative path-grammar parity, narrow known-warning suppression, visible unrelated warnings, and corruption rejection before Pyogrio.
 
-Changes require both INPN focused suites, the controlled zero-network real EP run, source SHA synchronization, full pytest, Ruff, mypy, uv lock/pip checks, and `git diff --check`.
+Production authority changes require the affected INPN suites and the real-source/quality validation prescribed by their implementation ticket. A prose-only continuity correction does not itself authorize a fresh EP read, cache rebuild, or network operation.
 
 ## 9. Exact complete current file content
 

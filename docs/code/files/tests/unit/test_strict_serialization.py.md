@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Proves the shared strict YAML/JSON duplicate, UTF-8, finite-number, overflow, and object-root contracts.
+- Responsibility: Exercises nested duplicate YAML/JSON keys, ordinary YAML scalar/list decoding, five nonfinite/overflow JSON tokens, invalid UTF-8 and object-root rejection/acceptance entirely in memory.
 - Source SHA256: `98f223391076f36ae48c679b2bfaefd73f075ea67c78918227865a2d6fa7aac3`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Proves the shared strict YAML/JSON duplicate, UTF-8, finite-number, overflow, and object-root contracts.
+Exercises nested duplicate YAML/JSON keys, ordinary YAML scalar/list decoding, five nonfinite/overflow JSON tokens, invalid UTF-8 and object-root rejection/acceptance entirely in memory.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -57,7 +57,7 @@ No top-level class/model/dataclass is declared.
 
 ### `test_strict_yaml_rejects_nested_duplicate_mapping_keys`
 
-**Purpose:** Regression invariant: strict yaml rejects nested duplicate mapping keys. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Parse nested source.provider declared twice with conflicting strings and require StrictYamlError matching Duplicate YAML key; this proves the nested duplicate hook, not just root-level rejection.
 
 **Exact signature**
 
@@ -119,7 +119,7 @@ def test_strict_yaml_rejects_nested_duplicate_mapping_keys() -> None:
 
 ### `test_strict_yaml_uses_safe_loader_semantics`
 
-**Purpose:** Regression invariant: strict yaml uses safe loader semantics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Assert ordinary YAML true and [1, 2] decode as builtin bool/list/int values. Despite its name this positive case does not attempt an unsafe Python-object tag.
 
 **Exact signature**
 
@@ -182,7 +182,7 @@ def test_strict_yaml_uses_safe_loader_semantics() -> None:
 
 ### `test_strict_json_rejects_nested_duplicate_object_keys`
 
-**Purpose:** Regression invariant: strict json rejects nested duplicate object keys. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Feed UTF-8 bytes with two nested source.sha256 entries and require StrictJsonError matching Duplicate JSON key; neither value may silently win.
 
 **Exact signature**
 
@@ -244,7 +244,7 @@ def test_strict_json_rejects_nested_duplicate_object_keys() -> None:
 
 ### `test_strict_json_rejects_every_nonfinite_number`
 
-**Purpose:** Regression invariant: strict json rejects every nonfinite number. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Place each of NaN, Infinity, -Infinity, 1e999 and -1e999 in an object value and require a finite-number error. Three constants and two finite-looking float-overflow spellings are checked.
 
 **Exact signature**
 
@@ -312,7 +312,7 @@ def test_strict_json_rejects_every_nonfinite_number(value: str) -> None:
 
 ### `test_strict_json_rejects_malformed_utf8`
 
-**Purpose:** Regression invariant: strict json rejects malformed utf8. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass bytes containing 0xff inside a JSON string and require StrictJsonError matching UTF-8 before accepting decoded evidence.
 
 **Exact signature**
 
@@ -374,7 +374,7 @@ def test_strict_json_rejects_malformed_utf8() -> None:
 
 ### `test_strict_json_object_requires_an_object_top_level`
 
-**Purpose:** Regression invariant: strict json object requires an object top level. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass [] to the object-specific parser and require an object error. The general JSON parser's ability to return arrays is not prohibited.
 
 **Exact signature**
 
@@ -436,7 +436,7 @@ def test_strict_json_object_requires_an_object_top_level() -> None:
 
 ### `test_strict_json_object_accepts_an_exact_object`
 
-**Purpose:** Regression invariant: strict json object accepts an exact object. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass a byte-encoded schema_version object and assert the exact builtin dictionary containing integer 1; no schema-specific model is involved.
 
 **Exact signature**
 
@@ -504,13 +504,13 @@ def test_strict_json_object_accepts_an_exact_object() -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_strict_yaml_rejects_nested_duplicate_mapping_keys` | none | pytest.raises(StrictYamlError, match="Duplicate YAML key") | 0 | Proves strict yaml rejects nested duplicate mapping keys using the exact source reproduced in section 7. |
-| `test_strict_yaml_uses_safe_loader_semantics` | none | none | 1 | Proves strict yaml uses safe loader semantics using the exact source reproduced in section 7. |
-| `test_strict_json_rejects_nested_duplicate_object_keys` | none | pytest.raises(StrictJsonError, match="Duplicate JSON key") | 0 | Proves strict json rejects nested duplicate object keys using the exact source reproduced in section 7. |
-| `test_strict_json_rejects_every_nonfinite_number` | pytest.mark.parametrize(<br>    "value",<br>    ["NaN", "Infinity", "-Infinity", "1e999", "-1e999"],<br>) | pytest.raises(StrictJsonError, match="finite") | 0 | Proves strict json rejects every nonfinite number using the exact source reproduced in section 7. |
-| `test_strict_json_rejects_malformed_utf8` | none | pytest.raises(StrictJsonError, match="UTF-8") | 0 | Proves strict json rejects malformed utf8 using the exact source reproduced in section 7. |
-| `test_strict_json_object_requires_an_object_top_level` | none | pytest.raises(StrictJsonError, match="object") | 0 | Proves strict json object requires an object top level using the exact source reproduced in section 7. |
-| `test_strict_json_object_accepts_an_exact_object` | none | none | 1 | Proves strict json object accepts an exact object using the exact source reproduced in section 7. |
+| `test_strict_yaml_rejects_nested_duplicate_mapping_keys` | none | pytest.raises(StrictYamlError, match="Duplicate YAML key") | 0 | Parse nested source.provider declared twice with conflicting strings and require StrictYamlError matching Duplicate YAML key; this proves the nested duplicate hook, not just root-level rejection. |
+| `test_strict_yaml_uses_safe_loader_semantics` | none | none | 1 | Assert ordinary YAML true and [1, 2] decode as builtin bool/list/int values. Despite its name this positive case does not attempt an unsafe Python-object tag. |
+| `test_strict_json_rejects_nested_duplicate_object_keys` | none | pytest.raises(StrictJsonError, match="Duplicate JSON key") | 0 | Feed UTF-8 bytes with two nested source.sha256 entries and require StrictJsonError matching Duplicate JSON key; neither value may silently win. |
+| `test_strict_json_rejects_every_nonfinite_number` | pytest.mark.parametrize(<br>    "value",<br>    ["NaN", "Infinity", "-Infinity", "1e999", "-1e999"],<br>) | pytest.raises(StrictJsonError, match="finite") | 0 | Place each of NaN, Infinity, -Infinity, 1e999 and -1e999 in an object value and require a finite-number error. Three constants and two finite-looking float-overflow spellings are checked. |
+| `test_strict_json_rejects_malformed_utf8` | none | pytest.raises(StrictJsonError, match="UTF-8") | 0 | Pass bytes containing 0xff inside a JSON string and require StrictJsonError matching UTF-8 before accepting decoded evidence. |
+| `test_strict_json_object_requires_an_object_top_level` | none | pytest.raises(StrictJsonError, match="object") | 0 | Pass [] to the object-specific parser and require an object error. The general JSON parser's ability to return arrays is not prohibited. |
+| `test_strict_json_object_accepts_an_exact_object` | none | none | 1 | Pass a byte-encoded schema_version object and assert the exact builtin dictionary containing integer 1; no schema-specific model is involved. |
 
 ## 8. Public exports and package ownership
 

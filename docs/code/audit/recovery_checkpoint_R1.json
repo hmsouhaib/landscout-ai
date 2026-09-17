@@ -1,0 +1,813 @@
+{
+  "schema_version": 1,
+  "ticket": "DOCS.CONTINUITY.1.R1",
+  "kind": "WIP_RECOVERY_CHECKPOINT_NOT_AUDIT_COMPLETION",
+  "base_commit": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+  "branch": "recovery/docs-continuity-1-partial",
+  "status": "APPROVED_EXPLICIT_CANDIDATES_BEFORE_COMMIT",
+  "audit_status": "PARTIAL",
+  "independent_review": "PENDING",
+  "backup": {
+    "path": "C:\\souhaib\\landscout-docs-r1-backup-20260917-134932-a81ce3",
+    "manifest_file": "manifest.json",
+    "manifest_sha256": "a54f1dcd8ad61bb21a4a60e858107a922e54b561474ec88f30ed2a09736280b0",
+    "copied_files": 137,
+    "modified_tracked": 108,
+    "untracked": 29,
+    "deletions": 0,
+    "all_copies_byte_verified": true
+  },
+  "git_context": {
+    "normal": "hammami\\codexsandboxoffline",
+    "native": "hammami\\souha",
+    "owner": "Hammami\\CodexSandboxOffline",
+    "git_version": "2.55.0.windows.3",
+    "command_scoped_prefix": "git -c safe.directory=C:/souhaib/landscout-ai -C C:/souhaib/landscout-ai",
+    "persistent_config_changed": false,
+    "initial_remote_main": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+    "initial_recovery_branch_exists": false,
+    "fetch_exit": 0
+  },
+  "scope_review": {
+    "candidate_count": 139,
+    "protected_enumeration": "exact base Git paths under src/, tests/, configs/ plus .python-version, pyproject.toml, uv.lock",
+    "protected_count": 106,
+    "protected_manifest": "docs/code/audit/protected_files.json",
+    "base_head_index_and_initial_checkout_checks": "PASS before and after explicit staging; all 106 protected staged Git contents match base and raw checkouts match their initial manifest",
+    "known_eol_exception": "configs/planning/muret_bess_zoning_policy.yaml, unchanged original checkout bytes",
+    "new_executable_only": [
+      "tools/audit_documentation.py",
+      "tests/unit/test_audit_documentation.py"
+    ],
+    "executable_changes_during_r1": false,
+    "credential_pattern_hits": 3,
+    "hit_resolution": "Pre-existing synthetic source.example rejection URL in test_safe_http.py companion, not real credentials; no sensitive token/private-key hit",
+    "formats": "UTF-8 text .md/.json/.txt/.py; no binary/source-cache/dataset artifact",
+    "semantic_review_claim": false
+  },
+  "candidates": [
+    {
+      "path": "AGENTS.md",
+      "classification": "checkpointed",
+      "reason": "Authorized repository entry/navigation"
+    },
+    {
+      "path": "README.md",
+      "classification": "checkpointed",
+      "reason": "Authorized repository entry/navigation"
+    },
+    {
+      "path": "docs/code/ARCHITECTURE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/CACHE_AND_RECOVERY.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/CADASTRE_PIPELINE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/CHANGE_IMPACT_GUIDE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/DATA_FLOW.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/ENVIRONMENT_PIPELINE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/FILE_INDEX.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/GIS_AND_CRS.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/GLOSSARY.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/GRID_PIPELINE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/README.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/ROAD_PIPELINE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/SOURCE_TRUST_MODEL.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/TESTING_STRATEGY.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/DOCUMENTATION_AUDIT.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/RECOVERY_STATUS_2026-09-17.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/cold_start_resume_2026-09-17.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/coverage.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/protected_files.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/recovery_checkpoint_R1.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/recovery_evidence_2026-09-17.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/recovery_file_matrix_2026-09-17.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/foundations.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/inpn_roads.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/inpn_roads_extension.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/planning.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/root.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/audit/reviews/semantic_reference.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/.env.example.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/.gitignore.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/.python-version.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/README.md.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/profiles/bess_default_fr.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/scans/bess_muret.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/sources/gpu_fr.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/sources/ign_bdtopo_fr.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/sources/inpn_protected_areas_fr.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/configs/sources/rte_odre_fr.yaml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/data/cache/.gitkeep.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/data/processed/.gitkeep.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/data/raw/.gitkeep.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/outputs/.gitkeep.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/pyproject.toml.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/__init__.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/__init__.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/artifact_paths.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/bess_application_contract.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/cadastre_contract.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/frame_integrity.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_feature_contract.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_feature_schema.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_overlay.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/planning_text.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/safe_http.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/strict_json.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/common/strict_yaml.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/config.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/__init__.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/crs.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/geo/geometry.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/__init__.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/cadastre_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/cadastre_loader_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/gpu_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/ign_bdtopo_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_attributes_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_catalog_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_evidence_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/inpn_protected_areas_geometry_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/sources/rte_odre_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/__init__.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/assess_grid_coverage.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/assess_road_proximity_coverage.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_planning_zoning.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_road_proximity.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/enrich_shape.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/filter_parcels.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/index_planning_regulation.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_access_ign.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_cadastre.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/normalize_grid_ign.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/profile_shape.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/road_vehicle_proxy_policy.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_apply_road_vehicle_proxy_policy.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_assess_grid_coverage.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_assess_road_proximity_coverage.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_audit_documentation.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_cadastre_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_cadastre_loader_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_config.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_crs.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_deep_immutability.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_planning_zoning.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_road_proximity.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_enrich_shape.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_filter_parcels.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_filter_shape.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_geometry.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_gpu_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_index_planning_regulation.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_attributes_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_catalog_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_evidence_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_inpn_protected_areas_geometry_fr.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_access_ign.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_cadastre.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_normalize_grid_ign.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_package.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_profile_shape.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_road_vehicle_proxy_policy.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_safe_http.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tests/unit/test_strict_serialization.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/tools/audit_documentation.py.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/code/files/uv.lock.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/BACKLOG_AND_GAPS.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/COLD_START_EXERCISE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/CONTEXT_PROVENANCE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/CURRENT_STATE.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/DECISIONS.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/RESUME.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/STEP_INDEX.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/STEP_LEDGER.json",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/WORKING_RULES.md",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/tickets/DOCS.CONTINUITY.1.R1.txt",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/tickets/DOCS.CONTINUITY.1.RESUME.2026-09-17.txt",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "docs/project/tickets/DOCS.CONTINUITY.1.txt",
+      "classification": "checkpointed",
+      "reason": "Authorized partial documentation, companion, continuity or evidence; no completion implied"
+    },
+    {
+      "path": "tests/unit/test_audit_documentation.py",
+      "classification": "checkpointed",
+      "reason": "New checker-only synthetic tests, not pre-existing application tests; unchanged in R1"
+    },
+    {
+      "path": "tools/audit_documentation.py",
+      "classification": "checkpointed",
+      "reason": "Existing narrow read-only offline checker, unchanged in R1"
+    }
+  ],
+  "retained_locally_only": [
+    {
+      "path": "C:\\souhaib\\landscout-docs-r1-backup-20260917-134932-a81ce3",
+      "reason": "Byte backup, direct Git patch and recovery operation receipts; outside repository"
+    },
+    {
+      "path": "C:\\souhaib\\bootstrap_continuity_inventory.py",
+      "reason": "External temporary bootstrap, not durable approved tooling; preserved at original location"
+    },
+    {
+      "path": "C:\\souhaib\\reproduce_planning_feature_optional_text.py",
+      "reason": "External synthetic reproduction helper; its evidence text is already in the report; preserved at original location"
+    },
+    {
+      "path": ".git/",
+      "reason": "Repository internals, not candidate data"
+    },
+    {
+      "path": ".venv/ and existing ignored application cache/data",
+      "reason": "Not enumerated/copied/staged; no source operation authorized"
+    }
+  ],
+  "excluded_in_repository_candidates": [],
+  "handoff": {
+    "source_unchanged": "src/landscout/stages/enrich_planning_features.py",
+    "test_unchanged": "tests/unit/test_enrich_planning_features.py",
+    "companion_only_changes": [
+      "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "docs/code/files/tests/unit/test_enrich_planning_features.py.md"
+    ],
+    "fragment": "docs/code/audit/reviews/inpn_roads_extension.json",
+    "all_four_statuses": "NOT_READ preserved",
+    "next_unfinished": "Semantic explanation/assertion closure of the two edited companions against unchanged source/test; missing matching-fingerprint closure receipt is not supplied by draft presence"
+  },
+  "progress": {
+    "files": {
+      "CHECKED": 24,
+      "CORRECTED": 43,
+      "READ": 141,
+      "NOT_READ": 37
+    },
+    "symbols": {
+      "CHECKED": 1387,
+      "CORRECTED": 1,
+      "READ": 2078,
+      "NOT_READ": 1303
+    },
+    "closed_files": 67,
+    "unclosed_files": 178,
+    "closed_symbols": 1388,
+    "unclosed_symbols": 3381,
+    "independent_semantic_approval": false
+  },
+  "cold_start": {
+    "status": "REPORTED_EXECUTED_PENDING_REVIEW",
+    "answers": "docs/code/audit/cold_start_resume_2026-09-17.md",
+    "verification": "Parent-recorded bounded scope/result in RECOVERY_STATUS_2026-09-17.md#cold-start-and-separate-verification",
+    "standalone_full_verifier_receipt_available": false
+  },
+  "validation": {
+    "full_pytest": "NOT RUN FOR R1",
+    "checker_tests": "Prior 23-pass report preserved; not rerun because executable bytes unchanged",
+    "staged_auditor": "One run, TERMINATED_AFTER_SUPERVISION_LIMIT at 630.254 seconds; stdout/stderr empty; numeric child exit unavailable, no normal completion claimed. See existing recovery report R1 observation.",
+    "index_readiness": "276 indexed files; 139 exact staged candidates; coverage present; no unstaged Git content or untracked candidate at invocation",
+    "staged_whitespace_check": "Native Git exit 2 (PowerShell wrapper exit 1): 12 preserved Markdown hard breaks in exact cold-start archive and original verbatim ticket final blank line; no archive rewrite or suppression",
+    "raw_vs_index_note": "Only prior resume ticket has Git-clean CRLF-to-LF staged representation; original raw bytes remain in worktree and external backup; exact hashes in recovery report"
+  },
+  "self_reference_notice": "No own SHA or future commit SHA. Candidate classification is the explicit WIP allowlist, not a claim that publication already occurred. Raw backup identity is distinct from staged Git's existing clean/EOL representation."
+}

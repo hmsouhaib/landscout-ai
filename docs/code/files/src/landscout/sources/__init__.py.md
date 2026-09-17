@@ -5,7 +5,7 @@
 - Repository path: `src/landscout/sources/__init__.py`
 - File type: Python package exports
 - Layer/domain: official source adapters and source-bound factual authorities
-- Responsibility: Re-exports approved source APIs while keeping raw-path, byte-reader, SQLite, parser, frame, and intrinsic-validation helpers internal.
+- Responsibility: Re-exports the supported source APIs while keeping raw-path, byte-reader, SQLite, parser, frame, and intrinsic-validation helpers internal.
 - Source SHA256: `70af29a1a8d27e7fdfe07c06f364aa07ec664565fc70988d81cf9ca80dac2177`
 
 ## 1. STEP 7F.1B.4 contract delta
@@ -141,7 +141,11 @@ There are no standard-library or third-party imports and no executable behavior 
 
 ## 4. Validation, side effects, and boundary
 
-This module itself performs no validation, network, filesystem, hashing, CRS, geometry, or mutation work; those contracts belong to the qualified implementations. Raw geometry profiling uses verified bytes -> SQLite deserialize -> FID plus GeoPackageBinary -> embedded WKB -> Shapely. Pyogrio remains the metadata reader but is intentionally excluded from EP geometry-row materialization because its locked 0.13.0 reader drops M. Public source exports do not interpret categories/legal regimes, map Natura 2000/ZNIEFF, normalize/repair/reproject environmental geometry, load parcels, intersect, exclude, score, or rank.
+This initializer binds imported objects and assigns `__all__`; it does not call the exported acquisition or validation functions. Importing it loads the named implementation modules and their dependencies, so import-time dependency failures remain possible. Function-level network, filesystem, hashing, CRS and geometry effects belong to those implementations, not to an orchestration loop in this initializer.
+
+The **INPN exports** provide source evidence only: no category/legal-regime interpretation, Natura 2000/ZNIEFF mapping, environmental normalization/repair/reprojection, parcel loading/intersection, exclusion, scoring or ranking. This is not a blanket claim about the entire package: its Cadastre exports explicitly include `load_cadastre_parcels`. INPN geometry profiling uses verified bytes -> SQLite deserialize -> FID plus GeoPackageBinary -> embedded WKB -> Shapely. Pyogrio remains the metadata/attribute-only reader but is excluded from EP geometry-row materialization because the locked 0.13.0 reader drops M.
+
+The source suites directly inspect `sources.__all__` and object identity; for example `test_cadastre_loader_fr.py` and all five `test_inpn_protected_areas_*` suites check their public subset and implementation ownership. This export list is ordinary module metadata, not a validated trust-bearing immutable model. A list of exports does not constitute an independent approval receipt; review state is tracked separately under `docs/project`.
 
 Any import/export change requires exact package-ownership tests, companion SHA/snapshot synchronization, source/catalog/attribute/geometry/evidence focused suites, and the required full repository gates.
 

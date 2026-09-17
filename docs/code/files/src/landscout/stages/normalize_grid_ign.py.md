@@ -618,7 +618,7 @@ class IgnVoltageNormalization:
 
 ### `NormalizedIgnElectricityData`
 
-**Source purpose:** Defines `NormalizedIgnElectricityData`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen two-frame result envelope for normalized electric lines and polygonal transformation posts. The GeoDataFrames remain mutable outputs; their presence in a frozen dataclass is not independent physical authority. The public proximity stage rebuilds them through the source-complete normalizer.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -673,7 +673,7 @@ class NormalizedIgnElectricityData:
 
 ### `_normalized_term`
 
-**Purpose:** Implements `normalized term` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Strips edge whitespace, case-folds and NFKD-decomposes voltage text, removes combining marks and collapses whitespace for vocabulary matching. The raw input is retained separately; this is not an ID rewrite or source-byte canonicalization.
 
 **Exact signature**
 
@@ -745,7 +745,7 @@ def _normalized_term(value: str) -> str:
 
 ### `_positive_voltage`
 
-**Purpose:** Implements `positive voltage` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Converts the regex's named numeric capture after replacing comma with dot and returns it only if strictly positive and finite. It trusts the supplied pattern match; the replacement is a local string operation, not file publication.
 
 **Exact signature**
 
@@ -790,7 +790,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `match.group("value").replace` |
+| Filesystem/archive write or publication | None; this `.replace` changes only an in-memory string. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -811,7 +811,7 @@ def _positive_voltage(match: re.Match[str]) -> float | None:
 
 ### `_is_missing_scalar`
 
-**Purpose:** Implements `is missing scalar` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Treats None and scalar pandas-missing values as missing; returns false for list/array-like values before `pd.isna` can produce an ambiguous truth value.
 
 **Exact signature**
 
@@ -883,11 +883,7 @@ def _is_missing_scalar(value: object) -> bool:
 
 ### `parse_ign_voltage`
 
-**Purpose:** Parse scalar IGN voltage vocabulary without inventing precision.
-
-    Unsupported list-like or array-like inputs are preserved as text and
-    classified ``UNPARSED`` rather than reaching Pandas' ambiguous truth-value
-    handling.
+**Purpose:** Handles non-scalars first as textual UNPARSED, scalar missing facts as UNKNOWN, and non-string scalars as textual UNPARSED. It retains string raw values while matching accent/case/whitespace-normalized vocabulary: UNKNOWN and DEENERGIZED terms, then finite positive `< … kV` upper bounds, then finite positive complete `… kV` exact values. Zero, overflow, bare numeric input, ranges and unsupported terms remain UNPARSED. BELOW never fills exact voltage; DEENERGIZED never overrides a separate asset-state fact.
 
 **Exact signature**
 
@@ -1020,7 +1016,7 @@ def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
 
 ### `_validated_lambert93`
 
-**Purpose:** Implements `validated lambert93` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Requires a readable projected CRS equivalent by pyproj to EPSG:2154, wrapping missing/unreadable/incompatible values. It checks CRS metadata but performs no reprojection or coordinate alteration.
 
 **Exact signature**
 
@@ -1102,7 +1098,7 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 
 ### `_required_exact_string`
 
-**Purpose:** Implements `required exact string` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Requires a non-empty `isinstance(str)` value without edge whitespace and returns it unchanged. This private helper accepts string subclasses; its name is not a stronger exact-built-in-type promise.
 
 **Exact signature**
 
@@ -1175,7 +1171,7 @@ def _required_exact_string(value: object, label: str) -> str:
 
 ### `_validate_source_context`
 
-**Purpose:** Implements `validate source context` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Checks layer and package lineage strings without rewriting: department via the source adapter's domain, edition as a real ISO calendar date, optional product version, timezone-aware ISO download timestamp, lowercase 64-hex archive SHA and an HTTP(S) URL. It verifies lexical lineage only; it neither hashes archive bytes nor proves source authority. The public normalizer obtains this context from independently revalidated source data.
 
 **Exact signature**
 
@@ -1237,7 +1233,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| Hashing/byte identity | No byte hash is computed; `_SHA256_PATTERN.fullmatch` checks digest spelling only. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -1314,7 +1310,7 @@ def _validate_source_context(context: _IgnGridSourceContext) -> None:
 
 ### `_validate_input`
 
-**Purpose:** Implements `validate input` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Requires the selected raw-field schema, equivalent EPSG:2154 and active `geometry`, then checks non-null string cleabs values are nonempty, trimmed, unique and contain neither colon nor Unicode Cc controls. It never repairs or sanitizes an identifier and does not preserve a source index as identity.
 
 **Exact signature**
 
@@ -1459,7 +1455,7 @@ def _validate_input(
 
 ### `_geometry_status`
 
-**Purpose:** Implements `geometry status` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Creates a new series defaulting to VALID and assigns disjoint NULL, EMPTY and INVALID masks from the original geometry. Geometry objects are neither repaired nor dropped; dimensional coordinates are preserved.
 
 **Exact signature**
 
@@ -1531,7 +1527,7 @@ def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 ### `_geometry_summary`
 
-**Purpose:** Implements `geometry summary` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Recomputes disjoint null/empty/invalid counts plus the sorted unique geometry types of all non-null rows, including empty/invalid geometries. The tuple is used to compare retained summaries to the actual frame, not as a replacement for physical source revalidation.
 
 **Exact signature**
 
@@ -1618,7 +1614,7 @@ def _geometry_summary(
 
 ### `_validate_valid_geometry_types`
 
-**Purpose:** Implements `validate valid geometry types` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Examines only rows classified VALID and rejects any type outside the role's allowed family: LineString/MultiLineString for lines, Polygon/MultiPolygon for transformation posts. Defective geometries remain factual rows even when their type would be unsupported for VALID use.
 
 **Exact signature**
 
@@ -1705,7 +1701,7 @@ def _validate_valid_geometry_types(
 
 ### `_normalized_precision`
 
-**Purpose:** Implements `normalized precision` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Converts missing scalar precision to float NaN and finite nonnegative Real values to float64, retaining the series index. Booleans, numeric strings, containers, infinity and negative numbers fail; zero is valid.
 
 **Exact signature**
 
@@ -1800,7 +1796,7 @@ def _normalized_precision(
 
 ### `_base_output`
 
-**Purpose:** Implements `base output` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Creates a new non-geometric frame with stable `IGN_BDTOPO:<feature_type>:<cleabs>` IDs, raw source IDs, fixed provider/product/type and the validated source-layer/package lineage. It copies the current working index and does not carry arbitrary input columns.
 
 **Exact signature**
 
@@ -1895,7 +1891,7 @@ def _base_output(
 
 ### `_validated_geodataframe`
 
-**Purpose:** Implements `validated geodataframe` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Mutates only the internally created output frame to append proxy spatial role, geometry status and copied source geometry, then selects the declared ordered schema and retains the source CRS. It asserts non-null unique feature IDs, exact row count and RangeIndex. The original caller's source frame is not this mutable working output.
 
 **Exact signature**
 
@@ -1999,7 +1995,7 @@ def _validated_geodataframe(
 
 ### `_normalize_ign_electric_lines`
 
-**Purpose:** Normalize one discovered IGN electric-line layer.
+**Purpose:** Validates context and required raw line fields, resets a copied working frame to RangeIndex, classifies geometry, enforces the VALID linear family and normalizes precision. It builds stable lineage, parses raw voltage into four evidence columns, copies the explicitly mapped manager/state/source/date/acquisition facts and finalizes the fixed line schema. Every factual row and geometry survives; unrelated raw columns are not part of the normalized schema.
 
 **Exact signature**
 
@@ -2160,7 +2156,7 @@ def _normalize_ign_electric_lines(
 
 ### `_normalize_ign_transformation_posts`
 
-**Purpose:** Normalize one discovered IGN transformation-post proxy layer.
+**Purpose:** Validates context and required post fields, resets a copy to RangeIndex, classifies geometry, enforces the VALID polygon family and normalizes precision. It copies mapped name/name-status/importance/state/source/date/acquisition facts and explicitly emits UNKNOWN/null voltage without inferring voltage from a name or nearby line. It retains defective rows and original geometry in the fixed post schema.
 
 **Exact signature**
 
@@ -2305,7 +2301,7 @@ def _normalize_ign_transformation_posts(
 
 ### `_validate_layer_summary`
 
-**Purpose:** Implements `validate layer summary` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** First applies the source adapter's strict summary structure validator, then matches configured physical/logical layer names, row count, ordered columns/dtypes, active geometry and equivalent Lambert-93 CRS to the actual frame. It recomputes the geometry count/type tuple and rejects stale or coordinated envelope inconsistencies visible locally; this helper itself does not reopen the source.
 
 **Exact signature**
 
@@ -2446,7 +2442,7 @@ def _validate_layer_summary(
 
 ### `_normalized_identity`
 
-**Purpose:** Implements `normalized identity` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Requires a nonempty string, case-folds/NFKD-decomposes it, removes accents and joins ASCII alphanumeric runs for private provider/product comparison. It does not change source metadata or authorize a differently pinned public configuration.
 
 **Exact signature**
 
@@ -2524,7 +2520,7 @@ def _normalized_identity(value: object, label: str) -> str:
 
 ### `_validate_archive_identity`
 
-**Purpose:** Implements `validate archive identity` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Checks normalized provider against the module's IGN aliases, normalized product against BD TOPO and the archive CRS against EPSG:2154. This is local compatibility validation, downstream of the public adapter's stricter config/physical checks; string `.replace` performs no filesystem write.
 
 **Exact signature**
 
@@ -2570,7 +2566,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `product.replace` |
+| Filesystem/archive write or publication | None; this `.replace` changes only an in-memory string. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2601,7 +2597,7 @@ def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
 
 ### `_validate_source_bundle`
 
-**Purpose:** Implements `validate source bundle` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Requires exact source/extraction/archive/summary dataclass types and GeoDataFrame payloads; verifies a unique nonempty layer-name tuple, selected distinct electricity layers in that inventory, compatible archive identity, each current frame's complete summary and PROXY_GEOMETRY roles throughout. It is an in-memory consistency gate and does not substitute for source revalidation.
 
 **Exact signature**
 
@@ -2745,7 +2741,7 @@ def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
 
 ### `_source_context`
 
-**Purpose:** Implements `source context` within the file role: Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs.
+**Purpose:** Copies the selected physical layer name and seven archive provenance facts into a frozen scalar context. It relies on the caller's verified bundle; construction alone reads no file and hashes no bytes.
 
 **Exact signature**
 
@@ -2823,7 +2819,7 @@ def _source_context(
 
 ### `normalize_ign_electricity`
 
-**Purpose:** Validate and normalize a complete already-loaded IGN source bundle.
+**Purpose:** Requires the exact source-config type, calls the adapter's source-complete electricity revalidator to reconstruct the config and return independently reread fresh frames, validates that fresh bundle, creates one context per role and normalizes both fresh frames. Controlled normalization errors are preserved and other expected failures are wrapped. Its delegated authority checks inspect local archive/extraction identity and physical layers; no network, score or connection-capacity conclusion is introduced.
 
 **Exact signature**
 
@@ -2896,9 +2892,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated `_revalidate_ign_bdtopo_electricity_data`: validates archive/extraction files and rereads both physical layers. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated source revalidation recomputes archive/extraction identity and compares fresh factual frames. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |

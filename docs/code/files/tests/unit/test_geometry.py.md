@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `geometry` contracts exercised in this file.
+- Responsibility: Checks real in-memory polygon/multipolygon area, perimeter, centroid and rotated-envelope shape metrics on explicit fixtures, plus empty/invalid/nonpolygon/XYZ and geographic/malformed-CRS rejection; no source files, network or repairs are involved.
 - Source SHA256: `50e59494276ba92023531f77811de11ae09a23445948c59109ff4ea02539242c`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `geometry` contracts exercised in this file.
+Checks real in-memory polygon/multipolygon area, perimeter, centroid and rotated-envelope shape metrics on explicit fixtures, plus empty/invalid/nonpolygon/XYZ and geographic/malformed-CRS rejection; no source files, network or repairs are involved.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -70,7 +70,7 @@ No top-level class/model/dataclass is declared.
 
 ### `square`
 
-**Purpose:** Implements `square` within the file role: Provides complete unit and regression coverage for the `geometry` contracts exercised in this file.
+**Assertion scope:** Return a new valid 10-by-10 coordinate-unit Polygon for pytest fixture injection. Tests supply Lambert-93 to interpret those units as metres; the fixture itself stores no CRS.
 
 **Exact signature**
 
@@ -120,7 +120,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely Polygon construction. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -138,7 +138,7 @@ def square() -> Polygon:
 
 ### `test_valid_polygon_in_lambert93`
 
-**Purpose:** Regression invariant: valid polygon in lambert93. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Use the real area helper on the square fixture with Lambert-93 and assert positive area; this smoke check is weaker than the exact 100 m² case below.
 
 **Exact signature**
 
@@ -182,7 +182,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -200,7 +200,7 @@ def test_valid_polygon_in_lambert93(square: Polygon) -> None:
 
 ### `test_area_in_square_metres`
 
-**Purpose:** Regression invariant: area in square metres. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Assert the 10-by-10 square has approximately 100 m² using the real metric helper.
 
 **Exact signature**
 
@@ -245,7 +245,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -263,7 +263,7 @@ def test_area_in_square_metres(square: Polygon) -> None:
 
 ### `test_perimeter_in_metres`
 
-**Purpose:** Regression invariant: perimeter in metres. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Assert the square's real perimeter is approximately 40 m.
 
 **Exact signature**
 
@@ -308,7 +308,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -326,7 +326,7 @@ def test_perimeter_in_metres(square: Polygon) -> None:
 
 ### `test_centroid`
 
-**Purpose:** Regression invariant: centroid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Compute the real planar centroid of the square and assert x and y are both approximately 5.
 
 **Exact signature**
 
@@ -372,7 +372,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -393,7 +393,7 @@ def test_centroid(square: Polygon) -> None:
 
 ### `test_metric_calculation_in_wgs84_fails`
 
-**Purpose:** Regression invariant: metric calculation in wgs84 fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Parametrize area_m2 and perimeter_m; both must reject the valid square when its declared CRS is geographic WGS84 with MetricCrsError. The dynamic metric_function receiver is exactly this two-function set.
 
 **Exact signature**
 
@@ -442,7 +442,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -463,7 +463,7 @@ def test_metric_calculation_in_wgs84_fails(
 
 ### `test_empty_geometry_fails`
 
-**Purpose:** Regression invariant: empty geometry fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass Polygon() to area_m2 with Lambert-93 and require EmptyGeometryError; no repair or substitute polygon is used.
 
 **Exact signature**
 
@@ -507,7 +507,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -526,7 +526,7 @@ def test_empty_geometry_fails() -> None:
 
 ### `test_invalid_geometry_fails`
 
-**Purpose:** Regression invariant: invalid geometry fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Construct a self-crossing bow-tie, assert the fixture is actually invalid, then require InvalidGeometryError from area_m2.
 
 **Exact signature**
 
@@ -572,7 +572,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -594,7 +594,7 @@ def test_invalid_geometry_fails() -> None:
 
 ### `test_multipolygon`
 
-**Purpose:** Regression invariant: multipolygon. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Combine two separated 10-by-10 squares and assert aggregate area 200 m² and perimeter 80 m; both components remain present.
 
 **Exact signature**
 
@@ -641,7 +641,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -664,7 +664,7 @@ def test_multipolygon() -> None:
 
 ### `test_square_shape_metrics`
 
-**Purpose:** Regression invariant: square shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Call the four individual shape helpers on a square and check length/width 10 m, ratio 1 and compactness approximately 0.785398 (π/4).
 
 **Exact signature**
 
@@ -715,7 +715,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -736,7 +736,7 @@ def test_square_shape_metrics(square: Polygon) -> None:
 
 ### `test_simple_rectangle_shape_metrics`
 
-**Purpose:** Regression invariant: simple rectangle shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For a 20-by-10 rectangle assert 20 m length, 10 m width and ratio 2 using the individual helpers.
 
 **Exact signature**
 
@@ -784,7 +784,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -806,7 +806,7 @@ def test_simple_rectangle_shape_metrics() -> None:
 
 ### `test_rotated_rectangle_is_orientation_independent`
 
-**Purpose:** Regression invariant: rotated rectangle is orientation independent. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Rotate a 30-by-10 rectangle and assert its minimum-rotated-rectangle dimensions remain 30 m and 10 m, ratio 3. This is one rotation regression, not a proof over all angles.
 
 **Exact signature**
 
@@ -855,7 +855,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -878,7 +878,7 @@ def test_rotated_rectangle_is_orientation_independent() -> None:
 
 ### `test_elongated_rectangle_is_less_compact_than_square`
 
-**Purpose:** Regression invariant: elongated rectangle is less compact than square. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Check the 100-by-2 rectangle's ratio is 50 and its compactness is below the square's; no threshold or suitability policy is inferred.
 
 **Exact signature**
 
@@ -926,7 +926,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -949,7 +949,7 @@ def test_elongated_rectangle_is_less_compact_than_square(square: Polygon) -> Non
 
 ### `test_multipolygon_shape_metrics`
 
-**Purpose:** Regression invariant: multipolygon shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For two separated squares, assert the joint rotated envelope spans 30 m by 10 m and compactness lies in (0, 1]. The width/length describe the combined geometry envelope, not a single component.
 
 **Exact signature**
 
@@ -998,7 +998,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1022,7 +1022,7 @@ def test_multipolygon_shape_metrics() -> None:
 
 ### `test_shape_metrics_reject_geographic_crs`
 
-**Purpose:** Regression invariant: shape metrics reject geographic crs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Use four separate raises contexts to require MetricCrsError from length, width, ratio and compactness helpers on the square with WGS84. All four calls execute independently.
 
 **Exact signature**
 
@@ -1070,7 +1070,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1095,7 +1095,7 @@ def test_shape_metrics_reject_geographic_crs(square: Polygon) -> None:
 
 ### `test_shape_metrics_reject_invalid_geometry`
 
-**Purpose:** Regression invariant: shape metrics reject invalid geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass a self-crossing polygon to approximate_length_m and require InvalidGeometryError; this case does not directly invoke the other three individual helpers.
 
 **Exact signature**
 
@@ -1139,7 +1139,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1160,7 +1160,7 @@ def test_shape_metrics_reject_invalid_geometry() -> None:
 
 ### `test_shape_metrics_reject_empty_geometry`
 
-**Purpose:** Regression invariant: shape metrics reject empty geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass Polygon() to compactness_score and require EmptyGeometryError.
 
 **Exact signature**
 
@@ -1204,7 +1204,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1223,7 +1223,7 @@ def test_shape_metrics_reject_empty_geometry() -> None:
 
 ### `test_zero_area_geometry_raises_controlled_error`
 
-**Purpose:** Regression invariant: zero area geometry raises controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass a collinear polygon to length_width_ratio and require the GeometryError base class. The test does not pin a narrower subtype or prove which internal guard rejects first.
 
 **Exact signature**
 
@@ -1267,7 +1267,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1288,7 +1288,7 @@ def test_zero_area_geometry_raises_controlled_error() -> None:
 
 ### `test_length_is_always_at_least_width`
 
-**Purpose:** Regression invariant: length is always at least width. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For three explicit geometries (square, elongated rectangle and a 23-degree rotated rectangle), assert individual length is at least individual width. The name's always is limited to these sampled cases.
 
 **Exact signature**
 
@@ -1343,7 +1343,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1363,7 +1363,7 @@ def test_length_is_always_at_least_width(geometry: Polygon) -> None:
 
 ### `test_compactness_range`
 
-**Purpose:** Regression invariant: compactness range. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For a square and a 100-by-2 rectangle, assert compactness in (0, 1]; no random or exhaustive geometric domain is sampled.
 
 **Exact signature**
 
@@ -1415,7 +1415,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1433,7 +1433,7 @@ def test_compactness_range(geometry: Polygon) -> None:
 
 ### `test_centralized_shape_metrics`
 
-**Purpose:** Regression invariant: centralized shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For four declared rectangle cases, including one rotated 37 degrees, call parcel_shape_metrics_m once and assert expected dimensions, length≥width, expected ratio and compactness range on the returned ShapeMetrics.
 
 **Exact signature**
 
@@ -1501,7 +1501,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1527,7 +1527,7 @@ def test_centralized_shape_metrics(
 
 ### `test_centralized_shape_metrics_support_multipolygon`
 
-**Purpose:** Regression invariant: centralized shape metrics support multipolygon. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass the two separated squares to the centralized helper and assert the returned joint envelope dimensions 30 m by 10 m.
 
 **Exact signature**
 
@@ -1573,7 +1573,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1597,7 +1597,7 @@ def test_centralized_shape_metrics_support_multipolygon() -> None:
 
 ### `test_centralized_shape_metrics_reject_invalid_geometry`
 
-**Purpose:** Regression invariant: centralized shape metrics reject invalid geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Require InvalidGeometryError from the centralized helper for a self-crossing polygon.
 
 **Exact signature**
 
@@ -1641,7 +1641,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1662,7 +1662,7 @@ def test_centralized_shape_metrics_reject_invalid_geometry() -> None:
 
 ### `test_centralized_shape_metrics_reject_zero_area_geometry`
 
-**Purpose:** Regression invariant: centralized shape metrics reject zero area geometry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Require the GeometryError base class from centralized shape computation on a collinear polygon; do not claim a specific positive-area branch was reached.
 
 **Exact signature**
 
@@ -1706,7 +1706,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1727,7 +1727,7 @@ def test_centralized_shape_metrics_reject_zero_area_geometry() -> None:
 
 ### `test_centralized_shape_metrics_reject_geographic_crs`
 
-**Purpose:** Regression invariant: centralized shape metrics reject geographic crs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Require MetricCrsError when the centralized helper receives the square with WGS84.
 
 **Exact signature**
 
@@ -1772,7 +1772,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1791,7 +1791,7 @@ def test_centralized_shape_metrics_reject_geographic_crs(square: Polygon) -> Non
 
 ### `test_non_geometry_inputs_raise_controlled_error`
 
-**Purpose:** Regression invariant: non geometry inputs raise controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Five exact inputs (None, polygon text, integer 123, empty list and object) must raise UnsupportedGeometryError from area_m2; no Shapely geometry parser is substituted.
 
 **Exact signature**
 
@@ -1838,7 +1838,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegated type rejection in `area_m2`; no successful geometry calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1857,7 +1857,7 @@ def test_non_geometry_inputs_raise_controlled_error(geometry: object) -> None:
 
 ### `test_unsupported_geometry_family_raises_controlled_error`
 
-**Purpose:** Regression invariant: unsupported geometry family raises controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass a real Point to the polygon-only area helper and require UnsupportedGeometryError.
 
 **Exact signature**
 
@@ -1901,7 +1901,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1920,7 +1920,7 @@ def test_unsupported_geometry_family_raises_controlled_error() -> None:
 
 ### `test_three_dimensional_parcel_is_rejected`
 
-**Purpose:** Regression invariant: three dimensional parcel is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Pass a real XYZ Polygon to area_m2 and require UnsupportedGeometryError matching two-dimensional. This test does not construct XYM or XYZM data.
 
 **Exact signature**
 
@@ -1964,7 +1964,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1985,7 +1985,7 @@ def test_three_dimensional_parcel_is_rejected() -> None:
 
 ### `test_malformed_crs_inputs_raise_controlled_error`
 
-**Purpose:** Regression invariant: malformed crs inputs raise controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For None, object, empty list and not-a-crs text, require MetricCrsError from area_m2 with a valid square. The malformed-CRS gate is exercised independently of malformed geometry.
 
 **Exact signature**
 
@@ -2036,7 +2036,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely fixtures and the explicitly listed geometry/CRS helper calls; rejected inputs fail at their delegated validation gates. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2059,7 +2059,7 @@ def test_malformed_crs_inputs_raise_controlled_error(
 
 ## 7. Test-specific regression contract
 
-- Test functions: **28**.
+- Test function definitions: **28**. Static decorator arithmetic gives **42** cases (28 + 1 + 2 + 1 + 3 + 4 + 3); this file-content audit did not rerun collection.
 - Pytest fixtures (decorator-proven): **1**.
 
 ### Fixtures
@@ -2070,34 +2070,34 @@ def test_malformed_crs_inputs_raise_controlled_error(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_valid_polygon_in_lambert93` | none | none | 1 | Proves valid polygon in lambert93 using the exact source reproduced in section 7. |
-| `test_area_in_square_metres` | none | none | 1 | Proves area in square metres using the exact source reproduced in section 7. |
-| `test_perimeter_in_metres` | none | none | 1 | Proves perimeter in metres using the exact source reproduced in section 7. |
-| `test_centroid` | none | none | 2 | Proves centroid using the exact source reproduced in section 7. |
-| `test_metric_calculation_in_wgs84_fails` | pytest.mark.parametrize("metric_function", [area_m2, perimeter_m]) | pytest.raises(MetricCrsError) | 0 | Proves metric calculation in wgs84 fails using the exact source reproduced in section 7. |
-| `test_empty_geometry_fails` | none | pytest.raises(EmptyGeometryError) | 0 | Proves empty geometry fails using the exact source reproduced in section 7. |
-| `test_invalid_geometry_fails` | none | pytest.raises(InvalidGeometryError) | 1 | Proves invalid geometry fails using the exact source reproduced in section 7. |
-| `test_multipolygon` | none | none | 2 | Proves multipolygon using the exact source reproduced in section 7. |
-| `test_square_shape_metrics` | none | none | 4 | Proves square shape metrics using the exact source reproduced in section 7. |
-| `test_simple_rectangle_shape_metrics` | none | none | 3 | Proves simple rectangle shape metrics using the exact source reproduced in section 7. |
-| `test_rotated_rectangle_is_orientation_independent` | none | none | 3 | Proves rotated rectangle is orientation independent using the exact source reproduced in section 7. |
-| `test_elongated_rectangle_is_less_compact_than_square` | none | none | 2 | Proves elongated rectangle is less compact than square using the exact source reproduced in section 7. |
-| `test_multipolygon_shape_metrics` | none | none | 3 | Proves multipolygon shape metrics using the exact source reproduced in section 7. |
-| `test_shape_metrics_reject_geographic_crs` | none | pytest.raises(MetricCrsError); pytest.raises(MetricCrsError); pytest.raises(MetricCrsError); pytest.raises(MetricCrsError) | 0 | Proves shape metrics reject geographic crs using the exact source reproduced in section 7. |
-| `test_shape_metrics_reject_invalid_geometry` | none | pytest.raises(InvalidGeometryError) | 0 | Proves shape metrics reject invalid geometry using the exact source reproduced in section 7. |
-| `test_shape_metrics_reject_empty_geometry` | none | pytest.raises(EmptyGeometryError) | 0 | Proves shape metrics reject empty geometry using the exact source reproduced in section 7. |
-| `test_zero_area_geometry_raises_controlled_error` | none | pytest.raises(GeometryError) | 0 | Proves zero area geometry raises controlled error using the exact source reproduced in section 7. |
-| `test_length_is_always_at_least_width` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),<br>        Polygon([(0, 0), (40, 0), (40, 5), (0, 5)]),<br>        rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 23),<br>    ],<br>) | none | 1 | Proves length is always at least width using the exact source reproduced in section 7. |
-| `test_compactness_range` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),<br>        Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]),<br>    ],<br>) | none | 1 | Proves compactness range using the exact source reproduced in section 7. |
-| `test_centralized_shape_metrics` | pytest.mark.parametrize(<br>    ("geometry", "expected_length", "expected_width"),<br>    [<br>        (Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]), 10.0, 10.0),<br>        (Polygon([(0, 0), (20, 0), (20, 10), (0, 10)]), 20.0, 10.0),<br>        (<br>            rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 37),<br>            30.0,<br>            10.0,<br>        ),<br>        (Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]), 100.0, 2.0),<br>    ],<br>) | none | 5 | Proves centralized shape metrics using the exact source reproduced in section 7. |
-| `test_centralized_shape_metrics_support_multipolygon` | none | none | 2 | Proves centralized shape metrics support multipolygon using the exact source reproduced in section 7. |
-| `test_centralized_shape_metrics_reject_invalid_geometry` | none | pytest.raises(InvalidGeometryError) | 0 | Proves centralized shape metrics reject invalid geometry using the exact source reproduced in section 7. |
-| `test_centralized_shape_metrics_reject_zero_area_geometry` | none | pytest.raises(GeometryError) | 0 | Proves centralized shape metrics reject zero area geometry using the exact source reproduced in section 7. |
-| `test_centralized_shape_metrics_reject_geographic_crs` | none | pytest.raises(MetricCrsError) | 0 | Proves centralized shape metrics reject geographic crs using the exact source reproduced in section 7. |
-| `test_non_geometry_inputs_raise_controlled_error` | pytest.mark.parametrize("geometry", [None, "polygon", 123, [], object()]) | pytest.raises(UnsupportedGeometryError) | 0 | Proves non geometry inputs raise controlled error using the exact source reproduced in section 7. |
-| `test_unsupported_geometry_family_raises_controlled_error` | none | pytest.raises(UnsupportedGeometryError) | 0 | Proves unsupported geometry family raises controlled error using the exact source reproduced in section 7. |
-| `test_three_dimensional_parcel_is_rejected` | none | pytest.raises(UnsupportedGeometryError, match="two-dimensional") | 0 | Proves three dimensional parcel is rejected using the exact source reproduced in section 7. |
-| `test_malformed_crs_inputs_raise_controlled_error` | pytest.mark.parametrize("crs", [None, object(), [], "not-a-crs"]) | pytest.raises(MetricCrsError) | 0 | Proves malformed crs inputs raise controlled error using the exact source reproduced in section 7. |
+| `test_valid_polygon_in_lambert93` | none | none | 1 | Use the real area helper on the square fixture with Lambert-93 and assert positive area; this smoke check is weaker than the exact 100 m² case below. |
+| `test_area_in_square_metres` | none | none | 1 | Assert the 10-by-10 square has approximately 100 m² using the real metric helper. |
+| `test_perimeter_in_metres` | none | none | 1 | Assert the square's real perimeter is approximately 40 m. |
+| `test_centroid` | none | none | 2 | Compute the real planar centroid of the square and assert x and y are both approximately 5. |
+| `test_metric_calculation_in_wgs84_fails` | pytest.mark.parametrize("metric_function", [area_m2, perimeter_m]) | pytest.raises(MetricCrsError) | 0 | Parametrize area_m2 and perimeter_m; both must reject the valid square when its declared CRS is geographic WGS84 with MetricCrsError. The dynamic metric_function receiver is exactly this two-function set. |
+| `test_empty_geometry_fails` | none | pytest.raises(EmptyGeometryError) | 0 | Pass Polygon() to area_m2 with Lambert-93 and require EmptyGeometryError; no repair or substitute polygon is used. |
+| `test_invalid_geometry_fails` | none | pytest.raises(InvalidGeometryError) | 1 | Construct a self-crossing bow-tie, assert the fixture is actually invalid, then require InvalidGeometryError from area_m2. |
+| `test_multipolygon` | none | none | 2 | Combine two separated 10-by-10 squares and assert aggregate area 200 m² and perimeter 80 m; both components remain present. |
+| `test_square_shape_metrics` | none | none | 4 | Call the four individual shape helpers on a square and check length/width 10 m, ratio 1 and compactness approximately 0.785398 (π/4). |
+| `test_simple_rectangle_shape_metrics` | none | none | 3 | For a 20-by-10 rectangle assert 20 m length, 10 m width and ratio 2 using the individual helpers. |
+| `test_rotated_rectangle_is_orientation_independent` | none | none | 3 | Rotate a 30-by-10 rectangle and assert its minimum-rotated-rectangle dimensions remain 30 m and 10 m, ratio 3. This is one rotation regression, not a proof over all angles. |
+| `test_elongated_rectangle_is_less_compact_than_square` | none | none | 2 | Check the 100-by-2 rectangle's ratio is 50 and its compactness is below the square's; no threshold or suitability policy is inferred. |
+| `test_multipolygon_shape_metrics` | none | none | 3 | For two separated squares, assert the joint rotated envelope spans 30 m by 10 m and compactness lies in (0, 1]. The width/length describe the combined geometry envelope, not a single component. |
+| `test_shape_metrics_reject_geographic_crs` | none | pytest.raises(MetricCrsError); pytest.raises(MetricCrsError); pytest.raises(MetricCrsError); pytest.raises(MetricCrsError) | 0 | Use four separate raises contexts to require MetricCrsError from length, width, ratio and compactness helpers on the square with WGS84. All four calls execute independently. |
+| `test_shape_metrics_reject_invalid_geometry` | none | pytest.raises(InvalidGeometryError) | 0 | Pass a self-crossing polygon to approximate_length_m and require InvalidGeometryError; this case does not directly invoke the other three individual helpers. |
+| `test_shape_metrics_reject_empty_geometry` | none | pytest.raises(EmptyGeometryError) | 0 | Pass Polygon() to compactness_score and require EmptyGeometryError. |
+| `test_zero_area_geometry_raises_controlled_error` | none | pytest.raises(GeometryError) | 0 | Pass a collinear polygon to length_width_ratio and require the GeometryError base class. The test does not pin a narrower subtype or prove which internal guard rejects first. |
+| `test_length_is_always_at_least_width` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),<br>        Polygon([(0, 0), (40, 0), (40, 5), (0, 5)]),<br>        rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 23),<br>    ],<br>) | none | 1 | For three explicit geometries (square, elongated rectangle and a 23-degree rotated rectangle), assert individual length is at least individual width. The name's always is limited to these sampled cases. |
+| `test_compactness_range` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),<br>        Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]),<br>    ],<br>) | none | 1 | For a square and a 100-by-2 rectangle, assert compactness in (0, 1]; no random or exhaustive geometric domain is sampled. |
+| `test_centralized_shape_metrics` | pytest.mark.parametrize(<br>    ("geometry", "expected_length", "expected_width"),<br>    [<br>        (Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]), 10.0, 10.0),<br>        (Polygon([(0, 0), (20, 0), (20, 10), (0, 10)]), 20.0, 10.0),<br>        (<br>            rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 37),<br>            30.0,<br>            10.0,<br>        ),<br>        (Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]), 100.0, 2.0),<br>    ],<br>) | none | 5 | For four declared rectangle cases, including one rotated 37 degrees, call parcel_shape_metrics_m once and assert expected dimensions, length≥width, expected ratio and compactness range on the returned ShapeMetrics. |
+| `test_centralized_shape_metrics_support_multipolygon` | none | none | 2 | Pass the two separated squares to the centralized helper and assert the returned joint envelope dimensions 30 m by 10 m. |
+| `test_centralized_shape_metrics_reject_invalid_geometry` | none | pytest.raises(InvalidGeometryError) | 0 | Require InvalidGeometryError from the centralized helper for a self-crossing polygon. |
+| `test_centralized_shape_metrics_reject_zero_area_geometry` | none | pytest.raises(GeometryError) | 0 | Require the GeometryError base class from centralized shape computation on a collinear polygon; do not claim a specific positive-area branch was reached. |
+| `test_centralized_shape_metrics_reject_geographic_crs` | none | pytest.raises(MetricCrsError) | 0 | Require MetricCrsError when the centralized helper receives the square with WGS84. |
+| `test_non_geometry_inputs_raise_controlled_error` | pytest.mark.parametrize("geometry", [None, "polygon", 123, [], object()]) | pytest.raises(UnsupportedGeometryError) | 0 | Five exact inputs (None, polygon text, integer 123, empty list and object) must raise UnsupportedGeometryError from area_m2; no Shapely geometry parser is substituted. |
+| `test_unsupported_geometry_family_raises_controlled_error` | none | pytest.raises(UnsupportedGeometryError) | 0 | Pass a real Point to the polygon-only area helper and require UnsupportedGeometryError. |
+| `test_three_dimensional_parcel_is_rejected` | none | pytest.raises(UnsupportedGeometryError, match="two-dimensional") | 0 | Pass a real XYZ Polygon to area_m2 and require UnsupportedGeometryError matching two-dimensional. This test does not construct XYM or XYZM data. |
+| `test_malformed_crs_inputs_raise_controlled_error` | pytest.mark.parametrize("crs", [None, object(), [], "not-a-crs"]) | pytest.raises(MetricCrsError) | 0 | For None, object, empty list and not-a-crs text, require MetricCrsError from area_m2 with a valid square. The malformed-CRS gate is exercised independently of malformed geometry. |
 
 ## 8. Public exports and package ownership
 

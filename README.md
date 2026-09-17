@@ -23,3 +23,8 @@ yet complete.
 ## Technical documentation
 
 See [the living file-by-file technical reference](docs/code/README.md).
+
+For a new session, explicitly read [AGENTS.md](AGENTS.md), then follow the
+[repository-only resume procedure](docs/project/RESUME.md). Current publication,
+independent approval and pending work are separate records in
+[CURRENT_STATE.md](docs/project/CURRENT_STATE.md).

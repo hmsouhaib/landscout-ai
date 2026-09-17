@@ -34,10 +34,10 @@ from pathlib import PurePosixPath
 from types import MappingProxyType
 from typing import Any
 import numpy as np
-import pyogrio
+import pyogrio  # type: ignore[import-untyped]
 import pyproj
-import shapely
-from shapely.geometry.base import BaseGeometry
+import shapely  # type: ignore[import-untyped]
+from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 from landscout.sources.inpn_protected_areas_attributes_fr import (
     InpnProtectedAreasAttributeProfileError,
 )
@@ -160,7 +160,7 @@ Geometry-profile and parser-encoding schemas remain 1. The existing catalog stay
 
 ## 4. Every model and field
 
-Public models are frozen dataclasses containing only exact portable scalar values and immutable tuples. Private parser records may retain temporary geometry/WKB/envelope state during construction, but none escapes into public evidence. Dataclass construction alone is not the public trust boundary: builders and validators prove the complete intrinsic/source contracts.
+Validated public models are frozen dataclasses containing only exact portable scalar values and immutable tuples. All declared fields are required; only explicitly optional fields accept None. Direct dataclass construction does not validate annotations and can retain an invalid caller-supplied value. Private parser records may retain temporary geometry/WKB/envelope state during construction, but none escapes into validated public evidence. Builders and validators prove the complete intrinsic/source contracts.
 
 ### `InpnProtectedAreasGeometryProfileError`
 
@@ -270,7 +270,7 @@ Decorators: `dataclass(frozen=True)`.
 | `fid_column_name: str` | Discovered INTEGER PRIMARY KEY rowid-alias column, not a guessed name. |
 | `geometry_column_name: str` | Exact physical geometry-BLOB column from GeoPackage metadata. |
 | `gpkg_geometry_type_name: str` | Exact supported uppercase GeoPackage declaration, independently bound to the physical SQL declared type and assignable observed WKB-type domain. |
-| `gpkg_srs_id: int` | Signed source SRS ID agreed by metadata/header and proven integer EPSG authority. |
+| `gpkg_srs_id: int` | Signed source SRS ID agreed by metadata/header; also compared with the catalog authority code when the authority is EPSG and its code is decimal. |
 | `gpkg_z_flag: int` | Exact GeoPackage Z declaration, checked against every non-null parsed geometry. |
 | `gpkg_m_flag: int` | Exact GeoPackage M declaration, checked against every non-null parsed geometry. |
 | `catalog_geometry_type_raw: str` | Unchanged geometry-type text from the physical Pyogrio catalog. |
@@ -400,7 +400,7 @@ def _open_gpkg_sqlite_snapshot(
 ) -> Iterator[sqlite3.Connection]:
 ```
 
-Requires exact nonempty built-in bytes, opens only :memory:, deserializes those exact bytes, verifies query_only=ON, disables/verifies trusted_schema where supported, and forces schema parsing before yielding. Database/overflow/type/value errors become the chained geometry error; closure is guaranteed and the same failure families are controlled if closure raises.
+Requires exact nonempty built-in bytes, opens only :memory:, deserializes those exact bytes, verifies query_only=ON, disables/verifies trusted_schema where supported, and forces schema parsing before yielding. Database/overflow/type/value errors become the chained geometry error. The finally block attempts closure; the same failure families are controlled if close raises, and such a cleanup error can replace an earlier error.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 
@@ -742,7 +742,7 @@ raise InpnProtectedAreasGeometryProfileError(
 def _canonical_json_sha256(value: object, label: str = "geometry evidence") -> str:
 ```
 
-Returns lowercase SHA256 of the canonical JSON bytes; integer-list serialization intentionally matches the existing attribute FID hash contract.
+Returns lowercase SHA256 of the canonical JSON bytes; integer-list serialization intentionally matches the existing attribute FID hash contract. The optional label parameter is currently unused and does not affect serialization or error text.
 
 ### `_profile_payload`
 
@@ -825,7 +825,7 @@ def _profile_layer(
 ) -> InpnProtectedAreasLayerGeometryProfile:
 ```
 
-Discovers physical metadata and reads canonical FID/BLOB rows, tracks NULL/EMPTY/NON_EMPTY separately, accumulates exact type/dimension/Z/M and non-empty validity/reason domains, counts all coordinates, and computes observed bounds. Incremental canonical JSON hashes bind exact full-BLOB SHA evidence separately from explicit parser-derived WKB evidence. Returns one immutable catalog-bound layer record.
+Discovers physical metadata and reads canonical FID/BLOB rows, tracks NULL/EMPTY/NON_EMPTY separately, accumulates exact type/dimension/Z/M and non-empty validity/reason domains, counts all coordinates, and computes observed bounds. Incremental canonical JSON hashes bind exact full-BLOB SHA evidence separately from explicit parser-derived WKB evidence. This is complete in-memory processing, not a bounded streaming reader: fetchall retains the layer rows, the package snapshot remains in SQLite, and type/reason domains and FIDs are accumulated. Returns one immutable catalog-bound layer record.
 
 Direct raise statements (enclosing guards are in the exact source snapshot):
 

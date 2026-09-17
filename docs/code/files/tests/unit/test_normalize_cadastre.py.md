@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+- Responsibility: Tests local raw-to-canonical Cadastre normalization with physical revalidation stubbed: exact output columns, Lambert-93 area/WGS84 retention, invalid/null/empty geometry preservation, identity/column/CRS guards, input preservation and use of the fresh revalidation return value.
 - Source SHA256: `db89effb40b328e03a5101d60378cceef8c6e368e93e85870eaecab4e5e3868e`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+Tests local raw-to-canonical Cadastre normalization with physical revalidation stubbed: exact output columns, Lambert-93 area/WGS84 retention, invalid/null/empty geometry preservation, identity/column/CRS guards, input preservation and use of the fresh revalidation return value.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -62,7 +62,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_physical_revalidation_stub`
 
-**Purpose:** Implements `physical revalidation stub` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Autouse monkeypatch replaces physical Cadastre revalidation with a deep frame copy. Every test here is a local normalization contract test, not independent gzip/source-authority validation.
 
 **Exact signature**
 
@@ -107,7 +107,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `monkeypatch.setattr` temporarily replaces the normalizer's physical-revalidation dependency. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -126,7 +126,7 @@ def _physical_revalidation_stub(monkeypatch: pytest.MonkeyPatch) -> None:
 
 ### `_bound_source`
 
-**Purpose:** Implements `bound source` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Wrap the supplied object in a synthetic CadastreParcelSource with unused path, zero SHA and one-byte metadata; derive commune from the first string-valued row when available. Physical validity is deliberately bypassed by the autouse stub.
 
 **Exact signature**
 
@@ -211,7 +211,7 @@ def _bound_source(parcels: object) -> CadastreParcelSource:
 
 ### `_normalize`
 
-**Purpose:** Implements `normalize` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Call the public normalizer using the synthetic envelope helper; its revalidation dependency is stubbed in this module.
 
 **Exact signature**
 
@@ -308,7 +308,7 @@ def _normalize(parcels: object) -> gpd.GeoDataFrame:
 
 ### `_source_parcels`
 
-**Purpose:** Implements `source parcels` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Build a WGS84 GeoDataFrame containing all nine raw Cadastre factual fields plus requested geometries; use supplied truthy IDs or generated sequential IDs. This creates only in-memory synthetic facts.
 
 **Exact signature**
 
@@ -435,7 +435,7 @@ def _source_parcels(
 
 ### `valid_polygon`
 
-**Purpose:** Implements `valid polygon` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Provide one valid triangular WGS84 polygon near 2.35E/43.45N for normalization and metric checks.
 
 **Exact signature**
 
@@ -508,7 +508,7 @@ def valid_polygon() -> Polygon:
 
 ### `test_field_normalization`
 
-**Purpose:** Regression invariant: field normalization. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the exact ordered 12-column output schema and first parcel ID, commune and VALID status.
 
 **Exact signature**
 
@@ -593,7 +593,7 @@ def test_field_normalization(valid_polygon: Polygon) -> None:
 
 ### `test_lambert93_area_calculation`
 
-**Purpose:** Regression invariant: lambert93 area calculation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare normalized area to the same fixture independently projected by GeoPandas to EPSG:2154 and require positive area.
 
 **Exact signature**
 
@@ -665,7 +665,7 @@ def test_lambert93_area_calculation(valid_polygon: Polygon) -> None:
 
 ### `test_output_geometry_stays_in_wgs84`
 
-**Purpose:** Regression invariant: output geometry stays in wgs84. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert EPSG:4326 and zero-tolerance geometric coordinate equality for the retained polygon; this is not a WKB-byte assertion.
 
 **Exact signature**
 
@@ -738,7 +738,7 @@ def test_output_geometry_stays_in_wgs84(valid_polygon: Polygon) -> None:
 
 ### `test_invalid_geometry_is_preserved_with_null_area`
 
-**Purpose:** Regression invariant: invalid geometry is preserved with null area. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Confirm the self-crossing bow-tie is invalid, retain it with INVALID status and null area, and compare geometry at zero tolerance.
 
 **Exact signature**
 
@@ -812,7 +812,7 @@ def test_invalid_geometry_is_preserved_with_null_area() -> None:
 
 ### `test_missing_crs_fails`
 
-**Purpose:** Regression invariant: missing crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Remove source CRS and require a controlled normalization error mentioning CRS.
 
 **Exact signature**
 
@@ -879,7 +879,7 @@ def test_missing_crs_fails(valid_polygon: Polygon) -> None:
 
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Duplicate parcel IDs and require a uniqueness error.
 
 **Exact signature**
 
@@ -948,7 +948,7 @@ def test_duplicate_parcel_id_fails(valid_polygon: Polygon) -> None:
 
 ### `test_non_geodataframe_is_rejected_safely`
 
-**Purpose:** Regression invariant: non geodataframe is rejected safely. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass a pandas DataFrame through the synthetic envelope and require a GeoDataFrame error before unsafe frame operations.
 
 **Exact signature**
 
@@ -1011,7 +1011,7 @@ def test_non_geodataframe_is_rejected_safely() -> None:
 
 ### `test_duplicate_columns_are_rejected`
 
-**Purpose:** Regression invariant: duplicate columns are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Concatenate a repeated id column and require the columns-unique guard.
 
 **Exact signature**
 
@@ -1085,7 +1085,7 @@ def test_duplicate_columns_are_rejected(valid_polygon: Polygon) -> None:
 
 ### `test_normalized_target_column_collision_is_rejected`
 
-**Purpose:** Regression invariant: normalized target column collision is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Insert each of six reserved normalized output names and require a collision error; this parametrization does not enumerate every output column.
 
 **Exact signature**
 
@@ -1171,7 +1171,7 @@ def test_normalized_target_column_collision_is_rejected(
 
 ### `test_projected_source_crs_is_rejected`
 
-**Purpose:** Regression invariant: projected source crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Actually project the fixture to EPSG:2154 and require the EPSG:4326 source-CRS error.
 
 **Exact signature**
 
@@ -1239,7 +1239,7 @@ def test_projected_source_crs_is_rejected(valid_polygon: Polygon) -> None:
 
 ### `test_parcel_id_must_be_an_exact_nonempty_string`
 
-**Purpose:** Regression invariant: parcel id must be an exact nonempty string. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject integer, empty, whitespace-only and leading/trailing-whitespace ID examples.
 
 **Exact signature**
 
@@ -1314,7 +1314,7 @@ def test_parcel_id_must_be_an_exact_nonempty_string(
 
 ### `test_non_polygonal_geometry_is_rejected`
 
-**Purpose:** Regression invariant: non polygonal geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject one Point and one LineString with a Polygon-family error.
 
 **Exact signature**
 
@@ -1385,7 +1385,7 @@ def test_non_polygonal_geometry_is_rejected(geometry: object) -> None:
 
 ### `test_valid_multipolygon_is_accepted`
 
-**Purpose:** Regression invariant: valid multipolygon is accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Wrap the valid polygon in a MultiPolygon and assert VALID status and positive area.
 
 **Exact signature**
 
@@ -1453,7 +1453,7 @@ def test_valid_multipolygon_is_accepted(valid_polygon: Polygon) -> None:
 
 ### `test_null_and_empty_geometry_are_preserved_as_invalid`
 
-**Purpose:** Regression invariant: null and empty geometry are preserved as invalid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For None and empty Polygon, assert INVALID and null area, then assert the corresponding null or empty geometry property separately.
 
 **Exact signature**
 
@@ -1530,7 +1530,7 @@ def test_null_and_empty_geometry_are_preserved_as_invalid(geometry: object) -> N
 
 ### `test_normalization_does_not_mutate_input`
 
-**Purpose:** Regression invariant: normalization does not mutate input. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare the source GeoDataFrame with a pre-normalization deepcopy through assert_geodataframe_equal; the assertion is a helper call, not an assert statement counted by the generated index.
 
 **Exact signature**
 
@@ -1598,7 +1598,7 @@ def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
 
 ### `test_normalization_uses_the_fresh_revalidated_frame`
 
-**Purpose:** Regression invariant: normalization uses the fresh revalidated frame. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace the revalidation stub with a callback that mutates supplied id while returning an earlier copy; assert output retains the fresh copy's original ID and supplied mutation remains visible.
 
 **Exact signature**
 
@@ -1688,7 +1688,7 @@ def test_normalization_uses_the_fresh_revalidated_frame(
 
 ### `test_normalization_uses_the_fresh_revalidated_frame.return_fresh_and_mutate_supplied`
 
-**Purpose:** Implements `return fresh and mutate supplied` within the file role: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
+**Purpose:** Mutate the closed-over supplied frame's id then return the distinct fresh frame, proving the caller consumes the return value rather than reusing its input.
 
 **Exact signature**
 
@@ -1748,7 +1748,7 @@ def return_fresh_and_mutate_supplied(_: object) -> gpd.GeoDataFrame:
 
 ### `test_every_cadastral_identity_field_requires_an_exact_nonempty_string`
 
-**Purpose:** Regression invariant: every cadastral identity field requires an exact nonempty string. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Cross five raw identity fields with six null/non-string/empty/whitespace values (30 cases), cast the target column to object and require a field-naming error.
 
 **Exact signature**
 
@@ -1832,7 +1832,7 @@ def test_every_cadastral_identity_field_requires_an_exact_nonempty_string(
 
 ### `test_commune_requires_canonical_french_insee_identity`
 
-**Purpose:** Regression invariant: commune requires canonical french insee identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject four wrong-length, lowercase Corsican or alphabetic commune examples, synchronizing the synthetic parcel ID so commune validation is isolated.
 
 **Exact signature**
 
@@ -1909,7 +1909,7 @@ def test_commune_requires_canonical_french_insee_identity(
 
 ### `test_commune_accepts_canonical_french_insee_identity`
 
-**Purpose:** Regression invariant: commune accepts canonical french insee identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept metropolitan 31395 and uppercase Corsican 2A004/2B033, asserting the retained commune value.
 
 **Exact signature**
 
@@ -1987,6 +1987,10 @@ def test_commune_accepts_canonical_french_insee_identity(
 
 ## 7. Test-specific regression contract
 
+Tests local raw-to-canonical Cadastre normalization with physical revalidation stubbed: exact output columns, Lambert-93 area/WGS84 retention, invalid/null/empty geometry preservation, identity/column/CRS guards, input preservation and use of the fresh revalidation return value.
+
+The fixture's zero-SHA `unused.json.gz` envelope is not physically verified. The 19 test definitions expand statically to 64 cases; no test was executed for this documentation audit.
+
 - Test functions: **19**.
 - Pytest fixtures (decorator-proven): **2**.
 
@@ -1999,25 +2003,25 @@ def test_commune_accepts_canonical_french_insee_identity(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_field_normalization` | none | none | 4 | Proves field normalization using the exact source reproduced in section 7. |
-| `test_lambert93_area_calculation` | none | none | 2 | Proves lambert93 area calculation using the exact source reproduced in section 7. |
-| `test_output_geometry_stays_in_wgs84` | none | none | 3 | Proves output geometry stays in wgs84 using the exact source reproduced in section 7. |
-| `test_invalid_geometry_is_preserved_with_null_area` | none | none | 4 | Proves invalid geometry is preserved with null area using the exact source reproduced in section 7. |
-| `test_missing_crs_fails` | none | pytest.raises(CadastreNormalizationError, match="CRS") | 0 | Proves missing crs fails using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_fails` | none | pytest.raises(CadastreNormalizationError, match="unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
-| `test_non_geodataframe_is_rejected_safely` | none | pytest.raises(CadastreNormalizationError, match="GeoDataFrame") | 0 | Proves non geodataframe is rejected safely using the exact source reproduced in section 7. |
-| `test_duplicate_columns_are_rejected` | none | pytest.raises(CadastreNormalizationError, match="columns.*unique") | 0 | Proves duplicate columns are rejected using the exact source reproduced in section 7. |
-| `test_normalized_target_column_collision_is_rejected` | pytest.mark.parametrize(<br>    "collision",<br>    [<br>        "parcel_id",<br>        "commune_code",<br>        "section_prefix",<br>        "parcel_number",<br>        "geometry_status",<br>        "area_m2",<br>    ],<br>) | pytest.raises(CadastreNormalizationError, match="collide") | 0 | Proves normalized target column collision is rejected using the exact source reproduced in section 7. |
-| `test_projected_source_crs_is_rejected` | none | pytest.raises(CadastreNormalizationError, match="4326") | 0 | Proves projected source crs is rejected using the exact source reproduced in section 7. |
-| `test_parcel_id_must_be_an_exact_nonempty_string` | pytest.mark.parametrize("identifier", [1, "", " ", " parcel", "parcel "]) | pytest.raises(CadastreNormalizationError, match="parcel_id") | 0 | Proves parcel id must be an exact nonempty string using the exact source reproduced in section 7. |
-| `test_non_polygonal_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(2.35, 43.45), LineString([(2.35, 43.45), (2.36, 43.46)])],<br>) | pytest.raises(CadastreNormalizationError, match="Polygon") | 0 | Proves non polygonal geometry is rejected using the exact source reproduced in section 7. |
-| `test_valid_multipolygon_is_accepted` | none | none | 2 | Proves valid multipolygon is accepted using the exact source reproduced in section 7. |
-| `test_null_and_empty_geometry_are_preserved_as_invalid` | pytest.mark.parametrize("geometry", [None, Polygon()]) | none | 4 | Proves null and empty geometry are preserved as invalid using the exact source reproduced in section 7. |
-| `test_normalization_does_not_mutate_input` | none | none | 0 | Proves normalization does not mutate input using the exact source reproduced in section 7. |
-| `test_normalization_uses_the_fresh_revalidated_frame` | none | none | 2 | Proves normalization uses the fresh revalidated frame using the exact source reproduced in section 7. |
-| `test_every_cadastral_identity_field_requires_an_exact_nonempty_string` | pytest.mark.parametrize("column", ["id", "commune", "prefixe", "section", "numero"]); pytest.mark.parametrize(<br>    "value",<br>    [None, 123, True, "", " leading", "trailing "],<br>) | pytest.raises(CadastreNormalizationError, match=column) | 0 | Proves every cadastral identity field requires an exact nonempty string using the exact source reproduced in section 7. |
-| `test_commune_requires_canonical_french_insee_identity` | pytest.mark.parametrize("commune", ["3139", "2a004", "ABCDE", "971000"]) | pytest.raises(CadastreNormalizationError, match="commune") | 0 | Proves commune requires canonical french insee identity using the exact source reproduced in section 7. |
-| `test_commune_accepts_canonical_french_insee_identity` | pytest.mark.parametrize("commune", ["31395", "2A004", "2B033"]) | none | 1 | Proves commune accepts canonical french insee identity using the exact source reproduced in section 7. |
+| `test_field_normalization` | none | none | 4 | Assert the exact ordered 12-column output schema and first parcel ID, commune and VALID status. |
+| `test_lambert93_area_calculation` | none | none | 2 | Compare normalized area to the same fixture independently projected by GeoPandas to EPSG:2154 and require positive area. |
+| `test_output_geometry_stays_in_wgs84` | none | none | 3 | Assert EPSG:4326 and zero-tolerance geometric coordinate equality for the retained polygon; this is not a WKB-byte assertion. |
+| `test_invalid_geometry_is_preserved_with_null_area` | none | none | 4 | Confirm the self-crossing bow-tie is invalid, retain it with INVALID status and null area, and compare geometry at zero tolerance. |
+| `test_missing_crs_fails` | none | pytest.raises(CadastreNormalizationError, match="CRS") | 0 | Remove source CRS and require a controlled normalization error mentioning CRS. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(CadastreNormalizationError, match="unique") | 0 | Duplicate parcel IDs and require a uniqueness error. |
+| `test_non_geodataframe_is_rejected_safely` | none | pytest.raises(CadastreNormalizationError, match="GeoDataFrame") | 0 | Pass a pandas DataFrame through the synthetic envelope and require a GeoDataFrame error before unsafe frame operations. |
+| `test_duplicate_columns_are_rejected` | none | pytest.raises(CadastreNormalizationError, match="columns.*unique") | 0 | Concatenate a repeated id column and require the columns-unique guard. |
+| `test_normalized_target_column_collision_is_rejected` | pytest.mark.parametrize(<br>    "collision",<br>    [<br>        "parcel_id",<br>        "commune_code",<br>        "section_prefix",<br>        "parcel_number",<br>        "geometry_status",<br>        "area_m2",<br>    ],<br>) | pytest.raises(CadastreNormalizationError, match="collide") | 0 | Insert each of six reserved normalized output names and require a collision error; this parametrization does not enumerate every output column. |
+| `test_projected_source_crs_is_rejected` | none | pytest.raises(CadastreNormalizationError, match="4326") | 0 | Actually project the fixture to EPSG:2154 and require the EPSG:4326 source-CRS error. |
+| `test_parcel_id_must_be_an_exact_nonempty_string` | pytest.mark.parametrize("identifier", [1, "", " ", " parcel", "parcel "]) | pytest.raises(CadastreNormalizationError, match="parcel_id") | 0 | Reject integer, empty, whitespace-only and leading/trailing-whitespace ID examples. |
+| `test_non_polygonal_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(2.35, 43.45), LineString([(2.35, 43.45), (2.36, 43.46)])],<br>) | pytest.raises(CadastreNormalizationError, match="Polygon") | 0 | Reject one Point and one LineString with a Polygon-family error. |
+| `test_valid_multipolygon_is_accepted` | none | none | 2 | Wrap the valid polygon in a MultiPolygon and assert VALID status and positive area. |
+| `test_null_and_empty_geometry_are_preserved_as_invalid` | pytest.mark.parametrize("geometry", [None, Polygon()]) | none | 4 | For None and empty Polygon, assert INVALID and null area, then assert the corresponding null or empty geometry property separately. |
+| `test_normalization_does_not_mutate_input` | none | none | 0 | Compare the source GeoDataFrame with a pre-normalization deepcopy through assert_geodataframe_equal; the assertion is a helper call, not an assert statement counted by the generated index. |
+| `test_normalization_uses_the_fresh_revalidated_frame` | none | none | 2 | Replace the revalidation stub with a callback that mutates supplied id while returning an earlier copy; assert output retains the fresh copy's original ID and supplied mutation remains visible. |
+| `test_every_cadastral_identity_field_requires_an_exact_nonempty_string` | pytest.mark.parametrize("column", ["id", "commune", "prefixe", "section", "numero"]); pytest.mark.parametrize(<br>    "value",<br>    [None, 123, True, "", " leading", "trailing "],<br>) | pytest.raises(CadastreNormalizationError, match=column) | 0 | Cross five raw identity fields with six null/non-string/empty/whitespace values (30 cases), cast the target column to object and require a field-naming error. |
+| `test_commune_requires_canonical_french_insee_identity` | pytest.mark.parametrize("commune", ["3139", "2a004", "ABCDE", "971000"]) | pytest.raises(CadastreNormalizationError, match="commune") | 0 | Reject four wrong-length, lowercase Corsican or alphabetic commune examples, synchronizing the synthetic parcel ID so commune validation is isolated. |
+| `test_commune_accepts_canonical_french_insee_identity` | pytest.mark.parametrize("commune", ["31395", "2A004", "2B033"]) | none | 1 | Accept metropolitan 31395 and uppercase Corsican 2A004/2B033, asserting the retained commune value. |
 
 ## 8. Public exports and package ownership
 

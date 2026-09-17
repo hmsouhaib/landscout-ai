@@ -11,7 +11,7 @@
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Revalidates shape configuration and canonical parcel facts before producing scenario diagnostics.
+- Revalidates canonical parcel facts before producing scenario diagnostics. No shape configuration is accepted by this API; its six scenarios are fixed diagnostic declarations in this module, not the active profile's filter policy.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
 ## 2. Purpose and architectural position
@@ -196,7 +196,7 @@ class ShapeProfileError(ValueError):
 
 ### `DiagnosticScenario`
 
-**Source purpose:** Defines `DiagnosticScenario`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen record of a diagnostic scenario's retained count and percentage. The denominator is the number of `VALID` shape rows, not all input parcels; an `ERROR` row participates only in the profile's error count.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -225,7 +225,7 @@ class DiagnosticScenario:
 
 ### `ShapeDistributionProfile`
 
-**Source purpose:** Defines `ShapeDistributionProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Records input/VALID/ERROR counts; eleven percentiles for each of five metrics; exhaustive width, ratio and compactness buckets; six fixed scenarios; and up to five median plus five non-overlapping extreme parcel records. The dataclass prevents attribute reassignment but its dict/list fields remain mutable diagnostic output, not a deeply immutable validated policy or source-integrity manifest.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -278,7 +278,7 @@ class ShapeDistributionProfile:
 
 ### `_records`
 
-**Purpose:** Implements `records` within the file role: Profiles shape metrics and scenario evidence without making parcel suitability decisions.
+**Purpose:** Selects the eight ordered `REPRESENTATIVE_FIELDS` from the supplied frame and returns fresh record dictionaries via pandas. It adds no validation, ranking or geometry computation; the public caller has already selected and validated the rows.
 
 **Exact signature**
 
@@ -341,7 +341,7 @@ def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
 
 ### `profile_shape_distribution`
 
-**Purpose:** Implements `profile shape distribution` within the file role: Profiles shape metrics and scenario evidence without making parcel suitability decisions.
+**Purpose:** First revalidates the complete canonical parcel prefix, then requires the shape columns, readable CRS, unique exact-looking IDs and only `VALID`/`ERROR` statuses. It requires at least one VALID row and validates its seven metrics as finite real numbers (not booleans), positive area/length/width, ratio at least one, compactness in `(0, 1]`, geographic centroid ranges, length at least width and ratio consistent with length/width within `1e-9`. ERROR rows are excluded from every distribution, bucket, scenario and representative sample. On a copy of VALID rows it computes eleven quantiles per metric, three exhaustive bucket sets and six fixed scenario counts/percentages. Median representatives are the five smallest sums of absolute median deviations scaled by IQR (zero IQR becomes one); extremes are the five largest sums of percentile ranks for ratio, negative width and negative compactness, excluding median IDs. Those temporary diagnostic ordering values are not parcel suitability scores and are not returned as parcel fields. Input columns, rows and geometry are not mutated.
 
 **Exact signature**
 

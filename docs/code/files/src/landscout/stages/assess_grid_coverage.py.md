@@ -364,7 +364,7 @@ class GridCoverageAssessmentError(ValueError):
 
 ### `GridCoverageAssessmentResult`
 
-**Source purpose:** Coverage-annotated copies of both grid-proximity representations.
+**Source purpose:** Frozen envelope holding mutable coverage-annotated copies of both proximity frames, the original immutable voltage-coverage tuple and the retained department source envelope. Frozen attributes do not make these GeoDataFrames immutable or remove the need for public source revalidation.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -412,7 +412,7 @@ class GridCoverageAssessmentResult:
 
 ### `BoundaryDistanceProfile`
 
-**Source purpose:** Defines `BoundaryDistanceProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen scalar count and eleven-point distribution (minimum, nine interior percentiles, maximum) of the stored nonnegative boundary-distance field. It has no nullable-empty representation: the profiler rejects zero parcels.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -471,7 +471,7 @@ class BoundaryDistanceProfile:
 
 ### `CoverageStatusCounts`
 
-**Source purpose:** Defines `CoverageStatusCounts`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen counts of the four mutually exclusive proximity-coverage statuses. These are evidence categories, not approval/rejection or parcel ranking outcomes.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -514,7 +514,7 @@ class CoverageStatusCounts:
 
 ### `VoltageCoverageStatusProfile`
 
-**Source purpose:** Defines `VoltageCoverageStatusProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen record of one observed exact voltage, the number of parcel rows at that level and its four status counts. It is line-voltage evidence only, not post voltage or capacity.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -555,7 +555,7 @@ class VoltageCoverageStatusProfile:
 
 ### `GridCoverageProfile`
 
-**Source purpose:** Defines `GridCoverageProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen aggregate containing parcel position counts, one boundary-distance summary, three nearest-category status summaries and an ordered tuple of per-voltage summaries. All nested records/tuples here contain scalar facts, unlike the mutable frame-bearing assessment envelope.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -609,7 +609,7 @@ class GridCoverageProfile:
 
 ### `_reject_parcel_output_collisions`
 
-**Purpose:** Implements `reject parcel output collisions` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Rejects any parcel input field reserved for coverage diagnostics or their lineage so existing evidence cannot be overwritten. The public caller runs this before source-complete proximity construction.
 
 **Exact signature**
 
@@ -681,7 +681,7 @@ def _reject_parcel_output_collisions(parcels: gpd.GeoDataFrame) -> None:
 
 ### `_validated_lambert93`
 
-**Purpose:** Implements `validated lambert93` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires non-null readable projected CRS metadata equivalent to EPSG:2154 and wraps failures with context. It checks metadata only and does not reproject.
 
 **Exact signature**
 
@@ -761,7 +761,7 @@ def _validated_lambert93(value: object, label: str) -> CRS:
 
 ### `_normalized_identity`
 
-**Purpose:** Implements `normalized identity` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires a nonempty edge-trimmed `isinstance(str)` value, NFKD-decomposes and case-folds it, then retains alphanumeric characters for provider/product comparison. This is local textual identity normalization, not a source URL or archive-byte authority check.
 
 **Exact signature**
 
@@ -840,7 +840,7 @@ def _normalized_identity(value: object, label: str) -> str:
 
 ### `_strict_nonnegative_integer`
 
-**Purpose:** Implements `strict nonnegative integer` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires the exact built-in int type and value at least zero for coverage-summary counts, rejecting booleans, float equivalents and integer subclasses.
 
 **Exact signature**
 
@@ -909,7 +909,7 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 ### `_validate_coverage_summary`
 
-**Purpose:** Implements `validate coverage summary` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires the exact summary type and matching physical layer, Lambert-93 CRS, selected count and ordered original columns/dtypes plus the eight appended lineage columns. It validates whole-layer source/geometry counts and type inventory, compares them exactly to selected geometry when the source contains only the selected rows and otherwise checks the selection is a consistent subset. It also requires the declared department field in the original schema, exact selected code values and matching coverage role. No source file is opened by this local consistency helper.
 
 **Exact signature**
 
@@ -1143,7 +1143,7 @@ def _validate_coverage_summary(
 
 ### `_validate_source_coverage`
 
-**Purpose:** Implements `validate source coverage` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires the exact department-coverage envelope, SOURCE_COVERAGE_BOUNDARY role, hygienic lineage, recognized normalized IGN/BD TOPO identity and lowercase SHA spelling. Its frame must contain exactly one non-null/nonempty/valid polygonal selected feature in EPSG:2154 with active geometry. It validates the summary and requires each lineage column to agree with the envelope, preserving nullable product-version equality. It returns the existing frame without repair or physical reread.
 
 **Exact signature**
 
@@ -1223,7 +1223,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| Hashing/byte identity | No byte hash is computed; `_SHA256_PATTERN.fullmatch` validates digest spelling only. |
 | CRS/geometry/spatial calculation | `geometry.isna().any`<br>`geometry.isna`<br>`geometry.is_empty.any`<br>`geometry.is_valid.all`<br>`geometry.geom_type.dropna` |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -1325,7 +1325,7 @@ def _validate_source_coverage(
 
 ### `_validate_configured_coverage_identity`
 
-**Purpose:** Implements `validate configured coverage identity` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Rediscovers the department role from the retained layer inventory using the supplied config, checks the selected physical layer and exact configured department-code field, and compares archive department/provider/product. This cheap consistency check is not the full acquisition identity validator; the public coverage loader already reconstructs and revalidates the source against config.
 
 **Exact signature**
 
@@ -1433,7 +1433,7 @@ def _validate_configured_coverage_identity(
 
 ### `_coverage_lineage_values`
 
-**Purpose:** Implements `coverage lineage values` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Builds a fresh eight-key mapping from the retained coverage envelope to the output's grid_source_coverage_* fields. Values are copied lineage facts, not recomputed hashes.
 
 **Exact signature**
 
@@ -1508,7 +1508,7 @@ def _coverage_lineage_values(
 
 ### `_validate_proximity_source_identity`
 
-**Purpose:** Implements `validate proximity source identity` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Compares department, edition and archive SHA across every present parcel match and every voltage-table row to the selected coverage package. Optional unmatched exact parcel fields may be null; it does not assert all archive metadata fields are carried in the proximity schema.
 
 **Exact signature**
 
@@ -1621,7 +1621,7 @@ def _validate_proximity_source_identity(
 
 ### `_finite_nonnegative`
 
-**Purpose:** Implements `finite nonnegative` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Converts each present scalar only if it is Real but not bool, conversion succeeds and the float is finite and nonnegative; returns a float64 array. Missing values are errors here, unlike optional nearest-distance fields.
 
 **Exact signature**
 
@@ -1708,7 +1708,7 @@ def _finite_nonnegative(values: pd.Series, label: str) -> np.ndarray:
 
 ### `_coverage_statuses`
 
-**Purpose:** Implements `coverage statuses` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Starts every row as NO_MATCH based on missing nearest distance. Among matched rows, non-fully-covered parcels are OUTSIDE_OR_CROSSING_COVERAGE; fully covered parcels are NOT_BOUNDARY_LIMITED only when nearest distance is strictly less than boundary distance, otherwise BOUNDARY_LIMITED including equality. It calculates statuses from supplied numeric arrays, not spatial relationships.
 
 **Exact signature**
 
@@ -1764,7 +1764,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `distances.to_numpy` |
+| CRS/geometry/spatial calculation | None; numeric distance/position comparisons produce evidence categories. |
 | External process/environment | None directly present. |
 | In-memory mutation | `statuses[outside] = "OUTSIDE_OR_CROSSING_COVERAGE"`<br>`statuses[internal & (numeric < boundary_distances)] = "NOT_BOUNDARY_LIMITED"`<br>`statuses[internal & (numeric >= boundary_distances)] = "BOUNDARY_LIMITED"` |
 | Direct parameter mutation | None directly present. |
@@ -1794,7 +1794,7 @@ def _coverage_statuses(
 
 ### `_preserves_original_frame`
 
-**Purpose:** Implements `preserves original frame` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires output column-set equality to original columns plus the explicitly added set and pandas Series.equals for every original field. This checks original values/dtypes/index and rejects unapproved added columns; it does not separately enforce the order of all added columns.
 
 **Exact signature**
 
@@ -1883,7 +1883,7 @@ def _preserves_original_frame(
 
 ### `_validate_assessment_result`
 
-**Purpose:** Implements `validate assessment result` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Reuses the local proximity profiler/validator, validates the retained coverage envelope, requires diagnostic columns, finite nonnegative boundary distances and closed position values, then recomputes all three statuses from retained position/distance facts. It maps boundary/position by parcel ID into the long table, checks per-voltage statuses and requires all eight lineage fields to match the retained coverage source. It does not rerun covers/intersects/distance against physical geometry or reread archive bytes; coherent altered retained facts are outside this local validator's authority.
 
 **Exact signature**
 
@@ -1968,7 +1968,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `table["source_boundary_distance_m"].equals` |
+| CRS/geometry/spatial calculation | Delegated geometry validity/type checks only; retained numeric boundary distances are reconciled, not spatially recalculated. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2061,11 +2061,7 @@ def _validate_assessment_result(result: GridCoverageAssessmentResult) -> None:
 
 ### `_assess_grid_coverage_from_proximity`
 
-**Purpose:** Classify proximity results against one loaded department boundary.
-
-    All geometry operations use planar XY copies in EPSG:2154. A parcel that
-    touches or crosses the source boundary is handled conservatively as not
-    fully covered. No parcel, proximity match, or source geometry is mutated.
+**Purpose:** Private geometric boundary: checks output collisions, local proximity integrity, selected coverage/config consistency and matching package lineage. It copies both result frames, transforms parcel calculation copies to EPSG:2154 and force-flattens parcel/coverage geometry. FULLY_COVERED requires coverage.covers(parcel) and no intersection with its boundary; touching/crossing/outside parcels are conservative. It computes distance to the boundary for every parcel, verifies finiteness, then stores zero for non-fully-covered rows. It adds five parcel diagnostics, two long-table diagnostics and eight lineage fields to each representation, checks preservation and validates the result. It does not change any nearest distance or infer network capacity.
 
 **Exact signature**
 
@@ -2328,7 +2324,7 @@ def _assess_grid_coverage_from_proximity(
 
 ### `assess_grid_coverage`
 
-**Purpose:** Diagnose source-complete grid proximity against configured coverage.
+**Purpose:** Public source-complete entry: checks parcel/source/config types and coverage-column collisions, invokes public grid proximity once (with physical electricity normalization), then loads the configured physical department coverage from the same extraction. It requires object identity of that retained extraction and delegates coverage diagnosis. Expected failures are wrapped as GridCoverageAssessmentError. The source loaders perform local physical/hash revalidation; no network request or broader data acquisition is introduced by this stage.
 
 **Exact signature**
 
@@ -2395,10 +2391,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated public proximity/coverage loaders reread and validate the local physical IGN layers. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| Hashing/byte identity | Delegated archive/extraction revalidation through source loaders. |
+| CRS/geometry/spatial calculation | Delegated planar proximity and coverage covers/intersects/boundary-distance calculations on copies. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2459,7 +2455,7 @@ def assess_grid_coverage(
 
 ### `_status_counts`
 
-**Purpose:** Implements `status counts` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Counts the four closed diagnostic strings into a frozen scalar record, inserting zero for absent statuses. The enclosing result validator must reject unknown/null statuses before this summarizer runs.
 
 **Exact signature**
 
@@ -2530,7 +2526,7 @@ def _status_counts(values: pd.Series) -> CoverageStatusCounts:
 
 ### `_boundary_profile`
 
-**Purpose:** Implements `boundary profile` within the file role: Diagnoses grid proxy distances against the configured IGN source-package boundary.
+**Purpose:** Requires every retained boundary distance to be finite and nonnegative and rejects an empty assessment. It computes count, minimum, nine interior percentile values and maximum using pandas, including stored zero distances for outside/crossing parcels. It does not perform a boundary geometry query.
 
 **Exact signature**
 
@@ -2583,7 +2579,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `BoundaryDistanceProfile` |
+| CRS/geometry/spatial calculation | None; constructing a summary dataclass and computing scalar quantiles are not geometry calculations. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2620,7 +2616,7 @@ def _boundary_profile(values: pd.Series) -> BoundaryDistanceProfile:
 
 ### `profile_grid_coverage`
 
-**Purpose:** Summarize boundary diagnostics without suitability thresholds.
+**Purpose:** Validates the retained local assessment, counts fully-covered/outside positions, summarizes the stored boundary distances and each of the three parcel status fields, then reports per-voltage status counts in the coverage inventory's order. It does not physically revalidate IGN, recalculate geometry relations, rank parcels or impose a business distance threshold.
 
 **Exact signature**
 

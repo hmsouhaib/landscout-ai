@@ -14,6 +14,16 @@ The test file uses local temporary archives/GeoPackages and controlled monkeypat
 
 ## 2. Imports
 
+### Audited assertion scope
+
+The fixtures write real tiny GeoPackages with Pyogrio, package exact bytes into local ZIPs, replace only acquisition's safe-HTTPS opener, and run actual source download/extraction validation. Catalog metadata calls are real unless the individual test wraps or replaces them. `_patch_info` copies the real metadata mapping and mutates that copy; tests named for changed physical metadata therefore simulate changed reader output rather than modifying the physical database. Actual persistent package-byte mutation is exercised separately.
+
+The 11-case path corpus calls the intrinsic catalog validator on rehashed supplied records. Its two accepted paths need not physically exist; it proves path grammar, not source correspondence. The attribute suite separately compares all three authoritative path gates. The known-warning classifier used by this test file accepts any non-space `/vsimem` suffix (`[^ ]+`), whereas the production suppression regex accepts lowercase hexadecimal characters only. Captured warning-filter lists are compared as Python values, not serialized bytes.
+
+The driver-forgery test proves changing the driver changes the hash and is rejected, but `SQLite` fails intrinsic exact-driver validation before independent physical rebuild. By contrast, the coordinated field-name/hash mutation remains structurally canonical and its `match="rebuilt"` assertion demonstrates the later physical comparison. Noncanonical-bounds tests likewise exercise the intrinsic gate; their names are not a spy asserting zero physical calls. The byte-snapshot test explicitly asserts three reader inputs are the identical built-in bytes object; the metadata-API test separately asserts call order and keyword arguments, not the total number of lower-level file hashing reads.
+
+`test_catalog_construction_never_materializes_feature_rows` installs four fatal public feature-reader hooks after fixture creation and recursively rejects DataFrames in the resulting record tree. It does not claim that forced count/bounds metadata has no native GDAL storage work. The transient package test unconditionally swaps/restores bytes through the metadata wrappers but, unlike the archive suite's later hooks, has no separate swap-executed boolean assertion. The coordinated package/marker/caller attack counts `list_layers` calls and proves zero enumeration calls. These are bounded regression facts, not a real EP audit performed by this file.
+
 ```python
 from __future__ import annotations
 ```
@@ -67,7 +77,7 @@ from typing import Any, ClassVar, cast
 ```
 
 ```python
-import geopandas as gpd
+import geopandas as gpd  # type: ignore[import-untyped]
 ```
 
 ```python
@@ -75,11 +85,11 @@ import numpy as np
 ```
 
 ```python
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 ```
 
 ```python
-import pyogrio
+import pyogrio  # type: ignore[import-untyped]
 ```
 
 ```python
@@ -91,7 +101,7 @@ import yaml
 ```
 
 ```python
-from shapely.geometry import Point
+from shapely.geometry import Point  # type: ignore[import-untyped]
 ```
 
 ```python
@@ -131,7 +141,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 
 ## 3. Fixtures, helpers, context managers, and support classes
 
-`KNOWN_BYTES_GPKG_WARNING` is the test-side exact regex for the known dynamic hexadecimal Pyogrio `/vsimem` extension message; it is used only to classify captured warnings.
+`KNOWN_BYTES_GPKG_WARNING` classifies the known Pyogrio extension message in captured warnings. Its dynamic suffix is any non-space text, broader than the production lowercase-hex suffix regex; it does not control suppression.
 
 ### `_StringSubclass`
 
@@ -619,7 +629,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def test_catalog_validation_detects_changed_physical_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str) -> None`
 - Parametrization/decorators: `pytest.mark.parametrize('mutation', ['schema', 'feature_count', 'crs', 'bounds'])`.
 - Fixtures/inputs: `tmp_path`, `monkeypatch`, `mutation`.
-- Protected invariant: Catalog validation detects changed physical metadata.
+- Protected invariant: independent catalog rebuild detects changed `read_info` metadata supplied by the test wrapper; this parametrization does not mutate database bytes.
 - Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
 - Monkeypatch mechanism: none directly.
 - Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='rebuilt')`.
@@ -823,7 +833,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - Exact signature: `def test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None`
 - Parametrization/decorators: none; one collected case.
 - Fixtures/inputs: `tmp_path`, `monkeypatch`.
-- Protected invariant: Driver is hash bound and coordinated forgery fails rebuild.
+- Protected invariant: driver text is hash-bound and a coordinated `SQLite` driver/hash forgery is rejected at intrinsic exact-GPKG validation before rebuild.
 - Ordered mechanism: constructs or mutates only the local fixture state visible in the exact snapshot, invokes the production boundary, then asserts exact output or controlled rejection.
 - Monkeypatch mechanism: none directly.
 - Expected controlled failures: `pytest.raises(InpnProtectedAreasCatalogError, match='driver|GPKG|rebuilt')`.
@@ -895,7 +905,7 @@ from landscout.sources.inpn_protected_areas_fr import (
 - `test_valid_bytes_backed_catalog_suppresses_only_known_extension_warning` captures every warning during a valid byte-backed build and requires zero matching extension warnings.
 - `test_unrelated_read_info_runtime_warning_remains_observable` injects one unrelated `RuntimeWarning` in `read_info`, requires `pytest.warns` to observe exactly that warning, and still builds the catalog.
 - `test_known_extension_warning_suppression_does_not_bypass_driver_validation` emits the exact known message while returning driver `SQLite`; the warning is absent but exact `GPKG` validation still rejects the layer.
-- `test_catalog_warning_suppression_installs_no_global_filter` snapshots `warnings.filters`, builds a catalog, and requires byte-for-byte list equality afterward.
+- `test_catalog_warning_suppression_installs_no_global_filter` snapshots `warnings.filters`, builds a catalog, and requires ordinary Python list equality afterward.
 
 ## 5. STEP 7F.1B.1.2 coverage map
 

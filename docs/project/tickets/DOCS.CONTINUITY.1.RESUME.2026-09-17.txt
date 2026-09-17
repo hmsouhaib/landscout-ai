@@ -1,0 +1,214 @@
+# LANDSCOUT — RESUME / FINALIZE DOCS.CONTINUITY.1
+## Preserve existing work, establish its actual completion state, and report evidence
+
+Repository:
+C:\souhaib\landscout-ai
+
+Original starting SHA:
+aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+Expected final commit message:
+docs: establish audited LandScout continuity reference
+
+The previous response exposed only an editor summary:
+49 edited files, including a large coverage.json.
+
+The independent reviewer checked GitHub:
+origin/main is still at the original starting SHA.
+No new continuity commit is visible on the remote branches inspected.
+
+DO NOT restart the documentation audit.
+DO NOT discard, regenerate blindly, or overwrite existing local work.
+The original DOCS.CONTINUITY.1 ticket remains authoritative.
+
+1. INSPECT BEFORE EDITING
+
+Run from the intended repository:
+
+git rev-parse --show-toplevel
+git status
+git status --short
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/main
+git log --oneline origin/main..HEAD
+git diff --stat
+git diff --name-status
+git diff --cached --stat
+git diff --cached --name-status
+git ls-files --others --exclude-standard
+
+Then fetch normally and inspect the remote state again.
+
+Require that the working repository is the intended landscout-ai repository,
+not its parent directory or an accidental nested repository.
+
+Inspect staged changes, unstaged changes, untracked files and any local commits.
+Do not run reset, restore, clean, stash, rebase, amend, force-push or an automatic
+history reconciliation.
+
+If another Git operation is in progress or unrelated work exists, preserve it
+and report the exact situation before proceeding.
+
+2. RECOVER THE EXISTING AUDIT PROGRESS
+
+Read the existing audit report, coverage ledger and continuity documents.
+Inspect all work already performed against the original ticket.
+
+Classify requirements as:
+COMPLETE WITH EVIDENCE
+PARTIAL
+NOT STARTED
+BLOCKED
+
+Resume only unfinished or incorrect work.
+
+A generated symbol inventory does not prove semantic review.
+Do not mark files or symbols CHECKED merely because their names, signatures,
+headings or complete source snapshots exist.
+
+Report separately:
+- mechanically inventoried files/symbols;
+- semantically reviewed files/symbols;
+- corrected documentation;
+- unresolved items;
+- actual application defects requiring another ticket.
+
+Do not modify production to repair application findings in this documentation
+ticket.
+
+3. CHECK THE DISPLAYED BOOTSTRAP SCRIPT
+
+Locate bootstrap_continuity_inventory.py and determine:
+
+- its exact path;
+- whether it is inside the Git root;
+- whether it is tracked or staged;
+- whether it is temporary generation machinery or approved durable tooling.
+
+Do not delete it blindly.
+
+Do not commit an external bootstrap script accidentally.
+The original ticket permits a narrow read-only documentation checker under
+tools/ and its tests, not an unexplained root-level generator.
+
+Any retained tool must be documented, tested and within the original scope.
+
+4. VERIFY CONTINUITY CONTENT
+
+Confirm that the existing implementation contains the required authoritative
+roles, or clearly documented equivalent files:
+
+AGENTS.md
+docs/project/WORKING_RULES.md
+docs/project/CURRENT_STATE.md
+docs/project/DECISIONS.md
+docs/project/STEP_LEDGER.json
+docs/project/BACKLOG_AND_GAPS.md
+docs/project/RESUME.md
+docs/project/CONTEXT_PROVENANCE.md
+
+Verify the exact original ticket is archived as required.
+
+The short entry point must not require loading the entire large coverage.json
+or every source snapshot before understanding the current project state.
+
+Keep these statuses explicit:
+
+Last independently approved functional boundary:
+STEP 7F.1B.4
+
+STEP 7F.1C.1:
+published research draft; exhaustive independent semantic review pending
+
+DOCS.CONTINUITY.1:
+implementation/audit status as actually established;
+independent review pending
+
+No executable semantic mapping is authorized.
+
+ChatGPT remains read-only reviewer/ticket author.
+Codex implements and publishes.
+One ticket at a time.
+CI/PR implementation remains deferred.
+
+Do not invent missing conversation text, prompts, approvals or decisions.
+
+5. COMPLETE THE ORIGINAL VALIDATION
+
+Use the original ticket's audit and validation requirements.
+
+At minimum establish:
+- complete file/symbol audit coverage with honest statuses;
+- source/companion SHA and snapshot checks;
+- links, anchors, fences and documented formatting checks;
+- architecture, dependencies, API and test-documentation consistency;
+- protected existing source/config/dependency/test bytes unchanged;
+- local documentation checker and its synthetic tests, when introduced;
+- final full pytest and quality gates.
+
+Use a short unique --basetemp for every pytest command.
+Starting application baseline: 3,939 cases.
+Explain additions from documentation-tool tests exactly.
+
+Do not rerun expensive checks after every prose edit.
+Do not reuse an earlier execution as proof for changed executable tooling/tests.
+
+For visual Markdown rendering, report what was actually rendered.
+For the cold-start exercise, report a genuinely separate execution or
+NOT_EXECUTED_FRESH_CONTEXT. Do not fabricate either result.
+
+6. PUBLICATION GATE
+
+If the file-level documentation audit is still partial:
+preserve work and return PARTIAL with the exact next unfinished item.
+Do not publish partial coverage as complete on main.
+
+If achievable required checks pass and permitted open items are honestly
+classified:
+finish the original ticket, update DEV_LOG and its companion in the required
+order, inspect the complete diff and stage only explicit reviewed paths.
+
+Preserve valid local commits if they already exist.
+Do not create an empty duplicate commit or rewrite history.
+
+Publish only the completed authorized work, then verify:
+git status --short
+git rev-parse HEAD
+git rev-parse origin/main
+git log -1 --oneline
+
+Require a clean worktree and HEAD == origin/main.
+Do not force-push.
+
+7. RETURN THE ACTUAL REPORT
+
+Do not return only the editor's “Edited files” summary.
+
+Return either:
+
+DOCS.CONTINUITY.1 implementation completed — independent review pending
+
+or:
+
+DOCS.CONTINUITY.1 PARTIAL — work preserved
+
+Include:
+
+- starting/local/final/remote SHAs and branch;
+- exact changed-file list;
+- protected-files comparison;
+- inventory versus semantic-review totals;
+- remaining NOT_READ / READ / BLOCKED / unfinished records;
+- substantive contradictions corrected;
+- application findings left open;
+- links/anchors/snapshots/formatting audit results;
+- actual rendering scope;
+- cold-start exercise status and evidence;
+- current-state/rules/history reconstruction and missing evidence;
+- checker command, test counts, full-suite counts and exit codes;
+- final publication/worktree state;
+- short new-chat prompt, only if the referenced files actually exist.
+
+Then STOP.
+No next functional step.

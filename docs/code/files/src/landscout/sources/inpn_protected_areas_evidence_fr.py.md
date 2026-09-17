@@ -76,7 +76,7 @@ __all__ = [
 
 ## 4. Exact records and field meanings
 
-`InpnProtectedAreasEvidenceError(ValueError)` adds no fields and is the controlled boundary for malformed objects, noncanonical hashes, contradictory alignment, and failed physical source trust. Both dataclasses use `@dataclass(frozen=True)`. Exact recursive validation plus existing immutable upstream records prevents mutable or subclass/coercible leaves from becoming accepted evidence; direct dataclass construction alone is not an independently validated source boundary.
+`InpnProtectedAreasEvidenceError(ValueError)` adds no fields and is the controlled boundary for malformed objects, noncanonical hashes, contradictory alignment, and failed physical source trust. Both dataclasses use `@dataclass(frozen=True)` and every field is required; only the two optional FID extrema permit None. Exact recursive validation plus existing immutable upstream records prevents mutable or subclass/coercible leaves from becoming accepted evidence; direct dataclass construction alone is not an independently validated source boundary.
 
 ### `InpnProtectedAreasLayerAlignment`
 

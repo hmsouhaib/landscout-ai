@@ -555,7 +555,7 @@ class VoltageLevelCoverage:
 
 ### `GridProximityResult`
 
-**Source purpose:** Parcel enrichment and dynamic exact-voltage proximity output.
+**Source purpose:** Frozen envelope containing mutable enriched-parcel and long-table DataFrames plus an ordered tuple of frozen voltage-coverage records. The tuple records line counts for observed VALID exact levels; the mutable frames are rechecked by the public profiler and are not immutable source manifests.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -612,7 +612,7 @@ class GridProximityResult:
 
 ### `DistanceProfile`
 
-**Source purpose:** Threshold-free distribution summary for one distance field.
+**Source purpose:** Frozen scalar summary: present/missing row counts; minimum, nine interior percentiles and maximum; exact-zero count; and the number of matched rows with more than one nearest feature. Missing distributions have None quantiles. The summary `tie_count` is not the total number of tied features.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -774,7 +774,7 @@ class GridProximityProfile:
 
 ### `_validated_crs`
 
-**Purpose:** Implements `validated crs` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires non-null readable CRS metadata and returns pyproj's parsed CRS, wrapping parse errors with the supplied label. It accepts readable geographic or projected parcel CRSs; role-specific Lambert-93 validation is separate.
 
 **Exact signature**
 
@@ -849,7 +849,7 @@ def _validated_crs(value: object, label: str) -> CRS:
 
 ### `_require_lambert93`
 
-**Purpose:** Implements `require lambert93` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Parses the CRS through `_validated_crs` and requires a projected CRS equivalent to EPSG:2154. It performs no reprojection.
 
 **Exact signature**
 
@@ -918,7 +918,7 @@ def _require_lambert93(value: object, label: str) -> None:
 
 ### `_validate_active_geometry`
 
-**Purpose:** Implements `validate active geometry` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires an existing column literally named geometry and requires that column to be the frame's active geometry. It does not inspect coordinate values or repair the frame.
 
 **Exact signature**
 
@@ -987,7 +987,7 @@ def _validate_active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 ### `_validate_id_values`
 
-**Purpose:** Implements `validate id values` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires non-null, nonempty, edge-trimmed `isinstance(str)` values and, when requested, uniqueness. It is not the canonical Cadastre identifier decomposition/commune contract and does not reject all string subclasses or interior control characters.
 
 **Exact signature**
 
@@ -1089,7 +1089,7 @@ def _validate_id_values(
 
 ### `_validate_parcels`
 
-**Purpose:** Implements `validate parcels` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires parcel_id plus active geometry, readable CRS, unique hygienic IDs and non-null/nonempty/valid Polygon or MultiPolygon geometries. Unlike the Cadastre shape stages, it does not call the complete twelve-column canonical Cadastre validator or verify area_m2; it does not reject Z coordinates before calculation copies are flattened.
 
 **Exact signature**
 
@@ -1193,7 +1193,7 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
 
 ### `_reject_parcel_output_collisions`
 
-**Purpose:** Implements `reject parcel output collisions` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Rejects any input column that would collide with a generated proximity field before new values can overwrite caller evidence. It does not drop or rename a conflicting column.
 
 **Exact signature**
 
@@ -1265,7 +1265,7 @@ def _reject_parcel_output_collisions(parcels: gpd.GeoDataFrame) -> None:
 
 ### `_observed_geometry_status`
 
-**Purpose:** Implements `observed geometry status` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Builds a fresh disjoint VALID/NULL/EMPTY/INVALID classification from actual geometry, for comparison to declared normalized status. It does not remove or modify the supplied geometry.
 
 **Exact signature**
 
@@ -1335,7 +1335,7 @@ def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 ### `_validate_grid`
 
-**Purpose:** Implements `validate grid` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires the role-specific normalized schema, active geometry and Lambert-93 CRS; verifies non-null unique grid IDs, exact feature type and proxy role, and declared status equal to freshly observed status. It rejects unsupported VALID geometry families, then returns a reset-index copy containing only VALID features for distance use. The full factual normalized source remains unchanged.
 
 **Exact signature**
 
@@ -1500,7 +1500,7 @@ def _validate_grid(
 
 ### `_finite_real_as_float`
 
-**Purpose:** Implements `finite real as float` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Rejects booleans and non-Real objects; converts a Real scalar to float while handling conversion failure, and returns only finite results. Missing/unsupported/overflowing values return None, not coerced numeric evidence.
 
 **Exact signature**
 
@@ -1575,7 +1575,7 @@ def _finite_real_as_float(value: object) -> float | None:
 
 ### `_is_positive_finite_number`
 
-**Purpose:** Implements `is positive finite number` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Uses `_finite_real_as_float` and returns true only for a finite value strictly greater than zero. It is used to select genuine exact-voltage evidence and to validate persisted coverage, not to infer voltage from text.
 
 **Exact signature**
 
@@ -1641,7 +1641,7 @@ def _is_positive_finite_number(value: object) -> bool:
 
 ### `_calculation_geometries`
 
-**Purpose:** Implements `calculation geometries` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Extracts geometry-array values and returns an object array of `force_2d` copies. This removes Z/M for horizontal calculations without replacing source/output geometry; CRS transformation is handled by the enclosing workflow.
 
 **Exact signature**
 
@@ -1688,7 +1688,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `shapely.force_2d` creates XY calculation copies. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1707,7 +1707,7 @@ def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
 
 ### `_empty_nearest_result`
 
-**Purpose:** Implements `empty nearest result` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Creates one nullable match row per parcel on a RangeIndex: float64 NaN distances/numeric voltage fields, nullable Int64 tie counts and object missing values for other requested attributes. It represents unavailable optional exact-voltage matches, not zero distance or zero ties.
 
 **Exact signature**
 
@@ -1786,7 +1786,7 @@ def _empty_nearest_result(
 
 ### `_nearest_feature_rows`
 
-**Purpose:** Implements `nearest feature rows` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Allows empty features only for the explicitly optional branch, and handles zero parcels without building a query. Otherwise it builds an STRtree from 2D feature copies and queries all equidistant nearest matches with distances. It sorts by parcel position, distance and lexical grid feature ID, counts every tie, selects the first representative and verifies complete parcel-position coverage. It returns copied representative metadata plus distance and tie count in input parcel order; it does not return a list of all tied IDs or approximate ties with a tolerance.
 
 **Exact signature**
 
@@ -1867,7 +1867,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `selected["distance_m"].to_numpy` |
+| CRS/geometry/spatial calculation | `STRtree` and `tree.query_nearest(..., all_matches=True, return_distance=True)` perform the nearest-neighbour query on XY geometry copies. |
 | External process/environment | None directly present. |
 | In-memory mutation | `matches["grid_feature_id"] = features.iloc[matches["feature_position"].to_numpy()][<br>        "grid_feature_id"<br>    ].to_numpy()`<br>`output.insert(0, "tie_count", ties.reindex(range(parcel_count)).to_numpy())`<br>`output.insert(0, "distance_m", selected["distance_m"].to_numpy(dtype="float64"))` |
 | Direct parameter mutation | None directly present. |
@@ -1932,7 +1932,7 @@ def _nearest_feature_rows(
 
 ### `_attach_matches`
 
-**Purpose:** Implements `attach matches` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Appends each mapped match column to the supplied internal parcel-output copy after resetting match indices. This helper intentionally mutates its parcel argument; the public workflow has copied the original frame and checked collisions beforehand.
 
 **Exact signature**
 
@@ -2005,7 +2005,7 @@ def _attach_matches(
 
 ### `_validate_distance_values`
 
-**Purpose:** Implements `validate distance values` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Ignores missing distances but requires every present value to be a finite non-boolean Real with value at least zero. This validates scalar evidence; it does not calculate spatial distance or enforce whether a given row should have a match.
 
 **Exact signature**
 
@@ -2083,7 +2083,7 @@ def _validate_distance_values(values: pd.Series, label: str) -> None:
 
 ### `_is_missing_scalar`
 
-**Purpose:** Implements `is missing scalar` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Recognizes None and scalar pandas missing values while excluding nonscalar containers from ambiguous pandas null truth evaluation. It supports tie-state validation.
 
 **Exact signature**
 
@@ -2153,7 +2153,7 @@ def _is_missing_scalar(value: object) -> bool:
 
 ### `_validate_tie_counts`
 
-**Purpose:** Implements `validate tie counts` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires equal match/tie sequence lengths. Unmatched rows must have missing tie counts; matched rows require a finite non-boolean numeric value at least one with an integral float value. This admits integral floats as well as integer scalars; it is not an exact built-in-int type gate.
 
 **Exact signature**
 
@@ -2251,7 +2251,7 @@ def _validate_tie_counts(
 
 ### `_validate_match_integrity`
 
-**Purpose:** Implements `validate match integrity` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Checks required distance/ID/tie/optional-voltage fields and requires either all rows matched or all unmatched according to the caller's contract. It validates present distances and match-aligned ties, requires IDs for matched rows and positive finite voltage when requested, or requires all match-dependent attributes to be null when unavailable. It does not compare the selected ID to source bytes.
 
 **Exact signature**
 
@@ -2339,7 +2339,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `distance.notna`<br>`_validate_distance_values` |
+| CRS/geometry/spatial calculation | None; distance nullness/numeric validation does not compute a geometric distance. |
 | External process/environment | None directly present. |
 | In-memory mutation | `required.add(voltage_column)`<br>`null_columns.add(voltage_column)` |
 | Direct parameter mutation | None directly present. |
@@ -2407,7 +2407,7 @@ def _validate_match_integrity(
 
 ### `_validate_voltage_coverage`
 
-**Purpose:** Implements `validate voltage coverage` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Iterates coverage records, requiring the expected dataclass family, finite positive voltage and a positive Integral (not bool) feature count; returns unique ascending float levels. It checks the in-memory inventory, not current physical line counts.
 
 **Exact signature**
 
@@ -2509,7 +2509,7 @@ def _validate_voltage_coverage(
 
 ### `_validate_voltage_table`
 
-**Purpose:** Implements `validate voltage table` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Requires the long-table columns and exactly parcel_count times voltage-level-count rows. It validates positive finite levels, hygienic IDs, unique parcel/voltage pairs, exact level inventory and, for each level, the complete original parcel-ID sequence. Every long-table row must have a valid match, tie count and mandatory source identity. This checks a Cartesian coverage relation, not a spatial re-query.
 
 **Exact signature**
 
@@ -2660,7 +2660,7 @@ def _validate_voltage_table(
 
 ### `_null_safe_series_equal`
 
-**Purpose:** Implements `null safe series equal` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Resets both indices, rejects unequal lengths, then compares values positionally with paired missing values treated as equal. It does not require identical pandas dtypes or matching original indices.
 
 **Exact signature**
 
@@ -2741,7 +2741,7 @@ def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
 
 ### `_validate_exact_representation_consistency`
 
-**Purpose:** Implements `validate exact representation consistency` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** For nonempty exact-voltage coverage, builds candidate winners from every voltage-level row, maps original parcel positions and sorts by position/distance/lexical grid ID. It reconstructs each global exact nearest representative, sums tie counts across all levels at the exact same minimum distance and compares global distance, selected ID/source/voltage/manager/state/lineage and total ties. It compares two retained representations, not physical nearest-neighbour truth; absent exact coverage is validated by the enclosing result contract.
 
 **Exact signature**
 
@@ -2831,7 +2831,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `candidates[distance_column].map`<br>`candidates.groupby("_parcel_position", sort=False)[<br>        "_distance"<br>    ].transform`<br>`candidates["_distance"].eq`<br>`actual["nearest_exact_line_proxy_distance_m"].map`<br>`actual_distance.eq(expected["_distance"].reset_index(drop=True)).all`<br>`actual_distance.eq`<br>`expected["_distance"].reset_index` |
+| CRS/geometry/spatial calculation | None; this reconciles retained numeric distances and IDs without a spatial query. |
 | External process/environment | None directly present. |
 | In-memory mutation | `candidates["_parcel_position"] = candidates["parcel_id"].map(parcel_positions)`<br>`candidates["_distance"] = candidates[distance_column].map(float)`<br>`candidates["_tie_count"] = candidates["tie_count"].map(int).astype("object")` |
 | Direct parameter mutation | None directly present. |
@@ -2935,7 +2935,7 @@ def _validate_exact_representation_consistency(
 
 ### `_validate_result_contract`
 
-**Purpose:** Implements `validate result contract` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Validates parcel geometry/IDs, generated columns and the ascending coverage inventory; requires all broad-line/post matches and either all exact-line matches or an entirely null exact branch. It validates the complete long table and reconciles global exact matches against its level-wise representation. This local result integrity is reused by profiling and does not reread IGN.
 
 **Exact signature**
 
@@ -3076,7 +3076,7 @@ def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
 
 ### `_validate_output_integrity`
 
-**Purpose:** Implements `validate output integrity` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Applies the full local result contract, then verifies unchanged parcel count, IDs/order, equivalent original CRS and geometry via zero-tolerance `geom_equals_exact`. That spatial predicate is an XY geometry comparison, not byte-exact WKB or an explicit Z/M ordinate comparison; original geometry is preserved by copying in the implementation.
 
 **Exact signature**
 
@@ -3175,7 +3175,7 @@ def _validate_output_integrity(
 
 ### `_voltage_level_table`
 
-**Purpose:** Implements `voltage level table` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Discovers ascending unique exact-voltage levels from already selected VALID exact lines. For each, records source line count and queries one deterministic nearest representative for every parcel, then appends the fixed eleven-column table in level-then-parcel order. No exact levels yields an empty schema-correct table with float64 distance/voltage and nullable Int64 ties. Transformation posts do not enter this voltage table.
 
 **Exact signature**
 
@@ -3242,7 +3242,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `empty[<br>            "nearest_line_proxy_distance_m"<br>        ].astype` |
+| CRS/geometry/spatial calculation | Delegated `_nearest_feature_rows` queries the geometry once for each observed exact voltage; dtype conversion is not spatial calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `coverage.append(<br>            VoltageLevelCoverage(<br>                voltage_kv=voltage_kv,<br>                line_feature_count=len(level_lines),<br>            )<br>        )`<br>`tables.append(table.loc[:, list(VOLTAGE_PROXIMITY_COLUMNS)])`<br>`empty["voltage_kv"] = empty["voltage_kv"].astype("float64")`<br>`empty["nearest_line_proxy_distance_m"] = empty[<br>            "nearest_line_proxy_distance_m"<br>        ].astype("float64")`<br>`empty["tie_count"] = empty["tie_count"].astype("Int64")` |
 | Direct parameter mutation | None directly present. |
@@ -3313,12 +3313,7 @@ def _voltage_level_table(
 
 ### `_enrich_parcel_grid_proximity_from_normalized`
 
-**Purpose:** Attach nearest IGN proxy matches using planar XY distance in EPSG:2154.
-
-    IGN Z values are removed from calculation-only copies and do not affect
-    horizontal proximity. Source parcel and normalized IGN geometries are not
-    mutated. Distances describe only the nearest feature inside loaded proxy
-    coverage and do not establish connection feasibility.
+**Purpose:** Private numerical boundary: validates parcels, output collisions and both normalized role catalogs, requiring at least one VALID line and post. It copies/reset-indexes parcels, transforms calculation copies to EPSG:2154 and flattens coordinates for planar polygon-to-line/polygon-to-post distance. It appends broad-line, optional positive-finite EXACT-line and post representatives, builds all exact-voltage level rows and coverage, then validates output integrity. It preserves source geometry and all parcel columns; direct private calls are not source-complete acquisition validation.
 
 **Exact signature**
 
@@ -3556,7 +3551,7 @@ def _enrich_parcel_grid_proximity_from_normalized(
 
 ### `enrich_parcel_grid_proximity`
 
-**Purpose:** Compute proximity from one physically revalidated IGN source bundle.
+**Purpose:** Public source-complete boundary: requires a parcel GeoDataFrame and exact electricity/config envelope types, validates parcel geometry/IDs and output collisions, normalizes the supplied source exactly once through independent physical revalidation, requires the exact normalizer result type and delegates the planar enrichment. Existing GridProximityError is preserved and expected lower-level failures are wrapped. It does not infer connection feasibility, available capacity, ownership or a distance-based parcel score.
 
 **Exact signature**
 
@@ -3631,10 +3626,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated `normalize_ign_electricity` independently revalidates the local archive/extraction and rereads physical source layers. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| Hashing/byte identity | Delegated source-complete normalization recomputes physical identity; this wrapper does not hash directly. |
+| CRS/geometry/spatial calculation | Delegated parcel validation, EPSG:2154 calculation copies and STRtree queries. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -3686,7 +3681,7 @@ def enrich_parcel_grid_proximity(
 
 ### `_distance_profile`
 
-**Purpose:** Implements `distance profile` within the file role: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
+**Purpose:** Validates present nonnegative finite distances, counts missing values and returns null quantiles when there are no matches. Otherwise it computes min, eleven-boundary percentile summaries through max, exact zero-distance count and the number of matched rows whose tie count is greater than one. `tie_count` in this summary is a count of tied rows, not a sum of tied feature counts; no spatial query is performed.
 
 **Exact signature**
 
@@ -3752,7 +3747,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_validate_distance_values`<br>`distances.dropna().astype`<br>`distances.dropna`<br>`distances.isna().sum`<br>`distances.isna`<br>`DistanceProfile`<br>`distances.notna` |
+| CRS/geometry/spatial calculation | None; pandas quantiles/counts summarize retained scalar distances. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -3810,7 +3805,7 @@ def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:
 
 ### `profile_grid_proximity`
 
-**Purpose:** Profile proximity distances without thresholds or suitability labels.
+**Purpose:** First validates the retained result's local schema, coverage and cross-representation consistency. It profiles broad line, global exact line and post distances, then each ascending voltage-level slice with its recorded source line count and row count. All summaries are threshold-free; validation does not reacquire or physically revalidate IGN source data.
 
 **Exact signature**
 
@@ -3879,7 +3874,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_distance_profile`<br>`VoltageLevelDistanceProfile` |
+| CRS/geometry/spatial calculation | No new distance calculation; delegated parcel/result validation inspects geometry and numeric consistency. |
 | External process/environment | None directly present. |
 | In-memory mutation | `voltage_profiles.append(<br>            VoltageLevelDistanceProfile(<br>                voltage_kv=voltage_kv,<br>                line_feature_count=coverage[voltage_kv],<br>                parcel_proximity_count=len(rows),<br>                distance=distance,<br>            )<br>        )` |
 | Direct parameter mutation | None directly present. |

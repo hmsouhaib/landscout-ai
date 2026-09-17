@@ -566,7 +566,7 @@ class PlanningFeaturesError(ValueError):
 
 **Purpose:** Normalized feature catalogs, parcel enrichment, and factual relations.
 
-**Kind:** dataclass.
+**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
 
 **Inheritance:** plain object.
 
@@ -627,7 +627,7 @@ class ParcelPlanningFeaturesResult:
 
 **Purpose:** Immutable source-completeness evidence for normalized planning facts.
 
-**Kind:** dataclass.
+**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
 
 **Inheritance:** plain object.
 
@@ -637,11 +637,11 @@ class ParcelPlanningFeaturesResult:
 
 | Field | Exact declaration | Meaning |
 |---|---|---|
-| `gpu_related_source_files_sha256` | `gpu_related_source_files_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `expected_relations_content_sha256` | `expected_relations_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `related_source_layer_count` | `related_source_layer_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `related_source_file_count` | `related_source_file_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
-| `expected_relation_count` | `expected_relation_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `gpu_related_source_files_sha256` | `gpu_related_source_files_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
+| `expected_relations_content_sha256` | `expected_relations_content_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
+| `related_source_layer_count` | `related_source_layer_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
+| `related_source_file_count` | `related_source_file_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
+| `expected_relation_count` | `expected_relation_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
 
 **Interface consumers**
 
@@ -687,7 +687,7 @@ class PlanningFeatureInputValidation:
 
 **Purpose:** Immutable result/value envelope carrying `provider`, `portal`, `commune_code`, `document_id`, `document_type`, `archive_name`, `archive_sha256`, `standard_model`.
 
-**Kind:** dataclass.
+**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
 
 **Inheritance:** plain object.
 
@@ -699,12 +699,12 @@ class PlanningFeatureInputValidation:
 |---|---|---|
 | `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
 | `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
-| `commune_code` | `commune_code: str` | Canonical five-character French commune identity attached to this source/configuration context. |
+| `commune_code` | `commune_code: str` | Source commune declaration copied after nonempty unpadded-string validation here; upstream GPU validation owns any source-specific format constraint. |
 | `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
 | `document_type` | `document_type: str` | `_PlanningContext.document_type` represents the `document_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
 | `archive_name` | `archive_name: str` | Portable physical source-archive basename retained in lineage. |
-| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
-| `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `archive_sha256` | `archive_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
+| `standard_model` | `standard_model: str \| None` | Optional unique CNIG standard-model declaration reconciled from archive/extraction metadata; this helper does not load a policy or enforce a version vocabulary. |
 
 **Interface consumers**
 
@@ -741,7 +741,7 @@ def _strict_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Private `planning` helper for strict string; its complete implementation below is the authoritative behavioral contract.
+Requires a nonempty string without leading/trailing whitespace; uses isinstance(str), not exact built-in-type equality, and returns the original value without trimming.
 
 **Return contract**
 
@@ -799,7 +799,7 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 **Purpose**
 
-Private `planning` helper for strict nonnegative integer; its complete implementation below is the authoritative behavioral contract.
+Rejects bool, non-Integral and negative counts; accepted Python/NumPy integral values are returned as a built-in int.
 
 **Return contract**
 
@@ -856,7 +856,7 @@ def _validate_ids(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Rejects malformed or inconsistent ids; exact branches, calls, and return construction are reproduced below.
+Applies non-null, nonempty, unpadded string checks and rejects duplicate identifiers without changing the Series.
 
 **Return contract**
 
@@ -909,7 +909,7 @@ def _validate_exact_strings(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Rejects malformed or inconsistent exact strings; exact branches, calls, and return construction are reproduced below.
+Rejects any null then applies _strict_string to every value; exact spelling is required, but str subclasses are not rejected by this helper.
 
 **Return contract**
 
@@ -963,7 +963,7 @@ def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Rejects malformed or inconsistent optional exact strings; exact branches, calls, and return construction are reproduced below.
+Allows scalar pandas-null values; every other value must be a nonempty unpadded string. This validates supplied catalogs, not optional raw values during initial normalization.
 
 **Return contract**
 
@@ -1014,7 +1014,7 @@ def _crs(value: object, label: str) -> CRS:
 
 **Purpose**
 
-Private `planning` helper for crs; its complete implementation below is the authoritative behavioral contract.
+Requires CRS metadata and parses it with PyProj; unreadable inputs become a chained PlanningFeaturesError. This helper alone does not require Lambert-93.
 
 **Return contract**
 
@@ -1034,7 +1034,7 @@ CRS.from_user_input(value)
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: CRS metadata parsing only; no reprojection.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1074,7 +1074,7 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Purpose**
 
-Private `planning` helper for active geometry; its complete implementation below is the authoritative behavioral contract.
+Requires a column literally named geometry and requires it to be the active GeoPandas geometry; does not change the frame.
 
 **Return contract**
 
@@ -1136,7 +1136,7 @@ def _validate_geometries(
 
 **Purpose**
 
-Rejects malformed or inconsistent geometries; exact branches, calls, and return construction are reproduced below.
+Rejects null, empty, invalid or out-of-family geometries without repair; allowed types are passed explicitly by the caller.
 
 **Return contract**
 
@@ -1208,7 +1208,7 @@ def _validate_two_dimensional_geometry(
 
 **Purpose**
 
-Rejects malformed or inconsistent two dimensional geometry; exact branches, calls, and return construction are reproduced below.
+Requires Shapely coordinate dimension exactly two for every supplied normalized feature geometry; wraps dimensionality failures.
 
 **Return contract**
 
@@ -1225,7 +1225,7 @@ Rejects malformed or inconsistent two dimensional geometry; exact branches, call
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Shapely get_coordinate_dimension, no geometry change.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1274,7 +1274,7 @@ def _validate_parcels(
 
 **Purpose**
 
-Rejects malformed or inconsistent parcels; exact branches, calls, and return construction are reproduced below.
+Accepts a GeoDataFrame with unique nonempty unpadded parcel IDs, active valid nonempty Polygon/MultiPolygon geometry and readable CRS; rejects duplicate columns and reserved output collisions unless explicitly allowed. Input storage need not be EPSG:4326.
 
 **Return contract**
 
@@ -1352,7 +1352,7 @@ def _standard_model(document: GpuPlanningDocument) -> str | None:
 
 **Purpose**
 
-Private `planning` helper for standard model; its complete implementation below is the authoritative behavioral contract.
+Collects optional standard-model declarations from archive metadata and extraction, preserving first occurrence; returns None or the single exact declaration and rejects conflicting declarations. No policy file is loaded.
 
 **Return contract**
 
@@ -1413,7 +1413,7 @@ def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
 
 **Purpose**
 
-Private `planning` helper for planning context; its complete implementation below is the authoritative behavioral contract.
+Reads document/archive provenance into a frozen scalar context, checking nonempty unpadded strings and a 64-character hexadecimal SHA (either case accepted locally). Physical authority is established later by GPU source revalidation.
 
 **Return contract**
 
@@ -1483,7 +1483,7 @@ def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], .
 
 **Purpose**
 
-Private `planning` helper for summary geometry types; its complete implementation below is the authoritative behavioral contract.
+Returns source geometry-type counts as a sorted tuple of (name, integer count) pairs.
 
 **Return contract**
 
@@ -1538,7 +1538,7 @@ def _validate_layer_summary(
 
 **Purpose**
 
-Rejects malformed or inconsistent layer summary; exact branches, calls, and return construction are reproduced below.
+Recomputes ordered fields/dtypes/null counts, geometry counts, row count and CRS from the current layer, validates strict nonnegative count types and compares summary/document/archive/layer lineage.
 
 **Return contract**
 
@@ -1632,7 +1632,7 @@ def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
 
 **Purpose**
 
-Private `planning` helper for project geometry; its complete implementation below is the authoritative behavioral contract.
+Copies geometry when CRS is equivalent to EPSG:2154 or reprojects a separate frame otherwise, then force_2d produces planar XY geometry. Original parcel/source geometry is not repaired or overwritten.
 
 **Return contract**
 
@@ -1700,7 +1700,7 @@ def _source_feature_ids(
 
 **Purpose**
 
-Private `planning` helper for source feature ids; its complete implementation below is the authoritative behavioral contract.
+Uses validated unique CNIG IDs where the configured identity column exists. Only prescription_surface may fall back to archive-scoped OGR_FID:<fid> from freshly validated physical FIDs when LIB_IDPSC is absent; other absent identity columns fail.
 
 **Return contract**
 
@@ -1783,7 +1783,7 @@ def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
 
 **Purpose**
 
-Private `planning` helper for optional values; its complete implementation below is the authoritative behavioral contract.
+Returns a copied NumPy array of an optional raw column, or an all-None object array when the column is absent. It does not trim, interpret or validate optional string content.
 
 **Return contract**
 
@@ -1843,7 +1843,7 @@ def _normalize_layer(
 
 **Purpose**
 
-Projects validated source facts into layer; exact branches, calls, and return construction are reproduced below.
+Validates required type/subtype/IDURBA fields, source IDs, geometry and summary; IDURBA must equal the archive name after removing at most one case-insensitive .zip suffix. Copies factual raw values/provenance into an XY EPSG:2154 catalog and computes full-feature area, length or member count.
 
 **Return contract**
 
@@ -2010,7 +2010,7 @@ def _canonical_catalog_dtypes(
 
 **Purpose**
 
-Private `planning` helper for canonical catalog dtypes; its complete implementation below is the authoritative behavioral contract.
+Mutates the newly built catalog passed by its private callers: casts every nongeometry field according to the shared deterministic kind/null-pattern dtype contract and replaces its index with unnamed RangeIndex(0, len, 1).
 
 **Return contract**
 
@@ -2076,7 +2076,7 @@ def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Private `planning` helper for empty catalog; its complete implementation below is the authoritative behavioral contract.
+Builds the complete kind-specific empty 27-column GeoDataFrame with shared canonical dtypes, active geometry, EPSG:2154 and canonical RangeIndex.
 
 **Return contract**
 
@@ -2141,7 +2141,7 @@ def _combine_catalogs(
 
 **Purpose**
 
-Private `planning` helper for combine catalogs; its complete implementation below is the authoritative behavioral contract.
+Concatenates catalogs in supplied order, rejects duplicate planning_feature_id values and canonicalizes the new combined frame; returns the stable empty kind schema when no catalogs are supplied.
 
 **Return contract**
 
@@ -2209,7 +2209,7 @@ def _normalized_catalogs(
 
 **Purpose**
 
-Rebuild canonical catalogs from the inspected GPU related layers only.
+Requires each inspected reference exactly once in the document spatial inventory, rejects unsupported/duplicate related logical roles, then calls revalidate_gpu_spatial_layer_sources once for the ordered requested roles. Normalization uses freshly reread source data, with the stored summary checked against it; combines surface/line/point catalogs in LAYER_SPECS order.
 
 **Return contract**
 
@@ -2231,7 +2231,7 @@ _combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() 
 **Side effects**
 
 - Network I/O: none.
-- Filesystem read: none.
+- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
 - Filesystem write: none.
 - CRS/geometry calculation: none.
 - Hashing: none.
@@ -2329,7 +2329,7 @@ def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Private `planning` helper for combined; its complete implementation below is the authoritative behavioral contract.
+Selects normalized logical catalogs of one geometry kind in the explicit LAYER_SPECS insertion order, then combines them or constructs the canonical empty catalog.
 
 **Return contract**
 
@@ -2387,7 +2387,7 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Private `planning` helper for metric parcels; its complete implementation below is the authoritative behavioral contract.
+Builds an independent planar XY EPSG:2154 parcel frame carrying original row positions and IDs, and requires finite positive full-polygon areas.
 
 **Return contract**
 
@@ -2459,7 +2459,7 @@ def _relation_base(
 
 **Purpose**
 
-Private `planning` helper for relation base; its complete implementation below is the authoritative behavioral contract.
+Runs an inner GeoPandas sjoin with predicate intersects over full metric parcels and feature geometry; preserves matched parcel/feature positions and copies relation identity/raw/provenance fields. Empty inputs return empty work structures.
 
 **Return contract**
 
@@ -2483,7 +2483,7 @@ Private `planning` helper for relation base; its complete implementation below i
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `catalog.geometry.to_numpy`, `metric['_parcel_area_m2'].to_numpy`.
+- CRS/geometry calculation: GeoPandas sjoin(predicate="intersects") over full calculation polygons and feature geometry.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -2579,7 +2579,7 @@ def _surface_relations(
 
 **Purpose**
 
-Private `planning` helper for surface relations; its complete implementation below is the authoritative behavioral contract.
+Computes exact polygon intersections and their areas; positive area is AREA_OVERLAP, zero-area contact is TOUCH_ONLY. Keeps clipped geometry only in temporary work, calculates both area percentages and leaves line/point-only metrics null.
 
 **Return contract**
 
@@ -2664,7 +2664,7 @@ def _line_relations(
 
 **Purpose**
 
-Private `planning` helper for line relations; its complete implementation below is the authoritative behavioral contract.
+Computes clipped intersection length and distinguishes positive LENGTH_OVERLAP from zero-length TOUCH_ONLY. source_line_length_m is the entire source feature length, not the clipped length; area and point-only metrics are null.
 
 **Return contract**
 
@@ -2746,7 +2746,7 @@ def _point_relations(
 
 **Purpose**
 
-Private `planning` helper for point relations; its complete implementation below is the authoritative behavioral contract.
+Expands every member of each matched Point/MultiPoint, uses contains for strict inside and covers for inside-or-boundary, and counts both per parcel/feature. Source member count includes outside members; any inside member makes INSIDE, otherwise BOUNDARY_TOUCH. No covered member fails.
 
 **Return contract**
 
@@ -2768,7 +2768,7 @@ base
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `(inside_counts + boundary_counts <= 0).any`.
+- CRS/geometry calculation: Shapely get_parts, contains and covers; scalar/bincount accumulation is not itself a geometry operation.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: `base['point_member_count']`, `base['point_members_boundary_count']`, `base['point_members_inside_count']`, `base['relation_type']`, `base[column]`.
@@ -2834,7 +2834,7 @@ def _empty_relations() -> pd.DataFrame:
 
 **Purpose**
 
-Private `planning` helper for empty relations; its complete implementation below is the authoritative behavioral contract.
+Creates the canonical empty plain 28-column DataFrame: string evidence, float64 measurements, nullable Int64 point counts and unnamed zero-based RangeIndex.
 
 **Return contract**
 
@@ -2905,7 +2905,7 @@ def _build_relation_tables(
 
 **Purpose**
 
-Constructs relation tables; exact branches, calls, and return construction are reproduced below.
+Builds all three relation families, concatenates nonempty work and stable-sorts by original parcel position then planning_feature_id. Returns temporary family work plus the canonical plain relation frame; clipped geometry is not retained in public relations.
 
 **Return contract**
 
@@ -2982,7 +2982,7 @@ def _canonical_integrity_value(value: object) -> object:
 
 **Purpose**
 
-Private `planning` helper for canonical integrity value; its complete implementation below is the authoritative behavioral contract.
+Canonicalizes temporal scalars to ISO text, NumPy scalars recursively to Python scalars, scalar missing values to None, bool before integer, and finite real numbers; rejects unsupported values and non-finite nonmissing numbers. This is a hash-cell converter, not a public deep-immutability container.
 
 **Return contract**
 
@@ -3075,7 +3075,7 @@ def _canonical_integrity_sha256(payload: object) -> str:
 
 **Purpose**
 
-Private `planning` helper for canonical integrity sha256; its complete implementation below is the authoritative behavioral contract.
+Serializes a payload with sorted JSON keys, compact separators, Unicode preserved and allow_nan=False, then SHA256-hashes UTF-8 bytes; serialization failures are controlled.
 
 **Return contract**
 
@@ -3142,7 +3142,7 @@ def _gpu_related_source_files_sha256(
 
 **Purpose**
 
-Private `planning` helper for gpu related source files sha256; its complete implementation below is the authoritative behavioral contract.
+Hashes the v1 verified-GPU-sources payload: archive SHA, logical-role-sorted layers, relative dataset path, driver/layer/CRS/count, ordered physical OGR FIDs and relative-path-sorted component file identities. Absolute extraction roots are excluded.
 
 **Return contract**
 
@@ -3225,7 +3225,7 @@ def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
 
 **Purpose**
 
-Private `planning` helper for expected relations content sha256; its complete implementation below is the authoritative behavioral contract.
+Hashes the v2 expected-relations payload, including deterministic ordered frame schema, index metadata/values and every canonical row cell. Uses freshly reconstructed expected relations, not a caller digest.
 
 **Return contract**
 
@@ -3288,7 +3288,7 @@ def _technical_tolerance(parcel_area: float) -> float:
 
 **Purpose**
 
-Private `planning` helper for technical tolerance; its complete implementation below is the authoritative behavioral contract.
+Delegates to the common numerical overlay tolerance; this is a floating-point comparison tolerance, not a spatial buffer or policy threshold.
 
 **Return contract**
 
@@ -3343,7 +3343,7 @@ def _surface_union_summary(
 
 **Purpose**
 
-Private `planning` helper for surface union summary; its complete implementation below is the authoritative behavioral contract.
+Unions positive clipped surface intersections per parcel so overlapping source features do not double-count covered area. Rejects non-finite/negative areas and overshoot beyond numerical tolerance; clamps only a tolerance-sized overshoot to parcel area.
 
 **Return contract**
 
@@ -3367,7 +3367,7 @@ output
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `group['_intersection_geometry'].to_numpy`, `shapely_area`.
+- CRS/geometry calculation: Shapely union_all over clipped geometries and shapely_area.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: `output[position]`.
@@ -3433,7 +3433,7 @@ def _attach_parcel_summaries(
 
 **Purpose**
 
-Private `planning` helper for attach parcel summaries; its complete implementation below is the authoritative behavioral contract.
+Appends 21 facts to a deep copy of original parcels: family/total relation counts, overlapping raw area sum, non-double-counted total/family union areas and percentages, summed clipped line lengths, point inside/boundary member counts and document/archive lineage. No-match numeric summaries are zero, not null.
 
 **Return contract**
 
@@ -3455,7 +3455,7 @@ result
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `line_work.groupby('_parcel_position', sort=False)['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `surface_positive.groupby('_parcel_position', sort=False)['intersection_area_m2'].sum`.
+- CRS/geometry calculation: delegated clipped-geometry unions; line/point counts and numeric sums are tabular aggregation.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: `line_sum[values.index.to_numpy(dtype='int64')]`, `output['planning_feature_archive_sha256']`, `output['planning_feature_document_id']`, `output['planning_line_intersection_length_sum_m']`, `output['planning_line_length_overlap_count']`, `output['planning_line_relation_count']`, `output['planning_line_touch_count']`, `output['planning_point_relation_count']`, `output['planning_surface_area_overlap_count']`, `output['planning_surface_covered_pct']`, `output['planning_surface_covered_union_area_m2']`, `output['planning_surface_intersection_area_sum_m2']`, `output['planning_surface_relation_count']`, `output['planning_surface_touch_count']`, `output[f'{prefix}_surface_covered_pct']`, `output[f'{prefix}_surface_covered_union_area_m2']`, `output[f'{prefix}_surface_relation_count']`, `output[target]`, `raw_sum[sums.index.to_numpy(dtype='int64')]`, `result[counts.index.to_numpy(dtype='int64')]`, `values[grouped.index.to_numpy(dtype='int64')]`.
@@ -3599,7 +3599,7 @@ def relation_counts(
 
 **Purpose**
 
-Private `planning` helper for relation counts; its complete implementation below is the authoritative behavioral contract.
+Counts relation rows by original parcel position into a new zero-filled int64 array; it does not count MultiPoint members.
 
 **Return contract**
 
@@ -3665,7 +3665,7 @@ def _numeric_values(
 
 **Purpose**
 
-Private `planning` helper for numeric values; its complete implementation below is the authoritative behavioral contract.
+Checks designated scalar numeric cells for allowed nullness, Real-but-not-bool type, finiteness and nonnegative values; does not cast or replace the frame values.
 
 **Return contract**
 
@@ -3745,7 +3745,7 @@ def _integer_values(
 
 **Purpose**
 
-Private `planning` helper for integer values; its complete implementation below is the authoritative behavioral contract.
+Checks designated count cells for allowed nullness, Integral-but-not-bool type and nonnegative values without mutating the frame.
 
 **Return contract**
 
@@ -3806,7 +3806,7 @@ def _null_safe_equal(left: object, right: object) -> bool:
 
 **Purpose**
 
-Private `planning` helper for null safe equal; its complete implementation below is the authoritative behavioral contract.
+Compares scalar values with symmetric pandas missing-value handling; nonscalar null predicates or TypeError/ValueError during comparison return False.
 
 **Return contract**
 
@@ -3882,7 +3882,7 @@ def _require_close(actual: object, expected: float, label: str) -> None:
 
 **Purpose**
 
-Private `planning` helper for require close; its complete implementation below is the authoritative behavioral contract.
+Requires a finite Real-but-not-bool actual metric and compares it to the expected metric using technical_overlay_tolerance(max(abs(actual), abs(expected))).
 
 **Return contract**
 
@@ -3946,7 +3946,7 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Rejects malformed or inconsistent catalog identity; exact branches, calls, and return construction are reproduced below.
+Checks required and optional text hygiene, IDs unique within logical roles, deterministic GPU planning IDs, logical/family/kind consistency and CNIG-versus-prescription-surface FID provenance. Physical rereading later checks full source identity, not merely its prefix.
 
 **Return contract**
 
@@ -4049,7 +4049,7 @@ def _validate_catalog_contract(
 
 **Purpose**
 
-Rejects malformed or inconsistent catalog contract; exact branches, calls, and return construction are reproduced below.
+Requires the shared exact ordered columns/dtypes, active EPSG:2154 geometry and canonical RangeIndex; checks 2D valid nonempty kind geometry, identity and positive metrics/member counts. Remeasured area/length uses numerical tolerance; member counts compare exactly.
 
 **Return contract**
 
@@ -4191,7 +4191,7 @@ def _compare_normalized_catalog(
 
 **Purpose**
 
-Private `planning` helper for compare normalized catalog; its complete implementation below is the authoritative behavioral contract.
+Compares deterministic frame schema, equivalent CRS, ordered geometry WKB and exact nongeometry DataFrame equality against a freshly normalized GPU catalog. Non-inplace drop creates comparison frames; inputs are not changed.
 
 **Return contract**
 
@@ -4209,7 +4209,7 @@ Private `planning` helper for compare normalized catalog; its complete implement
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.drop(columns='geometry').equals`, `supplied.geometry.to_wkb`.
+- CRS/geometry calculation: ordered geometry WKB serialization and equivalent-CRS comparison; nongeometry DataFrame.equals is a tabular comparison.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -4273,7 +4273,7 @@ def _validate_relation_catalog_consistency(
 
 **Purpose**
 
-Rejects malformed or inconsistent relation catalog consistency; exact branches, calls, and return construction are reproduced below.
+Requires globally unique feature IDs and known relation references, compares 15 copied identity/raw/lineage values null-safely and compares the full source feature metric exactly to the corresponding catalog metric.
 
 **Return contract**
 
@@ -4293,7 +4293,7 @@ Rejects malformed or inconsistent relation catalog consistency; exact branches, 
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `{'SURFACE': 'feature_area_m2', 'LINE': 'feature_length_m', 'POINT': 'point_member_count'}.get`, `{'SURFACE': 'feature_area_m2', 'LINE': 'source_line_length_m', 'POINT': 'point_member_count'}.get`.
+- CRS/geometry calculation: none; the dict lookups select metric column names, not geometry operations.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -4366,7 +4366,7 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
 
 **Purpose**
 
-Rejects malformed or inconsistent relation semantics; exact branches, calls, and return construction are reproduced below.
+Delegates closed relation-kind, null-pattern, numeric and percentage checks to the shared intrinsic planning relation validator; TypeError/ValueError are translated to PlanningFeaturesError.
 
 **Return contract**
 
@@ -4420,7 +4420,7 @@ def _compare_rebuilt_relations(
 
 **Purpose**
 
-Private `planning` helper for compare rebuilt relations; its complete implementation below is the authoritative behavioral contract.
+Requires identical schemas, index, row count/order and null patterns; nonfloat cells compare null-safely and float measurements compare with the shared technical tolerance, not byte identity.
 
 **Return contract**
 
@@ -4514,7 +4514,7 @@ def _compare_rebuilt_parcel_output(
 
 **Purpose**
 
-Private `planning` helper for compare rebuilt parcel output; its complete implementation below is the authoritative behavioral contract.
+Compares schema/index, equivalent CRS and ordered WKB to reconstructed parcel output; floating summary facts use tolerance, while count/lineage/original columns use exact Series equality.
 
 **Return contract**
 
@@ -4615,7 +4615,7 @@ def _validate_normalized_planning_feature_inputs(
 
 **Purpose**
 
-Validate exact STEP 7D.3.1 facts against their document and parcels.
+Accepts source parcels or parcels with all 21 summaries, rejects partial summaries, physically rebuilds GPU catalogs and relations, checks supplied canonical catalogs/evidence against those reconstructions and optionally rebuilds all parcel summaries. Returns hashes/counts of the reconstructed authority.
 
 **Return contract**
 
@@ -4641,9 +4641,9 @@ PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_sour
 **Side effects**
 
 - Network I/O: none.
-- Filesystem read: none.
+- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
 - Filesystem write: none.
-- CRS/geometry calculation: `metric_parcels['_parcel_area_m2'].tolist`, `relations[['parcel_id', 'parcel_metric_area_m2']].itertuples`.
+- CRS/geometry calculation: delegated XY projection, catalog normalization and complete spatial reconstruction; iterating numeric parcel areas is not a geometry operation.
 - Hashing: `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -4818,7 +4818,7 @@ def validate_normalized_planning_feature_inputs(
 
 **Purpose**
 
-Validate exact STEP 7D.3.1 facts against their document and parcels.
+Source-complete public boundary for externally supplied normalized facts. Reconstructs physical source catalogs and full parcel-feature relations, preserving controlled errors and wrapping unexpected Exception failures as chained PlanningFeaturesError.
 
 **Return contract**
 
@@ -4836,7 +4836,7 @@ _validate_normalized_planning_feature_inputs(planning_document, parcels, surface
 **Side effects**
 
 - Network I/O: none.
-- Filesystem read: none.
+- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
 - Filesystem write: none.
 - CRS/geometry calculation: none.
 - Hashing: none.
@@ -4923,7 +4923,7 @@ def _validate_parcel_summaries(
 
 **Purpose**
 
-Rejects malformed or inconsistent parcel summaries; exact branches, calls, and return construction are reproduced below.
+Recomputes parcel metric areas and relation-derived counts/sums, checks union bounds and percentage formulas within numerical tolerance, and optionally reconstructs total/family unions from supplied temporary clipped geometry.
 
 **Return contract**
 
@@ -4944,7 +4944,7 @@ Rejects malformed or inconsistent parcel summaries; exact branches, calls, and r
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `lines['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `metric['_parcel_area_m2'].tolist`, `points['point_members_boundary_count'].sum`, `positive_surfaces['intersection_area_m2'].sum`.
+- CRS/geometry calculation: delegated parcel metric projection and optional clipped-geometry unions; relation sums are tabular aggregation.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -5101,7 +5101,7 @@ def _validate_result(
 
 **Purpose**
 
-Rejects malformed or inconsistent result; exact branches, calls, and return construction are reproduced below.
+Checks parcel preservation, required summaries, known relation IDs, summary consistency and lineage. By default invokes source-complete normalized validation; the public builder explicitly passes source_inputs_already_rebuilt=True to skip that second catalog/relation reconstruction, while still checking its fresh surface work.
 
 **Return contract**
 
@@ -5125,7 +5125,7 @@ Rejects malformed or inconsistent result; exact branches, calls, and return cons
 **Side effects**
 
 - Network I/O: none.
-- Filesystem read: none.
+- Filesystem read: source-complete GPU rereads only when source_inputs_already_rebuilt=False; the public builder passes True.
 - Filesystem write: none.
 - CRS/geometry calculation: `output.geometry.to_wkb`, `source.geometry.to_wkb`.
 - Hashing: none.
@@ -5257,7 +5257,7 @@ def intersect_parcels_with_gpu_planning_features(
 
 **Purpose**
 
-Measure factual GPU prescription/information relations to full parcels. All metric work is planar XY in EPSG:2154. Raw codes are preserved without interpretation, and every pre-existing parcel field and geometry is copied.
+Source-complete factual builder: validates full parcels/document context, physically revalidates and normalizes related GPU sources, computes XY EPSG:2154 intersections/summaries and returns five frames. Original parcel values, index, CRS and geometry are preserved. Unlike the independent validator, this wrapper has no outer catch-all exception handler.
 
 **Return contract**
 
@@ -5275,7 +5275,7 @@ result
 **Side effects**
 
 - Network I/O: none.
-- Filesystem read: none.
+- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
 - Filesystem write: none.
 - CRS/geometry calculation: none.
 - Hashing: none.
@@ -5368,6 +5368,18 @@ def intersect_parcels_with_gpu_planning_features(
 
 ## 7. Data contracts
 
+### Reviewed execution and persistence contract
+
+The public builder owns fresh GPU related-source revalidation; callers do not supply normalized catalogs as its authority. GPU component paths are reread with extraction/config/inventory checks before and after. This differs from INPN immutable GeoPackage byte snapshots. No network, cache publication or production artifact write is implemented here.
+
+Catalogs have 27 columns: the 25 shared factual fields, active geometry and one kind metric. They use unnamed zero-based int64 RangeIndex and XY EPSG:2154. Shared schema fixes string/float64/int64 dtypes; text_raw, regulation_filename_raw and regulation_url_raw have deterministic str/object variants driven by kind and all-null/nonempty content. Relations have 28 columns, no geometry, float64 measurements and nullable Int64 point counts. Inapplicable relation metrics are null; no-match parcel summaries are zero.
+
+Surface area relations retain zero-area contact; line relations retain zero-length contact. Full-feature source_line_length_m and clipped intersection_length_m are distinct. Surface covered unions remove overlap double-counting; raw area sums and line-length sums do not. MultiPoint inside/boundary counts are member counts, while relation counts are parcel/feature row counts. Technical overlay tolerance is used in measurement comparison and tiny union overshoot handling, never as a geometric buffer.
+
+The independent public validator physically rebuilds catalogs, all relations and any supplied complete parcel summary set. Catalog geometry/attributes are exact; reconstructed floating relation/summary values allow the shared numerical tolerance. Returned integrity hashes bind fresh expected values: source-files domain v1 and expected-relations domain v2 (including schema/index). The initial builder skips that second full rebuild explicitly after creating its source-bound facts. Optional raw string hygiene is therefore checked at the independent boundary, not uniformly during initial normalization; this asymmetry is an open static audit limitation, not a repaired behavior.
+
+LAYER_SPECS, COMMON_SOURCE_FIELDS and _CATALOG_GEOMETRY_TYPES are ordinary module dictionaries, not deeply immutable loaded policy objects. Frozen result envelopes retain mutable DataFrames. Public callers must use the source-complete validation boundary for supplied facts. Raw codes and relations convey no BESS decision, legal authorization, score or ranking.
+
 ### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
 
 ```python
@@ -5376,10 +5388,11 @@ PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 2 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 1 | `geometry` | GeoPandas geometry | non-null; valid nonempty Polygon/MultiPolygon | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 2 | `parcel_id` | input string values; source dtype retained | non-null, nonempty, unpadded and unique | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
 
-### `COMMON_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
+
+### `COMMON_SOURCE_FIELDS` — normalized-output to source-attribute mapping
 
 ```python
 COMMON_SOURCE_FIELDS = {
@@ -5392,16 +5405,16 @@ COMMON_SOURCE_FIELDS = {
 }
 ```
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+| Position/value | Exact field | Source attribute | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `label_raw` | LIBELLE | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `text_raw` | TXT | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `regulation_filename_raw` | NOMFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `regulation_url_raw` | URLFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_document_reference_raw` | IDURBA | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_validity_date_raw` | DATVALID | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 1 | `label_raw` | LIBELLE | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `text_raw` | TXT | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `regulation_filename_raw` | NOMFIC | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `regulation_url_raw` | URLFIC | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `source_document_reference_raw` | IDURBA | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `source_validity_date_raw` | DATVALID | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
 
-### `OPTIONAL_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
+### `OPTIONAL_SOURCE_FIELDS` — optional raw source attributes (unordered set)
 
 ```python
 OPTIONAL_SOURCE_FIELDS = frozenset(
@@ -5417,11 +5430,12 @@ OPTIONAL_SOURCE_FIELDS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `TXT` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 1 | `DATVALID` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
+| 2 | `LIBELLE` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
+| 3 | `NOMFIC` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
+| 4 | `TXT` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
+| 5 | `URLFIC` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
+
 
 ### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` — required input frame fields (unordered when stored as a set)
 
@@ -5451,25 +5465,26 @@ _CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `planning_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 2 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `source_identity_kind` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `source_identity_field` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `logical_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `feature_family` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `type_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 9 | `subtype_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 10 | `source_document_reference_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 11 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 12 | `source_portal` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 13 | `source_commune_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 14 | `source_document_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 15 | `source_document_type` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 16 | `source_archive_name` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 17 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 18 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 19 | `source_crs` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 1 | `planning_feature_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 2 | `source_feature_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 3 | `source_identity_kind` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 4 | `source_identity_field` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 5 | `logical_layer` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 6 | `feature_family` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 7 | `geometry_kind` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 8 | `type_code_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 9 | `subtype_code_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 10 | `source_document_reference_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 11 | `source_provider` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 12 | `source_portal` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 13 | `source_commune_code` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 14 | `source_document_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 15 | `source_document_type` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 16 | `source_archive_name` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 17 | `source_archive_sha256` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 18 | `source_layer` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+| 19 | `source_crs` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
+
 
 ### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS` — canonical or derived frame-column schema
 
@@ -5486,12 +5501,13 @@ _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `text_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `regulation_filename_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `regulation_url_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_validity_date_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_standard_model` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 1 | `label_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+| 2 | `text_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+| 3 | `regulation_filename_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+| 4 | `regulation_url_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+| 5 | `source_validity_date_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+| 6 | `source_standard_model` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
+
 
 ### `PARCEL_OUTPUT_COLUMNS` — canonical or derived frame-column schema
 
@@ -5525,27 +5541,28 @@ PARCEL_OUTPUT_COLUMNS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `information_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 2 | `information_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 3 | `information_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 4 | `planning_feature_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 5 | `planning_feature_document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-| 6 | `planning_line_intersection_length_sum_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 7 | `planning_line_length_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 8 | `planning_line_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 9 | `planning_line_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 10 | `planning_point_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `planning_point_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 12 | `planning_point_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 13 | `planning_surface_area_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 14 | `planning_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 15 | `planning_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 16 | `planning_surface_intersection_area_sum_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 17 | `planning_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 18 | `planning_surface_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 19 | `prescription_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 20 | `prescription_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 21 | `prescription_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 1 | `information_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 2 | `information_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 3 | `information_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 4 | `planning_feature_archive_sha256` | builder string column | non-null | source lineage | Document/archive context, also present when catalogs are empty. |
+| 5 | `planning_feature_document_id` | builder string column | non-null | identity | Document/archive context, also present when catalogs are empty. |
+| 6 | `planning_line_intersection_length_sum_m` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 7 | `planning_line_length_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 8 | `planning_line_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 9 | `planning_line_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 10 | `planning_point_boundary_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 11 | `planning_point_inside_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 12 | `planning_point_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 13 | `planning_surface_area_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 14 | `planning_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 15 | `planning_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 16 | `planning_surface_intersection_area_sum_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 17 | `planning_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 18 | `planning_surface_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 19 | `prescription_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 20 | `prescription_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
+| 21 | `prescription_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+
 
 ### `PARCEL_COUNT_COLUMNS` — canonical or derived frame-column schema
 
@@ -5569,20 +5586,21 @@ PARCEL_COUNT_COLUMNS = frozenset(
 
 | Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
 |---:|---|---|---|---|---|
-| 1 | `information_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 2 | `planning_line_length_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 3 | `planning_line_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 4 | `planning_line_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 5 | `planning_point_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 6 | `planning_point_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 7 | `planning_point_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 8 | `planning_surface_area_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 9 | `planning_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 10 | `planning_surface_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `prescription_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 1 | `information_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 2 | `planning_line_length_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 3 | `planning_line_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 4 | `planning_line_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 5 | `planning_point_boundary_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 6 | `planning_point_inside_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 7 | `planning_point_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 8 | `planning_surface_area_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 9 | `planning_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 10 | `planning_surface_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
+| 11 | `prescription_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
 
 
 No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+
 
 ## 8. Interfaces
 
@@ -5590,11 +5608,11 @@ This module defines an exact `__all__` contract:
 
 | Export | Kind | Origin | Included in `__all__` |
 |---|---|---|---|
-| `ParcelPlanningFeaturesResult` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `PlanningFeatureInputValidation` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `PlanningFeaturesError` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `intersect_parcels_with_gpu_planning_features` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
-| `validate_normalized_planning_feature_inputs` | public symbol defined in this module | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `ParcelPlanningFeaturesResult` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
+| `PlanningFeatureInputValidation` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
+| `PlanningFeaturesError` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
+| `intersect_parcels_with_gpu_planning_features` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
+| `validate_normalized_planning_feature_inputs` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
 
 ## 9. Error handling
 

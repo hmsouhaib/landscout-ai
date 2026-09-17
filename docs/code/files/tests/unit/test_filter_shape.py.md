@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `filter_shape` contracts exercised in this file.
+- Responsibility: Exercises shape filtering on ten synthetic local rows: inclusive thresholds, ERROR/width/ratio reason precedence, policy metadata and partition preservation, disabled pass-through after validation, configuration-first checks and strict metric/status/ID/CRS/schema failures.
 - Source SHA256: `2e79e0eaf5d81ce2a6f9f1257e3c3b5d5dd5405594a6c02451c4ef029ed2b70a`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `filter_shape` contracts exercised in this file.
+Exercises shape filtering on ten synthetic local rows: inclusive thresholds, ERROR/width/ratio reason precedence, policy metadata and partition preservation, disabled pass-through after validation, configuration-first checks and strict metric/status/ID/CRS/schema failures.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -107,7 +107,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_shape_config`
 
-**Purpose:** Implements `shape config` within the file role: Provides complete unit and regression coverage for the `filter_shape` contracts exercised in this file.
+**Purpose:** Implements `shape config` within the file role: Exercises shape filtering on ten synthetic local rows: inclusive thresholds, ERROR/width/ratio reason precedence, policy metadata and partition preservation, disabled pass-through after validation, configuration-first checks and strict metric/status/ID/CRS/schema failures.
 
 **Exact signature**
 
@@ -197,7 +197,7 @@ def _shape_config(
 
 ### `shape_config`
 
-**Purpose:** Implements `shape config` within the file role: Provides complete unit and regression coverage for the `filter_shape` contracts exercised in this file.
+**Purpose:** Return the helper's default enabled test policy: minimum width 15 and maximum length/width ratio 10.
 
 **Exact signature**
 
@@ -276,7 +276,7 @@ def shape_config() -> ShapeScreeningConfig:
 
 ### `parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `filter_shape` contracts exercised in this file.
+**Purpose:** Build ten canonical-looking WGS84 rows sharing one valid polygon and measured area, with separately supplied width/ratio/status combinations. ERROR rows deliberately retain partial or absent metrics; compactness is an unrelated retained column. No physical source or shape-metric recomputation is involved.
 
 **Exact signature**
 
@@ -413,7 +413,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 ### `test_exact_width_and_ratio_boundaries_are_retained`
 
-**Purpose:** Regression invariant: exact width and ratio boundaries are retained. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the VALID row exactly at width 15 and ratio 10 is retained.
 
 **Exact signature**
 
@@ -483,7 +483,7 @@ def test_exact_width_and_ratio_boundaries_are_retained(
 
 ### `test_shape_filter_revalidates_mutated_config_before_frame_work`
 
-**Purpose:** Regression invariant: shape filter revalidates mutated config before frame work. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge minimum width -1 through model_copy and simultaneously add a colliding shape_rejection_reason column; require the configuration error first.
 
 **Exact signature**
 
@@ -519,8 +519,8 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `shape_config.model_copy` | `tests.unit.test_filter_shape.shape_config.model_copy` |
-| `parcels.assign` | `tests.unit.test_filter_shape.parcels.assign` |
+| `shape_config.model_copy` | `landscout.config.ShapeScreeningConfig.model_copy` (inherited Pydantic method on the fixture value) |
+| `parcels.assign` | `geopandas.GeoDataFrame.assign` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -559,7 +559,7 @@ def test_shape_filter_revalidates_mutated_config_before_frame_work(
 
 ### `test_rejected_parcel_has_expected_primary_reason`
 
-**Purpose:** Regression invariant: rejected parcel has expected primary reason. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert WIDTH_BELOW_MIN, RATIO_ABOVE_MAX and three SHAPE_ERROR outcomes on named fixtures; unknown-metric labels are ERROR rows, not silently accepted VALID rows.
 
 **Exact signature**
 
@@ -647,7 +647,7 @@ def test_rejected_parcel_has_expected_primary_reason(
 
 ### `test_rejection_reason_precedence_is_deterministic`
 
-**Purpose:** Regression invariant: rejection reason precedence is deterministic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Across four conflicts assert SHAPE_ERROR dominates unknown/below-width facts and WIDTH_BELOW_MIN dominates simultaneous width/ratio threshold failures.
 
 **Exact signature**
 
@@ -737,7 +737,7 @@ def test_rejection_reason_precedence_is_deterministic(
 
 ### `test_shape_error_precedence_does_not_inspect_metrics`
 
-**Purpose:** Regression invariant: shape error precedence does not inspect metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Put unavailable strings in both metrics of an ERROR row and assert SHAPE_ERROR, demonstrating status-first handling without parsing those metrics.
 
 **Exact signature**
 
@@ -772,7 +772,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `with_error_payload["width_m"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `with_error_payload[<br>        "length_width_ratio"<br>    ].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
@@ -822,7 +822,7 @@ def test_shape_error_precedence_does_not_inspect_metrics(
 
 ### `test_enabled_outputs_record_active_policy_metadata`
 
-**Purpose:** Regression invariant: enabled outputs record active policy metadata. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For both output partitions assert exact test policy version/minimum width/maximum ratio columns and ensure retained rows lack shape_rejection_reason.
 
 **Exact signature**
 
@@ -899,7 +899,7 @@ def test_enabled_outputs_record_active_policy_metadata(
 
 ### `test_enabled_partition_preserves_exact_ids_and_crs`
 
-**Purpose:** Regression invariant: enabled partition preserves exact ids and crs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert count closure, disjoint/complete unique ID sets, preserved CRS and retained compactness column in both outputs; set disjointness is nonspatial.
 
 **Exact signature**
 
@@ -961,7 +961,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `retained_ids.isdisjoint` |
+| CRS/geometry/spatial calculation | None directly present; Python set disjointness is nonspatial. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -993,7 +993,7 @@ def test_enabled_partition_preserves_exact_ids_and_crs(
 
 ### `test_filter_does_not_mutate_input`
 
-**Purpose:** Regression invariant: filter does not mutate input. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare the input against its deep copy with assert_geodataframe_equal after filtering.
 
 **Exact signature**
 
@@ -1026,7 +1026,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 | `assert_geodataframe_equal` | `geopandas.testing.assert_geodataframe_equal` |
 
@@ -1064,7 +1064,7 @@ def test_filter_does_not_mutate_input(
 
 ### `test_missing_required_column_fails`
 
-**Purpose:** Regression invariant: missing required column fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Drop each of parcel_id, shape_status, width_m, length_width_ratio and geometry into new local frames and require the missing-shape-columns error.
 
 **Exact signature**
 
@@ -1105,7 +1105,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.drop` | `tests.unit.test_filter_shape.parcels.drop` |
+| `parcels.drop` | `geopandas.GeoDataFrame.drop` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -1122,8 +1122,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `parcels.drop(columns=[column])` |
-| Direct parameter mutation | `parcels.drop(columns=[column])` |
+| In-memory mutation | No existing frame mutated; non-inplace `drop` allocates a new frame. |
+| Direct parameter mutation | None; `drop` is not inplace. |
 
 **Complete source-ordered implementation**
 
@@ -1145,7 +1145,7 @@ def test_missing_required_column_fails(
 
 ### `test_null_parcel_id_fails`
 
-**Purpose:** Regression invariant: null parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set a copied row ID to None and require the must-not-be-null error.
 
 **Exact signature**
 
@@ -1180,7 +1180,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -1218,7 +1218,7 @@ def test_null_parcel_id_fails(
 
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Duplicate an ID in a copy and require unique IDs.
 
 **Exact signature**
 
@@ -1253,7 +1253,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -1291,7 +1291,7 @@ def test_duplicate_parcel_id_fails(
 
 ### `test_unknown_crs_fails`
 
-**Purpose:** Regression invariant: unknown crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Remove CRS with non-inplace set_crs and require known CRS; no original fixture mutation occurs.
 
 **Exact signature**
 
@@ -1326,7 +1326,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.set_crs` | `tests.unit.test_filter_shape.parcels.set_crs` |
+| `parcels.set_crs` | `geopandas.GeoDataFrame.set_crs` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -1342,8 +1342,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `parcels.set_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `parcels.set_crs(None, allow_override=True)` |
-| Direct parameter mutation | `parcels.set_crs(None, allow_override=True)` |
+| In-memory mutation | No existing frame mutated; `set_crs` returns a new frame. |
+| Direct parameter mutation | None; `set_crs` is not inplace. |
 
 **Complete source-ordered implementation**
 
@@ -1363,7 +1363,7 @@ def test_unknown_crs_fails(
 
 ### `test_unexpected_or_null_shape_status_fails`
 
-**Purpose:** Regression invariant: unexpected or null shape status fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject None and UNKNOWN shape statuses.
 
 **Exact signature**
 
@@ -1401,7 +1401,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -1442,7 +1442,7 @@ def test_unexpected_or_null_shape_status_fails(
 
 ### `test_non_finite_known_metric_on_valid_row_fails`
 
-**Purpose:** Regression invariant: non finite known metric on valid row fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set infinity separately in width and ratio of a VALID row and require numeric finite values.
 
 **Exact signature**
 
@@ -1480,7 +1480,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
@@ -1522,7 +1522,7 @@ def test_non_finite_known_metric_on_valid_row_fails(
 
 ### `test_valid_shape_requires_strict_positive_width`
 
-**Purpose:** Regression invariant: valid shape requires strict positive width. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject five width examples: -1, zero, infinity, numeric text and True.
 
 **Exact signature**
 
@@ -1560,7 +1560,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["width_m"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
@@ -1607,7 +1607,7 @@ def test_valid_shape_requires_strict_positive_width(
 
 ### `test_valid_shape_requires_ratio_at_least_one`
 
-**Purpose:** Regression invariant: valid shape requires ratio at least one. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject six ratio examples: -1, zero, 0.999, infinity, numeric text and True.
 
 **Exact signature**
 
@@ -1645,7 +1645,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["length_width_ratio"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
@@ -1692,7 +1692,7 @@ def test_valid_shape_requires_ratio_at_least_one(
 
 ### `test_negative_ratio_cannot_pass_permissive_thresholds`
 
-**Purpose:** Regression invariant: negative ratio cannot pass permissive thresholds. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set width 20 and ratio -1 and require the physical ratio domain error before its numerically permissive upper-bound comparison.
 
 **Exact signature**
 
@@ -1728,7 +1728,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -1770,7 +1770,7 @@ def test_negative_ratio_cannot_pass_permissive_thresholds(
 
 ### `test_disabled_policy_is_an_exact_passthrough`
 
-**Purpose:** Regression invariant: disabled policy is an exact passthrough. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** With enabled=False compare retained output exactly to input and rejected output to its empty slice, and require all four policy/reason columns remain absent.
 
 **Exact signature**
 
@@ -1848,7 +1848,7 @@ def test_disabled_policy_is_an_exact_passthrough(parcels: gpd.GeoDataFrame) -> N
 
 ### `test_different_configs_change_results_for_same_parcels`
 
-**Purpose:** Regression invariant: different configs change results for same parcels. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Compare two synthetic configurations on the same frame, asserting the exact five permissive retained IDs and the single restrictive passing ID.
 
 **Exact signature**
 
@@ -1938,7 +1938,7 @@ def test_different_configs_change_results_for_same_parcels(
 
 ### `test_valid_shape_requires_complete_metrics_even_when_screening_disabled`
 
-**Purpose:** Regression invariant: valid shape requires complete metrics even when screening disabled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Null width or ratio on a VALID row and require completeness even with screening disabled.
 
 **Exact signature**
 
@@ -1974,7 +1974,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 | `ShapeScreeningConfig` | `landscout.config.ShapeScreeningConfig` |
@@ -2015,7 +2015,7 @@ def test_valid_shape_requires_complete_metrics_even_when_screening_disabled(
 
 ### `test_valid_shape_rejects_every_incomplete_metric_form`
 
-**Purpose:** Regression invariant: valid shape rejects every incomplete metric form. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject five width/ratio None or NaN combinations on a VALID row; the test name does not establish every possible missing-value representation.
 
 **Exact signature**
 
@@ -2064,7 +2064,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -2108,7 +2108,7 @@ def test_valid_shape_rejects_every_incomplete_metric_form(
 
 ### `test_shape_filter_rejects_plain_dataframe`
 
-**Purpose:** Regression invariant: shape filter rejects plain dataframe. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass a plain DataFrame and require GeoDataFrame.
 
 **Exact signature**
 
@@ -2181,7 +2181,7 @@ def test_shape_filter_rejects_plain_dataframe(
 
 ### `test_shape_filter_rejects_duplicate_columns`
 
-**Purpose:** Regression invariant: shape filter rejects duplicate columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Concatenate duplicate columns and require the columns-unique guard.
 
 **Exact signature**
 
@@ -2258,7 +2258,7 @@ def test_shape_filter_rejects_duplicate_columns(
 
 ### `test_shape_filter_rejects_unreadable_crs`
 
-**Purpose:** Regression invariant: shape filter rejects unreadable crs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge the copied GeometryArray's internal CRS text and require a controlled CRS error.
 
 **Exact signature**
 
@@ -2293,7 +2293,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_shape.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_shape` | `landscout.stages.filter_parcels.filter_parcels_by_shape` |
 
@@ -2332,6 +2332,10 @@ def test_shape_filter_rejects_unreadable_crs(
 
 ## 7. Test-specific regression contract
 
+Exercises shape filtering on ten synthetic local rows: inclusive thresholds, ERROR/width/ratio reason precedence, policy metadata and partition preservation, disabled pass-through after validation, configuration-first checks and strict metric/status/ID/CRS/schema failures.
+
+The 24 test definitions expand statically to 51 cases; no test run is claimed for this documentation audit. Supplied shape facts are not recomputed from the shared fixture polygon.
+
 - Test functions: **24**.
 - Pytest fixtures (decorator-proven): **2**.
 
@@ -2344,30 +2348,30 @@ def test_shape_filter_rejects_unreadable_crs(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_exact_width_and_ratio_boundaries_are_retained` | none | none | 1 | Proves exact width and ratio boundaries are retained using the exact source reproduced in section 7. |
-| `test_shape_filter_revalidates_mutated_config_before_frame_work` | none | pytest.raises(ParcelFilterError, match="config") | 0 | Proves shape filter revalidates mutated config before frame work using the exact source reproduced in section 7. |
-| `test_rejected_parcel_has_expected_primary_reason` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("width-below", "WIDTH_BELOW_MIN"),<br>        ("ratio-above", "RATIO_ABOVE_MAX"),<br>        ("shape-error", "SHAPE_ERROR"),<br>        ("width-unknown", "SHAPE_ERROR"),<br>        ("ratio-unknown", "SHAPE_ERROR"),<br>    ],<br>) | none | 1 | Proves rejected parcel has expected primary reason using the exact source reproduced in section 7. |
-| `test_rejection_reason_precedence_is_deterministic` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("shape-error", "SHAPE_ERROR"),<br>        ("both-unknown", "SHAPE_ERROR"),<br>        ("ratio-unknown-width-below", "SHAPE_ERROR"),<br>        ("both-thresholds-fail", "WIDTH_BELOW_MIN"),<br>    ],<br>) | none | 1 | Proves rejection reason precedence is deterministic using the exact source reproduced in section 7. |
-| `test_shape_error_precedence_does_not_inspect_metrics` | none | none | 1 | Proves shape error precedence does not inspect metrics using the exact source reproduced in section 7. |
-| `test_enabled_outputs_record_active_policy_metadata` | none | none | 4 | Proves enabled outputs record active policy metadata using the exact source reproduced in section 7. |
-| `test_enabled_partition_preserves_exact_ids_and_crs` | none | none | 9 | Proves enabled partition preserves exact ids and crs using the exact source reproduced in section 7. |
-| `test_filter_does_not_mutate_input` | none | none | 0 | Proves filter does not mutate input using the exact source reproduced in section 7. |
-| `test_missing_required_column_fails` | pytest.mark.parametrize(<br>    "column",<br>    ["parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"],<br>) | pytest.raises(ParcelFilterError, match="Missing required shape columns") | 0 | Proves missing required column fails using the exact source reproduced in section 7. |
-| `test_null_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="must not be null") | 0 | Proves null parcel id fails using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="must be unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
-| `test_unknown_crs_fails` | none | pytest.raises(ParcelFilterError, match="known CRS") | 0 | Proves unknown crs fails using the exact source reproduced in section 7. |
-| `test_unexpected_or_null_shape_status_fails` | pytest.mark.parametrize("status", [None, "UNKNOWN"]) | pytest.raises(ParcelFilterError, match="Unexpected shape_status") | 0 | Proves unexpected or null shape status fails using the exact source reproduced in section 7. |
-| `test_non_finite_known_metric_on_valid_row_fails` | pytest.mark.parametrize("column", ["width_m", "length_width_ratio"]) | pytest.raises(ParcelFilterError, match="numeric and finite") | 0 | Proves non finite known metric on valid row fails using the exact source reproduced in section 7. |
-| `test_valid_shape_requires_strict_positive_width` | pytest.mark.parametrize("width", [-1, 0, float("inf"), "20", True]) | pytest.raises(<br>        ParcelFilterError,<br>        match="width_m must be (numeric and finite\|greater than zero)",<br>    ) | 0 | Proves valid shape requires strict positive width using the exact source reproduced in section 7. |
-| `test_valid_shape_requires_ratio_at_least_one` | pytest.mark.parametrize("ratio", [-1, 0, 0.999, float("inf"), "2", True]) | pytest.raises(<br>        ParcelFilterError,<br>        match="length_width_ratio must be (numeric and finite\|at least one)",<br>    ) | 0 | Proves valid shape requires ratio at least one using the exact source reproduced in section 7. |
-| `test_negative_ratio_cannot_pass_permissive_thresholds` | none | pytest.raises(<br>        ParcelFilterError, match="length_width_ratio must be at least one"<br>    ) | 0 | Proves negative ratio cannot pass permissive thresholds using the exact source reproduced in section 7. |
-| `test_disabled_policy_is_an_exact_passthrough` | none | none | 2 | Proves disabled policy is an exact passthrough using the exact source reproduced in section 7. |
-| `test_different_configs_change_results_for_same_parcels` | none | none | 2 | Proves different configs change results for same parcels using the exact source reproduced in section 7. |
-| `test_valid_shape_requires_complete_metrics_even_when_screening_disabled` | pytest.mark.parametrize("column", ["width_m", "length_width_ratio"]) | pytest.raises(ParcelFilterError, match="complete\|must not be null") | 0 | Proves valid shape requires complete metrics even when screening disabled using the exact source reproduced in section 7. |
-| `test_valid_shape_rejects_every_incomplete_metric_form` | pytest.mark.parametrize(<br>    ("width", "ratio"),<br>    [<br>        (None, 5.0),<br>        (20.0, None),<br>        (None, None),<br>        (float("nan"), 5.0),<br>        (20.0, float("nan")),<br>    ],<br>) | pytest.raises(ParcelFilterError, match="complete") | 0 | Proves valid shape rejects every incomplete metric form using the exact source reproduced in section 7. |
-| `test_shape_filter_rejects_plain_dataframe` | none | pytest.raises(ParcelFilterError, match="GeoDataFrame") | 0 | Proves shape filter rejects plain dataframe using the exact source reproduced in section 7. |
-| `test_shape_filter_rejects_duplicate_columns` | none | pytest.raises(ParcelFilterError, match="columns.*unique") | 0 | Proves shape filter rejects duplicate columns using the exact source reproduced in section 7. |
-| `test_shape_filter_rejects_unreadable_crs` | none | pytest.raises(ParcelFilterError, match="CRS") | 0 | Proves shape filter rejects unreadable crs using the exact source reproduced in section 7. |
+| `test_exact_width_and_ratio_boundaries_are_retained` | none | none | 1 | Assert the VALID row exactly at width 15 and ratio 10 is retained. |
+| `test_shape_filter_revalidates_mutated_config_before_frame_work` | none | pytest.raises(ParcelFilterError, match="config") | 0 | Forge minimum width -1 through model_copy and simultaneously add a colliding shape_rejection_reason column; require the configuration error first. |
+| `test_rejected_parcel_has_expected_primary_reason` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("width-below", "WIDTH_BELOW_MIN"),<br>        ("ratio-above", "RATIO_ABOVE_MAX"),<br>        ("shape-error", "SHAPE_ERROR"),<br>        ("width-unknown", "SHAPE_ERROR"),<br>        ("ratio-unknown", "SHAPE_ERROR"),<br>    ],<br>) | none | 1 | Assert WIDTH_BELOW_MIN, RATIO_ABOVE_MAX and three SHAPE_ERROR outcomes on named fixtures; unknown-metric labels are ERROR rows, not silently accepted VALID rows. |
+| `test_rejection_reason_precedence_is_deterministic` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("shape-error", "SHAPE_ERROR"),<br>        ("both-unknown", "SHAPE_ERROR"),<br>        ("ratio-unknown-width-below", "SHAPE_ERROR"),<br>        ("both-thresholds-fail", "WIDTH_BELOW_MIN"),<br>    ],<br>) | none | 1 | Across four conflicts assert SHAPE_ERROR dominates unknown/below-width facts and WIDTH_BELOW_MIN dominates simultaneous width/ratio threshold failures. |
+| `test_shape_error_precedence_does_not_inspect_metrics` | none | none | 1 | Put unavailable strings in both metrics of an ERROR row and assert SHAPE_ERROR, demonstrating status-first handling without parsing those metrics. |
+| `test_enabled_outputs_record_active_policy_metadata` | none | none | 4 | For both output partitions assert exact test policy version/minimum width/maximum ratio columns and ensure retained rows lack shape_rejection_reason. |
+| `test_enabled_partition_preserves_exact_ids_and_crs` | none | none | 9 | Assert count closure, disjoint/complete unique ID sets, preserved CRS and retained compactness column in both outputs; set disjointness is nonspatial. |
+| `test_filter_does_not_mutate_input` | none | none | 0 | Compare the input against its deep copy with assert_geodataframe_equal after filtering. |
+| `test_missing_required_column_fails` | pytest.mark.parametrize(<br>    "column",<br>    ["parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"],<br>) | pytest.raises(ParcelFilterError, match="Missing required shape columns") | 0 | Drop each of parcel_id, shape_status, width_m, length_width_ratio and geometry into new local frames and require the missing-shape-columns error. |
+| `test_null_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="must not be null") | 0 | Set a copied row ID to None and require the must-not-be-null error. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="must be unique") | 0 | Duplicate an ID in a copy and require unique IDs. |
+| `test_unknown_crs_fails` | none | pytest.raises(ParcelFilterError, match="known CRS") | 0 | Remove CRS with non-inplace set_crs and require known CRS; no original fixture mutation occurs. |
+| `test_unexpected_or_null_shape_status_fails` | pytest.mark.parametrize("status", [None, "UNKNOWN"]) | pytest.raises(ParcelFilterError, match="Unexpected shape_status") | 0 | Reject None and UNKNOWN shape statuses. |
+| `test_non_finite_known_metric_on_valid_row_fails` | pytest.mark.parametrize("column", ["width_m", "length_width_ratio"]) | pytest.raises(ParcelFilterError, match="numeric and finite") | 0 | Set infinity separately in width and ratio of a VALID row and require numeric finite values. |
+| `test_valid_shape_requires_strict_positive_width` | pytest.mark.parametrize("width", [-1, 0, float("inf"), "20", True]) | pytest.raises(<br>        ParcelFilterError,<br>        match="width_m must be (numeric and finite\|greater than zero)",<br>    ) | 0 | Reject five width examples: -1, zero, infinity, numeric text and True. |
+| `test_valid_shape_requires_ratio_at_least_one` | pytest.mark.parametrize("ratio", [-1, 0, 0.999, float("inf"), "2", True]) | pytest.raises(<br>        ParcelFilterError,<br>        match="length_width_ratio must be (numeric and finite\|at least one)",<br>    ) | 0 | Reject six ratio examples: -1, zero, 0.999, infinity, numeric text and True. |
+| `test_negative_ratio_cannot_pass_permissive_thresholds` | none | pytest.raises(<br>        ParcelFilterError, match="length_width_ratio must be at least one"<br>    ) | 0 | Set width 20 and ratio -1 and require the physical ratio domain error before its numerically permissive upper-bound comparison. |
+| `test_disabled_policy_is_an_exact_passthrough` | none | none | 2 | With enabled=False compare retained output exactly to input and rejected output to its empty slice, and require all four policy/reason columns remain absent. |
+| `test_different_configs_change_results_for_same_parcels` | none | none | 2 | Compare two synthetic configurations on the same frame, asserting the exact five permissive retained IDs and the single restrictive passing ID. |
+| `test_valid_shape_requires_complete_metrics_even_when_screening_disabled` | pytest.mark.parametrize("column", ["width_m", "length_width_ratio"]) | pytest.raises(ParcelFilterError, match="complete\|must not be null") | 0 | Null width or ratio on a VALID row and require completeness even with screening disabled. |
+| `test_valid_shape_rejects_every_incomplete_metric_form` | pytest.mark.parametrize(<br>    ("width", "ratio"),<br>    [<br>        (None, 5.0),<br>        (20.0, None),<br>        (None, None),<br>        (float("nan"), 5.0),<br>        (20.0, float("nan")),<br>    ],<br>) | pytest.raises(ParcelFilterError, match="complete") | 0 | Reject five width/ratio None or NaN combinations on a VALID row; the test name does not establish every possible missing-value representation. |
+| `test_shape_filter_rejects_plain_dataframe` | none | pytest.raises(ParcelFilterError, match="GeoDataFrame") | 0 | Pass a plain DataFrame and require GeoDataFrame. |
+| `test_shape_filter_rejects_duplicate_columns` | none | pytest.raises(ParcelFilterError, match="columns.*unique") | 0 | Concatenate duplicate columns and require the columns-unique guard. |
+| `test_shape_filter_rejects_unreadable_crs` | none | pytest.raises(ParcelFilterError, match="CRS") | 0 | Forge the copied GeometryArray's internal CRS text and require a controlled CRS error. |
 
 ## 8. Public exports and package ownership
 

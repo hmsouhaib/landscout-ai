@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
+- Responsibility: Exercises inclusive area partitioning and explicit reasons on six synthetic canonical-looking parcels, count/ID-set/CRS preservation, config-first revalidation and identity/schema/area/geometry-envelope guards; no physical source verification is performed.
 - Source SHA256: `3122ccfd47fbaf6ac079ab733ddb5235b5053d25c4cba5017fe9cf30b3392a89`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
+Exercises inclusive area partitioning and explicit reasons on six synthetic canonical-looking parcels, count/ID-set/CRS preservation, config-first revalidation and identity/schema/area/geometry-envelope guards; no physical source verification is performed.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -81,7 +81,7 @@ No top-level class/model/dataclass is declared.
 
 ### `area_config`
 
-**Purpose:** Implements `area config` within the file role: Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
+**Purpose:** Implements `area config` within the file role: Exercises inclusive area partitioning and explicit reasons on six synthetic canonical-looking parcels, count/ID-set/CRS preservation, config-first revalidation and identity/schema/area/geometry-envelope guards; no physical source verification is performed.
 
 **Exact signature**
 
@@ -158,7 +158,7 @@ def area_config() -> ParcelConfig:
 
 ### `parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
+**Purpose:** Build six canonical-looking WGS84 synthetic rows: four projected squares with areas 2000, 15000, 1999 and 15001, then None and empty Polygon with INVALID status/null area. No physical Cadastre source is attached.
 
 **Exact signature**
 
@@ -285,7 +285,7 @@ def parcels() -> gpd.GeoDataFrame:
 
 ### `test_minimum_boundary_is_included`
 
-**Purpose:** Regression invariant: minimum boundary is included. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the row at exactly 2000 square metres belongs to candidates.
 
 **Exact signature**
 
@@ -355,7 +355,7 @@ def test_minimum_boundary_is_included(
 
 ### `test_maximum_boundary_is_included`
 
-**Purpose:** Regression invariant: maximum boundary is included. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert the row at exactly 15000 square metres belongs to candidates.
 
 **Exact signature**
 
@@ -425,7 +425,7 @@ def test_maximum_boundary_is_included(
 
 ### `test_rejected_parcel_has_expected_reason`
 
-**Purpose:** Regression invariant: rejected parcel has expected reason. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert below-minimum and above-maximum reasons plus INVALID_GEOMETRY for both None and empty Polygon. The fixture label unknown-area still has INVALID geometry and does not exercise AREA_UNKNOWN.
 
 **Exact signature**
 
@@ -512,7 +512,7 @@ def test_rejected_parcel_has_expected_reason(
 
 ### `test_no_parcel_disappears`
 
-**Purpose:** Regression invariant: no parcel disappears. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert input/output count equality, ID-set union equality and CRS preservation for both output partitions.
 
 **Exact signature**
 
@@ -591,7 +591,7 @@ def test_no_parcel_disappears(
 
 ### `test_thresholds_come_from_config`
 
-**Purpose:** Regression invariant: thresholds come from config. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Supply custom inclusive bounds 1999..2000 and assert only those two fixture IDs are candidates.
 
 **Exact signature**
 
@@ -662,7 +662,7 @@ def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
 
 ### `test_area_filter_revalidates_mutated_config_before_frame_work`
 
-**Purpose:** Regression invariant: area filter revalidates mutated config before frame work. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge a negative minimum through model_copy and simultaneously add a colliding rejection_reason frame column; require the config error first.
 
 **Exact signature**
 
@@ -698,8 +698,8 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `area_config.model_copy` | `tests.unit.test_filter_parcels.area_config.model_copy` |
-| `parcels.assign` | `tests.unit.test_filter_parcels.parcels.assign` |
+| `area_config.model_copy` | `landscout.config.ParcelConfig.model_copy` (inherited Pydantic method on the fixture value) |
+| `parcels.assign` | `geopandas.GeoDataFrame.assign` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -738,7 +738,7 @@ def test_area_filter_revalidates_mutated_config_before_frame_work(
 
 ### `test_missing_parcel_id_fails`
 
-**Purpose:** Regression invariant: missing parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Drop parcel_id into a new frame and require a parcel_id error; drop without inplace does not mutate the fixture.
 
 **Exact signature**
 
@@ -773,7 +773,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.drop` | `tests.unit.test_filter_parcels.parcels.drop` |
+| `parcels.drop` | `geopandas.GeoDataFrame.drop` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -789,8 +789,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `parcels.drop(columns=["parcel_id"])` |
-| Direct parameter mutation | `parcels.drop(columns=["parcel_id"])` |
+| In-memory mutation | No existing frame mutated; `drop` allocates a new frame. |
+| Direct parameter mutation | None; `drop` is not inplace. |
 
 **Complete source-ordered implementation**
 
@@ -810,7 +810,7 @@ def test_missing_parcel_id_fails(
 
 ### `test_null_parcel_id_fails`
 
-**Purpose:** Regression invariant: null parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Set one copied-frame ID to None and require a null-ID error.
 
 **Exact signature**
 
@@ -845,7 +845,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -883,7 +883,7 @@ def test_null_parcel_id_fails(
 
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Duplicate an ID in a copied frame and require the unique-ID guard.
 
 **Exact signature**
 
@@ -918,7 +918,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -956,7 +956,7 @@ def test_duplicate_parcel_id_fails(
 
 ### `test_candidate_and_rejected_ids_do_not_overlap`
 
-**Purpose:** Regression invariant: candidate and rejected ids do not overlap. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert disjointness of the two Python ID sets; set.isdisjoint is not a spatial calculation.
 
 **Exact signature**
 
@@ -1005,7 +1005,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `set(candidates["parcel_id"]).isdisjoint` |
+| CRS/geometry/spatial calculation | None directly present; this is Python set disjointness. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1027,7 +1027,7 @@ def test_candidate_and_rejected_ids_do_not_overlap(
 
 ### `test_exact_parcel_ids_are_preserved`
 
-**Purpose:** Regression invariant: exact parcel ids are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert concatenated output IDs are unique and have the same set as input; this is not an original-row-order assertion.
 
 **Exact signature**
 
@@ -1102,7 +1102,7 @@ def test_exact_parcel_ids_are_preserved(
 
 ### `test_valid_geometry_requires_strict_positive_finite_area`
 
-**Purpose:** Regression invariant: valid geometry requires strict positive finite area. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace a VALID row's area with six negative/zero/infinite/NaN/text/boolean inputs and require the strict-positive-finite-numeric error.
 
 **Exact signature**
 
@@ -1140,7 +1140,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["area_m2"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
@@ -1184,7 +1184,7 @@ def test_valid_geometry_requires_strict_positive_finite_area(
 
 ### `test_valid_geometry_with_forged_positive_area_is_rejected`
 
-**Purpose:** Regression invariant: valid geometry with forged positive area is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Add 1 square metre to a VALID row's otherwise positive area and require mismatch against measured EPSG:2154 geometry.
 
 **Exact signature**
 
@@ -1220,7 +1220,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
@@ -1260,7 +1260,7 @@ def test_valid_geometry_with_forged_positive_area_is_rejected(
 
 ### `test_invalid_geometry_with_recorded_area_is_rejected`
 
-**Purpose:** Regression invariant: invalid geometry with recorded area is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assign 100 square metres to the INVALID row and require null area for invalid geometry.
 
 **Exact signature**
 
@@ -1296,7 +1296,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -1335,7 +1335,7 @@ def test_invalid_geometry_with_recorded_area_is_rejected(
 
 ### `test_parcel_id_must_match_its_canonical_source_identity_fields`
 
-**Purpose:** Regression invariant: parcel id must match its canonical source identity fields. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Replace one ID with a different well-formed parcel identity while retaining source identity fields and require the identity-concatenation error.
 
 **Exact signature**
 
@@ -1371,7 +1371,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
 
@@ -1410,7 +1410,7 @@ def test_parcel_id_must_match_its_canonical_source_identity_fields(
 
 ### `test_area_filter_requires_exact_non_empty_parcel_ids`
 
-**Purpose:** Regression invariant: area filter requires exact non empty parcel ids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject integer, empty and leading/trailing-whitespace ID values.
 
 **Exact signature**
 
@@ -1448,7 +1448,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["parcel_id"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
@@ -1491,7 +1491,7 @@ def test_area_filter_requires_exact_non_empty_parcel_ids(
 
 ### `test_area_filter_rejects_plain_dataframe`
 
-**Purpose:** Regression invariant: area filter rejects plain dataframe. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Convert the fixture to a plain DataFrame and require a GeoDataFrame error.
 
 **Exact signature**
 
@@ -1563,7 +1563,7 @@ def test_area_filter_rejects_plain_dataframe(
 
 ### `test_area_filter_rejects_duplicate_columns`
 
-**Purpose:** Regression invariant: area filter rejects duplicate columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Concatenate duplicate columns into a GeoDataFrame and require the columns-unique error.
 
 **Exact signature**
 
@@ -1640,7 +1640,7 @@ def test_area_filter_rejects_duplicate_columns(
 
 ### `test_area_filter_rejects_malformed_spatial_envelope`
 
-**Purpose:** Regression invariant: area filter rejects malformed spatial envelope. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Test missing geometry, absent CRS and a directly forged unreadable internal CRS, requiring controlled geometry/CRS errors.
 
 **Exact signature**
 
@@ -1678,7 +1678,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid.drop` | `unresolved local/third-party receiver; no ownership inferred` |
 | `invalid.set_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
@@ -1697,7 +1697,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `invalid.set_crs` |
 | External process/environment | None directly present. |
-| In-memory mutation | `invalid.drop(columns="geometry")`<br>`invalid.set_crs(None, allow_override=True)`<br>`invalid.geometry.array._crs = "not-a-crs"` |
+| In-memory mutation | `drop` and `set_crs` return new local frames; `invalid.geometry.array._crs = "not-a-crs"` directly forges the copied fixture's metadata. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1726,7 +1726,7 @@ def test_area_filter_rejects_malformed_spatial_envelope(
 
 ### `test_area_filter_rejects_noncanonical_geometry_status`
 
-**Purpose:** Regression invariant: area filter rejects noncanonical geometry status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject nine null/unknown/lowercase/integer/boolean status inputs; astype(object) affects an ordinary factual Series, not geometry.
 
 **Exact signature**
 
@@ -1767,7 +1767,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `parcels.copy` | `tests.unit.test_filter_parcels.parcels.copy` |
+| `parcels.copy` | `geopandas.GeoDataFrame.copy` (the injected fixture value) |
 | `invalid["geometry_status"].astype` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `filter_parcels_by_area` | `landscout.stages.filter_parcels.filter_parcels_by_area` |
@@ -1783,7 +1783,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `invalid["geometry_status"].astype` |
+| CRS/geometry/spatial calculation | None directly present; an ordinary status Series is cast to object. |
 | External process/environment | None directly present. |
 | In-memory mutation | `invalid["geometry_status"] = invalid["geometry_status"].astype(object)`<br>`invalid.loc[0, "geometry_status"] = geometry_status` |
 | Direct parameter mutation | None directly present. |
@@ -1811,6 +1811,10 @@ def test_area_filter_rejects_noncanonical_geometry_status(
 
 ## 7. Test-specific regression contract
 
+Exercises inclusive area partitioning and explicit reasons on six synthetic canonical-looking parcels, count/ID-set/CRS preservation, config-first revalidation and identity/schema/area/geometry-envelope guards; no physical source verification is performed.
+
+The 20 test definitions expand statically to 41 cases; no test run is claimed by this documentation audit.
+
 - Test functions: **20**.
 - Pytest fixtures (decorator-proven): **2**.
 
@@ -1823,26 +1827,26 @@ def test_area_filter_rejects_noncanonical_geometry_status(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_minimum_boundary_is_included` | none | none | 1 | Proves minimum boundary is included using the exact source reproduced in section 7. |
-| `test_maximum_boundary_is_included` | none | none | 1 | Proves maximum boundary is included using the exact source reproduced in section 7. |
-| `test_rejected_parcel_has_expected_reason` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("below-minimum", "AREA_BELOW_MIN"),<br>        ("above-maximum", "AREA_ABOVE_MAX"),<br>        ("invalid-geometry", "INVALID_GEOMETRY"),<br>        ("unknown-area", "INVALID_GEOMETRY"),<br>    ],<br>) | none | 1 | Proves rejected parcel has expected reason using the exact source reproduced in section 7. |
-| `test_no_parcel_disappears` | none | none | 4 | Proves no parcel disappears using the exact source reproduced in section 7. |
-| `test_thresholds_come_from_config` | none | none | 1 | Proves thresholds come from config using the exact source reproduced in section 7. |
-| `test_area_filter_revalidates_mutated_config_before_frame_work` | none | pytest.raises(ParcelFilterError, match="config") | 0 | Proves area filter revalidates mutated config before frame work using the exact source reproduced in section 7. |
-| `test_missing_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="parcel_id") | 0 | Proves missing parcel id fails using the exact source reproduced in section 7. |
-| `test_null_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="null") | 0 | Proves null parcel id fails using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
-| `test_candidate_and_rejected_ids_do_not_overlap` | none | none | 1 | Proves candidate and rejected ids do not overlap using the exact source reproduced in section 7. |
-| `test_exact_parcel_ids_are_preserved` | none | none | 2 | Proves exact parcel ids are preserved using the exact source reproduced in section 7. |
-| `test_valid_geometry_requires_strict_positive_finite_area` | pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "5000", True]) | pytest.raises(ParcelFilterError, match="strict positive finite numeric") | 0 | Proves valid geometry requires strict positive finite area using the exact source reproduced in section 7. |
-| `test_valid_geometry_with_forged_positive_area_is_rejected` | none | pytest.raises(ParcelFilterError, match="measured EPSG:2154") | 0 | Proves valid geometry with forged positive area is rejected using the exact source reproduced in section 7. |
-| `test_invalid_geometry_with_recorded_area_is_rejected` | none | pytest.raises(ParcelFilterError, match="INVALID.*area_m2.*null") | 0 | Proves invalid geometry with recorded area is rejected using the exact source reproduced in section 7. |
-| `test_parcel_id_must_match_its_canonical_source_identity_fields` | none | pytest.raises(ParcelFilterError, match="must equal commune") | 0 | Proves parcel id must match its canonical source identity fields using the exact source reproduced in section 7. |
-| `test_area_filter_requires_exact_non_empty_parcel_ids` | pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "]) | pytest.raises(ParcelFilterError, match="exact non-empty strings") | 0 | Proves area filter requires exact non empty parcel ids using the exact source reproduced in section 7. |
-| `test_area_filter_rejects_plain_dataframe` | none | pytest.raises(ParcelFilterError, match="GeoDataFrame") | 0 | Proves area filter rejects plain dataframe using the exact source reproduced in section 7. |
-| `test_area_filter_rejects_duplicate_columns` | none | pytest.raises(ParcelFilterError, match="columns.*unique") | 0 | Proves area filter rejects duplicate columns using the exact source reproduced in section 7. |
-| `test_area_filter_rejects_malformed_spatial_envelope` | pytest.mark.parametrize("mode", ["missing_geometry", "missing_crs", "unreadable_crs"]) | pytest.raises(ParcelFilterError, match="geometry\|CRS") | 0 | Proves area filter rejects malformed spatial envelope using the exact source reproduced in section 7. |
-| `test_area_filter_rejects_noncanonical_geometry_status` | pytest.mark.parametrize(<br>    "geometry_status",<br>    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],<br>) | pytest.raises(ParcelFilterError, match="geometry_status") | 0 | Proves area filter rejects noncanonical geometry status using the exact source reproduced in section 7. |
+| `test_minimum_boundary_is_included` | none | none | 1 | Assert the row at exactly 2000 square metres belongs to candidates. |
+| `test_maximum_boundary_is_included` | none | none | 1 | Assert the row at exactly 15000 square metres belongs to candidates. |
+| `test_rejected_parcel_has_expected_reason` | pytest.mark.parametrize(<br>    ("parcel_id", "expected_reason"),<br>    [<br>        ("below-minimum", "AREA_BELOW_MIN"),<br>        ("above-maximum", "AREA_ABOVE_MAX"),<br>        ("invalid-geometry", "INVALID_GEOMETRY"),<br>        ("unknown-area", "INVALID_GEOMETRY"),<br>    ],<br>) | none | 1 | Assert below-minimum and above-maximum reasons plus INVALID_GEOMETRY for both None and empty Polygon. The fixture label unknown-area still has INVALID geometry and does not exercise AREA_UNKNOWN. |
+| `test_no_parcel_disappears` | none | none | 4 | Assert input/output count equality, ID-set union equality and CRS preservation for both output partitions. |
+| `test_thresholds_come_from_config` | none | none | 1 | Supply custom inclusive bounds 1999..2000 and assert only those two fixture IDs are candidates. |
+| `test_area_filter_revalidates_mutated_config_before_frame_work` | none | pytest.raises(ParcelFilterError, match="config") | 0 | Forge a negative minimum through model_copy and simultaneously add a colliding rejection_reason frame column; require the config error first. |
+| `test_missing_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="parcel_id") | 0 | Drop parcel_id into a new frame and require a parcel_id error; drop without inplace does not mutate the fixture. |
+| `test_null_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="null") | 0 | Set one copied-frame ID to None and require a null-ID error. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(ParcelFilterError, match="unique") | 0 | Duplicate an ID in a copied frame and require the unique-ID guard. |
+| `test_candidate_and_rejected_ids_do_not_overlap` | none | none | 1 | Assert disjointness of the two Python ID sets; set.isdisjoint is not a spatial calculation. |
+| `test_exact_parcel_ids_are_preserved` | none | none | 2 | Assert concatenated output IDs are unique and have the same set as input; this is not an original-row-order assertion. |
+| `test_valid_geometry_requires_strict_positive_finite_area` | pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "5000", True]) | pytest.raises(ParcelFilterError, match="strict positive finite numeric") | 0 | Replace a VALID row's area with six negative/zero/infinite/NaN/text/boolean inputs and require the strict-positive-finite-numeric error. |
+| `test_valid_geometry_with_forged_positive_area_is_rejected` | none | pytest.raises(ParcelFilterError, match="measured EPSG:2154") | 0 | Add 1 square metre to a VALID row's otherwise positive area and require mismatch against measured EPSG:2154 geometry. |
+| `test_invalid_geometry_with_recorded_area_is_rejected` | none | pytest.raises(ParcelFilterError, match="INVALID.*area_m2.*null") | 0 | Assign 100 square metres to the INVALID row and require null area for invalid geometry. |
+| `test_parcel_id_must_match_its_canonical_source_identity_fields` | none | pytest.raises(ParcelFilterError, match="must equal commune") | 0 | Replace one ID with a different well-formed parcel identity while retaining source identity fields and require the identity-concatenation error. |
+| `test_area_filter_requires_exact_non_empty_parcel_ids` | pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "]) | pytest.raises(ParcelFilterError, match="exact non-empty strings") | 0 | Reject integer, empty and leading/trailing-whitespace ID values. |
+| `test_area_filter_rejects_plain_dataframe` | none | pytest.raises(ParcelFilterError, match="GeoDataFrame") | 0 | Convert the fixture to a plain DataFrame and require a GeoDataFrame error. |
+| `test_area_filter_rejects_duplicate_columns` | none | pytest.raises(ParcelFilterError, match="columns.*unique") | 0 | Concatenate duplicate columns into a GeoDataFrame and require the columns-unique error. |
+| `test_area_filter_rejects_malformed_spatial_envelope` | pytest.mark.parametrize("mode", ["missing_geometry", "missing_crs", "unreadable_crs"]) | pytest.raises(ParcelFilterError, match="geometry\|CRS") | 0 | Test missing geometry, absent CRS and a directly forged unreadable internal CRS, requiring controlled geometry/CRS errors. |
+| `test_area_filter_rejects_noncanonical_geometry_status` | pytest.mark.parametrize(<br>    "geometry_status",<br>    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],<br>) | pytest.raises(ParcelFilterError, match="geometry_status") | 0 | Reject nine null/unknown/lowercase/integer/boolean status inputs; astype(object) affects an ordinary factual Series, not geometry. |
 
 ## 8. Public exports and package ownership
 

@@ -287,7 +287,7 @@ class UnsupportedGeometryTypeError(CadastreLoadError):
 
 ### `CadastreParcelSource`
 
-**Source purpose:** One physical Cadastre download bound to its parsed parcel frame.
+**Source purpose:** One physical download envelope (`download`: official commune identity and retained byte/path evidence) paired with its Pyogrio-parsed factual GeoDataFrame (`parcels`). The envelope is frozen, but its dataframe is mutable; source-complete revalidation must reconstruct and compare it before normalization.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -351,7 +351,7 @@ class CadastreParcelSource:
 
 ### `_is_link_or_junction`
 
-**Purpose:** Implements `is link or junction` within the file role: Returns `CadastreParcelSource` and source-completely rereads/exact-compares official commune-bound physical parcel data.
+**Purpose:** Read filesystem link/junction metadata. Return true if either classification holds; an OSError during inspection also returns true, conservatively rejecting the path. No file is modified.
 
 **Exact signature**
 
@@ -394,7 +394,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `path.is_symlink()` and `path.is_junction()` inspect link metadata. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -418,7 +418,7 @@ def _is_link_or_junction(path: Path) -> bool:
 
 ### `_physical_integrity`
 
-**Purpose:** Implements `physical integrity` within the file role: Returns `CadastreParcelSource` and source-completely rereads/exact-compares official commune-bound physical parcel data.
+**Purpose:** Read current stat size and the complete file bytes, compute lowercase SHA256, and return `(size, digest)`. OSError is chained into CadastreLoadError. These are separate path operations, not an immutable snapshot passed to the parser.
 
 **Exact signature**
 
@@ -492,7 +492,7 @@ def _physical_integrity(path: Path) -> tuple[int, str]:
 
 ### `_validate_download`
 
-**Purpose:** Implements `validate download` within the file role: Returns `CadastreParcelSource` and source-completely rereads/exact-compares official commune-bound physical parcel data.
+**Purpose:** Require an exact CadastreDownload and strict commune, derive the official commune URL/filename, verify path type/name and ordinary nonlinked file, positive exact integer size, lowercase SHA256, UTC-aware timestamp and exact Boolean cache flag. Compare physical size/hash, then fully consume gzip in chunks. Return the same envelope only after all checks; wrap malformed metadata, filesystem and gzip failures in CadastreLoadError. This does not download, refresh a cache or parse GeoJSON.
 
 **Exact signature**
 
@@ -639,7 +639,7 @@ def _validate_download(download: object) -> CadastreDownload:
 
 ### `_read_physical_parcels`
 
-**Purpose:** Implements `read physical parcels` within the file role: Returns `CadastreParcelSource` and source-completely rereads/exact-compares official commune-bound physical parcel data.
+**Purpose:** Read the verified gzip path through Pyogrio's `/vsigzip/` path, then independently recheck physical size/SHA before accepting the frame. Reject a zero-row dataset, absent/noncanonical active geometry, any non-null geometry outside Polygon/MultiPolygon, and any non-null geometry with Z. Null, empty and invalid polygon rows remain factual rows; no CRS conversion or geometry repair occurs. The parser reopens a path rather than receiving immutable bytes, and the dimension check is has_z, not has_m.
 
 **Exact signature**
 
@@ -754,7 +754,7 @@ def _read_physical_parcels(download: CadastreDownload) -> gpd.GeoDataFrame:
 
 ### `_compare_parcel_frames`
 
-**Purpose:** Implements `compare parcel frames` within the file role: Returns `CadastreParcelSource` and source-completely rereads/exact-compares official commune-bound physical parcel data.
+**Purpose:** Require a GeoDataFrame, then compare ordered columns, dtype strings, index class/names/values, active geometry and CRS. Compare nongeometry values exactly with pandas, geometry as ordered hex-WKB lists, and frame attrs. Every mismatch becomes CadastreLoadError. Both drop calls create comparison frames (inplace=False); neither input is mutated.
 
 **Exact signature**
 
@@ -829,8 +829,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `supplied.geometry.to_wkb(hex=True).tolist`<br>`supplied.geometry.to_wkb`<br>`expected.geometry.to_wkb(hex=True).tolist`<br>`expected.geometry.to_wkb` |
 | External process/environment | None directly present. |
-| In-memory mutation | `supplied.drop(columns=geometry_name)`<br>`expected.drop(columns=geometry_name)` |
-| Direct parameter mutation | `supplied.drop(columns=geometry_name)`<br>`expected.drop(columns=geometry_name)` |
+| In-memory mutation | Temporary comparison-frame allocation only; no retained frame mutation. |
+| Direct parameter mutation | None: both `drop` calls return new frames, without `inplace=True`. |
 
 **Complete source-ordered implementation**
 
@@ -889,7 +889,7 @@ def _compare_parcel_frames(
 
 ### `load_cadastre_parcels`
 
-**Purpose:** Load parcels while retaining the verified physical source authority.
+**Purpose:** Validate the supplied download envelope against current physical gzip bytes, read the physical parcels with its post-read byte check, and return a frozen envelope retaining the validated download and newly parsed frame. The dataclass prevents attribute reassignment but the contained GeoDataFrame remains mutable; later callers must revalidate.
 
 **Exact signature**
 
@@ -1004,7 +1004,7 @@ def load_cadastre_parcels(download: CadastreDownload) -> CadastreParcelSource:
 
 ### `revalidate_cadastre_parcel_source`
 
-**Purpose:** Fresh-read and exact-compare one supplied Cadastre parcel source.
+**Purpose:** Require an exact CadastreParcelSource, revalidate its download against disk, read fresh parcels and compare every retained factual/frame attribute against the supplied frame. Return the fresh frame, never the caller's retained mutable frame. Preserve controlled loading errors and wrap other failures; no normalization, source redownload or arbitrary-frame trust shortcut is used.
 
 **Exact signature**
 

@@ -31,13 +31,13 @@ from dataclasses import FrozenInstanceError, fields, is_dataclass, replace
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, ClassVar
-import geopandas as gpd
+import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
-import pyogrio
+import pyogrio  # type: ignore[import-untyped]
 import pytest
-import shapely
+import shapely  # type: ignore[import-untyped]
 import yaml
-from shapely.geometry import Point
+from shapely.geometry import Point  # type: ignore[import-untyped]
 from landscout import sources
 from landscout.sources import inpn_protected_areas_catalog_fr as catalog_module
 from landscout.sources import inpn_protected_areas_fr as source_module
@@ -1324,7 +1324,7 @@ def test_physical_metadata_fails_closed_without_guessing(
 ) -> None:
 ```
 
-Mutates actual SQLite metadata/table schemas to cover missing/duplicate/non-feature rows, missing geometry column, conflicting SRS, invalid Z/M, feature/metadata views, absent/wrong/composite/DESC primary keys, and WITHOUT ROWID. The real metadata reader must fail without guessed keys.
+Mutates actual SQLite metadata/table schemas to cover missing/duplicate/non-feature rows, missing geometry column, contents SRS conflicts, invalid Z/M, feature/metadata views, absent/wrong/composite/DESC primary keys, and WITHOUT ROWID. The catalog-srs case instead replaces the supplied catalog authority code, leaving SQLite bytes unchanged. The real metadata reader must reject each inconsistency without guessed keys.
 
 Expected exception/warning/fatal-check expressions:
 
@@ -1615,7 +1615,7 @@ def test_toolchain_identity_is_portable_and_hash_significant(
 ) -> None:
 ```
 
-Checks actual installed runtime version accessors and independently mutates each toolchain string under a recalculated complete hash; all six toolchain identities are hash-significant.
+Checks five actual installed runtime version accessors (SQLite, Pyogrio, GDAL, Shapely, GEOS) and independently mutates each of all six retained toolchain strings, including PyProj, under a recalculated complete hash. All six identities are hash-significant; this test does not separately assert the initial PyProj accessor equality.
 
 Direct assertions:
 
@@ -1760,7 +1760,7 @@ def test_coordinated_catalog_hash_forgery_rejected_before_snapshot(
 ) -> None:
 ```
 
-Changes physical catalog bounds and recalculates the catalog hash, then makes geometry snapshot opening fatal; independent catalog authority must reject the coordinated forgery before geometry reads.
+Changes the supplied catalog record's bounds and recalculates its hash, without changing the physical package, then makes geometry snapshot opening fatal; independent catalog authority must reject the coordinated forgery before geometry reads.
 
 Expected exception/warning/fatal-check expressions:
 

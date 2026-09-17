@@ -3,108 +3,18 @@
 ## File identity
 
 - Repository path: `src/landscout/__init__.py`
-- File type: Python source
-- Layer: package/configuration
-- Domain: project
-- Responsibility: Defines the package version exposed as landscout.__version__.
+- Responsibility: Package version.
 - Source SHA256: `91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed`
+- Source SHA256 basis: `git-content`
 
-## 1. Purpose
+The package initializer assigns only `__version__ = "0.1.0"`. It imports no module and defines no model, function, export list or pipeline entry point. The variable is ordinary module metadata, not a deeply immutable trust object or an approval status.
 
-Defines the package version exposed as landscout.__version__.
+`tests/unit/test_package.py::test_package_import_and_version` imports `landscout`, reads the repository-root `pyproject.toml` as UTF-8 with `tomllib.loads`, and compares this value with `project.version`. Updating either version requires reviewing both values and that single assertion. No source/network/GIS behavior is exercised by this initializer.
 
-## 2. Position in LandScout architecture
+## Exact complete current file content
 
-This file belongs to the **package/configuration** layer and the **project** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The fenced UTF-8 content below equals the Git-stored file bytes.
 
-## 3. Imports and dependencies
-
-### Python 3.12 standard library
-
-- `None.`
-
-### Third-party packages
-
-- `None.`
-
-### Internal LandScout imports
-
-- `None.`
-
-## 4. Contract taxonomy
-
-### A. Python constants
-
-No meaningful module constant is declared.
-
-### B. Type aliases and closed domains
-
-No module-level Literal/Annotated/TypeAlias declaration is present.
-
-### C. Meaningful dunder contracts
-
-- `__version__` — public package version used by packaging/runtime consumers.
-```python
+````python
 __version__ = "0.1.0"
-```
-
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-No class/model/dataclass is declared.
-
-## 6. Functions and methods
-
-No function or method is declared.
-
-## 7. Data contracts
-
-No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-## 8. Interfaces
-
-This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the project flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+````

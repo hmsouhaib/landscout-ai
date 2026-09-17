@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+- Responsibility: Tests factual zoning geometry/summary preservation and the independent physical-layer reconstruction boundary using deterministic synthetic frames and temporary GeoPackages.
 - Source SHA256: `0a5dfb7650061c6492f0d298c9dbd43d011a715c12fd6eb135347e5e6185b821`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+Tests factual zoning geometry/summary preservation and the independent physical-layer reconstruction boundary using deterministic synthetic frames and temporary GeoPackages.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -73,7 +73,7 @@ The file belongs to the **unit/regression test** layer and **isolated contract t
     validate_normalized_planning_zoning_inputs,
 )`
 - `from landscout.stages.planning_overlay import technical_overlay_tolerance`
-- `import landscout.stages.enrich_planning_zoning as module`
+- Function-local import inside `test_source_complete_zoning_validation_revalidates_physical_source_once`: `import landscout.stages.enrich_planning_zoning as module`
 
 ## 4. Contract taxonomy
 
@@ -88,8 +88,7 @@ Module constants, type aliases, canonical schema/mapping declarations, dunders, 
 ARCHIVE_SHA256 = "a" * 64
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Fabricated lowercase archive lineage ('a' repeated64), used by _planning_document, _physical_planning_document manifest and assertions; it is not a real ZIP digest.
 
 ### `ARCHIVE_NAME`
 
@@ -100,8 +99,7 @@ ARCHIVE_SHA256 = "a" * 64
 ARCHIVE_NAME = "31395_PLU_20240215"
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Synthetic logical31395_PLU_20240215 identity used for raw IDURBA, metadata and expected lineage.
 
 ### `DOCUMENT_ID`
 
@@ -112,8 +110,7 @@ ARCHIVE_NAME = "31395_PLU_20240215"
 DOCUMENT_ID = "doc-1"
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Synthetic doc-1 API identity used for source summaries/generated IDs and forged-ID assertions.
 
 ### `SOURCE_LAYER`
 
@@ -124,8 +121,7 @@ DOCUMENT_ID = "doc-1"
 SOURCE_LAYER = "31395_ZONE_URBA_20240215"
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Synthetic physical zoning layer name used for reference/summary identity and the actual temporary GPKG layer.
 
 ### `STANDARD_MODEL`
 
@@ -136,8 +132,7 @@ SOURCE_LAYER = "31395_ZONE_URBA_20240215"
 STANDARD_MODEL = "CNIG PLU v2017"
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Synthetic CNIG PLU v2017 document/XML declaration, copied into expected normalized and parcel lineage.
 
 ### `SOURCE_FIELDS`
 
@@ -157,8 +152,7 @@ SOURCE_FIELDS = (
 )
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Exact eight raw-field names consumed by the missing-source-field parametrization; its eight cases require presence, not non-null raw semantics for every field.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `LIB_IDZONE`
   - `LIBELLE`
@@ -182,13 +176,12 @@ LOCAL_ENGINEERING_CRS = (
 )
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified fixture consumers and meaning: Parseable local Cartesian WKT used by _zones to relabel a fixture and by the unusable-transformation regression; no usable national transform is assumed.
 
 
 ### Executable module-import-time statements
 
-No executable module-import-time statement is declared outside imports, assignments, and definitions.
+No separate module-level expression statement is declared. Function decorators do execute at import: parametrization constructs the listed synthetic Shapely/GeoPandas fixtures, and the missing-summary decorator sorts the production column set.
 
 ## 5. Classes, models, dataclasses, and fields
 
@@ -198,7 +191,7 @@ No top-level class/model/dataclass is declared.
 
 ### `test_shared_overlay_tolerance_preserves_zoning_numerical_behavior`
 
-**Purpose:** Regression invariant: shared overlay tolerance preserves zoning numerical behavior. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Assert a 100 m² reference has 1e-6 m² tolerance. A 5e-7 over-union is clamped to 100 with gap zero and excess retained; a 2e-6 excess raises PlanningZoningError matching 'materially exceeds'. This directly exercises the shared scalar guard, not a spatial overlay or policy threshold.
 
 **Exact signature**
 
@@ -215,8 +208,8 @@ def test_shared_overlay_tolerance_preserves_zoning_numerical_behavior() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="materially exceeds")`
 - Exact assertions:
@@ -233,25 +226,12 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `technical_overlay_tolerance` | `landscout.stages.planning_overlay.technical_overlay_tolerance` |
+| `technical_overlay_tolerance` | `landscout.common.planning_overlay.technical_overlay_tolerance`, reached through the stage compatibility re-export |
 | `pytest.approx` | `pytest.approx` |
 | `_stabilize_area_relationships` | `landscout.stages.enrich_planning_zoning._stabilize_area_relationships` |
 | `pytest.raises` | `pytest.raises` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `technical_overlay_tolerance` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -268,13 +248,10 @@ def test_shared_overlay_tolerance_preserves_zoning_numerical_behavior() -> None:
         _stabilize_area_relationships(100.0, 100.0 + 2e-6, 100.0 + 2e-6)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_rectangle`
 
-**Purpose:** Implements `rectangle` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Construct and return a closed XY Shapely Polygon from the four supplied rectangle bounds in explicit corner order. No CRS is attached and no argument validation or I/O is performed.
 
 **Exact signature**
 
@@ -298,7 +275,7 @@ def _rectangle(x_min: float, y_min: float, x_max: float, y_max: float) -> Polygo
 
 - Exact observed return expressions:
   - `Polygon(<br>        [<br>            (x_min, y_min),<br>            (x_min, y_max),<br>            (x_max, y_max),<br>            (x_max, y_min),<br>            (x_min, y_min),<br>        ]<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -349,20 +326,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `Polygon` | `shapely.geometry.Polygon` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -379,13 +343,10 @@ def _rectangle(x_min: float, y_min: float, x_max: float, y_max: float) -> Polygo
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Build a new synthetic GeoDataFrame from the supplied geometry/ID lists, defaulting on either None or an empty list because `or` is used. Default geometry is a 100 m² square, IDs are PARCEL-1..., prior `existing_grid_value` starts at100, and index starts at50. Create in EPSG:2154, then clear CRS for None, return unchanged for2154, or actually transform via `to_crs`. This constructs test data only and never loads Cadastre.
 
 **Exact signature**
 
@@ -415,7 +376,7 @@ def _parcels(
   - `frame.set_crs(None, allow_override=True)`
   - `frame`
   - `frame.to_crs(crs)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -503,20 +464,7 @@ Outbound call expressions and conservative ownership:
 | `frame.set_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 | `frame.to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `frame.set_crs`<br>`frame.to_crs` |
-| External process/environment | None directly present. |
-| In-memory mutation | `frame.set_crs(None, allow_override=True)` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -545,13 +493,10 @@ def _parcels(
     return frame.to_crs(crs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_zones`
 
-**Purpose:** Implements `zones` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Build a new synthetic zoning GeoDataFrame with all eight physical source fields, index starting200, generated IDs/labels, raw PDF names/URLs/date and document reference. Falsy optional lists use defaults, so an empty list does not construct an empty layer. Create EPSG:2154 geometry; clear CRS for None, relabel without coordinate conversion for IGNF:LAMB93 or local engineering CRS, otherwise transform. Deliberately supports null/invalid scalar fixtures within nonempty lists; URLs are never fetched.
 
 **Exact signature**
 
@@ -590,7 +535,7 @@ def _zones(
   - `frame`
   - `frame.set_crs(crs, allow_override=True)`
   - `frame.to_crs(crs)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -668,20 +613,7 @@ Outbound call expressions and conservative ownership:
 | `frame.set_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 | `frame.to_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `frame.set_crs`<br>`frame.to_crs` |
-| External process/environment | None directly present. |
-| In-memory mutation | `frame.set_crs(None, allow_override=True)`<br>`frame.set_crs(crs, allow_override=True)` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -734,13 +666,10 @@ def _zones(
     return frame.to_crs(crs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_planning_document`
 
-**Purpose:** Implements `planning document` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Load the checked-in GPU YAML and canonical config SHA, then construct synthetic metadata/archive/extraction/reference/summary records around the supplied frame (or default zones only when None). Build summary schema/dtypes/null/type/quality counts from the frame and return a GpuPlanningDocument. ZIP size1234/hash'a'*64/cache paths are fabricated and no ZIP or extraction tree is created; the frame is retained by alias. This fixture exercises loaded-object calculation, not producer acquisition or archive-byte verification.
 
 **Exact signature**
 
@@ -770,7 +699,7 @@ def _planning_document(
 
 - Exact observed return expressions:
   - `GpuPlanningDocument(<br>        source_config=source_config,<br>        source_config_sha256=gpu_source_module._source_config_sha256(source_config),<br>        extraction=extraction,<br>        all_spatial_layers=(reference,),<br>        zoning=inspected,<br>        related_layers=(),<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -813,20 +742,7 @@ Outbound call expressions and conservative ownership:
 | `GpuPlanningDocument` | `landscout.sources.gpu_fr.GpuPlanningDocument` |
 | `gpu_source_module._source_config_sha256` | `landscout.sources.gpu_fr._source_config_sha256` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `gpu_source_module._source_config_sha256` |
-| CRS/geometry/spatial calculation | `geometry[non_null].geom_type.value_counts().items`<br>`geometry[non_null].geom_type.value_counts`<br>`(non_null & geometry.is_empty).sum`<br>`(non_empty & ~geometry.is_valid).sum` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -931,13 +847,10 @@ def _planning_document(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_physical_planning_document`
 
-**Purpose:** Implements `physical planning document` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Create `tmp_path/extraction/zoning.gpkg`, write the source via Pyogrio without pandas index, reread the actual layer, and use that freshly read frame for the synthetic planning bundle. Calculate actual GPKG size/SHA and write a schema2 extraction manifest, then replace the local reference/inventory/extraction fields. The ZIP metadata/path remains fabricated from `_planning_document`; no archive is created or extracted. The helper proves a physical layer/manifest fixture suitable for the existing spatial revalidator, not an end-to-end download trust chain.
 
 **Exact signature**
 
@@ -962,7 +875,7 @@ def _physical_planning_document(
 
 - Exact observed return expressions:
   - `replace(<br>        base,<br>        extraction=extraction,<br>        all_spatial_layers=(reference,),<br>        zoning=inspected,<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -997,20 +910,7 @@ Outbound call expressions and conservative ownership:
 | `(root / EXTRACTION_MANIFEST_NAME).write_text` | `unresolved local/third-party receiver; no ownership inferred` |
 | `json.dumps` | `json.dumps` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gpd.read_file`<br>`path.stat`<br>`sha256(path.read_bytes()).hexdigest`<br>`path.read_bytes` |
-| Filesystem/archive write or publication | `root.mkdir`<br>`(root / EXTRACTION_MANIFEST_NAME).write_text` |
-| Hashing/byte identity | `sha256(path.read_bytes()).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -1085,13 +985,10 @@ def _physical_planning_document(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_run`
 
-**Purpose:** Implements `run` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Invoke the real factual `intersect_parcels_with_gpu_zoning` with supplied parcels (default only for None) and `_planning_document(zones)`. The helper loads GPU YAML and calculates real in-memory geometry; it neither calls the separate source-complete validator nor accesses the fabricated source paths.
 
 **Exact signature**
 
@@ -1116,7 +1013,7 @@ def _run(
 
 - Exact observed return expressions:
   - `intersect_parcels_with_gpu_zoning(<br>        parcels if parcels is not None else _parcels(),<br>        _planning_document(zones),<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -1185,20 +1082,7 @@ Outbound call expressions and conservative ownership:
 | `_parcels` | `tests.unit.test_enrich_planning_zoning._parcels` |
 | `_planning_document` | `tests.unit.test_enrich_planning_zoning._planning_document` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -1213,13 +1097,10 @@ def _run(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `_row_for_source_zone`
 
-**Purpose:** Implements `row for source zone` within the file role: Provides complete unit and regression coverage for the `enrich_planning_zoning` contracts exercised in this file.
+**Purpose, setup and observed assertion scope:** Return the first normalized catalog row whose exact `source_zone_id` equals the requested string. Intended only for a known unique test fixture; no explicit missing/duplicate check exists, and no frame is mutated.
 
 **Exact signature**
 
@@ -1241,7 +1122,7 @@ def _row_for_source_zone(result: ParcelZoningResult, source_id: str) -> pd.Serie
 
 - Exact observed return expressions:
   - `result.zones.loc[result.zones["source_zone_id"] == source_id].iloc[0]`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -1252,20 +1133,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 - No calls.
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -1274,13 +1142,10 @@ def _row_for_source_zone(result: ParcelZoningResult, source_id: str) -> pd.Serie
     return result.zones.loc[result.zones["source_zone_id"] == source_id].iloc[0]
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_clean_high_level_api_is_exported`
 
-**Purpose:** Regression invariant: clean high level api is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Import the stage module and assert its exact four-name __all__, identical package re-export bindings, and membership of all four in stages.__all__. This checks object/export identity, not source validation or geometry behavior.
 
 **Exact signature**
 
@@ -1297,8 +1162,8 @@ def test_clean_high_level_api_is_exported() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert stages.intersect_parcels_with_gpu_zoning is intersect_parcels_with_gpu_zoning`
   - `assert "intersect_parcels_with_gpu_zoning" in stages.__all__`
@@ -1324,20 +1189,7 @@ Outbound call expressions and conservative ownership:
 | `set` | `unresolved local/third-party receiver; no ownership inferred` |
 | `getattr` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The paragraph above states the helper's actual I/O, allocation, geometry and mutation scope; constructing a Path or copying a retained SHA string is not physical I/O or hashing.
 
 **Complete source-ordered implementation**
 
@@ -1364,13 +1216,10 @@ def test_clean_high_level_api_is_exported() -> None:
         assert name in stages.__all__
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_result_container_is_frozen`
 
-**Purpose:** Regression invariant: result container is frozen. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Build a result and attempt assigning a copied frame to result.parcels, expecting immediate FrozenInstanceError. The attempted assignment must not complete; this test does not claim nested GeoDataFrame contents are immutable.
 
 **Exact signature**
 
@@ -1387,8 +1236,8 @@ def test_result_container_is_frozen() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(FrozenInstanceError)`
 
@@ -1404,20 +1253,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `result.parcels.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `result.parcels = result.parcels.copy()` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -1426,16 +1262,13 @@ def test_result_container_is_frozen() -> None:
     result = _run()
 
     with pytest.raises(FrozenInstanceError):
-        result.parcels = result.parcels.copy()
+        result.parcels = result.parcels.copy()  # type: ignore[misc]
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_one_parcel_fully_inside_one_zone`
 
-**Purpose:** Regression invariant: one parcel fully inside one zone. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Use equal100m² parcel/zone squares with explicit SOURCE-ZONE/UAa/U raw facts. Assert one row in every output, generated/source IDs and all catalog lineage/raw columns, EPSG2154 geometry/area, required relation-column membership, positive relation and100m²/100% metrics, complete zero-gap/zero-excess parcel summaries and single dominant zone. Provider/portal expectations come from official-identity config strings, not a live source; 57 AST assert statements inspect the synthetic case.
 
 **Exact signature**
 
@@ -1452,8 +1285,8 @@ def test_one_parcel_fully_inside_one_zone() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert isinstance(result, ParcelZoningResult)`
   - `assert len(result.parcels) == 1`
@@ -1534,20 +1367,7 @@ Outbound call expressions and conservative ownership:
 | `result.zones.crs.to_epsg` | `unresolved local/third-party receiver; no ownership inferred` |
 | `{<br>        "parcel_id",<br>        "planning_zone_id",<br>        "source_zone_id",<br>        "zone_type_raw",<br>        "zone_label_raw",<br>        "zone_long_label_raw",<br>        "relation_type",<br>        "parcel_metric_area_m2",<br>        "zone_area_m2",<br>        "intersection_area_m2",<br>        "parcel_share_pct",<br>        "zone_share_pct",<br>        "source_document_id",<br>        "source_archive_sha256",<br>        "source_layer",<br>        "source_validity_date_raw",<br>        "regulation_filename_raw",<br>    }.issubset` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `{<br>        "parcel_id",<br>        "planning_zone_id",<br>        "source_zone_id",<br>        "zone_type_raw",<br>        "zone_label_raw",<br>        "zone_long_label_raw",<br>        "relation_type",<br>        "parcel_metric_area_m2",<br>        "zone_area_m2",<br>        "intersection_area_m2",<br>        "parcel_share_pct",<br>        "zone_share_pct",<br>        "source_document_id",<br>        "source_archive_sha256",<br>        "source_layer",<br>        "source_validity_date_raw",<br>        "regulation_filename_raw",<br>    }.issubset` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -1649,13 +1469,10 @@ def test_one_parcel_fully_inside_one_zone() -> None:
     assert parcel["planning_standard_model"] == STANDARD_MODEL
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_parcel_split_across_two_zones`
 
-**Purpose:** Regression invariant: parcel split across two zones. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Split a100m² parcel into adjacent40m²LEFT and60m²RIGHT zones. Assert two positive relations, exact expected areas, full union/coverage, RIGHT dominance with60% share and one maximum. Demonstrates area-based dominance rather than input-first selection.
 
 **Exact signature**
 
@@ -1672,8 +1489,8 @@ def test_parcel_split_across_two_zones() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert len(result.intersections) == 2`
   - `assert set(result.intersections["relation_type"]) == {"AREA_OVERLAP"}`
@@ -1702,20 +1519,7 @@ Outbound call expressions and conservative ownership:
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.approx` | `pytest.approx` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -1744,13 +1548,10 @@ def test_parcel_split_across_two_zones() -> None:
     assert parcel["dominant_zone_tie_count"] == 1
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_dominant_zone_tie_is_deterministic`
 
-**Purpose:** Regression invariant: dominant zone tie is deterministic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Provide equal50m² zones in Z-ZONE then A-ZONE order. Assert A-ZONE/generated A ID wins lexically, maximum/share are50, and tie count2; this is an exact-area tie, not a near-equality tolerance test.
 
 **Exact signature**
 
@@ -1767,8 +1568,8 @@ def test_dominant_zone_tie_is_deterministic() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert parcel["dominant_source_zone_id"] == "A-ZONE"`
   - `assert parcel["dominant_planning_zone_id"] == f"GPU:{DOCUMENT_ID}:ZONE:A-ZONE"`
@@ -1790,20 +1591,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `pytest.approx` | `pytest.approx` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -1826,13 +1614,10 @@ def test_dominant_zone_tie_is_deterministic() -> None:
     assert parcel["dominant_zone_tie_count"] == 2
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_touch_only_relation_is_preserved_but_never_dominant`
 
-**Purpose:** Regression invariant: touch only relation is preserved but never dominant. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Pair one coincident positive zone with a second zone touching the parcel edge. Assert AREA_OVERLAP versus TOUCH_ONLY, zero touch area/share, one positive plus one touch count and AREA as dominant. Both relations remain present.
 
 **Exact signature**
 
@@ -1849,8 +1634,8 @@ def test_touch_only_relation_is_preserved_but_never_dominant() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert relations.loc["AREA", "relation_type"] == "AREA_OVERLAP"`
   - `assert relations.loc["TOUCH", "relation_type"] == "TOUCH_ONLY"`
@@ -1875,20 +1660,7 @@ Outbound call expressions and conservative ownership:
 | `result.intersections.set_index` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.approx` | `pytest.approx` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -1913,13 +1685,10 @@ def test_touch_only_relation_is_preserved_but_never_dominant() -> None:
     assert parcel["dominant_source_zone_id"] == "AREA"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_parcel_with_no_positive_area_zone_is_preserved`
 
-**Purpose:** Regression invariant: parcel with no positive area zone is preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Use only an edge-touching zone. Assert the retained single TOUCH_ONLY relation, positive count/sum/union/coverage0, touch count1, full100m² gap and null dominant ID/source/area/share/tie. It does not reject a parcel lacking positive coverage.
 
 **Exact signature**
 
@@ -1936,8 +1705,8 @@ def test_parcel_with_no_positive_area_zone_is_preserved() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert len(result.intersections) == 1`
   - `assert result.intersections.iloc[0]["relation_type"] == "TOUCH_ONLY"`
@@ -1969,20 +1738,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.approx` | `pytest.approx` |
 | `pd.isna` | `pandas.isna` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2009,13 +1765,10 @@ def test_parcel_with_no_positive_area_zone_is_preserved() -> None:
     assert pd.isna(parcel["dominant_zone_tie_count"])
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_parcel_with_no_intersecting_zone_has_zero_coverage`
 
-**Purpose:** Regression invariant: parcel with no intersecting zone has zero coverage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Use a disjoint zone. Assert empty relation table in the exact17-column order, five float metric dtypes, integer counts and nullableInt64 tie count. Parcel count summaries and coverage are0 with100m²gap; schema remains usable when no relationships exist.
 
 **Exact signature**
 
@@ -2032,8 +1785,8 @@ def test_parcel_with_no_intersecting_zone_has_zero_coverage() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert result.intersections.empty`
   - `assert parcel["zoning_area_match_count"] == 0`
@@ -2064,20 +1817,7 @@ Outbound call expressions and conservative ownership:
 | `is_integer_dtype` | `pandas.api.types.is_integer_dtype` |
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2126,13 +1866,10 @@ def test_parcel_with_no_intersecting_zone_has_zero_coverage() -> None:
     assert str(result.parcels["dominant_zone_tie_count"].dtype) == "Int64"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_overlapping_source_zones_expose_raw_sum_union_and_excess`
 
-**Purpose:** Regression invariant: overlapping source zones expose raw sum union and excess. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Overlay full100m² and half50m² zones on the same100m² parcel. Assert raw sum150, union100, excess50, coverage100% and gap0, distinguishing double-counted pairwise area from covered area.
 
 **Exact signature**
 
@@ -2149,8 +1886,8 @@ def test_overlapping_source_zones_expose_raw_sum_union_and_excess() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert parcel["zoning_intersection_area_sum_m2"] == pytest.approx(150.0)`
   - `assert parcel["zoning_covered_union_area_m2"] == pytest.approx(100.0)`
@@ -2172,20 +1909,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `pytest.approx` | `pytest.approx` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2207,13 +1931,10 @@ def test_overlapping_source_zones_expose_raw_sum_union_and_excess() -> None:
     assert parcel["zoning_gap_area_m2"] == pytest.approx(0.0)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_polygon_and_multipolygon_parcels_are_supported`
 
-**Purpose:** Regression invariant: polygon and multipolygon parcels are supported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Two declared cases cover a100m² Polygon and disjoint two-part100m² MultiPolygon inside a larger zone. Assert coverage100% in each; no Z/M or invalid geometry is supplied.
 
 **Exact signature**
 
@@ -2240,8 +1961,8 @@ def test_polygon_and_multipolygon_parcels_are_supported(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert result.parcels.iloc[0]["zoning_coverage_pct"] == pytest.approx(100.0)`
 
@@ -2261,20 +1982,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `MultiPolygon` | `shapely.geometry.MultiPolygon` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2290,13 +1998,10 @@ def test_polygon_and_multipolygon_parcels_are_supported(
     assert result.parcels.iloc[0]["zoning_coverage_pct"] == pytest.approx(100.0)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_polygon_and_multipolygon_zones_are_supported`
 
-**Purpose:** Regression invariant: polygon and multipolygon zones are supported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Two declared cases provide a full100m² Polygon or two separated parts totaling80m². Assert catalog zone area and parcel coverage respectively100/100% and80/80%; the gap is geometric, not inferred from zone labels.
 
 **Exact signature**
 
@@ -2331,8 +2036,8 @@ def test_polygon_and_multipolygon_zones_are_supported(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert result.parcels.iloc[0]["zoning_coverage_pct"] == pytest.approx(<br>        expected_coverage<br>    )`
   - `assert result.zones.iloc[0]["zone_area_m2"] == pytest.approx(expected_area)`
@@ -2353,20 +2058,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `MultiPolygon` | `shapely.geometry.MultiPolygon` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2387,13 +2079,10 @@ def test_polygon_and_multipolygon_zones_are_supported(
     assert result.zones.iloc[0]["zone_area_m2"] == pytest.approx(expected_area)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93`
 
-**Purpose:** Regression invariant: parcel crs is preserved while metric calculation uses lambert93. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Two cases start with the same100m² parcel stored as EPSG2154 or transformed EPSG4326. Assert output storage CRS unchanged and reconstructed metric parcel/intersection areas100 within1e-5m² absolute tolerance.
 
 **Exact signature**
 
@@ -2414,8 +2103,8 @@ def test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert result.parcels.crs == parcels.crs`
   - `assert result.intersections.iloc[0]["parcel_metric_area_m2"] == pytest.approx(<br>        100.0, abs=1e-5<br>    )`
@@ -2436,20 +2125,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.approx` | `pytest.approx` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2469,13 +2145,10 @@ def test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154`
 
-**Purpose:** Regression invariant: ignf lamb93 source zoning is normalized to epsg2154. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Relabel the synthetic100m² zoning fixture IGNF:LAMB93, run the calculator, and assert source CRS remains that label while normalized CRS is EPSG2154 and area100. This tests equivalent-CRS normalization without altering the source frame.
 
 **Exact signature**
 
@@ -2492,8 +2165,8 @@ def test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert source.crs.to_string() == "IGNF:LAMB93"`
   - `assert result.zones.crs.to_epsg() == 2154`
@@ -2515,20 +2188,7 @@ Outbound call expressions and conservative ownership:
 | `result.zones.crs.to_epsg` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.approx` | `pytest.approx` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2542,13 +2202,10 @@ def test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154() -> None:
     assert result.zones.iloc[0].geometry.area == pytest.approx(100.0)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_missing_or_unusable_crs_is_rejected`
 
-**Purpose:** Regression invariant: missing or unusable crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Three parametrized frame pairs omit parcel CRS, omit zone CRS, or assign local engineering CRS to zones. `_run` must raise PlanningZoningError matching CRS; the third description is parseable but lacks a usable transformation to Lambert93.
 
 **Exact signature**
 
@@ -2580,8 +2237,8 @@ def test_missing_or_unusable_crs_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match=message)`
 
@@ -2599,20 +2256,7 @@ Outbound call expressions and conservative ownership:
 | `_parcels` | `tests.unit.test_enrich_planning_zoning._parcels` |
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2626,13 +2270,10 @@ def test_missing_or_unusable_crs_is_rejected(
         _run(parcels, zones)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_invalid_or_non_polygonal_parcel_geometry_is_rejected`
 
-**Purpose:** Regression invariant: invalid or non polygonal parcel geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Five parcel cases supply None, empty Polygon, self-crossing Polygon, Point, or LineString, with otherwise normal zones. Expect controlled PlanningZoningError matching geometry or Polygon; no repair is accepted.
 
 **Exact signature**
 
@@ -2662,8 +2303,8 @@ def test_invalid_or_non_polygonal_parcel_geometry_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="geometry\|Polygon")`
 
@@ -2684,20 +2325,7 @@ Outbound call expressions and conservative ownership:
 | `Point` | `shapely.geometry.Point` |
 | `LineString` | `shapely.geometry.LineString` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2709,13 +2337,10 @@ def test_invalid_or_non_polygonal_parcel_geometry_is_rejected(
         _run(_parcels([geometry]), _zones())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_invalid_or_non_polygonal_zone_geometry_is_rejected`
 
-**Purpose:** Regression invariant: invalid or non polygonal zone geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Five zone cases supply None, empty Polygon, self-crossing Polygon, Point, or LineString, with normal parcels. Expect controlled PlanningZoningError matching geometry or Polygon; quality/type rejection occurs in the calculator.
 
 **Exact signature**
 
@@ -2745,8 +2370,8 @@ def test_invalid_or_non_polygonal_zone_geometry_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="geometry\|Polygon")`
 
@@ -2767,20 +2392,7 @@ Outbound call expressions and conservative ownership:
 | `Point` | `shapely.geometry.Point` |
 | `LineString` | `shapely.geometry.LineString` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2792,13 +2404,10 @@ def test_invalid_or_non_polygonal_zone_geometry_is_rejected(
         _run(_parcels(), _zones([geometry]))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_invalid_parcel_id_is_rejected`
 
-**Purpose:** Regression invariant: invalid parcel id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Six cases supply None, empty text, whitespace-only text, leading space, trailing space or integer123 as the sole parcel ID. Expect PlanningZoningError matching parcel_id; identifiers are not trimmed or stringified into acceptance.
 
 **Exact signature**
 
@@ -2820,8 +2429,8 @@ def test_invalid_parcel_id_is_rejected(identifier: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="parcel_id")`
 
@@ -2839,20 +2448,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2862,13 +2458,10 @@ def test_invalid_parcel_id_is_rejected(identifier: object) -> None:
         _run(_parcels(identifiers=[identifier]), _zones())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_duplicate_parcel_id_is_rejected`
 
-**Purpose:** Regression invariant: duplicate parcel id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Construct two distinct parcel geometries sharing DUPLICATE ID. Expect PlanningZoningError matching parcel_id uniqueness/duplicate wording before producing ambiguous relations.
 
 **Exact signature**
 
@@ -2885,8 +2478,8 @@ def test_duplicate_parcel_id_is_rejected() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="parcel_id.*unique\|duplicate")`
 
@@ -2904,20 +2497,7 @@ Outbound call expressions and conservative ownership:
 | `_rectangle` | `tests.unit.test_enrich_planning_zoning._rectangle` |
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -2933,13 +2513,10 @@ def test_duplicate_parcel_id_is_rejected() -> None:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_missing_parcel_id_is_rejected`
 
-**Purpose:** Regression invariant: missing parcel id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Create a new parcel frame with parcel_id dropped (not in-place mutation) and expect `_run` to raise PlanningZoningError naming parcel_id.
 
 **Exact signature**
 
@@ -2956,8 +2533,8 @@ def test_missing_parcel_id_is_rejected() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="parcel_id")`
 
@@ -2975,20 +2552,7 @@ Outbound call expressions and conservative ownership:
 | `_run` | `tests.unit.test_enrich_planning_zoning._run` |
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `_parcels().drop(columns=["parcel_id"])` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3000,13 +2564,10 @@ def test_missing_parcel_id_is_rejected() -> None:
         _run(parcels, _zones())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_geometry_must_be_the_active_parcel_geometry_column`
 
-**Purpose:** Regression invariant: geometry must be the active parcel geometry column. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Rename the active geometry to shape, then add a separate column literally named geometry. Expect an active-geometry error: mere geometry-column presence must not bypass the required active name.
 
 **Exact signature**
 
@@ -3023,8 +2584,8 @@ def test_geometry_must_be_the_active_parcel_geometry_column() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="active")`
 
@@ -3042,20 +2603,7 @@ Outbound call expressions and conservative ownership:
 | `_run` | `tests.unit.test_enrich_planning_zoning._run` |
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_parcels().rename_geometry` |
-| External process/environment | None directly present. |
-| In-memory mutation | `parcels["geometry"] = parcels["shape"]` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3068,13 +2616,10 @@ def test_geometry_must_be_the_active_parcel_geometry_column() -> None:
         _run(parcels, _zones())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_invalid_source_zone_id_is_rejected`
 
-**Purpose:** Regression invariant: invalid source zone id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Six cases set raw LIB_IDZONE to None, empty/blank text, surrounding-space variants or integer123. Expect controlled PlanningZoningError matching LIB_IDZONE or zone, not silent ID coercion.
 
 **Exact signature**
 
@@ -3096,8 +2641,8 @@ def test_invalid_source_zone_id_is_rejected(identifier: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="LIB_IDZONE\|zone")`
 
@@ -3115,20 +2660,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3138,13 +2670,10 @@ def test_invalid_source_zone_id_is_rejected(identifier: object) -> None:
         _run(_parcels(), _zones(identifiers=[identifier]))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_duplicate_source_zone_id_is_rejected`
 
-**Purpose:** Regression invariant: duplicate source zone id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Create adjacent source polygons sharing DUPLICATE LIB_IDZONE. Expect PlanningZoningError matching the source ID uniqueness/duplicate requirement.
 
 **Exact signature**
 
@@ -3161,8 +2690,8 @@ def test_duplicate_source_zone_id_is_rejected() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="LIB_IDZONE.*unique\|duplicate")`
 
@@ -3180,20 +2709,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `_rectangle` | `tests.unit.test_enrich_planning_zoning._rectangle` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3209,13 +2725,10 @@ def test_duplicate_source_zone_id_is_rejected() -> None:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_zoning_document_reference_must_match_loaded_archive`
 
-**Purpose:** Regression invariant: zoning document reference must match loaded archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Set source IDURBA to31395_PLU_WRONG while keeping loaded archive identity unchanged. Expect a controlled IDURBA/document error; this checks textual source identity consistency, not ZIP content.
 
 **Exact signature**
 
@@ -3232,8 +2745,8 @@ def test_zoning_document_reference_must_match_loaded_archive() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="IDURBA\|document")`
 
@@ -3250,20 +2763,7 @@ Outbound call expressions and conservative ownership:
 | `_run` | `tests.unit.test_enrich_planning_zoning._run` |
 | `_parcels` | `tests.unit.test_enrich_planning_zoning._parcels` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3275,13 +2775,10 @@ def test_zoning_document_reference_must_match_loaded_archive() -> None:
         _run(_parcels(), zones)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_zoning_summary_lineage_and_count_must_match_bundle`
 
-**Purpose:** Regression invariant: zoning summary lineage and count must match bundle. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Four cases replace the frozen retained summary's document ID, archive hash, layer name or feature count, then replace its outer layer/document records. The real calculator must raise the corresponding lineage/count error. Replacement constructs forged objects without modifying the original dataclasses.
 
 **Exact signature**
 
@@ -3314,8 +2811,8 @@ def test_zoning_summary_lineage_and_count_must_match_bundle(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match=message)`
 
@@ -3334,20 +2831,7 @@ Outbound call expressions and conservative ownership:
 | `_parcels` | `tests.unit.test_enrich_planning_zoning._parcels` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3366,13 +2850,10 @@ def test_zoning_summary_lineage_and_count_must_match_bundle(
         intersect_parcels_with_gpu_zoning(_parcels(), corrupted)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_existing_parcel_output_field_collision_is_rejected`
 
-**Purpose:** Regression invariant: existing parcel output field collision is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Three cases prepopulate zoning_coverage_pct, dominant_zone_label_raw or planning_document_id on a local input frame. Expect a collision/output-column PlanningZoningError; these are representative collisions, not enumeration of all21output names.
 
 **Exact signature**
 
@@ -3400,8 +2881,8 @@ def test_existing_parcel_output_field_collision_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="column\|output\|reserved\|collision")`
 
@@ -3419,20 +2900,7 @@ Outbound call expressions and conservative ownership:
 | `_zones` | `tests.unit.test_enrich_planning_zoning._zones` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `parcels[reserved_column] = "pre-existing-value"` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3447,13 +2915,10 @@ def test_existing_parcel_output_field_collision_is_rejected(
         _run(parcels, _zones())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_every_source_zoning_field_is_required`
 
-**Purpose:** Regression invariant: every source zoning field is required. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Eight cases drop one SOURCE_FIELDS raw column from a new zone frame. Expect a controlled error containing that exact missing field; even nullable raw-value columns must exist.
 
 **Exact signature**
 
@@ -3472,8 +2937,8 @@ def test_every_source_zoning_field_is_required(field: str) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match=field)`
 
@@ -3492,20 +2957,7 @@ Outbound call expressions and conservative ownership:
 | `_parcels` | `tests.unit.test_enrich_planning_zoning._parcels` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `_zones().drop(columns=[field])` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3517,13 +2969,10 @@ def test_every_source_zoning_field_is_required(field: str) -> None:
         _run(_parcels(), zones)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_input_frames_are_not_mutated`
 
-**Purpose:** Regression invariant: input frames are not mutated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Snapshot two EPSG4326 parcels and two source zones with deepcopy, run the calculator, then use two assert_geodataframe_equal calls to compare inputs against their snapshots. These assertion-helper calls matter even though the AST contains no `assert` statement in this test.
 
 **Exact signature**
 
@@ -3540,8 +2989,8 @@ def test_input_frames_are_not_mutated() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -3559,20 +3008,7 @@ Outbound call expressions and conservative ownership:
 | `intersect_parcels_with_gpu_zoning` | `landscout.stages.enrich_planning_zoning.intersect_parcels_with_gpu_zoning` |
 | `assert_geodataframe_equal` | `geopandas.testing.assert_geodataframe_equal` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3599,13 +3035,10 @@ def test_input_frames_are_not_mutated() -> None:
     assert_geodataframe_equal(planning_document.zoning.data, zones_before)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved`
 
-**Purpose:** Regression invariant: parcel count order geometry crs and existing columns are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Calculate for deliberately reversed P-2/P-1 parcels in EPSG4326. Assert same count/ID order/prior grid values/storage CRS/geometries, unique output IDs, known relation parcel references and unique parcel-zone pairs. Geometry comparison resets indexes, while broader index preservation is a production postcondition and other equality tests.
 
 **Exact signature**
 
@@ -3622,8 +3055,8 @@ def test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved() ->
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert len(result.parcels) == len(parcels)`
   - `assert result.parcels["parcel_id"].tolist() == parcels["parcel_id"].tolist()`
@@ -3661,20 +3094,7 @@ Outbound call expressions and conservative ownership:
 | `result.intersections.duplicated(<br>        subset=["parcel_id", "planning_zone_id"]<br>    ).any` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.intersections.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `result.parcels.geometry.reset_index(drop=True).equals`<br>`result.parcels.geometry.reset_index`<br>`parcels.geometry.reset_index` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3710,13 +3130,10 @@ def test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved() ->
     ).any()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_raw_zoning_values_are_preserved_exactly`
 
-**Purpose:** Regression invariant: raw zoning values are preserved exactly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Supply accented/case-sensitive IDs and labels, a null long label, then mutate the local second source row's filename/URL to None. Assert exact raw strings and nulls in the normalized catalog; no uppercase normalization, fuzzy label mapping or URL fetch occurs.
 
 **Exact signature**
 
@@ -3733,8 +3150,8 @@ def test_raw_zoning_values_are_preserved_exactly() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert first["source_zone_id"] == "ID-É"`
   - `assert first["zone_label_raw"] == "AUf"`
@@ -3762,20 +3179,7 @@ Outbound call expressions and conservative ownership:
 | `_row_for_source_zone` | `tests.unit.test_enrich_planning_zoning._row_for_source_zone` |
 | `pd.isna` | `pandas.isna` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `zones.loc[zones.index[1], "NOMFIC"] = None`<br>`zones.loc[zones.index[1], "URLFIC"] = None` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3806,13 +3210,10 @@ def test_raw_zoning_values_are_preserved_exactly() -> None:
     assert pd.isna(second["regulation_url_raw"])
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_intersection_table_references_only_known_parcels_and_zones`
 
-**Purpose:** Regression invariant: intersection table references only known parcels and zones. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Use two separated parcel/zone pairs. Assert the exact expected parcel-ID set, relation zone IDs equal the catalog set, pair uniqueness, and all five relation metrics non-null and nonnegative. These assertions do not independently reconstruct every metric.
 
 **Exact signature**
 
@@ -3829,8 +3230,8 @@ def test_intersection_table_references_only_known_parcels_and_zones() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert set(result.intersections["parcel_id"]) == {"P-1", "P-2"}`
   - `assert set(result.intersections["planning_zone_id"]) == set(<br>        result.zones["planning_zone_id"]<br>    )`
@@ -3859,20 +3260,7 @@ Outbound call expressions and conservative ownership:
 | `(numeric >= 0).all().all` | `unresolved local/third-party receiver; no ownership inferred` |
 | `(numeric >= 0).all` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3909,13 +3297,10 @@ def test_intersection_table_references_only_known_parcels_and_zones() -> None:
     assert (numeric >= 0).all().all()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_result_frames_are_independent_from_inputs`
 
-**Purpose:** Regression invariant: result frames are independent from inputs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Snapshot all three result frames, then mutate a prior scalar attribute in the original parcels and raw LIBELLE in original zones. Three assert_frame_equal calls must show the result snapshots unchanged. This tests absence of these mutable-frame aliases, not complete deep immutability of every possible object-valued cell.
 
 **Exact signature**
 
@@ -3932,8 +3317,8 @@ def test_result_frames_are_independent_from_inputs() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -3951,20 +3336,7 @@ Outbound call expressions and conservative ownership:
 | `result.intersections.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `assert_frame_equal` | `pandas.testing.assert_frame_equal` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `parcels.loc[parcels.index[0], "existing_grid_value"] = -1`<br>`zones.loc[zones.index[0], "LIBELLE"] = "CHANGED"` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** The fixture helpers load checked-in GPU YAML and execute real in-memory geometry operations; their fabricated archive paths are not read. Only local fixture/result objects are used or intentionally changed as described above. No live network, production cache, subprocess or policy interpretation is exercised.
 
 **Complete source-ordered implementation**
 
@@ -3985,13 +3357,10 @@ def test_result_frames_are_independent_from_inputs() -> None:
     assert_frame_equal(result.intersections, intersections_snapshot)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_accepts_physical_fixture`
 
-**Purpose:** Regression invariant: source complete zoning validation accepts physical fixture. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Create the real temporary GPKG/manifest fixture, calculate factual outputs, and call the real source-complete public validator expecting normal completion. No explicit assert is needed for this acceptance control; fixture ZIP identity remains synthetic.
 
 **Exact signature**
 
@@ -4012,8 +3381,8 @@ def test_source_complete_zoning_validation_accepts_physical_fixture(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 
 **Qualified relationships**
 
@@ -4028,20 +3397,7 @@ Outbound call expressions and conservative ownership:
 | `intersect_parcels_with_gpu_zoning` | `landscout.stages.enrich_planning_zoning.intersect_parcels_with_gpu_zoning` |
 | `validate_normalized_planning_zoning_inputs` | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4061,13 +3417,10 @@ def test_source_complete_zoning_validation_accepts_physical_fixture(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_requires_every_parcel_summary_column`
 
-**Purpose:** Regression invariant: source complete zoning validation requires every parcel summary column. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Enumerate all21 production PARCEL_ZONING_OUTPUT_COLUMNS in sorted order. For each physical fixture, calculate valid facts then pass a new parcel frame missing that single column; expect PlanningZoningError matching parcel zoning.*column before reconstruction can accept an amputated subset.
 
 **Exact signature**
 
@@ -4090,8 +3443,8 @@ def test_source_complete_zoning_validation_requires_every_parcel_summary_column(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="parcel zoning.*column")`
 
@@ -4112,20 +3465,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `factual.parcels.drop(columns=[missing_column])` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4147,13 +3487,10 @@ def test_source_complete_zoning_validation_requires_every_parcel_summary_column(
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries`
 
-**Purpose:** Regression invariant: source complete zoning validation rejects all missing parcel summaries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Drop all21summary columns into a new parcel frame after calculating from the physical fixture, and require the same controlled missing-column failure. Unrelated pass-through fields remain present.
 
 **Exact signature**
 
@@ -4174,8 +3511,8 @@ def test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="parcel zoning.*column")`
 
@@ -4195,20 +3532,7 @@ Outbound call expressions and conservative ownership:
 | `factual.parcels.drop` | `unresolved local/third-party receiver; no ownership inferred` |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `factual.parcels.drop(columns=list(PARCEL_ZONING_OUTPUT_COLUMNS))` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4229,13 +3553,10 @@ def test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries(
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_rejects_coordinated_mutations`
 
-**Purpose:** Regression invariant: source complete zoning validation rejects coordinated mutations. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Ten cases copy valid physical-fixture results then forge: aligned raw label; aligned source/generated ID; aligned source layer; catalog order; missing zone; extra unique-ID zone; missing relation; duplicated relation; coherently halved area and both shares; or dominant zone ID. The public validator must raise a source/reconstruction/differs error despite selected cross-table consistency. Physical source bytes are unchanged; no result hash is used as the authority.
 
 **Exact signature**
 
@@ -4272,8 +3593,8 @@ def test_source_complete_zoning_validation_rejects_coordinated_mutations(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="source\|reconstruction\|differs")`
 
@@ -4304,20 +3625,7 @@ Outbound call expressions and conservative ownership:
 | `validate_normalized_planning_zoning_inputs` | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `zones.loc[0, "zone_label_raw"] = "FORGED"`<br>`relations.loc[<br>            relations["planning_zone_id"].eq(zones.loc[0, "planning_zone_id"]),<br>            "zone_label_raw",<br>        ] = "FORGED"`<br>`zones.loc[0, "source_zone_id"] = "FORGED-ID"`<br>`zones.loc[0, "planning_zone_id"] = f"GPU:{DOCUMENT_ID}:ZONE:FORGED-ID"`<br>`relations.loc[<br>            relations["planning_zone_id"].eq(old_planning_id),<br>            ["source_zone_id", "planning_zone_id"],<br>        ] = ["FORGED-ID", f"GPU:{DOCUMENT_ID}:ZONE:FORGED-ID"]`<br>`zones["source_layer"] = "FORGED_LAYER"`<br>`relations["source_layer"] = "FORGED_LAYER"`<br>`extra["source_zone_id"] = "EXTRA"`<br>`extra["planning_zone_id"] = f"GPU:{DOCUMENT_ID}:ZONE:EXTRA"`<br>`relations.loc[0, "intersection_area_m2"] /= 2`<br>`relations.loc[0, "parcel_share_pct"] /= 2`<br>`relations.loc[0, "zone_share_pct"] /= 2`<br>`parcel_output.loc[<br>            parcel_output.index[0],<br>            "dominant_planning_zone_id",<br>        ] = zones.loc[1, "planning_zone_id"]` |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4391,13 +3699,10 @@ def test_source_complete_zoning_validation_rejects_coordinated_mutations(
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_rejects_physical_tamper`
 
-**Purpose:** Regression invariant: source complete zoning validation rejects physical tamper. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** After calculating from the physical fixture, append literal tamper bytes to its GPKG in binary append mode. The unchanged facts must then fail public validation with a Physical/source error. This is an actual temporary-file write followed by physical integrity checking, not a read-only operation or a network attack.
 
 **Exact signature**
 
@@ -4418,8 +3723,8 @@ def test_source_complete_zoning_validation_rejects_physical_tamper(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact expected-exception contexts:
   - `pytest.raises(PlanningZoningError, match="Physical\|source")`
 
@@ -4439,20 +3744,7 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_normalized_planning_zoning_inputs` | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `document.zoning.reference.dataset_path.open` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4475,13 +3767,10 @@ def test_source_complete_zoning_validation_rejects_physical_tamper(
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 ### `test_source_complete_zoning_validation_revalidates_physical_source_once`
 
-**Purpose:** Regression invariant: source complete zoning validation revalidates physical source once. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, setup and observed assertion scope:** Wrap the actual module-bound GPU batch revalidator using patch.object(wraps=original), run public validation, and assert exactly one call. The wrapper counts but does not bypass real physical checks; restoration occurs when the patch context exits. It does not count every lower-level filesystem read.
 
 **Exact signature**
 
@@ -4502,8 +3791,8 @@ def test_source_complete_zoning_validation_revalidates_physical_source_once(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
+- Normal completion returns `None`.
+- No explicit `raise` statement is declared here; assertion helpers, expected-exception contexts and delegated production calls have the behavior described above.
 - Exact assertions:
   - `assert revalidate.call_count == 1`
 
@@ -4521,20 +3810,7 @@ Outbound call expressions and conservative ownership:
 | `patch.object` | `unittest.mock.patch.object` |
 | `validate_normalized_planning_zoning_inputs` | `landscout.stages.enrich_planning_zoning.validate_normalized_planning_zoning_inputs` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and isolation:** This test delegates actual temporary GPKG creation, byte hashing, manifest writing, physical validation and in-memory XY reconstruction to the reviewed helpers. It uses no live network or production cache; any additional mutation/counting behavior is described above.
 
 **Complete source-ordered implementation**
 
@@ -4563,58 +3839,57 @@ def test_source_complete_zoning_validation_revalidates_physical_source_once(
     assert revalidate.call_count == 1
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
 
 ## 7. Test-specific regression contract
 
-- Test functions: **38**.
-- Pytest fixtures (decorator-proven): **0**.
+- Test definitions: **38**, with **102 statically declared parametrized cases** (not a collected or executed result for this documentation audit).
+- Pytest fixture functions declared in this file: **0**; `tmp_path` is supplied by pytest to physical-fixture tests, and seven ordinary helpers construct the inputs.
+- All geometry operations use synthetic coordinates. `_planning_document` retains fabricated ZIP metadata/path. `_physical_planning_document` additionally writes a real temporary GPKG and manifest, but does not create a real ZIP. The full archive/PDF planning chain belongs to the separate integration suite.
+- Assertion counts below count lexical `assert` statements only; they do not count `assert_frame_equal`, `assert_geodataframe_equal`, successful validator completion or `pytest.raises` as zero evidence. Every test's actual setup/attack/assertion scope is explained in section6.
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+| Test | Parametrization | Expected exception contexts | AST assert count | Declared cases / verified detail |
 |---|---|---|---:|---|
-| `test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` | none | pytest.raises(PlanningZoningError, match="materially exceeds") | 4 | Proves shared overlay tolerance preserves zoning numerical behavior using the exact source reproduced in section 7. |
-| `test_clean_high_level_api_is_exported` | none | none | 11 | Proves clean high level api is exported using the exact source reproduced in section 7. |
-| `test_result_container_is_frozen` | none | pytest.raises(FrozenInstanceError) | 0 | Proves result container is frozen using the exact source reproduced in section 7. |
-| `test_one_parcel_fully_inside_one_zone` | none | none | 57 | Proves one parcel fully inside one zone using the exact source reproduced in section 7. |
-| `test_parcel_split_across_two_zones` | none | none | 9 | Proves parcel split across two zones using the exact source reproduced in section 7. |
-| `test_dominant_zone_tie_is_deterministic` | none | none | 5 | Proves dominant zone tie is deterministic using the exact source reproduced in section 7. |
-| `test_touch_only_relation_is_preserved_but_never_dominant` | none | none | 7 | Proves touch only relation is preserved but never dominant using the exact source reproduced in section 7. |
-| `test_parcel_with_no_positive_area_zone_is_preserved` | none | none | 13 | Proves parcel with no positive area zone is preserved using the exact source reproduced in section 7. |
-| `test_parcel_with_no_intersecting_zone_has_zero_coverage` | none | none | 10 | Proves parcel with no intersecting zone has zero coverage using the exact source reproduced in section 7. |
-| `test_overlapping_source_zones_expose_raw_sum_union_and_excess` | none | none | 5 | Proves overlapping source zones expose raw sum union and excess using the exact source reproduced in section 7. |
-| `test_polygon_and_multipolygon_parcels_are_supported` | pytest.mark.parametrize(<br>    "parcel_geometry",<br>    [<br>        _rectangle(0, 0, 10, 10),<br>        MultiPolygon([_rectangle(0, 0, 5, 10), _rectangle(10, 0, 15, 10)]),<br>    ],<br>) | none | 1 | Proves polygon and multipolygon parcels are supported using the exact source reproduced in section 7. |
-| `test_polygon_and_multipolygon_zones_are_supported` | pytest.mark.parametrize(<br>    ("zone_geometry", "expected_area", "expected_coverage"),<br>    [<br>        (_rectangle(0, 0, 10, 10), 100.0, 100.0),<br>        (<br>            MultiPolygon([_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]),<br>            80.0,<br>            80.0,<br>        ),<br>    ],<br>) | none | 2 | Proves polygon and multipolygon zones are supported using the exact source reproduced in section 7. |
-| `test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` | pytest.mark.parametrize("parcel_crs", ["EPSG:2154", "EPSG:4326"]) | none | 3 | Proves parcel crs is preserved while metric calculation uses lambert93 using the exact source reproduced in section 7. |
-| `test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` | none | none | 3 | Proves ignf lamb93 source zoning is normalized to epsg2154 using the exact source reproduced in section 7. |
-| `test_missing_or_unusable_crs_is_rejected` | pytest.mark.parametrize(<br>    ("parcels", "zones", "message"),<br>    [<br>        (_parcels(crs=None), _zones(), "CRS"),<br>        (_parcels(), _zones(crs=None), "CRS"),<br>        (_parcels(), _zones(crs=LOCAL_ENGINEERING_CRS), "CRS"),<br>    ],<br>) | pytest.raises(PlanningZoningError, match=message) | 0 | Proves missing or unusable crs is rejected using the exact source reproduced in section 7. |
-| `test_invalid_or_non_polygonal_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        None,<br>        Polygon(),<br>        Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)]),<br>        Point(0, 0),<br>        LineString([(0, 0), (10, 10)]),<br>    ],<br>) | pytest.raises(PlanningZoningError, match="geometry\|Polygon") | 0 | Proves invalid or non polygonal parcel geometry is rejected using the exact source reproduced in section 7. |
-| `test_invalid_or_non_polygonal_zone_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        None,<br>        Polygon(),<br>        Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)]),<br>        Point(0, 0),<br>        LineString([(0, 0), (10, 10)]),<br>    ],<br>) | pytest.raises(PlanningZoningError, match="geometry\|Polygon") | 0 | Proves invalid or non polygonal zone geometry is rejected using the exact source reproduced in section 7. |
-| `test_invalid_parcel_id_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " PARCEL", "PARCEL ", 123],<br>) | pytest.raises(PlanningZoningError, match="parcel_id") | 0 | Proves invalid parcel id is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="parcel_id.*unique\|duplicate") | 0 | Proves duplicate parcel id is rejected using the exact source reproduced in section 7. |
-| `test_missing_parcel_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="parcel_id") | 0 | Proves missing parcel id is rejected using the exact source reproduced in section 7. |
-| `test_geometry_must_be_the_active_parcel_geometry_column` | none | pytest.raises(PlanningZoningError, match="active") | 0 | Proves geometry must be the active parcel geometry column using the exact source reproduced in section 7. |
-| `test_invalid_source_zone_id_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " ZONE", "ZONE ", 123],<br>) | pytest.raises(PlanningZoningError, match="LIB_IDZONE\|zone") | 0 | Proves invalid source zone id is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_source_zone_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="LIB_IDZONE.*unique\|duplicate") | 0 | Proves duplicate source zone id is rejected using the exact source reproduced in section 7. |
-| `test_zoning_document_reference_must_match_loaded_archive` | none | pytest.raises(PlanningZoningError, match="IDURBA\|document") | 0 | Proves zoning document reference must match loaded archive using the exact source reproduced in section 7. |
-| `test_zoning_summary_lineage_and_count_must_match_bundle` | pytest.mark.parametrize(<br>    ("summary_field", "bad_value", "message"),<br>    [<br>        ("source_document_id", "different-document", "document lineage"),<br>        ("source_archive_sha256", "b" * 64, "archive lineage"),<br>        ("source_layer", "different_layer", "source layer"),<br>        ("feature_count", 999, "feature count"),<br>    ],<br>) | pytest.raises(PlanningZoningError, match=message) | 0 | Proves zoning summary lineage and count must match bundle using the exact source reproduced in section 7. |
-| `test_existing_parcel_output_field_collision_is_rejected` | pytest.mark.parametrize(<br>    "reserved_column",<br>    [<br>        "zoning_coverage_pct",<br>        "dominant_zone_label_raw",<br>        "planning_document_id",<br>    ],<br>) | pytest.raises(PlanningZoningError, match="column\|output\|reserved\|collision") | 0 | Proves existing parcel output field collision is rejected using the exact source reproduced in section 7. |
-| `test_every_source_zoning_field_is_required` | pytest.mark.parametrize("field", SOURCE_FIELDS) | pytest.raises(PlanningZoningError, match=field) | 0 | Proves every source zoning field is required using the exact source reproduced in section 7. |
-| `test_input_frames_are_not_mutated` | none | none | 0 | Proves input frames are not mutated using the exact source reproduced in section 7. |
-| `test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` | none | none | 8 | Proves parcel count order geometry crs and existing columns are preserved using the exact source reproduced in section 7. |
-| `test_raw_zoning_values_are_preserved_exactly` | none | none | 10 | Proves raw zoning values are preserved exactly using the exact source reproduced in section 7. |
-| `test_intersection_table_references_only_known_parcels_and_zones` | none | none | 5 | Proves intersection table references only known parcels and zones using the exact source reproduced in section 7. |
-| `test_result_frames_are_independent_from_inputs` | none | none | 0 | Proves result frames are independent from inputs using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_accepts_physical_fixture` | none | none | 0 | Proves source complete zoning validation accepts physical fixture using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_requires_every_parcel_summary_column` | pytest.mark.parametrize("missing_column", sorted(PARCEL_ZONING_OUTPUT_COLUMNS)) | pytest.raises(PlanningZoningError, match="parcel zoning.*column") | 0 | Proves source complete zoning validation requires every parcel summary column using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries` | none | pytest.raises(PlanningZoningError, match="parcel zoning.*column") | 0 | Proves source complete zoning validation rejects all missing parcel summaries using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_rejects_coordinated_mutations` | pytest.mark.parametrize(<br>    "mutation",<br>    [<br>        "label",<br>        "source_id",<br>        "source_layer",<br>        "reorder",<br>        "missing_zone",<br>        "extra_zone",<br>        "missing_relation",<br>        "extra_relation",<br>        "coherent_metric",<br>        "dominant_zone",<br>    ],<br>) | pytest.raises(PlanningZoningError, match="source\|reconstruction\|differs") | 0 | Proves source complete zoning validation rejects coordinated mutations using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_rejects_physical_tamper` | none | pytest.raises(PlanningZoningError, match="Physical\|source") | 0 | Proves source complete zoning validation rejects physical tamper using the exact source reproduced in section 7. |
-| `test_source_complete_zoning_validation_revalidates_physical_source_once` | none | none | 1 | Proves source complete zoning validation revalidates physical source once using the exact source reproduced in section 7. |
+| `test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` | none | pytest.raises(PlanningZoningError, match="materially exceeds") | 4 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_clean_high_level_api_is_exported` | none | none | 11 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_result_container_is_frozen` | none | pytest.raises(FrozenInstanceError) | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_one_parcel_fully_inside_one_zone` | none | none | 57 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_parcel_split_across_two_zones` | none | none | 9 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_dominant_zone_tie_is_deterministic` | none | none | 5 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_touch_only_relation_is_preserved_but_never_dominant` | none | none | 7 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_parcel_with_no_positive_area_zone_is_preserved` | none | none | 13 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_parcel_with_no_intersecting_zone_has_zero_coverage` | none | none | 10 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_overlapping_source_zones_expose_raw_sum_union_and_excess` | none | none | 5 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_polygon_and_multipolygon_parcels_are_supported` | pytest.mark.parametrize(<br>    "parcel_geometry",<br>    [<br>        _rectangle(0, 0, 10, 10),<br>        MultiPolygon([_rectangle(0, 0, 5, 10), _rectangle(10, 0, 15, 10)]),<br>    ],<br>) | none | 1 | 2 declared cases; manual invariant and exact assertions in section6. |
+| `test_polygon_and_multipolygon_zones_are_supported` | pytest.mark.parametrize(<br>    ("zone_geometry", "expected_area", "expected_coverage"),<br>    [<br>        (_rectangle(0, 0, 10, 10), 100.0, 100.0),<br>        (<br>            MultiPolygon([_rectangle(0, 0, 4, 10), _rectangle(6, 0, 10, 10)]),<br>            80.0,<br>            80.0,<br>        ),<br>    ],<br>) | none | 2 | 2 declared cases; manual invariant and exact assertions in section6. |
+| `test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` | pytest.mark.parametrize("parcel_crs", ["EPSG:2154", "EPSG:4326"]) | none | 3 | 2 declared cases; manual invariant and exact assertions in section6. |
+| `test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` | none | none | 3 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_missing_or_unusable_crs_is_rejected` | pytest.mark.parametrize(<br>    ("parcels", "zones", "message"),<br>    [<br>        (_parcels(crs=None), _zones(), "CRS"),<br>        (_parcels(), _zones(crs=None), "CRS"),<br>        (_parcels(), _zones(crs=LOCAL_ENGINEERING_CRS), "CRS"),<br>    ],<br>) | pytest.raises(PlanningZoningError, match=message) | 0 | 3 declared cases; manual invariant and exact assertions in section6. |
+| `test_invalid_or_non_polygonal_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        None,<br>        Polygon(),<br>        Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)]),<br>        Point(0, 0),<br>        LineString([(0, 0), (10, 10)]),<br>    ],<br>) | pytest.raises(PlanningZoningError, match="geometry\|Polygon") | 0 | 5 declared cases; manual invariant and exact assertions in section6. |
+| `test_invalid_or_non_polygonal_zone_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        None,<br>        Polygon(),<br>        Polygon([(0, 0), (10, 10), (10, 0), (0, 10), (0, 0)]),<br>        Point(0, 0),<br>        LineString([(0, 0), (10, 10)]),<br>    ],<br>) | pytest.raises(PlanningZoningError, match="geometry\|Polygon") | 0 | 5 declared cases; manual invariant and exact assertions in section6. |
+| `test_invalid_parcel_id_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " PARCEL", "PARCEL ", 123],<br>) | pytest.raises(PlanningZoningError, match="parcel_id") | 0 | 6 declared cases; manual invariant and exact assertions in section6. |
+| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="parcel_id.*unique\|duplicate") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_missing_parcel_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="parcel_id") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_geometry_must_be_the_active_parcel_geometry_column` | none | pytest.raises(PlanningZoningError, match="active") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_invalid_source_zone_id_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " ZONE", "ZONE ", 123],<br>) | pytest.raises(PlanningZoningError, match="LIB_IDZONE\|zone") | 0 | 6 declared cases; manual invariant and exact assertions in section6. |
+| `test_duplicate_source_zone_id_is_rejected` | none | pytest.raises(PlanningZoningError, match="LIB_IDZONE.*unique\|duplicate") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_zoning_document_reference_must_match_loaded_archive` | none | pytest.raises(PlanningZoningError, match="IDURBA\|document") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_zoning_summary_lineage_and_count_must_match_bundle` | pytest.mark.parametrize(<br>    ("summary_field", "bad_value", "message"),<br>    [<br>        ("source_document_id", "different-document", "document lineage"),<br>        ("source_archive_sha256", "b" * 64, "archive lineage"),<br>        ("source_layer", "different_layer", "source layer"),<br>        ("feature_count", 999, "feature count"),<br>    ],<br>) | pytest.raises(PlanningZoningError, match=message) | 0 | 4 declared cases; manual invariant and exact assertions in section6. |
+| `test_existing_parcel_output_field_collision_is_rejected` | pytest.mark.parametrize(<br>    "reserved_column",<br>    [<br>        "zoning_coverage_pct",<br>        "dominant_zone_label_raw",<br>        "planning_document_id",<br>    ],<br>) | pytest.raises(PlanningZoningError, match="column\|output\|reserved\|collision") | 0 | 3 declared cases; manual invariant and exact assertions in section6. |
+| `test_every_source_zoning_field_is_required` | pytest.mark.parametrize("field", SOURCE_FIELDS) | pytest.raises(PlanningZoningError, match=field) | 0 | 8 declared cases; manual invariant and exact assertions in section6. |
+| `test_input_frames_are_not_mutated` | none | none | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_parcel_count_order_geometry_crs_and_existing_columns_are_preserved` | none | none | 8 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_raw_zoning_values_are_preserved_exactly` | none | none | 10 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_intersection_table_references_only_known_parcels_and_zones` | none | none | 5 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_result_frames_are_independent_from_inputs` | none | none | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_accepts_physical_fixture` | none | none | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_requires_every_parcel_summary_column` | pytest.mark.parametrize("missing_column", sorted(PARCEL_ZONING_OUTPUT_COLUMNS)) | pytest.raises(PlanningZoningError, match="parcel zoning.*column") | 0 | 21 declared cases; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_rejects_all_missing_parcel_summaries` | none | pytest.raises(PlanningZoningError, match="parcel zoning.*column") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_rejects_coordinated_mutations` | pytest.mark.parametrize(<br>    "mutation",<br>    [<br>        "label",<br>        "source_id",<br>        "source_layer",<br>        "reorder",<br>        "missing_zone",<br>        "extra_zone",<br>        "missing_relation",<br>        "extra_relation",<br>        "coherent_metric",<br>        "dominant_zone",<br>    ],<br>) | pytest.raises(PlanningZoningError, match="source\|reconstruction\|differs") | 0 | 10 declared cases; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_rejects_physical_tamper` | none | pytest.raises(PlanningZoningError, match="Physical\|source") | 0 | 1 declared case; manual invariant and exact assertions in section6. |
+| `test_source_complete_zoning_validation_revalidates_physical_source_once` | none | none | 1 | 1 declared case; manual invariant and exact assertions in section6. |
 
 ## 8. Public exports and package ownership
 
@@ -4624,7 +3899,7 @@ This module declares no `__all__`; no package-level public guarantee is inferred
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Effects and isolation are described per callable. The sole counting patch wraps the actual GPU spatial revalidator; it does not bypass it. No existing test or production behavior was modified by this documentation audit.
 
 ## 10. Change impact
 

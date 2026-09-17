@@ -122,7 +122,7 @@ def _missing(value: object) -> bool:
 
 **Purpose**
 
-Private `planning` helper for missing; its complete implementation below is the authoritative behavioral contract.
+Apply `pandas.isna` and accept only a scalar Python/NumPy boolean result as a null verdict. Array-like null masks are not treated as missing; `TypeError` and `ValueError` from `isna` yield `False`. This does not coerce textual null markers.
 
 **Return contract**
 
@@ -181,7 +181,7 @@ def _number(value: object, label: str, *, required: bool) -> float | None:
 
 **Purpose**
 
-Private `planning` helper for number; its complete implementation below is the authoritative behavioral contract.
+Handle scalar null first: reject it when `required=True`, otherwise return `None`. Reject booleans and values outside `numbers.Real`, convert an accepted real number to `float`, and reject non-finite or negative results. Numeric strings are not parsed. `label` only labels errors; caller code establishes whether zero is allowed for that particular metric.
 
 **Return contract**
 
@@ -246,7 +246,7 @@ def _count(value: object, label: str, *, required: bool) -> int | None:
 
 **Purpose**
 
-Private `planning` helper for count; its complete implementation below is the authoritative behavioral contract.
+Handle null under the same required/optional convention as `_number`, then require a non-boolean `numbers.Integral` value greater than or equal to zero. Return a built-in `int`; integral-looking floats and numeric strings are rejected, not rounded or parsed.
 
 **Return contract**
 
@@ -307,7 +307,7 @@ def _require_null(row: dict[str, object], columns: tuple[str, ...], kind: str) -
 
 **Purpose**
 
-Private `planning` helper for require null; its complete implementation below is the authoritative behavioral contract.
+Require every named cell in a relation record to satisfy `_missing`. Any populated value, including numeric zero, raises `ValueError` identifying the geometry kind. The caller has already verified required columns; this helper does not catch a missing dictionary key.
 
 **Return contract**
 
@@ -358,6 +358,12 @@ def validate_intrinsic_planning_feature_relations(frame: pd.DataFrame) -> None:
 
 Validate stored relation types, metrics, nulls, and count semantics locally.
 
+The ordered checks are: require a DataFrame, reject duplicate or missing required columns, validate all numeric/count cells at scalar level, then apply geometry-kind-specific rules to every record. An empty frame passes only when the required columns are present; exact dtypes/index/column order and extra columns are outside this helper's contract.
+
+Every relation requires positive parcel area. A surface relation also requires positive feature area; intersection area selects AREA_OVERLAP when positive and TOUCH_ONLY when zero. Intersection area is bounded by both areas using the shared metric tolerance. Both percentages must agree with `100 * intersection / reference_area`, allowing the larger percentage equivalent of the two area tolerances. A line relation requires positive source length, classifies by positive/zero intersection length, and bounds intersection length by source length. A point relation requires a positive total member count and inside+boundary no greater than that total: INSIDE needs at least one inside member, whereas BOUNDARY_TOUCH needs zero inside and at least one boundary member. Each branch rejects non-null metrics belonging to the other geometry kinds.
+
+This is arithmetic/domain validation of already-stored facts. It never reads geometry, establishes a CRS, recomputes an intersection, verifies a source ID, or proves physical GPU authority. Caller boundaries translate its errors where their own contracts require that translation.
+
 **Return contract**
 
 - Declared return annotation: `None`.
@@ -392,7 +398,7 @@ Validate stored relation types, metrics, nulls, and count semantics locally.
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `RELATION_TYPES_BY_GEOMETRY_KIND.get`.
+- CRS/geometry calculation: none; `RELATION_TYPES_BY_GEOMETRY_KIND.get` is only a vocabulary lookup.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -574,75 +580,26 @@ def validate_intrinsic_planning_feature_relations(frame: pd.DataFrame) -> None:
 
 ## 7. Data contracts
 
-### `RELATION_FLOAT_COLUMNS` — canonical or derived frame-column schema
+The three frozensets specify required column membership, not an ordered frame schema or enforced Pandas dtype. The complete ordered persisted schemas and dtype variants belong to `landscout.common.planning_feature_schema`. All numeric metrics below accept scalar non-boolean real numbers under `_number`; counts accept scalar non-boolean integral numbers under `_count`.
 
-```python
-RELATION_FLOAT_COLUMNS = frozenset(
-    {
-        "parcel_metric_area_m2",
-        "feature_area_m2",
-        "source_line_length_m",
-        "intersection_area_m2",
-        "intersection_length_m",
-        "parcel_share_pct",
-        "feature_share_pct",
-    }
-)
-```
+| Field | Unit and actual meaning | Required/null behavior here |
+|---|---|---|
+| `geometry_kind` | SURFACE, LINE, or POINT relation family | Must select a known mapping entry. |
+| `relation_type` | Family-specific spatial relation classification | Exact allowed string and metric/count agreement required. |
+| `parcel_metric_area_m2` | Stored metric area of the parcel | Positive and non-null for every family. |
+| `feature_area_m2` | Stored full surface-feature area | Positive for SURFACE; null for LINE/POINT. |
+| `intersection_area_m2` | Stored parcel/surface intersection area | Non-negative for SURFACE; null for LINE/POINT. |
+| `parcel_share_pct` | Intersection area divided by parcel area, multiplied by 100 | Required and arithmetically checked for SURFACE; otherwise null. |
+| `feature_share_pct` | Intersection area divided by full feature area, multiplied by 100 | Required and arithmetically checked for SURFACE; otherwise null. |
+| `source_line_length_m` | Stored full line-feature length, not a copied raw source attribute | Positive for LINE; null for SURFACE/POINT. |
+| `intersection_length_m` | Stored line length intersecting the parcel | Non-negative for LINE; null for SURFACE/POINT. |
+| `point_member_count` | Total members of the source point/multipoint feature | Positive integer for POINT; otherwise null. |
+| `point_members_inside_count` | Members strictly inside the parcel | Non-negative integer for POINT; otherwise null. |
+| `point_members_boundary_count` | Members touching the parcel boundary | Non-negative integer for POINT; otherwise null. |
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `feature_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 2 | `feature_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 3 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 4 | `intersection_length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 5 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 6 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 7 | `source_line_length_m` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+The relation vocabulary is SURFACE → AREA_OVERLAP/TOUCH_ONLY; LINE → LENGTH_OVERLAP/TOUCH_ONLY; POINT → INSIDE/BOUNDARY_TOUCH. For POINT, an INSIDE relation may also contain boundary members. Members outside the parcel are permitted because inside+boundary need not equal the source total.
 
-### `RELATION_COUNT_COLUMNS` — canonical or derived frame-column schema
-
-```python
-RELATION_COUNT_COLUMNS = frozenset(
-    {
-        "point_member_count",
-        "point_members_inside_count",
-        "point_members_boundary_count",
-    }
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `point_member_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 2 | `point_members_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 3 | `point_members_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-
-### `REQUIRED_RELATION_COLUMNS` — required input frame fields (unordered when stored as a set)
-
-```python
-REQUIRED_RELATION_COLUMNS = frozenset(
-    {"geometry_kind", "relation_type"} | RELATION_FLOAT_COLUMNS | RELATION_COUNT_COLUMNS
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `feature_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 2 | `feature_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 3 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 5 | `intersection_length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 6 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
-| 7 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
-| 8 | `point_member_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 9 | `point_members_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 10 | `point_members_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
-| 11 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | membership/order comes from this declaration; effective null/value rules come from the owning validators reproduced in section 6 and the module-specific contract notes | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `source_line_length_m` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+The branch-specific null pattern is structural: a surface relation's line/point fields are null even though a relation exists and its geometry may be valid. Null does not mean a failed measurement, an invalid geometry or a missing relation. No geometry or source metadata is mutated.
 
 ## 8. Interfaces
 

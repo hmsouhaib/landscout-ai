@@ -13,7 +13,7 @@ Pins the official GPU API/cache/pilot identity and logical spatial-layer discove
 
 ## 2. Position in LandScout architecture
 
-The exact YAML bytes are parsed by `landscout.sources.gpu_fr.load_gpu_source_config` into `landscout.sources.gpu_fr.GpuSourceConfig`. Runtime consumers include `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers`.
+The YAML is read by `landscout.sources.gpu_fr.load_gpu_source_config` into the nested immutable `GpuSourceConfig`. URL builders, discovery and download reconstruct supplied config values before use; `inspect_gpu_planning_document` binds them to the physical inventory, and public spatial revalidation reconstructs the retained config. `discover_gpu_spatial_layers(extraction)` lists physical layers without taking a config; logical-role selection is owned by `_discover_logical_layer` / `_configured_logical_references`.
 
 ## 3. Imports and dependencies
 
@@ -23,30 +23,34 @@ Not applicable to YAML. Python/Pydantic consumers are named above and reproduced
 
 Every row below is a configuration field/list leaf. It is not a DataFrame column unless a consuming stage explicitly copies it into a documented result schema.
 
-| Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
+All fields shown are required; none has a nullable meaning or a value default. The seven logical-role configs are required even though only zoning must physically exist. Every containing model is frozen and rejects extra fields; YAML token lists become immutable tuples. Pydantic JSON serialization emits URL text, token arrays and numeric cache age, while `_source_config_sha256` hashes a canonical JSON object of all validated values under its domain tag, not these YAML bytes.
+
+| Exact YAML path | Checked-in value | Runtime type | Domain / unit | Meaning | Actual consumers in `landscout.sources.gpu_fr` |
 |---|---|---|---|---|---|
-| `provider` | `"Géoportail de l'Urbanisme"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `portal` | `"Géoportail de l'Urbanisme"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `portal` under the exact parent path `<root>`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `country` | `"FR"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is France/FR | Configures `country` under the exact parent path `<root>`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `api.base_url` | `"https://www.geoportail-urbanisme.gouv.fr/api"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the exact official HTTPS API origin/path used to build requests. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `download.strategy` | `"partition"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `strategy` under the exact parent path `download`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `download.partition_template` | `"DU_{code_insee}"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `partition template` under the exact parent path `download`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `cache.max_age_hours` | `168` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `max age hours` under the exact parent path `cache`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `pilot.commune_code` | `"31395"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict canonical French INSEE code: five digits or 2A/2B plus three digits, according to the owning model | Configures `commune code` under the exact parent path `pilot`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.zoning.class_label` | `"Zone urba"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.zoning`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.zoning.match_tokens[0]` | `"zone_urba"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.zoning.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_surface.class_label` | `"Prescription surfacique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.prescription_surface`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_surface.match_tokens[0]` | `"prescription_surf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.prescription_surface.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_line.class_label` | `"Prescription linéaire"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.prescription_line`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_line.match_tokens[0]` | `"prescription_lin"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.prescription_line.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_point.class_label` | `"Prescription ponctuelle"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.prescription_point`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.prescription_point.match_tokens[0]` | `"prescription_pct"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.prescription_point.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_surface.class_label` | `"Information surfacique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.information_surface`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_surface.match_tokens[0]` | `"info_surf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.information_surface.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_line.class_label` | `"Information linéaire"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.information_line`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_line.match_tokens[0]` | `"info_lin"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.information_line.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_point.class_label` | `"Information ponctuelle"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `spatial_layers.information_point`. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
-| `spatial_layers.information_point.match_tokens[0]` | `"info_pct"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `spatial_layers.information_point.match_tokens`; order and uniqueness are validated/consumed where required. | `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers` |
+| `provider` | `"Géoportail de l'Urbanisme"` | `str` | Required, non-null exact literal; no default. | Configured producer identity copied to document lineage and compared during source-bound validation. | Discovery, download and physical document validation. |
+| `portal` | `"Géoportail de l'Urbanisme"` | `str` | Required, non-null same exact literal; no default. | Configured portal identity, distinct field from provider even though current values agree. | Discovery, download and physical document validation. |
+| `country` | `"FR"` | `str` | Required, non-null `Literal['FR']`; no default. | France-only source-config identity. This source loader does not compare a scan/profile object. | `GpuSourceConfig` and full config SHA. |
+| `api.base_url` | `"https://www.geoportail-urbanisme.gouv.fr/api"` | `pydantic.HttpUrl` | Required/non-null; after URL parsing: HTTPS, exact official host, no non-default port/credentials/params/query/fragment, path `/api` allowing trailing slash. | Root for document listing, detail, files and download endpoint construction, not a raw unparsed string. | `_api_url`, URL builders, discovery/download source URL checks. |
+| `download.strategy` | `"partition"` | `str` | Required/non-null `Literal['partition']`; no default. | Whole-partition archive acquisition mode, not parcel-by-parcel requests. | Config validation / full config SHA; partition-download workflow. |
+| `download.partition_template` | `"DU_{code_insee}"` | `str` | Required/non-null `NonEmptyString`; outer whitespace is stripped. Exactly one literal placeholder; test rendering must be nonempty and contain no slash/backslash. | Template used to render `DU_31395` for the current pilot; model validation does not hardcode this exact template. | `build_gpu_partition` and document partition comparisons. |
+| `cache.max_age_hours` | `168` | `float` (`168.0`) | Required/non-null; exact built-in int or float input, excluding bool, must be finite and >=0; no default. Unit: hours. | Maximum elapsed local download age for reuse (7 days here), not producer publication age or a TTL that skips integrity checks. | `download_gpu_document` → `_load_cached_archive`. |
+| `pilot.commune_code` | `"31395"` | `str` | Required/non-null; outer whitespace stripped, then exactly five ASCII digits. No Corsican 2A/2B syntax in this adapter. | Muret pilot identity used by default URL construction and required by download/inspection identity checks. | URL builders, discovery, `_validate_gpu_document_for_config`. |
+| `spatial_layers.zoning.class_label` | `"Zone urba"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive mandatory zoning role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.zoning.match_tokens[0]` | `"zone_urba"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for mandatory zoning physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.prescription_surface.class_label` | `"Prescription surfacique"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional surface-prescription role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.prescription_surface.match_tokens[0]` | `"prescription_surf"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional surface-prescription physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.prescription_line.class_label` | `"Prescription linéaire"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional line-prescription role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.prescription_line.match_tokens[0]` | `"prescription_lin"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional line-prescription physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.prescription_point.class_label` | `"Prescription ponctuelle"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional point-prescription role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.prescription_point.match_tokens[0]` | `"prescription_pct"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional point-prescription physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.information_surface.class_label` | `"Information surfacique"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional surface-information role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.information_surface.match_tokens[0]` | `"info_surf"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional surface-information physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.information_line.class_label` | `"Information linéaire"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional line-information role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.information_line.match_tokens[0]` | `"info_lin"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional line-information physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+| `spatial_layers.information_point.class_label` | `"Information ponctuelle"` | `str` | Required/non-null whitespace-stripped nonempty string; no default. | Descriptive optional point-information role label retained in config identity; not used to match a physical layer and not a CNIG code meaning. | `GpuLogicalLayerConfig` / full config SHA. |
+| `spatial_layers.information_point.match_tokens[0]` | `"info_pct"` | `str` inside `tuple[str, ...]` | Required/non-null parent sequence with >=1 item; nonempty strings, unique after matching-key normalization; no default. | Token for optional point-information physical layer naming. Matching requires underscore-delimited normalized token occurrence; token order is retained in config serialization. | `_discover_logical_layer` via `_configured_logical_references`. |
+
+Matching normalization decomposes Unicode, removes combining marks, case-folds, extracts ASCII letter/digit runs and joins them with underscores. A normalized token must be nonempty and tokens within one role must be distinct. Matching uses a temporary set, not ordered precedence; all configured token order remains in immutable config/hash serialization. Physical inspection requires exactly one zoning layer, at most one for each other role, and no physical layer assigned to two roles. These are discovery constraints, not geometry-family or legal-meaning proofs.
 
 ## STEP 7F.1A.4 dependent-model refresh
 
@@ -63,7 +67,7 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 ### `GpuApiConfig`
 
-**Source purpose:** Defines `GpuApiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** The `base_url` is the required parsed HTTP URL used to build every GPU API endpoint; its validator restricts it to the exact official HTTPS /api origin/path. `model_config` forbids unknown fields and field reassignment. It has no mutable collections.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -75,11 +79,11 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 | `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
 | `base_url` | `HttpUrl` | `required` | `base_url: HttpUrl` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
-- No conservative direct repository consumer was found.
+- Nested field consumer: `GpuSourceConfig.api`; reconstruction by `GpuSourceConfig.model_validate` is a Pydantic field-validation edge.
 
 **Exact class source**
 
@@ -110,7 +114,7 @@ class GpuApiConfig(BaseModel):
 
 ### `GpuDownloadConfig`
 
-**Source purpose:** Defines `GpuDownloadConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `strategy` is the required closed partition-based acquisition mode; `partition_template` is the required human-authored template for deriving one partition from a commune code. `model_config` forbids extra fields/reassignment. The NonEmptyString annotation strips surrounding whitespace before the template validator; the template is not a filesystem destination.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -123,11 +127,11 @@ class GpuApiConfig(BaseModel):
 | `strategy` | `DownloadStrategy` | `required` | `strategy: DownloadStrategy` |
 | `partition_template` | `NonEmptyString` | `required` | `partition_template: NonEmptyString` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
-- No conservative direct repository consumer was found.
+- Nested field consumer: `GpuSourceConfig.download`; reconstruction by `GpuSourceConfig.model_validate` is a Pydantic field-validation edge.
 
 **Exact class source**
 
@@ -156,7 +160,7 @@ class GpuDownloadConfig(BaseModel):
 
 ### `GpuCacheConfig`
 
-**Source purpose:** Defines `GpuCacheConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `max_age_hours` is the required finite nonnegative cache lifetime in hours (not a retrieval timestamp or source publication age); its before-validator accepts only exact built-in numbers. `model_config` forbids extra fields/reassignment. Zero is valid and makes only a zero-age cache eligible.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -168,11 +172,11 @@ class GpuDownloadConfig(BaseModel):
 | `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
 | `max_age_hours` | `float` | `Field(ge=0, allow_inf_nan=False)` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
-- No conservative direct repository consumer was found.
+- Nested field consumer: `GpuSourceConfig.cache`; reconstruction by `GpuSourceConfig.model_validate` is a Pydantic field-validation edge.
 
 **Exact class source**
 
@@ -198,7 +202,7 @@ class GpuCacheConfig(BaseModel):
 
 ### `GpuPilotConfig`
 
-**Source purpose:** Defines `GpuPilotConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `commune_code` is the required five-digit commune identity after StringConstraints whitespace stripping. URL builders may accept an explicit override, but download/inspection identity checks require this configured pilot. `model_config` forbids extra fields/reassignment.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -210,11 +214,11 @@ class GpuCacheConfig(BaseModel):
 | `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
 | `commune_code` | `CommuneCode` | `required` | `commune_code: CommuneCode` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
-- No conservative direct repository consumer was found.
+- Nested field consumer: `GpuSourceConfig.pilot`; reconstruction by `GpuSourceConfig.model_validate` is a Pydantic field-validation edge.
 
 **Exact class source**
 
@@ -227,7 +231,7 @@ class GpuPilotConfig(BaseModel):
 
 ### `GpuLogicalLayerConfig`
 
-**Source purpose:** Defines `GpuLogicalLayerConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `class_label` is a required descriptive nonempty label retained in full config identity; layer discovery matches `match_tokens`, not this label. `match_tokens` is a nonempty ordered immutable tuple of whitespace-stripped strings, unique and nonempty after matching-key normalization. `model_config` forbids extra fields/reassignment. No token is a CNIG code interpretation.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -240,7 +244,7 @@ class GpuPilotConfig(BaseModel):
 | `class_label` | `NonEmptyString` | `required` | `class_label: NonEmptyString` |
 | `match_tokens` | `tuple[NonEmptyString, ...]` | `Field(min_length=1)` | `match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
@@ -268,7 +272,7 @@ class GpuLogicalLayerConfig(BaseModel):
 
 ### `GpuSpatialLayersConfig`
 
-**Source purpose:** Defines `GpuSpatialLayersConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** Each of `zoning`, `prescription_surface`, `prescription_line`, `prescription_point`, `information_surface`, `information_line` and `information_point` is a required immutable logical-role configuration. Required configuration does not imply a required physical layer: discovery requires zoning and permits zero or one layer for each of the other six roles. `model_config` forbids extra fields/reassignment.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -286,11 +290,11 @@ class GpuLogicalLayerConfig(BaseModel):
 | `information_line` | `GpuLogicalLayerConfig` | `required` | `information_line: GpuLogicalLayerConfig` |
 | `information_point` | `GpuLogicalLayerConfig` | `required` | `information_point: GpuLogicalLayerConfig` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
-- No conservative direct repository consumer was found.
+- Nested field consumer: `GpuSourceConfig.spatial_layers`; reconstruction by `GpuSourceConfig.model_validate` is a Pydantic field-validation edge.
 
 **Exact class source**
 
@@ -309,7 +313,7 @@ class GpuSpatialLayersConfig(BaseModel):
 
 ### `GpuSourceConfig`
 
-**Source purpose:** Strict configuration for official French GPU ingestion.
+**Source purpose and field meanings:** `provider` and `portal` must both be the exact `Géoportail de l'Urbanisme` literal; `country` is FR. Required nested `api`, `download`, `cache`, `pilot` and `spatial_layers` carry endpoint, partition, expiry, commune and role contracts. All their runtime collections are tuples and all nested models are frozen; `model_config` also rejects extra fields. Public boundaries reconstruct supplied model contents rather than trusting freezing alone.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -328,7 +332,7 @@ class GpuSpatialLayersConfig(BaseModel):
 | `pilot` | `GpuPilotConfig` | `required` | `pilot: GpuPilotConfig` |
 | `spatial_layers` | `GpuSpatialLayersConfig` | `required` | `spatial_layers: GpuSpatialLayersConfig` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+`model_config` is Pydantic model configuration, not an input field: it prohibits unknown input keys and field reassignment. The exact declarations below complement the field-domain/behavior explanation above.
 
 **Qualified consumers**
 
@@ -494,11 +498,11 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `discover_current_gpu_document`, `download_gpu_document`, `discover_gpu_spatial_layers`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+The public loader defaults to the relative `configs/sources/gpu_fr.yaml` path; it does not resolve a road policy or a BESS profile. GPU URL construction uses the reconstructed API/partition config. Physical logical-role consumers are `inspect_gpu_planning_document` and the public spatial revalidators through their private config/role helpers; plain `discover_gpu_spatial_layers` has no config parameter.
 
 ## 9. Error handling
 
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
+The loader checks `path.is_file()` first, then reads strict duplicate-rejecting YAML and requires an exact root dictionary. It translates `OSError`, `TypeError`, `StrictYamlError` and Pydantic `ValidationError` from that guarded read/validation block into `GpuConfigError`; the initial path predicate is outside the block. Model string whitespace normalization and `HttpUrl` parsing still occur: this is not an assertion that every input coercion is rejected. Public boundary reconstruction has its own controlled error translation.
 
 ## 10. Side effects
 
@@ -510,7 +514,7 @@ A configured URL/provider/hash is a source lock or provenance input. Physical au
 
 ## 12. GIS / CRS rules
 
-Only explicit CRS fields impose GIS rules; configured storage/calculation CRS values are policy/configuration, not an implicit reprojection of data.
+There is no CRS field in this YAML. Layer-name tokens and French class labels do not prove geometry family, CRS correctness, validity or coordinate units; physical inspection and downstream stages own those checks.
 
 ## 13. Provenance rules
 
@@ -518,7 +522,7 @@ The companion's Source SHA256 binds this checked-in file for documentation fidel
 
 ## 14. Business meaning
 
-Thresholds and outcomes are policy/configuration values. They are never relabeled as measured geometry or legal conclusions.
+This file configures acquisition identity, cache age, pilot and role discovery only. It contains no BESS outcomes, parcel scores, distance threshold, planning authorization or category decision. Muret is the current pilot, not an implicit permanent product scope.
 
 ## 15. Explicit non-goals
 
@@ -526,7 +530,7 @@ Thresholds and outcomes are policy/configuration values. They are never relabele
 
 ## 16. Tests
 
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
+`tests/unit/test_gpu_fr.py` directly exercises valid URL construction, duplicate YAML keys, nine malformed nested values, exact provider/portal identity, four invalid cache-age values, frozen assignment plus forged-model boundary reconstruction, canonical config SHA ordering/content sensitivity, missing/ambiguous physical zoning and three two-role collisions. Its mocks bypass network transport but its synthetic GPKG inspection is physical. The shared deep-immutability suite owns additional collection/aliasing regressions; passing executions must be read from the actual validation record, not inferred here.
 
 ## 17. Change impact
 

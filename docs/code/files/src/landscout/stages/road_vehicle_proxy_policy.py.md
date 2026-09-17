@@ -11,7 +11,7 @@
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Uses strict duplicate-safe policy YAML and immutable compiled decision mappings without changing the approved road evidence policy.
+- Uses strict duplicate-safe policy YAML and immutable compiled decision records without changing the approved road evidence policy.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
 ## 2. Purpose and architectural position
@@ -19,6 +19,42 @@
 Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
 
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
+
+### Audited runtime contract
+
+The loader reads one policy file, rejects duplicate YAML keys, validates its complete
+mapping through Pydantic, hashes the same file bytes, and compiles fresh frozen
+dataclasses. It does not classify rows or read road geometry. Application,
+proximity, and coverage stages each reload policy bytes through this public loader;
+the private `_compile_policy` helper is not an alternative trusted input boundary.
+
+All model fields below are required and non-null. `_StrictPolicyModel` rejects
+extra fields and reassignment; every validated sequence is a tuple of strict,
+non-empty strings without edge whitespace. Compilation converts membership
+groups to `frozenset[str]`, retains precedence as an ordered tuple, and constructs
+new nested records: no mutable YAML alias is returned. The compiled dataclasses
+carry no automatic constructor validation; their authority comes from the loader.
+There is no JSON serializer in this module. `config_sha256` hashes raw YAML bytes,
+not `repr`, a model dump, a sorted set, or the compiled object.
+
+Identity, schema 2, references, evidence date, vehicle/heavy scope, class labels,
+rule outcomes, asset-state groups, importance groups and precedence are pinned by
+validators/Literals. Nature, light-vehicle access and known-restriction strings are
+configured non-empty unique groups (nature/access groups must not overlap).
+`width_below_m` is a required positive finite strict numeric threshold in metres;
+2.9 is the checked-in value, not a separate equality check in this loader.
+Reference publisher/title/revision/document ID describe policy evidence; they are
+not road facts or URLs fetched by this module. `classes` names the six permitted
+outputs; `decision_outcomes` assigns each of the sixteen named rules to one class.
+The source-value groups supply matching vocabularies, not current row observations.
+
+Pydantic invokes each `model_validator(mode="after")` and the `_ExactString`
+`AfterValidator`; these framework call edges are not resolved by the conservative
+direct-call lists below. `_CompiledClasses.values` is a property read by tests and
+classification/coverage validation, not a free-standing function call. The local
+policy tests exercise the real loader and temporary YAML files without replacing
+the parser or validators; observed D031 vocabularies in those tests are fixed
+fixture sets, not a fresh source read or proof of completeness for future editions.
 
 ## 3. Imports and dependencies
 
@@ -1158,7 +1194,7 @@ class IgnRoadVehicleProxyPolicy:
 
 ### `_exact_string`
 
-**Purpose:** Implements `exact string` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Reject edge whitespace after strict non-empty string validation; return the original string unchanged. This does not strip or otherwise normalize a policy value.
 
 **Exact signature**
 
@@ -1223,7 +1259,7 @@ def _exact_string(value: str) -> str:
 
 ### `_require_unique`
 
-**Purpose:** Implements `require unique` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Compare sequence length with the number of distinct strings and raise a labelled `ValueError` on duplicates. Successful validation returns `None` without changing the sequence.
 
 **Exact signature**
 
@@ -1297,7 +1333,7 @@ def _require_unique(values: tuple[str, ...], label: str) -> None:
 
 ### `_require_disjoint`
 
-**Purpose:** Implements `require disjoint` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Flatten the supplied vocabulary groups and reject any repeated string, including overlap between groups. This is a string-membership check, not a geometric disjointness calculation.
 
 **Exact signature**
 
@@ -1369,7 +1405,7 @@ def _require_disjoint(groups: tuple[tuple[str, ...], ...], label: str) -> None:
 
 ### `_AssetStateConfig._valid_groups`
 
-**Purpose:** Implements `valid groups` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Validate uniqueness within each asset-state group, disjointness between groups, then exact equality to the ordered service/project/construction singleton tuples; return the validated model unchanged.
 
 **Exact signature**
 
@@ -1417,7 +1453,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_require_disjoint` |
+| CRS/geometry/spatial calculation | None; `_require_disjoint` checks string groups only. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1453,7 +1489,7 @@ def _valid_groups(self) -> Self:
 
 ### `_LightVehicleAccessConfig._valid_groups`
 
-**Purpose:** Implements `valid groups` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Validate uniqueness of each open/toll/rights-restricted/physically-impossible access group and disjointness across all four groups. Their exact configured strings are not additionally pinned by this method; return `self` unchanged.
 
 **Exact signature**
 
@@ -1499,7 +1535,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_require_disjoint` |
+| CRS/geometry/spatial calculation | None; `_require_disjoint` checks string groups only. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1530,7 +1566,7 @@ def _valid_groups(self) -> Self:
 
 ### `_RoadNatureConfig._valid_groups`
 
-**Purpose:** Implements `valid groups` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Validate uniqueness within the four nature groups and reject overlaps across general, limited, non-general and special-review vocabularies. Group membership comes from the file, not geometry processing; return `self` unchanged.
 
 **Exact signature**
 
@@ -1576,7 +1612,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_require_disjoint` |
+| CRS/geometry/spatial calculation | None; `_require_disjoint` checks string groups only. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1612,7 +1648,7 @@ def _valid_groups(self) -> Self:
 
 ### `_ImportanceConfig._valid_domain`
 
-**Purpose:** Implements `valid domain` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Reject duplicates; require `known` to be exactly the ordered strings 1 through 6 and `limited` exactly the singleton string 6; then verify the subset relation and return `self`. Numeric YAML scalars are not accepted as importance strings.
 
 **Exact signature**
 
@@ -1688,7 +1724,7 @@ def _valid_domain(self) -> Self:
 
 ### `_SourceValuesConfig._valid_values`
 
-**Purpose:** Implements `valid values` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Reject duplicate known-restriction strings after nested source groups and the positive finite width threshold have passed field validation; return the unchanged model.
 
 **Exact signature**
 
@@ -1751,7 +1787,7 @@ def _valid_values(self) -> Self:
 
 ### `_PolicyConfig._valid_identity_and_precedence`
 
-**Purpose:** Implements `valid identity and precedence` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** In order, require the approved policy ID, integer schema version 2, exact official-IGN scope and exact sixteen-rule precedence tuple; reject the first mismatch without rewriting input and otherwise return `self`.
 
 **Exact signature**
 
@@ -1825,7 +1861,7 @@ def _valid_identity_and_precedence(self) -> Self:
 
 ### `_CompiledClasses.values`
 
-**Purpose:** Implements `values` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Return the six compiled class strings in general, limited, restricted, not-general, not-distance, unknown order. This property allocates a tuple and performs no classification or mutation.
 
 **Exact signature**
 
@@ -1891,7 +1927,7 @@ def values(self) -> tuple[str, ...]:
 
 ### `_compile_policy`
 
-**Purpose:** Implements `compile policy` within the file role: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
+**Purpose:** Copy validated scalar identity/reference/outcome values into new frozen records, convert membership tuples to frozensets, preserve precedence order and attach the caller-provided file digest. This private pure helper neither revalidates the model nor independently computes the digest; the public loader owns both steps.
 
 **Exact signature**
 
@@ -2050,6 +2086,15 @@ def _compile_policy(
 ### `load_ign_road_vehicle_proxy_policy`
 
 **Purpose:** Load and compile the strict policy from its exact UTF-8 file bytes.
+
+Read `Path(path)` once, parse those bytes with the duplicate-rejecting YAML loader,
+require a mapping, validate `_PolicyConfig`, and compile using SHA256 of the same
+bytes. The default path is repository-relative to this module, not the caller's
+working directory. An explicit relative path is resolved by `Path` in the caller's
+working directory. Domain errors are preserved; `StrictYamlError` is translated
+with its message; all other ordinary exceptions (including file/model failures)
+become `IgnRoadVehicleProxyPolicyError("IGN road vehicle-proxy policy is invalid")`
+with the original cause. No network call or file write is performed.
 
 **Exact signature**
 

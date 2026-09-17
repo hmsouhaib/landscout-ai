@@ -410,7 +410,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `IgnBdTopoLogicalLayerConfig`
 
-**Source purpose:** Catalogue class label and normalized tokens used for layer discovery.
+**Source purpose and field meaning:** Frozen physical-layer selector: class_label is a trimmed display/error label; match_tokens is an ordered nonempty immutable tuple retained verbatim after trimming. Each token must normalize to letters/digits, and normalized duplicates fail. Discovery normalizes actual layer names and requires every token's words to match.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -484,7 +484,7 @@ class IgnBdTopoLogicalLayerConfig(BaseModel):
 
 ### `IgnBdTopoLogicalLayersConfig`
 
-**Source purpose:** Defines `IgnBdTopoLogicalLayersConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen pair of electric-line and transformation-post selectors. Their normalized token sets must differ; this is not sufficient to prove distinct physical layers, which discovery checks separately.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -557,7 +557,7 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
 
 ### `IgnBdTopoDepartmentLayerConfig`
 
-**Source purpose:** Configured department layer and its observed identity field.
+**Source purpose and field meaning:** Frozen layer selector inheriting class_label and match_tokens, adding the exact observed attribute name department_code_field. The coverage loader uses that field to select exactly one feature matching the configured department; the model does not fetch or inspect the layer.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoLogicalLayerConfig`.
@@ -615,7 +615,7 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
 
 ### `IgnBdTopoAccessConfig`
 
-**Source purpose:** Configured factual transport layers loaded outside extraction metadata.
+**Source purpose and field meaning:** Frozen road_segments selector. The historical class docstring says outside extraction metadata, but schema-3 extraction metadata now includes road_segments_layer and the physical four-role inventory. The docstring is retained unchanged in the source snapshot, not treated as the current metadata contract.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -646,7 +646,7 @@ class IgnBdTopoAccessConfig(BaseModel):
 
 ### `IgnBdTopoCoverageConfig`
 
-**Source purpose:** Defines `IgnBdTopoCoverageConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen required department_layer selector, including its configured identity field. It does not represent an already measured coverage polygon.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -705,7 +705,7 @@ class IgnBdTopoCoverageConfig(BaseModel):
 
 ### `IgnBdTopoSourceConfig`
 
-**Source purpose:** Strict, reproducible description of one official IGN package.
+**Source purpose and field meaning:** Frozen source identity and nested selectors. Provider/product, projection, package/archive formats have closed domains; department and calendar edition are validated; product_version is optional descriptive text. URL validation here is HttpUrl plus matching .7z extension, not a hardcoded official-host/HTTPS network gate. Optional official algorithm and digest must occur together, with matching MD5/SHA256 lengths; checksum_url requires a pinned checksum. Size is optional positive exact int, cache age is finite nonnegative float. Acquisition applies safe HTTPS and byte checks independently.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -1445,7 +1445,7 @@ class IgnBdTopoLayerError(IgnBdTopoError):
 
 ### `IgnBdTopoArchiveIntegrity`
 
-**Source purpose:** Defines `IgnBdTopoArchiveIntegrity`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen observation of one archive validation: positive file size and local SHA256, optional configured official algorithm/digest and whether that comparison was required/performed. None is not fabricated official evidence. Dataclass construction alone does not validate these fields.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1511,7 +1511,7 @@ class IgnBdTopoArchiveIntegrity:
 
 ### `IgnBdTopoDownload`
 
-**Source purpose:** Defines `IgnBdTopoDownload`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen envelope joining configured provider/product/department/edition/version/projection/formats/URLs, UTC timestamp, filename, observed size/local SHA and optional official-checksum evidence to a mutable filesystem Path. cache_hit records reuse, spatial_role remains PROXY_GEOMETRY. It does not contain immutable archive bytes; source boundaries reconstruct and check its facts.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1690,7 +1690,7 @@ class IgnBdTopoDownload:
 
 ### `IgnBdTopoLayerSelection`
 
-**Source purpose:** Defines `IgnBdTopoLayerSelection`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen public electricity discovery result: the complete ordered physical layer-name tuple and the unique electric-line and transformation-post names selected from it. Four-role uniqueness is owned by _ConfiguredPhysicalRoles, not this two-role record.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1752,7 +1752,7 @@ class IgnBdTopoLayerSelection:
 
 ### `IgnBdTopoExtraction`
 
-**Source purpose:** Defines `IgnBdTopoExtraction`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen extraction envelope retaining its archive envelope, extraction/GPKG Paths, filename, positive GPKG size/SHA, complete ordered layer inventory, all four selected physical role names and cache-hit evidence. Paths remain mutable external resources; schema-3 marker and fresh physical reads establish current authority.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1919,7 +1919,7 @@ class IgnBdTopoExtraction:
 
 ### `IgnBdTopoLayerSummary`
 
-**Source purpose:** Defines `IgnBdTopoLayerSummary`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen factual summary for one nonempty raw layer: logical/physical names, observed CRS string, feature count, ordered columns and dtype pairs, NULL/EMPTY/nonempty-invalid counts, sorted distinct non-null geometry type names and PROXY_GEOMETRY. Fields are structural facts rather than connection/access decisions.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2058,7 +2058,7 @@ class IgnBdTopoLayerSummary:
 
 ### `IgnBdTopoLoadedLayer`
 
-**Source purpose:** Defines `IgnBdTopoLoadedLayer`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen pair of an already read GeoDataFrame and its summary. The data field remains a mutable GeoDataFrame and is returned by reference; freezing this envelope is not deep immutability of source rows.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2119,7 +2119,7 @@ class IgnBdTopoLoadedLayer:
 
 ### `IgnBdTopoElectricityData`
 
-**Source purpose:** Defines `IgnBdTopoElectricityData`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen two-layer source envelope: extraction lineage, mutable electric-lines and transformation-posts frames and their frozen summaries, with PROXY_GEOMETRY. Loaders retain every row; the source-complete normalizer reloads and compares physical data before using it.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2230,7 +2230,7 @@ class IgnBdTopoElectricityData:
 
 ### `IgnBdTopoRoadData`
 
-**Source purpose:** Unfiltered factual road geometry from one verified IGN extraction.
+**Source purpose and field meaning:** Frozen unfiltered road source envelope with extraction lineage, mutable raw road_segments frame and frozen summary. No road vehicle-policy evidence is created by this record; public consumers fresh-revalidate physical facts.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2373,7 +2373,7 @@ class IgnBdTopoRoadData:
 
 ### `IgnBdTopoCoverageLayerSummary`
 
-**Source purpose:** Observed source-layer schema plus the authoritative selected feature.
+**Source purpose and field meaning:** Frozen summary distinguishing complete source-layer feature/schema/geometry counts from the exactly-one selected feature produced by the loader. department_code_field and selected_department_code identify the selection, and spatial_role is SOURCE_COVERAGE_BOUNDARY. It does not summarize a parcel intersection.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2488,7 +2488,7 @@ class IgnBdTopoCoverageLayerSummary:
 
 ### `IgnBdTopoDepartmentCoverage`
 
-**Source purpose:** Selected department coverage with package lineage and source schema.
+**Source purpose and field meaning:** Frozen envelope containing extraction lineage, a mutable one-row selected coverage GeoDataFrame and frozen full-source summary. Seven source identity scalars plus spatial_role mirror the eight appended lineage columns; this is a department source-coverage boundary, not electrical-service reach.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2613,7 +2613,7 @@ class IgnBdTopoDepartmentCoverage:
 
 ### `_CacheMetadata`
 
-**Source purpose:** Defines `_CacheMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen schema-1 download sidecar model, distinct from this YAML. Identity fields describe provider/product/department/edition/version/projection/formats/URLs and filename; timestamp governs freshness, file_size/SHA256 bind current bytes, official checksum fields report the configured comparison, and spatial_role remains PROXY_GEOMETRY. Parsing alone is not a cache hit; the reader rechecks identity, age and bytes.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2688,7 +2688,7 @@ class _CacheMetadata(BaseModel):
 
 ### `_ExtractedEntryMetadata`
 
-**Source purpose:** Defines `_ExtractedEntryMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen inventory record: relative_path identifies one destination, kind is file or directory, file entries carry nonnegative exact size and lowercase SHA256, directory entries carry no byte evidence. Cross-field kind/size/hash consistency and safe paths are enforced by the owning validators.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2725,7 +2725,7 @@ class _ExtractedEntryMetadata(BaseModel):
 
 ### `_ExtractionMetadata`
 
-**Source purpose:** Defines `_ExtractionMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen schema-3 marker: archive_sha256 links the archive envelope, relative GPKG path/positive size/SHA256 bind the package, all_layer_names and four selected roles record physical discovery, extracted_entries binds the entire file/directory tree, and spatial_role remains PROXY_GEOMETRY. Ordered tuples and frozen entry records prevent nested mutation. This marker is not a field of the input YAML.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2786,7 +2786,7 @@ class _ExtractionMetadata(BaseModel):
 
 ### `_ValidatedArchiveMember`
 
-**Source purpose:** Defines `_ValidatedArchiveMember`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen pre-extraction destination record: accepted original relative path, file/directory kind and nonnegative uncompressed size for files (None for directories). Implicit parent directories are included; it contains no member-content hash.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2819,7 +2819,7 @@ class _ValidatedArchiveMember:
 
 ### `_ConfiguredPhysicalRoles`
 
-**Source purpose:** Defines `_ConfiguredPhysicalRoles`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Frozen physical-discovery result containing the complete ordered layer-name tuple and four distinct selected names for lines, posts, roads and department coverage. It records checked selection, not loaded geometry.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2854,7 +2854,7 @@ class _ConfiguredPhysicalRoles:
 
 ### `_VerifiedIgnExtraction`
 
-**Source purpose:** Defines `_VerifiedIgnExtraction`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meaning:** Private frozen context joining the extraction envelope, reconstructed schema-3 marker and physically discovered GPKG Path after local integrity checks. The path will still be reopened by the reader and rechecked afterward; this is not an immutable GPKG-byte snapshot.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2890,7 +2890,7 @@ class _VerifiedIgnExtraction:
 
 ### `IgnBdTopoLogicalLayerConfig._unique_tokens`
 
-**Purpose:** Implements `unique tokens` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** After Pydantic has produced a nonempty tuple of trimmed tokens, normalize each for matching, reject empty normalized tokens and duplicate normalized phrases, and return the original ordered tuple. It does not sort or replace the retained tokens.
 
 **Exact signature**
 
@@ -2965,7 +2965,7 @@ def _unique_tokens(cls, value: tuple[str, ...]) -> tuple[str, ...]:
 
 ### `IgnBdTopoLogicalLayersConfig._different_token_sets`
 
-**Purpose:** Implements `different token sets` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Compare the two selectors' sets of normalized token phrases and reject equality. Return self otherwise; actual physical-role uniqueness is checked later, not proved by different token sets.
 
 **Exact signature**
 
@@ -3037,7 +3037,7 @@ def _different_token_sets(self) -> Self:
 
 ### `IgnBdTopoSourceConfig._valid_edition_date`
 
-**Purpose:** Implements `valid edition date` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Parse the already pattern-validated edition with date.fromisoformat; translate an impossible calendar date into ValueError and retain its original canonical spelling.
 
 **Exact signature**
 
@@ -3106,7 +3106,7 @@ def _valid_edition_date(cls, value: str) -> str:
 
 ### `IgnBdTopoSourceConfig._consistent_package_and_checksum`
 
-**Purpose:** Implements `consistent package and checksum` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Decode the configured URL path and require its suffix to match .7z; require checksum algorithm/digest together, MD5 length 32 or SHA256 length 64, and forbid checksum_url without that pin. Return self; this validator neither downloads checksum_url nor proves an official host.
 
 **Exact signature**
 
@@ -3207,7 +3207,7 @@ def _consistent_package_and_checksum(self) -> Self:
 
 ### `_CacheMetadata._strict_schema_version`
 
-**Purpose:** Implements `strict schema version` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Reject every non-builtin-int schema value before Literal[1] validation, including bool and numeric strings; return the unchanged integer for Pydantic's version check.
 
 **Exact signature**
 
@@ -3274,7 +3274,7 @@ def _strict_schema_version(cls, value: object) -> object:
 
 ### `_ExtractionMetadata._strict_schema_version`
 
-**Purpose:** Implements `strict schema version` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Reject every non-builtin-int schema value before Literal[3] validation; return the integer unchanged. Version 3 binds the complete inventory and four physical roles.
 
 **Exact signature**
 
@@ -3341,7 +3341,7 @@ def _strict_schema_version(cls, value: object) -> object:
 
 ### `_normalize_words`
 
-**Purpose:** Implements `normalize words` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Casefold then NFKD-normalize the string, remove combining characters, retain ASCII lowercase-letter/digit runs and join them with single spaces. This matching key does not overwrite source layer names.
 
 **Exact signature**
 
@@ -3414,7 +3414,7 @@ def _normalize_words(value: str) -> str:
 
 ### `load_ign_bdtopo_source_config`
 
-**Purpose:** Load and strictly validate the pinned IGN source configuration.
+**Purpose and ordered algorithm:** Read the chosen YAML bytes once with duplicate-key-safe parsing, require a mapping, and construct the frozen nested source config. Translate read, YAML and model-validation failures to IgnBdTopoDownloadError; do not access the archive.
 
 **Exact signature**
 
@@ -3586,7 +3586,7 @@ def load_ign_bdtopo_source_config(
 
 ### `_validated_source_config`
 
-**Purpose:** Implements `validated source config` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require the exact config class, dump Python values and reconstruct with model_validate so forged model_copy values cannot bypass validation. Wrap type/value/model errors using the supplied controlled source-error class; return a fresh config.
 
 **Exact signature**
 
@@ -3676,7 +3676,7 @@ def _validated_source_config(
 
 ### `_archive_filename`
 
-**Purpose:** Implements `archive filename` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Decode the configured URL path, take its filename and require a nonempty .7z suffix case-insensitively. Return the filename; no filesystem lookup or remote request occurs.
 
 **Exact signature**
 
@@ -3749,7 +3749,7 @@ def _archive_filename(config: IgnBdTopoSourceConfig) -> str:
 
 ### `_calculate_checksums`
 
-**Purpose:** Implements `calculate checksums` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Stream the file in 1 MiB chunks through local SHA256 and, only when requested, MD5. For an official SHA256 pin maintain a second SHA256 digest; with no official algorithm return None for that second result. Wrap file-read errors as archive errors.
 
 **Exact signature**
 
@@ -3843,11 +3843,7 @@ def _calculate_checksums(
 
 ### `validate_ign_bdtopo_archive`
 
-**Purpose:** Validate size, configured official checksum, and available 7z CRC data.
-
-    Some official IGN archives omit container CRC metadata, for which py7zr
-    returns ``None``.  Such archives still require exact official size/checksum
-    validation here and a successful full extraction before they are usable.
+**Purpose and ordered algorithm:** Reconstruct config first, require a regular non-linked positive-size archive path, compare optional pinned size, stream local and configured official digests, and test the 7z container. Reject only an explicit False CRC result; None means unavailable container CRC, not a successful extraction. Return observed byte evidence; optional pins remain optional and full extraction is a later prerequisite.
 
 **Exact signature**
 
@@ -3965,11 +3961,11 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.is_file`<br>`path.stat`<br>`py7zr.SevenZipFile` |
+| Filesystem/archive read or metadata access | `path.is_symlink`, `path.is_junction`, `path.is_file`, `path.stat`, `py7zr.SevenZipFile`, `archive.test`; delegated streaming read in `_calculate_checksums`. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegates local/configured digest calculation to `_calculate_checksums`. |
 | CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | `py7zr.SevenZipFile` |
+| External process/environment | In-process py7zr archive decoding; no subprocess launch. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
 
@@ -4043,7 +4039,7 @@ def validate_ign_bdtopo_archive(
 
 ### `_cache_metadata_from_download`
 
-**Purpose:** Implements `cache metadata from download` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Copy the download's source identity, timestamp, size/digests and spatial role into the frozen schema-1 sidecar model. Exclude process-local path/cache_hit and do not write the model here.
 
 **Exact signature**
 
@@ -4125,7 +4121,7 @@ def _cache_metadata_from_download(download: IgnBdTopoDownload) -> _CacheMetadata
 
 ### `_download_from_metadata`
 
-**Purpose:** Implements `download from metadata` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Copy validated sidecar facts into a frozen download envelope and add the supplied physical archive path and cache-hit flag. This constructor alone does not reread or validate those bytes.
 
 **Exact signature**
 
@@ -4214,7 +4210,7 @@ def _download_from_metadata(
 
 ### `_load_cached_download`
 
-**Purpose:** Implements `load cached download` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require both files, strictly parse schema-1 metadata, require UTC timestamp with age in the configured inclusive freshness window, and compare every configured identity/filename/checksum/role field. Revalidate archive bytes and 7z integrity, compare size/SHA/checksum state, then return a cache-hit envelope. Controlled parsing, I/O and integrity failures yield None so the caller may refresh; no network request occurs here.
 
 **Exact signature**
 
@@ -4359,7 +4355,7 @@ def _load_cached_download(
 
 ### `_replace_file`
 
-**Purpose:** Implements `replace file` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Replace the target path with source via Path.replace. This is a filesystem publication seam used by recovery tests, not a string operation; OSError is handled by the transaction owner.
 
 **Exact signature**
 
@@ -4421,7 +4417,7 @@ def _replace_file(source: Path, target: Path) -> None:
 
 ### `_cache_recovery_paths`
 
-**Purpose:** Implements `cache recovery paths` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Derive sibling archive and metadata filenames with .bak appended; return the two Paths without inspecting or creating them.
 
 **Exact signature**
 
@@ -4496,7 +4492,7 @@ def _cache_recovery_paths(
 
 ### `_require_no_cache_recovery_material`
 
-**Purpose:** Implements `require no cache recovery material` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Inspect both derived backup paths for existence, symlinks or junctions. Any present recovery material causes a controlled download error before cache reuse or publication; it is never deleted by this guard.
 
 **Exact signature**
 
@@ -4548,7 +4544,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.exists` |
+| Filesystem/archive read or metadata access | `path.exists`, `path.is_symlink`, `path.is_junction` on both recovery paths. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -4579,7 +4575,7 @@ def _require_no_cache_recovery_material(
 
 ### `_prepare_temporary_cache_file`
 
-**Purpose:** Implements `prepare temporary cache file` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Reject a symlink/junction or existing nonregular .part target; unlink only an existing ordinary file. Wrap inspection/removal OSError as a controlled error, leaving a safe absent target for exclusive creation.
 
 **Exact signature**
 
@@ -4601,7 +4597,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `IgnBdTopoDownloadError(<br>                "IGN cache temporary path is a link or junction"<br>            )` under lexical guard `path.is_symlink() or path.is_junction()`.
-  - `IgnBdTopoDownloadError(<br>                    "IGN cache temporary path is not a regular file"<br>                )` under lexical guard `path.exists()`.
+  - `IgnBdTopoDownloadError(<br>                    "IGN cache temporary path is not a regular file"<br>                )` when the path exists and `not path.is_file()`.
   - `re-raise`.
   - `IgnBdTopoDownloadError(<br>            "IGN cache temporary path cannot be prepared safely"<br>        )`.
 
@@ -4628,7 +4624,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.exists`<br>`path.is_file` |
+| Filesystem/archive read or metadata access | `path.is_symlink`, `path.is_junction`, `path.exists`, `path.is_file`. |
 | Filesystem/archive write or publication | `path.unlink` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -4665,7 +4661,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 ### `_cleanup_temporary_cache_files`
 
-**Purpose:** Implements `cleanup temporary cache files` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Attempt missing-ok unlink for every supplied temporary file, remember the first OSError, and raise a cleanup error only when no primary exception already exists. Thus cleanup cannot replace a publication/rollback failure.
 
 **Exact signature**
 
@@ -4744,7 +4740,7 @@ def _cleanup_temporary_cache_files(
 
 ### `_publish_cache_pair`
 
-**Purpose:** Implements `publish cache pair` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Refuse stale backups, copy any existing archive and metadata to separate recovery files, then replace archive followed by metadata. On publication failure restore both previous files (or remove newly created primaries); preserve recovery files if rollback also fails. Remove backups only after successful publication or rollback. The two-file operation is recoverable, not one atomic filesystem transaction.
 
 **Exact signature**
 
@@ -4807,8 +4803,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive_path.is_file`<br>`metadata_path.is_file` |
-| Filesystem/archive write or publication | `archive_backup.unlink`<br>`metadata_backup.unlink`<br>`archive_path.unlink`<br>`metadata_path.unlink` |
+| Filesystem/archive read or metadata access | Inspect existing files and recovery paths; `copy2` reads previous primaries. |
+| Filesystem/archive write or publication | `copy2` writes backups/restores; `_replace_file` publishes; unlink removes backups or newly published files during rollback. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -4874,7 +4870,7 @@ def _publish_cache_pair(
 
 ### `download_ign_bdtopo_archive`
 
-**Purpose:** Download or reuse the pinned IGN package with atomic cache publication.
+**Purpose and ordered algorithm:** Reconstruct config, derive the filename and refuse existing recovery material before testing the offline cache. On miss create the cache parent, prepare safe .part files, stream through shared safe HTTPS into an exclusive archive file, validate bytes/7z, create UTC download evidence and exclusive metadata, then publish the pair. Cleanup respects the primary error; a valid hit needs no network.
 
 **Exact signature**
 
@@ -5056,8 +5052,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | `open_safe_https` |
 | Filesystem/archive read or metadata access | `temporary_archive.open`<br>`temporary_metadata.open` |
-| Filesystem/archive write or publication | `cache_dir.mkdir`<br>`copyfileobj` |
-| Hashing/byte identity | None directly present. |
+| Filesystem/archive write or publication | `cache_dir.mkdir`; exclusive .part opens, `copyfileobj`, `output.write`; delegated recoverable publication and cleanup. |
+| Hashing/byte identity | Delegates archive validation to `validate_ign_bdtopo_archive` before publication. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -5148,7 +5144,7 @@ def download_ign_bdtopo_archive(
 
 ### `_windows_component_key`
 
-**Purpose:** Implements `windows component key` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** NFKC-normalize one archive component for collision detection, reject empty/dot/traversal/trim/trailing-dot-or-space/control/Windows-forbidden forms and reserved device stems, then return casefolded comparison text. Original accepted names remain the inventory values.
 
 **Exact signature**
 
@@ -5237,7 +5233,7 @@ def _windows_component_key(component: str) -> str:
 
 ### `_validate_archive_members`
 
-**Purpose:** Implements `validate archive members` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Reject encryption and unreadable/empty inventory before extraction. For each member reject malformed/duplicate names, absolute/driven/traversal paths, unsafe Windows components, links/encrypted/special entries and invalid file sizes. Build explicit and implicit directory destinations, reject NFKC/casefold collisions and parent-file conflicts, require exactly one .gpkg file, and return deterministic path-key-ordered records. This inspects archive metadata, not extracted content.
 
 **Exact signature**
 
@@ -5326,8 +5322,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `name.replace` |
+| Filesystem/archive read or metadata access | `archive.needs_password`, `archive.list`: inspect the opened 7z inventory. |
+| Filesystem/archive write or publication | None. `name.replace` transforms an in-memory string, not a Path. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -5463,7 +5459,7 @@ def _validate_archive_members(
 
 ### `discover_ign_bdtopo_geopackage`
 
-**Purpose:** Return the sole GeoPackage below an extracted package root.
+**Purpose and ordered algorithm:** Accept an existing .gpkg file directly; otherwise require a directory, recursively collect ordinary-file candidates by case-insensitive suffix, and require exactly one. Return its Path. This discovery helper alone is not the complete non-linked-tree or byte-authority gate.
 
 **Exact signature**
 
@@ -5486,7 +5482,7 @@ def discover_ign_bdtopo_geopackage(root: Path) -> Path:
   - `root`
   - `geopackages[0]`
 - Explicit raise paths:
-  - `IgnBdTopoArchiveError(f"Expected a GeoPackage, got: {root}")` under lexical guard `root.is_file()`.
+  - `IgnBdTopoArchiveError(f"Expected a GeoPackage, got: {root}")` when `root.is_file()` and its suffix is not `.gpkg`.
   - `IgnBdTopoArchiveError(f"Extraction directory does not exist: {root}")` under lexical guard `not root.is_dir()`.
   - `IgnBdTopoArchiveError(<br>            "Expected exactly one GeoPackage in the IGN package, found "<br>            f"{len(geopackages)}"<br>        )` under lexical guard `len(geopackages) != 1`.
 
@@ -5572,7 +5568,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `root.is_file`<br>`root.is_dir`<br>`path.is_file` |
+| Filesystem/archive read or metadata access | `root.is_file`, `root.is_dir`, `root.rglob`, `path.is_file`. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -5614,7 +5610,7 @@ def discover_ign_bdtopo_geopackage(root: Path) -> Path:
 
 ### `list_ign_bdtopo_layers`
 
-**Purpose:** List every real layer name exposed by an IGN GeoPackage.
+**Purpose and ordered algorithm:** Require a file, ask Pyogrio/GDAL for its physical layers, convert names to strings in returned order, and reject no names, blank names or duplicates. Wrap listing failure as IgnBdTopoLayerError; this does read the package metadata.
 
 **Exact signature**
 
@@ -5721,7 +5717,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `geopackage_path.is_file` |
+| Filesystem/archive read or metadata access | `geopackage_path.is_file`, `pyogrio.list_layers`: native package metadata read. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -5757,7 +5753,7 @@ def list_ign_bdtopo_layers(geopackage_path: Path) -> tuple[str, ...]:
 
 ### `_matching_layers`
 
-**Purpose:** Implements `matching layers` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Union the normalized words of every configured match token; for each physical layer normalize its name and select it when that word set is a subset. Return matching original names in input order; no fuzzy ranking or filesystem access.
 
 **Exact signature**
 
@@ -5843,7 +5839,7 @@ def _matching_layers(
 
 ### `discover_ign_bdtopo_layers`
 
-**Purpose:** Resolve both configured logical classes without assuming exact casing.
+**Purpose and ordered algorithm:** Reconstruct config with layer-error translation, list physical names and resolve electric-line and transformation-post selectors. Require exactly one match for each and reject a shared physical layer; return the inventory plus those two names.
 
 **Exact signature**
 
@@ -5952,7 +5948,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates native GPKG metadata read to `list_ign_bdtopo_layers`. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -6006,7 +6002,7 @@ def discover_ign_bdtopo_layers(
 
 ### `_discover_department_coverage_layer`
 
-**Purpose:** Implements `discover department coverage layer` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Resolve the coverage selector against the supplied inventory, require exactly one match, and return that original layer name. This private helper neither reads features nor independently reconstructs config.
 
 **Exact signature**
 
@@ -6105,7 +6101,7 @@ def _discover_department_coverage_layer(
 
 ### `_discover_road_layer`
 
-**Purpose:** Implements `discover road layer` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Resolve the road selector against the supplied inventory, require exactly one match, and return the original name without reading roads or assigning vehicle access.
 
 **Exact signature**
 
@@ -6184,7 +6180,7 @@ def _discover_road_layer(
 
 ### `_discover_configured_physical_roles`
 
-**Purpose:** Implements `discover configured physical roles` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Discover the electricity pair and its actual inventory, match road and department selectors against it, then require all four selected physical names to be distinct. Return the immutable inventory and four-role record; discovery delegates package metadata reads.
 
 **Exact signature**
 
@@ -6244,7 +6240,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates package metadata read through electricity discovery. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -6291,7 +6287,7 @@ def _discover_configured_physical_roles(
 
 ### `_safe_relative_path`
 
-**Purpose:** Implements `safe relative path` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Resolve both Paths and derive the package's POSIX relative path inside the extraction root; translate escape/read-resolution failure to IgnBdTopoArchiveError. Resolution may inspect links; the helper does not write data.
 
 **Exact signature**
 
@@ -6338,7 +6334,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `path.resolve`, `root.resolve` may inspect filesystem/link resolution. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -6364,7 +6360,7 @@ def _safe_relative_path(path: Path, root: Path) -> str:
 
 ### `_resolve_relative_path`
 
-**Purpose:** Implements `resolve relative path` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Reject empty, absolute, Windows-driven or parent-traversing relative package paths; join POSIX components under root and resolve for containment, then return the candidate Path. This containment check is not the full archive Windows-name grammar.
 
 **Exact signature**
 
@@ -6421,7 +6417,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `candidate.resolve`, `root.resolve` may inspect filesystem/link resolution. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -6461,7 +6457,7 @@ def _resolve_relative_path(root: Path, relative_path: str) -> Path:
 
 ### `_geopackage_integrity`
 
-**Purpose:** Implements `geopackage integrity` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require a positive-size file, obtain its stat size and stream SHA256. Return size and lowercase digest with controlled read/inspection errors. Native GPKG validity, link rejection and source identity are separate owner checks.
 
 **Exact signature**
 
@@ -6555,7 +6551,7 @@ def _geopackage_integrity(path: Path) -> tuple[int, str]:
 
 ### `_regular_file_sha256`
 
-**Purpose:** Implements `regular file sha256` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Stream SHA256 over the given file and wrap OSError. The inventory owner has already checked ordinary non-linked file kind; this helper's name does not imply an independent link guard.
 
 **Exact signature**
 
@@ -6632,7 +6628,7 @@ def _regular_file_sha256(path: Path) -> str:
 
 ### `_inventory_extracted_tree`
 
-**Purpose:** Implements `inventory extracted tree` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require an ordinary non-linked root, walk it without following links, reject linked or special directories/files, and emit directory records plus each regular file's size and SHA256. Optionally omit exactly the marker path, sort by NFKC/casefold path then original spelling, and return immutable records. No repair/removal occurs.
 
 **Exact signature**
 
@@ -6710,7 +6706,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `root.is_dir`<br>`path.is_dir`<br>`path.is_file`<br>`path.stat` |
+| Filesystem/archive read or metadata access | Root/child link and kind checks, `os.walk`, `path.stat`; delegated reads of every regular file for SHA256. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | `_regular_file_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -6792,7 +6788,7 @@ def _inventory_extracted_tree(
 
 ### `_validate_extracted_inventory`
 
-**Purpose:** Implements `validate extracted inventory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Inventory the complete extracted tree, compare each destination's path/kind/size mapping with validated archive members including implicit directories, and reject any mismatch. Return observed records with per-file hashes; this is size/path inventory parity, not immutable archive-member byte equality.
 
 **Exact signature**
 
@@ -6840,9 +6836,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates complete physical-tree inventory to `_inventory_extracted_tree`. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Returned actual records include delegated regular-file SHA256; comparison to archive inventory uses path/kind/size. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -6875,7 +6871,7 @@ def _validate_extracted_inventory(
 
 ### `_valid_layer_inventory`
 
-**Purpose:** Implements `valid layer inventory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Return whether the object is exactly a nonempty tuple containing unique nonempty already-trimmed strings. String subclasses pass the isinstance check; this predicate does not query the GPKG.
 
 **Exact signature**
 
@@ -6951,7 +6947,7 @@ def _valid_layer_inventory(value: object) -> bool:
 
 ### `_validate_extraction_envelope`
 
-**Purpose:** Bind one extraction envelope to its schema-v3 marker and current GPKG.
+**Purpose and ordered algorithm:** Require exact extraction/download envelopes and valid roles, positive size, lowercase SHA spellings and Path fields; strictly reconstruct schema-3 marker from a non-linked file. Reconcile contained discovered GPKG path, filename, archive lineage, layer inventory and four distinct roles, then rehash the GPKG and every extracted file and relist layers. Return the verified context or controlled layer error. Archive SHA is compared as lineage here, not reread as an immutable archive snapshot.
 
 **Exact signature**
 
@@ -7043,9 +7039,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `marker_path.is_file`<br>`marker_path.read_bytes` |
+| Filesystem/archive read or metadata access | Marker link/kind/read checks; delegated GPKG discovery, native layer listing and entire-tree reads. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated `_geopackage_integrity` and `_inventory_extracted_tree` compare current byte evidence to envelope/marker. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -7174,7 +7170,7 @@ def _validate_extraction_envelope(
 
 ### `_verify_unchanged_extraction`
 
-**Purpose:** Implements `verify unchanged extraction` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Recompute package size/SHA, physical layer names and complete tree inventory after layer reading; compare against the context and fail on change. This is a path-reopen postcondition, not a snapshot-bound parser.
 
 **Exact signature**
 
@@ -7218,9 +7214,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates GPKG hashing/listing and full extracted-tree read. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Compares post-read GPKG size/SHA and per-file inventory hashes. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -7253,7 +7249,7 @@ def _verify_unchanged_extraction(context: _VerifiedIgnExtraction) -> None:
 
 ### `_read_layer_frame`
 
-**Purpose:** Implements `read layer frame` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require a nonempty already-trimmed string layer name, read it through GeoPandas using Pyogrio, and require a GeoDataFrame. Return the raw frame, preserving factual rows and defects; source-bound validation is owned by the caller.
 
 **Exact signature**
 
@@ -7342,7 +7338,7 @@ def _read_layer_frame(geopackage_path: Path, layer_name: str) -> gpd.GeoDataFram
 
 ### `_read_verified_layer_frames`
 
-**Purpose:** Implements `read verified layer frames` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require a nonempty exact tuple of distinct names present in the verified inventory, read each frame in requested order, and run the extraction postcondition before returning the tuple. The context was checked before these path-based reads; no immutable-byte parser is introduced.
 
 **Exact signature**
 
@@ -7400,9 +7396,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates path-based layer reads and complete extraction postcondition. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegates post-read physical-byte checks to `_verify_unchanged_extraction`. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -7435,7 +7431,7 @@ def _read_verified_layer_frames(
 
 ### `_validate_layer_summary_contract`
 
-**Purpose:** Implements `validate layer summary contract` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require exact summary class, builtin nonnegative counts, unique nonempty ordered columns, matching ordered dtype pairs, sorted unique geometry names and PROXY_GEOMETRY. Each geometry count must not exceed feature_count. Return the summary; it is structural evidence, not physical reconstruction or a disjoint-count closure proof.
 
 **Exact signature**
 
@@ -7597,7 +7593,7 @@ def _validate_layer_summary_contract(summary: object) -> IgnBdTopoLayerSummary:
 
 ### `_compare_layer_summary`
 
-**Purpose:** Implements `compare layer summary` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Structurally validate the supplied summary then require dataclass equality with the freshly observed expected summary. Any difference fails; it neither mutates nor rereads the frame.
 
 **Exact signature**
 
@@ -7673,7 +7669,7 @@ def _compare_layer_summary(
 
 ### `_compare_loaded_frame`
 
-**Purpose:** Implements `compare loaded frame` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require a GeoDataFrame and exact ordered columns, dtype spellings, index class/names/values and active geometry name. Validate equivalent Lambert-93 CRS, compare nongeometry frames exactly, compare ordered WKB hex values and frame attrs, and wrap mismatch as a controlled layer error. drop creates temporary frames; neither supplied nor expected is changed.
 
 **Exact signature**
 
@@ -7756,8 +7752,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | `supplied.geometry.to_wkb(hex=True).tolist`<br>`supplied.geometry.to_wkb`<br>`expected.geometry.to_wkb(hex=True).tolist`<br>`expected.geometry.to_wkb` |
 | External process/environment | None directly present. |
-| In-memory mutation | `supplied.drop(columns=geometry_name)`<br>`expected.drop(columns=geometry_name)` |
-| Direct parameter mutation | `supplied.drop(columns=geometry_name)`<br>`expected.drop(columns=geometry_name)` |
+| In-memory mutation | Creates temporary dropped-column frames and WKB representations; no input frame is modified. |
+| Direct parameter mutation | None. `drop(..., inplace=False)` returns temporary frames. |
 
 **Complete source-ordered implementation**
 
@@ -7819,7 +7815,7 @@ def _compare_loaded_frame(
 
 ### `_load_cached_extraction`
 
-**Purpose:** Implements `load cached extraction` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require extraction directory and a regular non-linked marker, strictly reconstruct schema 3, check archive SHA/role, resolve and discover the same GPKG, compare physical size/SHA and entire tree inventory, then rediscover and compare all configured roles. Return a cache-hit extraction or None on controlled inconsistency; caller revalidates the archive before this helper.
 
 **Exact signature**
 
@@ -7881,9 +7877,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `extraction_path.is_dir`<br>`metadata_path.is_file`<br>`metadata_path.read_bytes` |
+| Filesystem/archive read or metadata access | Marker/root checks, strict marker read, resolved path discovery and delegated package/tree reads. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegates package SHA/size and complete extracted-file hashes for comparison. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -7971,7 +7967,7 @@ def _load_cached_extraction(
 
 ### `_replace_directory`
 
-**Purpose:** Implements `replace directory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Rename/replace source directory at target via Path.replace. Errors propagate to the publication transaction; the Paths themselves are not mutated.
 
 **Exact signature**
 
@@ -8033,7 +8029,7 @@ def _replace_directory(source: Path, target: Path) -> None:
 
 ### `_path_exists_or_is_link`
 
-**Purpose:** Implements `path exists or is link` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Return true for existence, symlink or junction, and conservatively true when inspection raises OSError. An inaccessible transaction path is never treated as safely absent.
 
 **Exact signature**
 
@@ -8087,7 +8083,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.exists` |
+| Filesystem/archive read or metadata access | `path.exists`, `path.is_symlink`, `path.is_junction`; OSError means conservatively present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -8111,7 +8107,7 @@ def _path_exists_or_is_link(path: Path) -> bool:
 
 ### `_remove_validated_extraction_directory`
 
-**Purpose:** Implements `remove validated extraction directory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Return for absence; otherwise reject linked/non-directory target, validate its entire ordinary tree, and only then recursively remove that exact transaction directory. Translate removal error; this helper is destructive and not a harmless inventory routine.
 
 **Exact signature**
 
@@ -8164,8 +8160,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.is_dir` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive read or metadata access | Path/link/kind checks and full tree validation before removal. |
+| Filesystem/archive write or publication | `shutil.rmtree` removes the validated transaction directory recursively. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -8197,7 +8193,7 @@ def _remove_validated_extraction_directory(path: Path) -> None:
 
 ### `_require_no_extraction_backup`
 
-**Purpose:** Implements `require no extraction backup` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Derive sibling .bak and fail if it exists, is a link/junction or cannot be safely inspected. Preserve it for manual recovery.
 
 **Exact signature**
 
@@ -8242,7 +8238,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates conservative backup existence/link inspection. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -8267,7 +8263,7 @@ def _require_no_extraction_backup(extraction_path: Path) -> None:
 
 ### `_require_safe_existing_extraction_marker`
 
-**Purpose:** Implements `require safe existing extraction marker` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** If the marker is absent do nothing; otherwise require an ordinary non-linked file and wrap unsafe inspection. This prevents replacing a linked marker but does not parse its content.
 
 **Exact signature**
 
@@ -8315,7 +8311,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `marker_path.is_file` |
+| Filesystem/archive read or metadata access | Delegated existence check plus marker symlink/junction/file checks. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -8353,7 +8349,7 @@ def _require_safe_existing_extraction_marker(extraction_path: Path) -> None:
 
 ### `_prepare_temporary_extraction_directory`
 
-**Purpose:** Implements `prepare temporary extraction directory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** If the intended .part exists, remove it only through the full safe-tree validator, then mkdir exclusively. Translate creation failure; no broad cache cleanup is performed.
 
 **Exact signature**
 
@@ -8397,8 +8393,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.mkdir` |
+| Filesystem/archive read or metadata access | Delegated old-target inspection and complete-tree validation when present. |
+| Filesystem/archive write or publication | Delegated safe removal of previous .part tree, then `path.mkdir`. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -8425,7 +8421,7 @@ def _prepare_temporary_extraction_directory(path: Path) -> None:
 
 ### `_publish_extraction_directory`
 
-**Purpose:** Implements `publish extraction directory` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Refuse a stale .bak; if the primary exists, require and inventory its ordinary tree, then rename it to backup. Publish the prepared directory; on failure restore the backup, preserving it if restoration also fails. After success safely remove the old backup tree. This can perform filesystem moves/removal through delegated helpers.
 
 **Exact signature**
 
@@ -8447,7 +8443,7 @@ def _publish_extraction_directory(temporary_path: Path, extraction_path: Path) -
 
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
-  - `IgnBdTopoArchiveError(<br>                "IGN existing extraction target is not a safe ordinary directory"<br>            )` under lexical guard `extraction_existed`.
+  - `IgnBdTopoArchiveError(<br>                "IGN existing extraction target is not a safe ordinary directory"<br>            )` when an existing target is linked, a junction, or not a directory.
   - `IgnBdTopoArchiveError(<br>                "IGN extraction publication and rollback both failed"<br>            )`.
   - `re-raise`.
 
@@ -8479,8 +8475,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `extraction_path.is_dir` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive read or metadata access | Backup/target link/kind checks and delegated entire-tree inventory. |
+| Filesystem/archive write or publication | Delegated directory rename/publish/rollback and safe old-backup removal. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -8530,7 +8526,7 @@ def _publish_extraction_directory(temporary_path: Path, extraction_path: Path) -
 
 ### `extract_ign_bdtopo_archive`
 
-**Purpose:** Safely extract the package and resolve its required electricity layers.
+**Purpose and ordered algorithm:** Reconstruct config and validate download/config lineage, choose explicit extraction target or short download-parent/x/first-16-SHA cache path, and refuse unsafe target, marker or backup. Revalidate archive size/checksum/CRC and envelope facts before cache reuse. On miss prepare a safe .part directory, validate full member inventory, extract, compare complete destination inventory, discover four distinct roles and hash the GPKG; write schema-3 marker exclusively, publish recoverably, and clean temporary data without masking primary errors. No source features are normalized.
 
 **Exact signature**
 
@@ -8720,10 +8716,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `extraction_path.is_dir`<br>`py7zr.SevenZipFile`<br>`(temporary_path / ".landscout-extraction.json").open` |
-| Filesystem/archive write or publication | `extraction_path.parent.mkdir`<br>`archive.extractall` |
-| Hashing/byte identity | None directly present. |
+| Filesystem/archive write or publication | Parent/.part creation, archive extraction, exclusive schema-3 marker `output.write`, delegated publication/rollback/cleanup. |
+| Hashing/byte identity | Delegates archive validation, complete extracted-file hashing and GPKG SHA/size. |
 | CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | `py7zr.SevenZipFile` |
+| External process/environment | In-process py7zr decoding and Pyogrio/GDAL metadata access; no subprocess launch. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
 
@@ -8843,7 +8839,7 @@ def extract_ign_bdtopo_archive(
 
 ### `_validate_lambert93`
 
-**Purpose:** Implements `validate lambert93` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require a readable CRS, projected status and PyProj equivalence to EPSG:2154. Return the CRS object; it does not reproject geometry, accept arbitrary metre projections or demand one literal CRS string.
 
 **Exact signature**
 
@@ -8900,7 +8896,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `CRS.from_user_input`, `CRS.from_epsg`, projected check and `crs.equals`; no reprojection. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -8936,7 +8932,7 @@ def _validate_lambert93(crs_value: Any, layer_name: str) -> CRS:
 
 ### `_loaded_layer_from_frame`
 
-**Purpose:** Implements `loaded layer from frame` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require active geometry, Lambert-93 and at least one feature. Count NULL, EMPTY and nonempty invalid geometries without repair or row filtering, retain sorted observed non-null geometry type names and exact ordered schema/dtypes, validate the summary and return the same raw frame in a frozen envelope. This helper does not impose line/polygon family suitability.
 
 **Exact signature**
 
@@ -9070,7 +9066,7 @@ def _loaded_layer_from_frame(
 
 ### `_load_untrusted_ign_bdtopo_layer`
 
-**Purpose:** Inspect one raw layer without conferring config-bound source authority.
+**Purpose and ordered algorithm:** Require the package file and nonblank layer name, read and summarize that raw layer. It is a private inspection path with no config/extraction provenance proof and is not exported as a source-complete API.
 
 **Exact signature**
 
@@ -9130,7 +9126,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `geopackage_path.is_file` |
+| Filesystem/archive read or metadata access | File check plus delegated Pyogrio feature read; no source-bound archive validation. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -9162,7 +9158,7 @@ def _load_untrusted_ign_bdtopo_layer(
 
 ### `_validated_layer_source_config`
 
-**Purpose:** Implements `validated layer source config` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Delegate exact-class reconstruction to _validated_source_config with IgnBdTopoLayerError as the controlled boundary error.
 
 **Exact signature**
 
@@ -9228,7 +9224,7 @@ def _validated_layer_source_config(config: object) -> IgnBdTopoSourceConfig:
 
 ### `_validate_archive_config_lineage`
 
-**Purpose:** Implements `validate archive config lineage` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Accept only an exact download or extraction containing an exact download; check exact positive size, boolean states, lowercase SHA, UTC timestamp, Path/filename agreement, every configured source identity and optional size. Return None on equality, otherwise controlled layer error. These are local envelope/config comparisons, not archive byte reads.
 
 **Exact signature**
 
@@ -9253,7 +9249,7 @@ def _validate_archive_config_lineage(
 
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
-  - `TypeError("IGN archive source type is invalid")` under lexical guard `type(source) is IgnBdTopoExtraction`.
+  - `TypeError("IGN archive source type is invalid")` when source is neither an exact extraction nor an exact download.
   - `TypeError("IGN archive type is invalid")` under lexical guard `type(archive) is not IgnBdTopoDownload`.
   - `TypeError("IGN archive size is invalid")` under lexical guard `type(archive.file_size) is not int or archive.file_size <= 0`.
   - `TypeError("IGN official-checksum state is invalid")` under lexical guard `type(archive.official_checksum_validated) is not bool`.
@@ -9396,7 +9392,7 @@ def _validate_archive_config_lineage(
 
 ### `load_ign_bdtopo_electricity`
 
-**Purpose:** Load the two electricity layers reproduced from the source config.
+**Purpose and ordered algorithm:** Reconstruct config, bind archive/config identity and current extraction bytes/tree, rediscover all four roles and require exact inventory/role equality. Read the two electricity layers as one checked batch, summarize both, and return fresh unfiltered frames attached to the supplied extraction. No network, topology repair or capacity inference.
 
 **Exact signature**
 
@@ -9505,9 +9501,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated config-bound extraction validation, physical-role discovery, two raw layer reads and post-read integrity checks. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated GPKG and complete tree pre/post checks. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -9572,7 +9568,7 @@ def load_ign_bdtopo_electricity(
 
 ### `load_ign_bdtopo_roads`
 
-**Purpose:** Load the configured factual road layer without filtering or repair.
+**Purpose and ordered algorithm:** Apply the same config/archive/extraction/four-role gate as electricity, read the configured road layer with post-read integrity checks and summarize it. Return all raw road rows unchanged; no distance, vehicle classification or access inference is performed here.
 
 **Exact signature**
 
@@ -9678,9 +9674,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated source-bound extraction validation, role discovery, road feature read and postcondition. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated GPKG and complete tree pre/post checks. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -9732,7 +9728,7 @@ def load_ign_bdtopo_roads(
 
 ### `_department_coverage_from_frame`
 
-**Purpose:** Implements `department coverage from frame` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require active Lambert-93 geometry and a nonempty layer with the configured identity attribute. Compare that raw attribute to the archive department, select exactly one feature into a copied RangeIndex frame, require valid nonempty Polygon/MultiPolygon and reject eight lineage-column collisions before appending lineage. Summary counts/schema describe the whole source layer; selected_feature_count describes the one returned row.
 
 **Exact signature**
 
@@ -9947,7 +9943,7 @@ def _department_coverage_from_frame(
 
 ### `load_ign_bdtopo_department_coverage`
 
-**Purpose:** Load the one authoritative configured department coverage feature.
+**Purpose and ordered algorithm:** Reconstruct config, validate archive lineage/current extraction and all four configured physical roles, read the selected department layer with post-read verification, then derive its exactly-one authoritative coverage feature using the configured identity field. No parcel relation is computed.
 
 **Exact signature**
 
@@ -10081,10 +10077,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegated extraction/role validation, department feature read and postcondition. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| Hashing/byte identity | Delegated physical GPKG and extracted-file hashes. |
+| CRS/geometry/spatial calculation | Delegated selection checks valid nonempty polygon coverage in Lambert-93. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -10131,7 +10127,7 @@ def load_ign_bdtopo_department_coverage(
 
 ### `_revalidate_ign_bdtopo_electricity_data`
 
-**Purpose:** Fresh-read and exact-compare one supplied electricity source bundle.
+**Purpose and ordered algorithm:** Require exact source/config envelope classes; fresh-load electricity through the public physical gate, exact-compare both supplied frames and summaries and require PROXY_GEOMETRY. Return fresh data, not the possibly mutated supplied frames; translate failures to controlled layer errors.
 
 **Exact signature**
 
@@ -10198,9 +10194,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates fresh public electricity source loading; no network. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated physical checks and exact ordered frame WKB comparison. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -10253,7 +10249,7 @@ def _revalidate_ign_bdtopo_electricity_data(
 
 ### `_revalidate_ign_bdtopo_road_data`
 
-**Purpose:** Fresh-read and exact-compare one supplied road source bundle.
+**Purpose and ordered algorithm:** Require exact road source/config classes; fresh-load via the public road loader and compare the supplied raw frame and summary exactly with physical facts. Return the fresh source; no local fixture envelope is promoted to physical authority.
 
 **Exact signature**
 
@@ -10318,9 +10314,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates fresh public road source loading; no network. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated physical checks and exact ordered frame WKB comparison. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -10365,7 +10361,7 @@ def _revalidate_ign_bdtopo_road_data(
 
 ### `_validate_coverage_summary_contract`
 
-**Purpose:** Implements `validate coverage summary contract` within the file role: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
+**Purpose and ordered algorithm:** Require exact coverage-summary class, builtin nonnegative counts with selected not exceeding source, unique ordered columns, matching dtype pairs, sorted unique geometry names and SOURCE_COVERAGE_BOUNDARY. Return the local summary. No current direct caller was found; this helper does not itself prove selected count one or physically reread data.
 
 **Exact signature**
 
@@ -10494,7 +10490,7 @@ def _validate_coverage_summary_contract(
 
 ### `_revalidate_ign_bdtopo_department_coverage`
 
-**Purpose:** Fresh-read and exact-compare selected coverage with its physical layer.
+**Purpose and ordered algorithm:** Require exact coverage/config classes, fresh-load the physical coverage, compare the supplied selected frame, summary and all scalar lineage fields, then return fresh coverage. No current direct repository caller was found; public coverage assessment obtains fresh coverage via its public loader.
 
 **Exact signature**
 
@@ -10551,9 +10547,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Delegates fresh public coverage source loading; no network. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
+| Hashing/byte identity | Delegated physical checks and exact selected-frame WKB comparison. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |

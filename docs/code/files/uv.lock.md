@@ -13,7 +13,13 @@ Locks the resolved Python dependency graph used by uv; it is dependency evidence
 
 ## 2. Position in LandScout architecture
 
-This is resolved dependency lock, consumed by uv.
+This is the resolved dependency lock consumed by uv, not an application loader. It records 48 packages including the editable local `landscout` project. `requires-python = "==3.12.*"` constrains the minor series, not a Python patch release. Platform markers separate Windows, Emscripten and other resolutions; individual wheel records additionally constrain Python ABI, architecture and platform.
+
+The direct runtime families are GeoPandas/Pandas for tables and geospatial frames; Shapely and PyProj for geometry and CRS; Pyogrio and PyArrow for physical data I/O; py7zr for IGN archives; PyPDF for written regulation; Pydantic, pydantic-settings and PyYAML for configuration/serialization dependencies. Declaring a dependency does not prove that production imports it: the current source does not use a pydantic-settings environment-settings loader. NumPy is imported by production modules but arrives transitively through the resolved geospatial/table dependencies. Development dependencies resolve pytest, pytest-cov, mypy and Ruff and their own dependencies.
+
+Important resolved versions include GeoPandas 1.1.4, Pandas 3.0.5, Pyogrio 0.13.0, Shapely 2.1.2, PyProj 3.7.2, PyArrow 25.0.1, Pydantic 2.13.4 and NumPy 2.5.2. The allowed dependency ranges remain in `pyproject.toml`; these are concrete lock resolutions, not revised ranges. Pyogrio/GDAL, Shapely/GEOS and PyProj/PROJ also have native runtime components. The Python lock records wheel/sdist artifacts, not a separate authoritative inventory of every loaded native library. In particular, the geometry evidence profile records its actual reader/parser toolchain independently.
+
+Artifact URLs, sizes, SHA256 values and upload timestamps describe the selected distribution records. This documentation audit neither downloads those artifacts nor proves current upstream availability. `uv lock --check` tests consistency with project metadata; `uv pip check` tests the installed Python dependency relationships. Neither alone proves native imports or application behavior.
 
 ## 3. Imports and dependencies
 
@@ -25,7 +31,7 @@ Its exact content is reproduced below. No Python alias, frame column, model fiel
 
 ### Structured TOML field inventory
 
-| Exact path | Exact value | Runtime type | Actual consumer/role |
+| Exact path | Exact value | Parsed TOML type | Actual consumer/role |
 |---|---|---|---|
 | `version` | `1` | `int` | Resolved dependency metadata interpreted by uv; not a LandScout model or frame field. |
 | `revision` | `3` | `int` | Resolved dependency metadata interpreted by uv; not a LandScout model or frame field. |
@@ -2470,7 +2476,7 @@ No business decision is executed by this passive file.
 
 ## 16. Tests
 
-Not applicable directly; repository/tool configuration may be exercised by the mandated validation commands.
+There is no lockfile-specific production unit test. The audit compared all 1,591 parsed leaf paths, values, types and order against the inventory below, and the complete reproduced snapshot against Git content. The final validation report separately records actual `uv lock --check`, `uv pip check`, import and test executions; the table and its SHA do not substitute for those commands.
 
 ## 17. Change impact
 

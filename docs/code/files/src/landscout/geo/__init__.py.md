@@ -169,3 +169,52 @@ Test consumers and framework invocation are included in per-symbol interfaces. T
 ## 17. Change impact
 
 Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+
+## 18. Complete source snapshot
+
+The following complete UTF-8 source matches the basis commit's Git blob content exactly. It is repeated here for readable audit continuity; it does not replace the symbol-level semantic review above.
+
+```python
+from landscout.geo.crs import LAMBERT93, WGS84
+from landscout.geo.geometry import (
+    EmptyGeometryError,
+    GeometryError,
+    InvalidGeometryError,
+    MetricCrsError,
+    ParcelShapeMetrics,
+    UnsupportedGeometryError,
+    ZeroAreaGeometryError,
+    approximate_length_m,
+    approximate_width_m,
+    area_m2,
+    centroid,
+    centroid_to_latlon,
+    compactness_score,
+    length_width_ratio,
+    parcel_shape_metrics_m,
+    perimeter_m,
+    reproject_to_lambert93,
+)
+
+__all__ = [
+    "LAMBERT93",
+    "WGS84",
+    "EmptyGeometryError",
+    "GeometryError",
+    "InvalidGeometryError",
+    "MetricCrsError",
+    "ParcelShapeMetrics",
+    "UnsupportedGeometryError",
+    "ZeroAreaGeometryError",
+    "approximate_length_m",
+    "approximate_width_m",
+    "area_m2",
+    "centroid",
+    "centroid_to_latlon",
+    "compactness_score",
+    "length_width_ratio",
+    "parcel_shape_metrics_m",
+    "perimeter_m",
+    "reproject_to_lambert93",
+]
+```

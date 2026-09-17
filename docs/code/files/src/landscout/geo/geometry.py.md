@@ -11,7 +11,7 @@
 
 ## 1. Purpose
 
-Validates parcel geometry and computes metric shape measurements on calculation-only Lambert-93 copies.
+Validates canonical two-dimensional parcel polygons and measures geometry in a caller-declared projected metre CRS. `reproject_to_lambert93` explicitly creates a Lambert-93 geometry; the measurement functions themselves do not reproject, require no particular EPSG identity, and trust the supplied CRS label to describe the coordinates.
 
 ## 2. Position in LandScout architecture
 
@@ -86,7 +86,7 @@ Models/dataclasses are documented in section 5. Frame columns and mappings are d
 | `length_m` | `length_m: float` | Measured major minimum-rotated-rectangle dimension in metres. |
 | `width_m` | `width_m: float` | Measured minor minimum-rotated-rectangle dimension in metres. |
 | `length_width_ratio` | `length_width_ratio: float` | Dimensionless measured major-dimension divided by minor-dimension ratio. |
-| `compactness` | `compactness: float` | Dimensionless 4πA/P² metric calculated from parcel area and perimeter. |
+| `compactness` | `compactness: float` | Dimensionless `min(4πA/P², 1.0)` from actual parcel area and perimeter, not from its bounding rectangle. |
 
 **Interface consumers**
 
@@ -490,7 +490,7 @@ def _validate_geometry(geometry: BaseGeometry) -> Geometry:
 
 **Purpose**
 
-Rejects malformed or inconsistent geometry; exact branches, calls, and return construction are reproduced below.
+Checks, in order, that the value is a Shapely geometry, is nonempty, belongs to Polygon/MultiPolygon, has coordinate dimension exactly two, and is topologically valid. Returns the same geometry. Z, M, and ZM are rejected by dimension, not stripped; no repair or coordinate modification occurs.
 
 **Return contract**
 
@@ -514,7 +514,7 @@ geometry
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `EmptyGeometryError`, `InvalidGeometryError`, `UnsupportedGeometryError`.
+- CRS/geometry calculation: Shapely emptiness, geometry family, coordinate dimension and topology inspection; no coordinate change.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -563,7 +563,7 @@ def _parse_crs(crs: CRS | str | int) -> CRS:
 
 **Purpose**
 
-Parses crs; exact branches, calls, and return construction are reproduced below.
+Calls `CRS.from_user_input`; any exception from that parser is chained into `MetricCrsError`. Returns the parsed CRS without coordinate transformation.
 
 **Return contract**
 
@@ -583,7 +583,7 @@ CRS.from_user_input(crs)
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Parses CRS metadata only; no coordinate transformation.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -619,7 +619,7 @@ def _validate_metric_crs(crs: CRS | str | int) -> CRS:
 
 **Purpose**
 
-Rejects malformed or inconsistent metric crs; exact branches, calls, and return construction are reproduced below.
+Parses the CRS, rejects geographic and other nonprojected CRSs, then requires every declared axis conversion factor to equal one metre. Returns the CRS. This is a projected-metre gate, not an EPSG:2154-only gate and not verification of the geometry's actual coordinate origin.
 
 **Return contract**
 
@@ -641,7 +641,7 @@ parsed
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Parses and checks CRS projection and axis units; no coordinate transformation.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -683,7 +683,7 @@ def reproject_to_lambert93(
 
 **Purpose**
 
-Private `geo/GIS` helper for reproject to lambert93; its complete implementation below is the authoritative behavioral contract.
+Publicly re-exported geometry operation: validate the input polygon, parse its source CRS, construct an `always_xy=True` transformer to Lambert-93, transform into a new geometry, and validate that result again. The caller's geometry is not mutated; transform-library failures are not all wrapped locally.
 
 **Return contract**
 
@@ -703,7 +703,7 @@ _validate_geometry(transform(transformer.transform, validated))
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `_validate_geometry`.
+- CRS/geometry calculation: Creates a new geometry through an always-XY pyproj/Shapely transform to EPSG:2154.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -761,7 +761,7 @@ def area_m2(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for area m2; its complete implementation below is the authoritative behavioral contract.
+Publicly re-exported measurement: validate the caller-declared projected metre CRS, validate the canonical 2D polygon, and return its Shapely area as a float. No projection or repair is performed here.
 
 **Return contract**
 
@@ -781,7 +781,7 @@ float(validated.area)
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `_validate_geometry`.
+- CRS/geometry calculation: Validates polygon and metre CRS, then reads Shapely area.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -858,7 +858,7 @@ def perimeter_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for perimeter m; its complete implementation below is the authoritative behavioral contract.
+Publicly re-exported measurement: validate the projected metre CRS and polygon, then return Shapely boundary length as a float. Interior ring boundaries contribute to perimeter; no rectangle perimeter or reprojection is substituted.
 
 **Return contract**
 
@@ -878,7 +878,7 @@ float(validated.length)
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `_validate_geometry`.
+- CRS/geometry calculation: Validates polygon and metre CRS, then reads Shapely boundary length.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -950,7 +950,7 @@ def parcel_shape_metrics_m(
 
 **Purpose**
 
-Private `geo/GIS` helper for parcel shape metrics m; its complete implementation below is the authoritative behavioral contract.
+Validate the projected metre CRS and canonical polygon; compute actual area and perimeter and require both positive. Compute its minimum rotated rectangle, take the maximum and minimum lengths of its consecutive exterior edges as length and width, require positive width and length not below width, then calculate ratio and `min(4πA/P², 1.0)`. Reject nonpositive compactness and return four frozen scalar measurements. MultiPolygon is measured as one geometry; these are bounding-rectangle dimensions, not usable construction dimensions.
 
 **Return contract**
 
@@ -973,7 +973,7 @@ ParcelShapeMetrics(length_m=length, width_m=width, length_width_ratio=length / w
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `GeometryError`, `ZeroAreaGeometryError`, `_validate_geometry`.
+- CRS/geometry calculation: Computes Shapely area, perimeter, minimum rotated rectangle, side lengths, ratio and compactness.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1082,7 +1082,7 @@ def approximate_length_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for approximate length m; its complete implementation below is the authoritative behavioral contract.
+Public convenience function that computes the complete validated `ParcelShapeMetrics` record and returns only `length_m`. It delegates the full geometry calculation and can raise the same validation errors; no result cache is used.
 
 **Return contract**
 
@@ -1102,7 +1102,7 @@ parcel_shape_metrics_m(geometry, crs).length_m
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Delegates the complete shape calculation and selects its length.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1175,7 +1175,7 @@ def approximate_width_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for approximate width m; its complete implementation below is the authoritative behavioral contract.
+Public convenience function that computes the complete validated `ParcelShapeMetrics` record and returns only `width_m`. The value is the minor minimum-rotated-rectangle side, not a guaranteed access width.
 
 **Return contract**
 
@@ -1195,7 +1195,7 @@ parcel_shape_metrics_m(geometry, crs).width_m
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Delegates the complete shape calculation and selects its width.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1267,7 +1267,7 @@ def length_width_ratio(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for length width ratio; its complete implementation below is the authoritative behavioral contract.
+Public convenience function that computes the complete validated shape record and returns its major/minor side ratio. It delegates validation and all metric calculations, even though only one dimensionless scalar is returned.
 
 **Return contract**
 
@@ -1287,7 +1287,7 @@ parcel_shape_metrics_m(geometry, crs).length_width_ratio
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Delegates the complete shape calculation and selects its ratio.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1359,7 +1359,7 @@ def compactness_score(geometry: BaseGeometry, crs: CRS | str | int) -> float:
 
 **Purpose**
 
-Private `geo/GIS` helper for compactness score; its complete implementation below is the authoritative behavioral contract.
+Public convenience function returning the complete shape calculation's compactness. Despite the historical function name, this is the bounded geometric ratio `min(4πA/P², 1.0)`, not a parcel suitability score, ranking, or policy decision.
 
 **Return contract**
 
@@ -1379,7 +1379,7 @@ parcel_shape_metrics_m(geometry, crs).compactness
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: Delegates the complete shape calculation and selects compactness.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1451,7 +1451,7 @@ def centroid(geometry: BaseGeometry) -> Point:
 
 **Purpose**
 
-Private `geo/GIS` helper for centroid; its complete implementation below is the authoritative behavioral contract.
+Validate the canonical 2D polygon and return its Shapely centroid as a Point in the input coordinates. This function has no CRS argument and neither reprojects nor guarantees that the centroid lies inside a concave polygon.
 
 **Return contract**
 
@@ -1471,7 +1471,7 @@ _validate_geometry(geometry).centroid
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `_validate_geometry`.
+- CRS/geometry calculation: Computes the validated polygon's Shapely centroid.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1541,7 +1541,7 @@ def centroid_to_latlon(
 
 **Purpose**
 
-Private `geo/GIS` helper for centroid to latlon; its complete implementation below is the authoritative behavioral contract.
+Parse the source CRS, compute the validated polygon centroid in its original coordinates, transform that point to WGS84 with `always_xy=True`, then reject nonfinite or out-of-range coordinates. Return `(latitude, longitude)` in that order, even though the transform returns `(longitude, latitude)`.
 
 **Return contract**
 
@@ -1561,7 +1561,7 @@ Private `geo/GIS` helper for centroid to latlon; its complete implementation bel
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: `GeometryError`.
+- CRS/geometry calculation: Computes centroid and transforms that point to WGS84 with always-XY axis handling.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: none.
@@ -1663,3 +1663,189 @@ Test consumers and framework invocation are included in per-symbol interfaces. T
 ## 17. Change impact
 
 Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
+
+## 18. Complete source snapshot
+
+The following complete UTF-8 source matches the basis commit's Git blob content exactly. It is repeated here for readable audit continuity; it does not replace the symbol-level semantic review above.
+
+```python
+from dataclasses import dataclass
+from itertools import pairwise
+from math import hypot, isfinite, pi
+
+from pyproj import CRS, Transformer
+from shapely import get_coordinate_dimension  # type: ignore[import-untyped]
+from shapely.geometry import (  # type: ignore[import-untyped]
+    MultiPolygon,
+    Point,
+    Polygon,
+)
+from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
+from shapely.ops import transform  # type: ignore[import-untyped]
+
+from landscout.geo.crs import LAMBERT93, WGS84
+
+type Geometry = Polygon | MultiPolygon
+
+
+@dataclass(frozen=True)
+class ParcelShapeMetrics:
+    length_m: float
+    width_m: float
+    length_width_ratio: float
+    compactness: float
+
+
+class GeometryError(ValueError):
+    """Base error for controlled geometry validation failures."""
+
+
+class EmptyGeometryError(GeometryError):
+    """Raised when an operation receives an empty geometry."""
+
+
+class InvalidGeometryError(GeometryError):
+    """Raised when an operation receives an invalid geometry."""
+
+
+class UnsupportedGeometryError(GeometryError):
+    """Raised when an operation receives an unsupported geometry type."""
+
+
+class MetricCrsError(GeometryError):
+    """Raised when a CRS is unsafe for metric calculations."""
+
+
+class ZeroAreaGeometryError(GeometryError):
+    """Raised when a shape metric receives a zero-area geometry."""
+
+
+def _validate_geometry(geometry: BaseGeometry) -> Geometry:
+    if not isinstance(geometry, BaseGeometry):
+        raise UnsupportedGeometryError("Input must be a Shapely geometry")
+    if geometry.is_empty:
+        raise EmptyGeometryError("Geometry must not be empty")
+    if not isinstance(geometry, (Polygon, MultiPolygon)):
+        raise UnsupportedGeometryError(
+            "Only Polygon and MultiPolygon geometries are supported"
+        )
+    if get_coordinate_dimension(geometry) != 2:
+        raise UnsupportedGeometryError(
+            "Parcel geometries must be canonical two-dimensional geometries"
+        )
+    if not geometry.is_valid:
+        raise InvalidGeometryError("Geometry is invalid and was not repaired")
+    return geometry
+
+
+def _parse_crs(crs: CRS | str | int) -> CRS:
+    try:
+        return CRS.from_user_input(crs)
+    except Exception as error:
+        raise MetricCrsError("Invalid CRS input") from error
+
+
+def _validate_metric_crs(crs: CRS | str | int) -> CRS:
+    parsed = _parse_crs(crs)
+    if parsed.is_geographic:
+        raise MetricCrsError("Metric calculations require a projected CRS")
+    if not parsed.is_projected:
+        raise MetricCrsError("Metric calculations require a projected CRS")
+    if any(axis.unit_conversion_factor != 1.0 for axis in parsed.axis_info):
+        raise MetricCrsError("Metric calculations require CRS units in metres")
+    return parsed
+
+
+def reproject_to_lambert93(
+    geometry: BaseGeometry, source_crs: CRS | str | int
+) -> Geometry:
+    validated = _validate_geometry(geometry)
+    transformer = Transformer.from_crs(
+        _parse_crs(source_crs), LAMBERT93, always_xy=True
+    )
+    return _validate_geometry(transform(transformer.transform, validated))
+
+
+def area_m2(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    validated = _validate_geometry(geometry)
+    _validate_metric_crs(crs)
+    return float(validated.area)
+
+
+def perimeter_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    validated = _validate_geometry(geometry)
+    _validate_metric_crs(crs)
+    return float(validated.length)
+
+
+def parcel_shape_metrics_m(
+    geometry: BaseGeometry, crs: CRS | str | int
+) -> ParcelShapeMetrics:
+    validated = _validate_geometry(geometry)
+    _validate_metric_crs(crs)
+    area = float(validated.area)
+    perimeter = float(validated.length)
+    if area <= 0 or perimeter <= 0:
+        raise ZeroAreaGeometryError("Parcel geometry must have a positive area")
+
+    rectangle = validated.minimum_rotated_rectangle
+    coordinates = list(rectangle.exterior.coords)
+    edge_lengths = [
+        hypot(end[0] - start[0], end[1] - start[1])
+        for start, end in pairwise(coordinates)
+    ]
+    length = float(max(edge_lengths))
+    width = float(min(edge_lengths))
+    if width <= 0:
+        raise ZeroAreaGeometryError("Parcel width must be greater than zero")
+    if length < width:
+        raise GeometryError("Parcel length must be greater than or equal to width")
+
+    compactness = min(float(4 * pi * area / perimeter**2), 1.0)
+    if compactness <= 0:
+        raise ZeroAreaGeometryError("Parcel compactness must be positive")
+    return ParcelShapeMetrics(
+        length_m=length,
+        width_m=width,
+        length_width_ratio=length / width,
+        compactness=compactness,
+    )
+
+
+def approximate_length_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return parcel_shape_metrics_m(geometry, crs).length_m
+
+
+def approximate_width_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return parcel_shape_metrics_m(geometry, crs).width_m
+
+
+def length_width_ratio(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return parcel_shape_metrics_m(geometry, crs).length_width_ratio
+
+
+def compactness_score(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return parcel_shape_metrics_m(geometry, crs).compactness
+
+
+def centroid(geometry: BaseGeometry) -> Point:
+    return _validate_geometry(geometry).centroid
+
+
+def centroid_to_latlon(
+    geometry: BaseGeometry, source_crs: CRS | str | int
+) -> tuple[float, float]:
+    center = centroid(geometry)
+    transformer = Transformer.from_crs(_parse_crs(source_crs), WGS84, always_xy=True)
+    longitude, latitude = transformer.transform(center.x, center.y)
+    latitude = float(latitude)
+    longitude = float(longitude)
+    if (
+        not isfinite(latitude)
+        or not isfinite(longitude)
+        or not -90 <= latitude <= 90
+        or not -180 <= longitude <= 180
+    ):
+        raise GeometryError("Centroid transform produced invalid latitude/longitude")
+    return latitude, longitude
+```

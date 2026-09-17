@@ -17,7 +17,7 @@
 
 Defines project/dependency/tool configuration and excludes `docs/code/files` from Ruff so byte-exact companion source snapshots are not reformatted.
 
-- Project/tool metadata changes documentation formatting scope only and do not change LandScout evidence or business semantics.
+- This whole file governs packaging, allowed dependency versions and local tool behavior. Only its historical companion-exclusion change was documentation-formatting scope; changing other keys can affect runtime compatibility and cannot be generalized as documentation-only.
 
 ## 3. Source-specific structure
 
@@ -43,6 +43,10 @@ The exact project/tool leaves below are parsed from the current TOML; arrays rem
 | `dependency-groups.dev` | `list` | `['mypy>=2.3.0', 'pytest>=9.1.1', 'pytest-cov>=7.1.0', 'ruff>=0.16.2']` |
 
 The STEP-specific formatting boundary is `[tool.ruff].extend-exclude = ["docs/code/files"]`: exact companion source snapshots are audited as bytes/Markdown and are not rewritten by Ruff. All other project/dependency/tool declarations retain their exact current values.
+
+These dependency strings are **allowed ranges**, not installed-version assertions. `uv.lock` selects exact resolved package versions and distribution hashes with platform markers; the actual interpreter/native libraries are separately observed at execution. `project.requires-python` permits Python 3.12 patch releases, while `.python-version` selects `3.12`. `uv_build` owns package construction under the declared `landscout` module name. The project declares no `[project.scripts]` CLI and no application HTTP server entry point.
+
+Pytest searches `tests` and adds `src` to its import path. The package-version test reads this TOML's `project.version`; it does not test every tool setting. Ruff targets Python 3.12, and the companion exclusion is not a Markdown renderer or semantic audit. Mypy uses the `src` path and Python 3.12 grammar; no strictness flag is declared here. The new documentation tool is explicitly type-checked by command without changing this configuration.
 
 ## 4. Side effects and change impact
 

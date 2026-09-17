@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file.
+- Responsibility: Exercises the road policy loader's identity, structure, vocabulary, precedence, byte hash and immutable compiled representation; this is not a claim of exhaustive input coverage.
 - Source SHA256: `e20c61a170cdffde5387fd4b367e5433097c0c333c830843e52bd5e73a14b4fc`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,31 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file.
+This module contains 35 test definitions, expanding by the explicit parametrizations
+to 68 cases (a static count, not a test execution in this documentation review),
+with three payload/file helpers and no locally declared pytest fixture. All tests
+call the real public loader; no monkeypatch bypasses YAML parsing, Pydantic
+validation or compilation. Pytest supplies `tmp_path`. `_payload` creates a
+separate mutable dictionary from the checked-in YAML with `yaml.safe_load`,
+`_write_policy` writes a test-only YAML file using `safe_dump`, and `_load_payload`
+passes that exact path to the production loader. Only duplicate/malformed-key
+tests write raw YAML text so parser failures cannot be masked by serialization.
+
+Successful loads check both pinned reference records, class vocabulary, all sixteen
+precedence positions, exact raw-file SHA, independent object creation and
+representative immediate frozen/frozenset mutation failure. Rejection tests alter
+one structural/semantic condition before loading the temporary file; they do not
+prove subsequent road-row classification. The width cases reject non-positive,
+non-finite, string and Boolean inputs and accept the checked-in 2.9 value; they do
+not establish that the loader pins every permitted numeric threshold to 2.9.
+
+The test named `test_mutating_source_payload_cannot_affect_another_load` changes
+a separately decoded dictionary which is never passed to either load. Its actual
+assertion is independent reload behavior, not a same-input nested-alias attack on
+`_PolicyConfig.model_validate`. D031 vocabulary tests compare fixed constants with
+loaded groups; they do not acquire or open the real D031 source. Mutation rows in
+the matrices below describe attempted operations; operations under
+`pytest.raises` are expected to fail immediately, not mutate a trusted policy.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -226,7 +250,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_payload`
 
-**Purpose:** Implements `payload` within the file role: Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file.
+**Purpose:** Read and safely decode the checked-in policy into a fresh mutable dictionary for isolated fixture mutations; assert the decoded root is a dictionary.
 
 **Exact signature**
 
@@ -328,7 +352,7 @@ def _payload() -> dict[str, Any]:
 
 ### `_write_policy`
 
-**Purpose:** Implements `write policy` within the file role: Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file.
+**Purpose:** Serialize the supplied fixture payload to `tmp_path/policy.yaml` with Unicode preserved and key sorting disabled, then return that path; production configuration is never overwritten.
 
 **Exact signature**
 
@@ -465,7 +489,7 @@ def test_duplicate_yaml_policy_key_is_rejected(tmp_path: Path) -> None:
 
 ### `_load_payload`
 
-**Purpose:** Implements `load payload` within the file role: Provides complete unit and regression coverage for the `road_vehicle_proxy_policy` contracts exercised in this file.
+**Purpose:** Write the fixture with `_write_policy` and invoke the real public loader on that exact file, preserving all production parser/model validation and controlled exceptions.
 
 **Exact signature**
 
@@ -2848,7 +2872,7 @@ def test_compiled_policy_structures_are_immutable() -> None:
     with pytest.raises(FrozenInstanceError):
         policy.scope = "changed"  # type: ignore[misc]
     with pytest.raises(AttributeError):
-        policy.nature.general_motor_road.add("Invented")
+        policy.nature.general_motor_road.add("Invented")  # type: ignore[attr-defined]
 ```
 
 **Business boundary**
@@ -3132,41 +3156,41 @@ def test_missing_file_has_controlled_error(tmp_path: Path) -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_duplicate_yaml_policy_key_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError, match="Duplicate YAML.*key") | 0 | Proves duplicate yaml policy key is rejected using the exact source reproduced in section 7. |
-| `test_checked_in_policy_loads_with_exact_public_identity_and_reference` | none | none | 16 | Proves checked in policy loads with exact public identity and reference using the exact source reproduced in section 7. |
-| `test_checked_in_policy_hash_binds_exact_file_bytes` | none | none | 3 | Proves checked in policy hash binds exact file bytes using the exact source reproduced in section 7. |
-| `test_repeat_loading_is_deterministic_and_independent` | none | none | 3 | Proves repeat loading is deterministic and independent using the exact source reproduced in section 7. |
-| `test_public_api_exports_only_stable_policy_symbols` | none | none | 4 | Proves public api exports only stable policy symbols using the exact source reproduced in section 7. |
-| `test_invalid_config_structure_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "message"),<br>    [<br>        (lambda payload: payload.update(unexpected=True), "invalid"),<br>        (<br>            lambda payload: payload["references"]["navigation"].update(unexpected=True),<br>            "invalid",<br>        ),<br>        (lambda payload: payload.pop("policy_id"), "invalid"),<br>        (<br>            lambda payload: payload["source_values"].pop("nature"),<br>            "invalid",<br>        ),<br>    ],<br>    ids=["unknown-top", "unknown-nested", "missing-id", "missing-group"],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError, match=message) | 0 | Proves invalid config structure is rejected using the exact source reproduced in section 7. |
-| `test_unsupported_schema_version_is_rejected` | pytest.mark.parametrize("version", [0, 1, 3, 999]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves unsupported schema version is rejected using the exact source reproduced in section 7. |
-| `test_wrong_policy_identity_is_rejected` | pytest.mark.parametrize(<br>    ("path", "value"),<br>    [<br>        (("policy_id",), "ign_bdtopo_general_vehicle_proxy_v1"),<br>        (("scope",), "HEAVY_VEHICLE_POLICY"),<br>        (("heavy_vehicle_access",), "PROVEN"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves wrong policy identity is rejected using the exact source reproduced in section 7. |
-| `test_both_evidence_references_are_required` | pytest.mark.parametrize("reference", ["navigation", "bdtopo_product"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves both evidence references are required using the exact source reproduced in section 7. |
-| `test_product_reference_document_id_is_exact` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves product reference document id is exact using the exact source reproduced in section 7. |
-| `test_unknown_evidence_reference_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves unknown evidence reference is rejected using the exact source reproduced in section 7. |
-| `test_asset_state_groups_cover_exact_v2_domain` | none | none | 5 | Proves asset state groups cover exact v2 domain using the exact source reproduced in section 7. |
-| `test_asset_state_group_overlap_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves asset state group overlap is rejected using the exact source reproduced in section 7. |
-| `test_missing_known_asset_state_is_rejected` | pytest.mark.parametrize(<br>    ("group", "value"),<br>    [<br>        ("in_service", "En service"),<br>        ("project_geometry_not_significant", "En projet"),<br>        ("under_construction", "En construction"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves missing known asset state is rejected using the exact source reproduced in section 7. |
-| `test_unknown_additional_asset_state_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves unknown additional asset state is rejected using the exact source reproduced in section 7. |
-| `test_semantic_values_must_be_exact_non_empty_strings` | pytest.mark.parametrize("value", ["", " Libre", "Libre "]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves semantic values must be exact non empty strings using the exact source reproduced in section 7. |
-| `test_duplicate_semantic_value_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid") | 0 | Proves duplicate semantic value is rejected using the exact source reproduced in section 7. |
-| `test_semantic_groups_must_be_pairwise_disjoint` | pytest.mark.parametrize(<br>    ("group", "source_group", "target_group"),<br>    [<br>        ("light_vehicle_access", "open", "toll"),<br>        ("nature", "general_motor_road", "limited_motor_proxy"),<br>        ("nature", "limited_motor_proxy", "non_general_vehicle"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid") | 0 | Proves semantic groups must be pairwise disjoint using the exact source reproduced in section 7. |
-| `test_duplicate_known_restriction_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves duplicate known restriction is rejected using the exact source reproduced in section 7. |
-| `test_invalid_width_threshold_is_rejected` | pytest.mark.parametrize(<br>    "value",<br>    [-1.0, 0.0, float("nan"), float("inf"), float("-inf"), "2.9", True],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves invalid width threshold is rejected using the exact source reproduced in section 7. |
-| `test_exact_width_threshold_is_accepted` | none | none | 1 | Proves exact width threshold is accepted using the exact source reproduced in section 7. |
-| `test_importance_domains_must_be_exact` | pytest.mark.parametrize(<br>    ("group", "mutation"),<br>    [<br>        ("known", "remove-1"),<br>        ("known", "remove-5"),<br>        ("known", "add-7"),<br>        ("limited", "numeric-6"),<br>        ("limited", "limited-5"),<br>        ("limited", "empty"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves importance domains must be exact using the exact source reproduced in section 7. |
-| `test_importance_domains_expose_known_without_positive_classification` | none | none | 4 | Proves importance domains expose known without positive classification using the exact source reproduced in section 7. |
-| `test_decision_precedence_must_be_exact` | pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "reorder"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves decision precedence must be exact using the exact source reproduced in section 7. |
-| `test_decision_precedence_and_rule_outcomes_are_approved` | none | none | 11 | Proves decision precedence and rule outcomes are approved using the exact source reproduced in section 7. |
-| `test_project_geometry_rule_has_exact_precedence_position` | none | none | 2 | Proves project geometry rule has exact precedence position using the exact source reproduced in section 7. |
-| `test_output_class_vocabulary_must_be_exact` | pytest.mark.parametrize("mutation", ["missing", "extra", "wrong"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves output class vocabulary must be exact using the exact source reproduced in section 7. |
-| `test_approved_class_vocabulary_has_no_heavy_or_legal_claim` | none | none | 3 | Proves approved class vocabulary has no heavy or legal claim using the exact source reproduced in section 7. |
-| `test_observed_d031_natures_are_covered_exactly_once` | none | none | 2 | Proves observed d031 natures are covered exactly once using the exact source reproduced in section 7. |
-| `test_observed_d031_access_and_importance_vocabularies_are_compatible` | none | none | 4 | Proves observed d031 access and importance vocabularies are compatible using the exact source reproduced in section 7. |
-| `test_compiled_policy_structures_are_immutable` | none | pytest.raises(FrozenInstanceError); pytest.raises(AttributeError) | 0 | Proves compiled policy structures are immutable using the exact source reproduced in section 7. |
-| `test_mutating_source_payload_cannot_affect_another_load` | none | none | 2 | Proves mutating source payload cannot affect another load using the exact source reproduced in section 7. |
-| `test_malformed_yaml_has_controlled_error` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves malformed yaml has controlled error using the exact source reproduced in section 7. |
-| `test_non_mapping_yaml_has_controlled_error` | pytest.mark.parametrize("payload", [None, [], "policy"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves non mapping yaml has controlled error using the exact source reproduced in section 7. |
-| `test_missing_file_has_controlled_error` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | Proves missing file has controlled error using the exact source reproduced in section 7. |
+| `test_duplicate_yaml_policy_key_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError, match="Duplicate YAML.*key") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_checked_in_policy_loads_with_exact_public_identity_and_reference` | none | none | 16 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_checked_in_policy_hash_binds_exact_file_bytes` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_repeat_loading_is_deterministic_and_independent` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_public_api_exports_only_stable_policy_symbols` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_invalid_config_structure_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "message"),<br>    [<br>        (lambda payload: payload.update(unexpected=True), "invalid"),<br>        (<br>            lambda payload: payload["references"]["navigation"].update(unexpected=True),<br>            "invalid",<br>        ),<br>        (lambda payload: payload.pop("policy_id"), "invalid"),<br>        (<br>            lambda payload: payload["source_values"].pop("nature"),<br>            "invalid",<br>        ),<br>    ],<br>    ids=["unknown-top", "unknown-nested", "missing-id", "missing-group"],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError, match=message) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unsupported_schema_version_is_rejected` | pytest.mark.parametrize("version", [0, 1, 3, 999]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_policy_identity_is_rejected` | pytest.mark.parametrize(<br>    ("path", "value"),<br>    [<br>        (("policy_id",), "ign_bdtopo_general_vehicle_proxy_v1"),<br>        (("scope",), "HEAVY_VEHICLE_POLICY"),<br>        (("heavy_vehicle_access",), "PROVEN"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_both_evidence_references_are_required` | pytest.mark.parametrize("reference", ["navigation", "bdtopo_product"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_product_reference_document_id_is_exact` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unknown_evidence_reference_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_asset_state_groups_cover_exact_v2_domain` | none | none | 5 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_asset_state_group_overlap_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_known_asset_state_is_rejected` | pytest.mark.parametrize(<br>    ("group", "value"),<br>    [<br>        ("in_service", "En service"),<br>        ("project_geometry_not_significant", "En projet"),<br>        ("under_construction", "En construction"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unknown_additional_asset_state_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_semantic_values_must_be_exact_non_empty_strings` | pytest.mark.parametrize("value", ["", " Libre", "Libre "]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_semantic_value_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_semantic_groups_must_be_pairwise_disjoint` | pytest.mark.parametrize(<br>    ("group", "source_group", "target_group"),<br>    [<br>        ("light_vehicle_access", "open", "toll"),<br>        ("nature", "general_motor_road", "limited_motor_proxy"),<br>        ("nature", "limited_motor_proxy", "non_general_vehicle"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError, match="invalid") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_known_restriction_is_rejected` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_invalid_width_threshold_is_rejected` | pytest.mark.parametrize(<br>    "value",<br>    [-1.0, 0.0, float("nan"), float("inf"), float("-inf"), "2.9", True],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_exact_width_threshold_is_accepted` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_importance_domains_must_be_exact` | pytest.mark.parametrize(<br>    ("group", "mutation"),<br>    [<br>        ("known", "remove-1"),<br>        ("known", "remove-5"),<br>        ("known", "add-7"),<br>        ("limited", "numeric-6"),<br>        ("limited", "limited-5"),<br>        ("limited", "empty"),<br>    ],<br>) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_importance_domains_expose_known_without_positive_classification` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_decision_precedence_must_be_exact` | pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "reorder"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_decision_precedence_and_rule_outcomes_are_approved` | none | none | 11 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_project_geometry_rule_has_exact_precedence_position` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_output_class_vocabulary_must_be_exact` | pytest.mark.parametrize("mutation", ["missing", "extra", "wrong"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_approved_class_vocabulary_has_no_heavy_or_legal_claim` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_observed_d031_natures_are_covered_exactly_once` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_observed_d031_access_and_importance_vocabularies_are_compatible` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_compiled_policy_structures_are_immutable` | none | pytest.raises(FrozenInstanceError); pytest.raises(AttributeError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_mutating_source_payload_cannot_affect_another_load` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_yaml_has_controlled_error` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_non_mapping_yaml_has_controlled_error` | pytest.mark.parametrize("payload", [None, [], "policy"]) | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_file_has_controlled_error` | none | pytest.raises(IgnRoadVehicleProxyPolicyError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
 
 ## 8. Public exports and package ownership
 

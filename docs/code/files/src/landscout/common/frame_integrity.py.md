@@ -72,6 +72,14 @@ def deterministic_frame_schema_signature(
 
 Return the complete ordered schema identity used by integrity envelopes.
 
+**Ordered algorithm and representation**
+
+After accepting a DataFrame (including subclasses), the function records columns and dtypes in their existing order. It records the index's qualified runtime class, each index-level dtype, and index names, preserving `None` and stringifying other names. MultiIndex levels are handled separately; an ordinary index contributes one dtype. For a GeoDataFrame, the active geometry name is added, a missing CRS is rejected, and PyProj serializes the CRS as a PROJJSON-compatible mapping. No coordinates are transformed.
+
+The return value is a newly allocated, mutable dictionary containing lists and, for CRS, nested dictionaries/lists. It is an intermediate serialization payload, not a frozen trust-bearing model. Callers that retain it in immutable metadata freeze it separately. The source frame is unchanged. Row values, row count, actual index values, geometry WKB and source provenance are not included here; callers hash or compare those separately. Stringifying labels means this helper alone does not distinguish every possible Python label type.
+
+Errors from accessing malformed GeoDataFrame metadata or parsing its CRS are not translated here. In addition to the explicitly raised errors below, underlying GeoPandas/PyProj exceptions can propagate to the calling boundary.
+
 **Return contract**
 
 - Declared return annotation: `dict[str, object]`.
@@ -83,7 +91,7 @@ signature
 **Validation and exceptions**
 
 - Guard with a raise path: `not isinstance(frame, pd.DataFrame)`.
-- Guard with a raise path: `isinstance(frame, gpd.GeoDataFrame)`.
+- The GeoDataFrame branch adds geometry/CRS checks; merely being a GeoDataFrame is not an error.
 - Guard with a raise path: `geometry_column not in frame.columns`.
 - Guard with a raise path: `frame.crs is None`.
 - Explicit raise expressions: `TypeError('Frame schema signature requires a pandas DataFrame')`, `ValueError('GeoDataFrame CRS is missing')`, `ValueError('GeoDataFrame active geometry column is missing')`.

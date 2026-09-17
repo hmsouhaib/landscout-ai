@@ -1,0 +1,1036 @@
+LANDSCOUT — DOCS.CONTINUITY.1
+
+Audit the entire code reference and establish durable, evidence-linked cross-chat continuity
+
+Repository: C:\souhaib\landscout-ai
+Remote: hmsouhaib/landscout-ai
+Branch: main
+REQUIRED STARTING HEAD: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. User decision and one objective
+
+The user explicitly requests that the project be resumable in new ChatGPT/Codex
+sessions without relying on a previous conversation's remaining context.
+They also require an actual repository-wide audit of documentation against code,
+tests, interfaces, dependencies, algorithms, and architecture.
+
+The single objective is:
+
+A new session can reconstruct the evidenced project state, operating rules,
+implementation architecture and pending work from versioned repository files.
+
+This is not a new environmental feature. Pause functional progression after the
+published STEP 7F.1C.1 research draft. Do not start an executable semantic mapping.
+
+ChatGPT remains the independent read-only reviewer and ticket author. Codex
+performs the local audit, documentation/tooling changes, validation and publication.
+The user remains product decision-maker. Codex must not approve its own work on
+behalf of the independent reviewer.
+
+This ticket is self-contained: the continuity seed in Appendix A is information
+provided by the current conversation. Codex is NOT assumed to have access to old
+ChatGPT chats, account memory, hidden sessions, or external audit scripts.
+
+1. Truthfulness and the limits of historical recovery
+
+Do not promise reconstruction of unavailable conversation text.
+
+Preserve all available decisions and implementation evidence. Explicitly record
+missing prompts, missing review receipts, ambiguous dates, unresolved decisions,
+and conflicting historical claims. Do not fill gaps by guessing.
+
+Distinguish at least:
+
+implemented/pushed work;
+
+executions reported by Codex or DEV_LOG;
+
+executions actually performed during this audit;
+
+independent review verdict and its exact scope;
+
+user decision;
+
+proposed future work;
+
+superseded instruction;
+
+unavailable historical material.
+
+A Git commit proves publication of bytes. A passing suite does not prove every
+business contract. A matching documentation SHA does not prove prose accuracy.
+A historic complete label does not establish independent approval.
+
+Do not turn a current source-code defect into a product requirement by rewriting
+the intended contract to match the defect. Record the discrepancy instead.
+
+2. Readiness and non-destructive recovery
+
+Before any edit, run in the repository:
+
+git fetch origin
+git status --short
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/main
+git log -5 --oneline
+
+Require clean main and both refs at the required starting SHA. If not, stop,
+report the actual state and preserve every local change. No reset, restore,
+stash, clean, rebase, amend, automatic merge, or force-push.
+
+Inspect existing agent instructions, root documentation, docs index, and any
+existing continuity/audit files before creating alternatives. Reuse rather than
+duplicate an existing adequate authority.
+
+During this long audit maintain a resumable file-level progress ledger. If the
+session is interrupted, keep its accurate partial state and working files. On
+resumption inspect the diff and ledger first; do not blindly rerun the original
+clean-tree check and discard unfinished work to satisfy it.
+
+No partial state may be published as complete or independently approved.
+If a recovery checkpoint is needed, report the state for an explicit recovery
+instruction rather than silently publishing unfinished work on main.
+
+3. Strict modification scope
+
+Permitted:
+
+documentation and exact source/test companions;
+
+root AGENTS.md and minimal README links;
+
+durable project-state/decision/history records under docs/project/;
+
+a small local, read-only documentation audit tool under tools/, if needed;
+
+narrowly scoped tests of that audit tool;
+
+documentation inventories and audit reports.
+
+Not permitted:
+
+changing existing production behavior in src/**;
+
+changing existing test assertions/fixtures to hide application failures;
+
+modifying existing configs/**, .python-version, pyproject.toml, uv.lock;
+
+modifying cache formats, hashes, GIS logic, readers, policies or source identities;
+
+adding runtime data wrappers, semantic loaders, environmental decisions;
+
+CI, GitHub Actions, pull-request automation, repository settings or branch rules;
+
+Windows security changes or dependency reinstalls;
+
+redownloading/revising real EP/IGN/GPU/Cadastre snapshots;
+
+committing real datasets, binary references, environment files or secrets.
+
+Any actual code defect found during the documentation audit goes into the
+findings ledger with a reproducible example, affected symbols, severity and
+impact. Do not patch production in this ticket. Do not call the repository
+fully defect-free because the documentation audit completed.
+
+STEP 7F.1C.1 reference content may be mechanically indexed/checked but must not
+be silently promoted, rewritten into runtime policy or given unearned independent
+approval. Its full semantic review remains a distinct pending review item.
+
+4. Mandatory global inventory — no sampling presented as coverage
+
+Inventory ALL tracked files with Git, not a hard-coded remembered file count.
+Include all current source modules, unit tests, source/profile/policy configs,
+package exports, root tooling, code-reference documents and research references.
+
+Read completely:
+
+existing architecture, data flow, trust, GIS/CRS, cache/recovery, pipeline,
+glossary, testing, change-impact, file-index, technical README documents;
+
+every src/** file, its imports, classes, fields, public/private functions;
+
+every existing test file, fixtures, helper classes, parametrizations and
+assertions relevant to the implementation being documented;
+
+configuration and dependency/tool files plus their consumers;
+
+every current companion and the relevant historical DEV_LOG sections;
+
+existing Git history needed to reconstruct the step/decision ledger.
+
+Use AST and Git inventories to find omissions, but not to manufacture semantic
+explanations from identifiers. Inspect the actual behavior and its callers.
+
+Create a machine-readable coverage ledger with one record per audited file and
+symbol. Suggested fields:
+
+repository path and file role;
+
+exact source basis and SHA256;
+
+corresponding documentation path/anchor;
+
+qualified symbol, kind and source range;
+
+imports/exports/callers reviewed;
+
+signature/defaults/types checked;
+
+explanation, algorithm, errors and side effects reviewed;
+
+relevant test references and parametrization coverage;
+
+discrepancies found, corrections and remaining findings;
+
+audit status: NOT_READ / READ / CHECKED / CORRECTED / BLOCKED.
+
+Record totals for files, functions/methods, models/fields, test definitions and
+collected cases separately. No 100% claim based solely on companion presence,
+heading count, embedded source snapshots or grep matches.
+
+The report must make partial coverage unmistakable and allow another session to
+resume from the first unfinished item rather than repeat or lose work.
+
+5. Durable project memory — small entry point, linked detailed evidence
+
+Create/reuse the following structure, with clear ownership and no conflicting
+second copy of the same fact. Names may be adapted consistently.
+
+AGENTS.md — short repository entry point
+
+Keep it short (roughly 80 lines maximum). State the two agent roles and mandatory
+reading route. Link to authoritative rules/state/audit documents. It is not a
+second full manual and not a dump of this entire ticket.
+
+Do not rely on an application automatically reading it. The human new-chat prompt
+must explicitly request its reading.
+
+docs/project/WORKING_RULES.md
+
+Permanent user-approved collaboration rules, ticket protocol, independent-review
+gate, truthful evidence reporting, interruption recovery and no-drift boundaries.
+Use Appendix A. Distinguish permanent rules from one-ticket prohibitions.
+
+docs/project/CURRENT_STATE.md
+
+A compact current state, not a chronological log. Include:
+
+live repository/branch must be checked, not assumed from this file;
+
+latest implementation commit and publication scope;
+
+last independent approval, reviewed commit and approved scope;
+
+currently active ticket and its actual implementation/review state;
+
+exact next allowed action and next forbidden actions;
+
+active blockers, deferred work and unresolved product/source questions;
+
+links to baseline source hashes/toolchain and detailed evidence;
+
+instructions for reconciling live HEAD with the recorded state.
+
+At bootstrap, last approved implemented functional boundary is STEP 7F.1B.4.
+STEP 7F.1C.1 is a committed research draft, not a runtime mapping and not a fully
+independently audited semantic reference in the current review.
+
+Do not embed a commit's own final SHA inside itself. Record known reviewed/input
+SHAs; resolve the publication SHA through Git after commit and in the final report.
+A later review receipt may refer to that published SHA.
+
+docs/project/DECISIONS.md
+
+Stable decision IDs, rationale, scope, source, alternatives genuinely considered,
+consequences and links to affected code/docs. Preserve reversals and superseded
+rules instead of erasing them. Never invent a rejected alternative or rationale
+not established by evidence; label an audit inference explicitly.
+
+At minimum include evidence-first product boundaries, Muret-as-pilot, separate
+EP/Natura/ZNIEFF sources, SQLite geometry reader because of Pyogrio M loss,
+GEOMETRYCOLLECTION subtype correction, no operational semantic policy yet,
+read-only reviewer role and deferred CI/PR workflow.
+
+docs/project/STEP_LEDGER.json and a readable index
+
+Reconstruct the complete discoverable implementation sequence, including stages
+before INPN, from actual Git history and DEV_LOG plus the supplied context seed.
+Use exact existing step IDs. Do not renumber them.
+
+Each record should separately contain:
+
+step ID, purpose and domain;
+
+implementation status and applicable code commit(s);
+
+validation status, executor, environment and evidence location;
+
+independent review status, reviewer and precise scope;
+
+prompt availability and path when actually retained;
+
+correction/supersession links and dependencies;
+
+outstanding issues and provenance/source references.
+
+A Codex test report is REPORTED_PASS unless this audit reruns it. A previous
+review can be APPROVED_RECORDED_IN_CONVERSATION with its supplied provenance;
+that does not certify that every old artifact was independently reread today.
+
+Use null/UNAVAILABLE for missing SHAs, dates or full prompts, with a gap entry.
+Do not reconstruct original prompts and label the reconstruction verbatim.
+
+docs/project/BACKLOG_AND_GAPS.md
+
+One durable queue distinguishing:
+
+work explicitly authorized but unfinished;
+
+independent reviews still pending;
+
+proposed but not approved future work;
+
+deferred work (including CI/PR pipeline);
+
+unresolved source/semantic/geometry questions;
+
+missing historic context that cannot be recovered from accessible material.
+
+Include the precise review gap for STEP 7F.1C.1. Do not treat its 64 inventory
+entries as 64 established executable meanings.
+
+docs/project/RESUME.md
+
+A short new-chat procedure and ready-to-copy prompt. First recover identity,
+rules, state, approvals and next action; then load only relevant technical docs.
+Do not require every new chat to ingest every raw source snapshot and historic
+log before any task. The index must make deeper evidence discoverable.
+
+Require a context receipt before code/ticket action: exact current HEAD, last
+approved boundary, current pending work, essential prohibitions, unresolved
+questions and intended next step. Missing access or contradictory history must
+be disclosed, not replaced with assumed memory.
+
+docs/project/CONTEXT_PROVENANCE.md
+
+Preserve the supplied bootstrap seed and its scope. Link facts to repository
+paths/commits or this archived user-supplied ticket. Mark summarized conversation
+information as summarized, not a full transcript. Do not include hidden reasoning,
+secrets, unrelated family/career/financial information, or invented chat exports.
+
+Archive this ticket verbatim under a suitable docs/project/tickets/ path.
+For future tickets/review messages retain the exact text when supplied, linked
+from the ledger rather than repeatedly pasted into every summary.
+
+6. Complete documentation-content audit
+
+For every relevant function/method, verify and correct documentation of:
+
+exact name, signature, input/return types and defaults;
+
+purpose and actual ordered algorithm, including branches and empty cases;
+
+invariants, rejected inputs, normalization versus rejection;
+
+return representation versus serialized representation;
+
+mutation/aliasing/deep-immutability behavior;
+
+exceptions and which layer translates them;
+
+filesystem/network/database effects and cache behavior;
+
+caller/callee ownership and public versus private API;
+
+limitations and non-goals;
+
+tests that actually exercise the stated behavior.
+
+Do not call an AST-generated name or an embedded complete source block an
+algorithm explanation. Remove false generic boilerplate, not merely its wording.
+Preserve complete exact snapshots as verification aids, without duplicating them
+in the new project-state entry files.
+
+For models/configs, document each field's domain, units, defaults, null meaning,
+source identity, validation, runtime type and serialization where applicable.
+For tests, distinguish a test definition from parametrized collected cases;
+identify the real assertion/attack point and whether mocks bypass physical trust.
+
+For dependencies, distinguish:
+
+internal import direction and module ownership;
+
+public Python APIs/re-exports;
+
+remote source HTTP APIs;
+
+external packages/native libraries and pinned versus allowed versions.
+
+Do not invent a LandScout HTTP service, REST API or CLI that has not been built.
+Do not claim a static dependency/call graph resolves all dynamic behavior.
+Mark dynamic/unresolved call edges and verify the important public paths manually.
+
+Review architecture diagrams against actual imports and data/result objects.
+Review all domains, not only INPN: cadastre, GIS, grid, roads, GPU/PLU, written
+planning, CNIG, policy application/aggregation, artifact persistence, common
+contracts, configuration and environment evidence.
+
+The architecture/roadmap must distinguish implemented functions, supported
+library APIs, missing orchestration and future product outcomes. Do not present
+a collection of components as a finished autonomous product.
+
+7. Formatting, navigation and portable source binding
+
+Audit Markdown structure, tables, fenced blocks, explicit anchors, relative links,
+references between companions and cross-cutting docs, and Mermaid source.
+
+Reject stale absolute developer-machine links presented as shared navigation.
+Repository-relative links and explicit immutable Git references are preferred.
+External URLs may remain as documentary provenance; do not indiscriminately
+crawl every link or call an access failure a broken document.
+
+Check representative large tables/long files in a real Markdown renderer if
+available. Record which documents/renderers were actually inspected. Static
+checks are not visual rendering; absence of a renderer must be reported, never
+reported as a successful visual audit. Keep local data out of public renderers.
+
+Do not infer documentation success from Ruff: current companions contain source
+snapshots and are deliberately excluded from ordinary source formatting.
+
+Use one clearly documented raw-SHA256 binding basis. Prefer exact Git-stored
+source content bytes for portable future comparison. Distinguish:
+
+Git blob object ID;
+
+SHA256 of exact repository content bytes;
+
+SHA256 of checkout bytes affected by Windows line endings.
+
+A prior log notes a CRLF-only representation of
+configs/planning/muret_bess_zoning_policy.yaml. Check it explicitly. Never
+rewrite production/config files merely to match a documentation hash, and never
+silently normalize bytes while claiming exact equality. If companion headers
+are migrated to a portable basis, state that basis and audit their snapshots;
+record EOL-only differences transparently.
+
+Inventory exceptions explicitly. The paired semantic MD/JSON currently has an
+explicit companion exception in FILE_INDEX; do not infer missing companions
+without reading the stated scope. New project-state and audit documents are
+original documentation, not recursively companioned source. Avoid an infinite
+companion-of-companion or report-hashes-itself dependency.
+
+8. Repeatable local audit, not a CI project
+
+Provide a small local checker if the existing tools do not cover this:
+
+tools/audit_documentation.py --check
+
+Use the standard library and existing dependencies only. It must be read-only
+by default, deterministic, offline, and must not import production source just
+to enumerate it. Use AST/Git/source bytes and explicit documentation mappings.
+
+It should check the mechanically verifiable parts:
+
+inventory coverage and declared exceptions;
+
+source binding/snapshot identity;
+
+current symbol/signature inventories and documented anchors;
+
+package exports and referred symbols;
+
+relative links/anchors/fences;
+
+ledger references/status consistency;
+
+unresolved audit rows and stale source fingerprints.
+
+Human/agent semantic-review status is a separate ledger fact. The tool must not
+certify semantic understanding from string presence.
+
+Add focused synthetic tests for the checker: missing companion/anchor,
+stale hash, changed signature, missing export, bad local link, malformed fence,
+ambiguous line-ending basis, missing review provenance and correctly accepted
+small fixture. No test should need network or the actual EP cache.
+
+Keep the checker narrow. No CI, daemon, hosted service, new runtime validation
+framework, generated megadocument or duplicate business implementation.
+
+Record an audit report such as:
+
+docs/code/audit/DOCUMENTATION_AUDIT.md
+docs/code/audit/coverage.json
+
+Reports must identify the audited source manifest and excluded self-referential
+outputs. A report cannot honestly embed its own future commit SHA or its own
+complete self-hash.
+
+9. Cold-start comprehension exercise
+
+Create a reusable, bounded exercise that does not rely on our chat.
+
+When a genuinely fresh agent/context is available, give it only AGENTS.md and
+repository-document access. It must answer, with file/section references:
+
+What is LandScout's final purpose, and why is Muret not the permanent scope?
+
+What is implemented versus explicitly absent?
+
+What is live HEAD, the last independently approved step, and current pending work?
+
+Who may modify/push the repository, and how are tickets sequenced?
+
+How do source bytes become trusted results; where are hashes insufficient alone?
+
+Why are EP geometry rows read with SQLite rather than Pyogrio?
+
+What does FID alignment prove, and what does it not prove?
+
+Why is sig_tadl unresolved despite matching catalog/observed bounds?
+
+Why does the STEP 7F.1C.1 draft not authorize executable category rules?
+
+Which functions, APIs, configurations and tests would be affected by an
+INPN acquisition or alignment change?
+
+What exact local validation routine and short basetemp convention applies?
+
+What must be preserved after an interrupted session, and what work is deferred?
+
+Then let a separate verifier compare these answers with current source/tests
+and provenance. Record omissions, ambiguities and corrections to documentation.
+The exercise must not edit production or decide the next functional ticket.
+
+Do not fake a fresh session by claiming the same context forgot everything.
+If no separate context is available, record NOT_EXECUTED_FRESH_CONTEXT, prepare
+the exact prompt/questions, and leave this acceptance item pending for the next
+independent ChatGPT review. Documentation audit completion and cold-start
+acceptance are separate statuses.
+
+10. Maintenance protocol after this bootstrap
+
+Every future ticket must include:
+
+update affected companions and impact maps;
+
+update current state/backlog/step ledger;
+
+record new decisions and superseded instructions;
+
+retain exact ticket text and available review receipts;
+
+record actually run commands, results and limitations;
+
+preserve unresolved questions and missing evidence;
+
+run the local documentation checks;
+
+leave independent review pending until its actual verdict is supplied.
+
+A new approval is tied to a commit and scope. A documentation-only successor
+may retain code approval via identical source-tree evidence but cannot claim
+its new prose was previously reviewed.
+
+The reviewer still does not push changes. Its verdict can be carried into Git
+by Codex during the next explicitly authorized update, with exact provenance.
+Do not make the system depend on the reviewer secretly writing to the repository.
+
+11. Validation and no-unintended-code-change proof
+
+Run the documentation auditor and its focused tests, then the complete existing
+repository once at finalization, not after every prose edit.
+
+Use a SHORT unique --basetemp for each pytest invocation below:
+
+%LOCALAPPDATA%\LandScout\pytest-runs
+
+Avoid the default inaccessible pytest-current and long prefixes. Preserve
+existing Windows/native dependency configuration.
+
+The starting full test count reported for the unchanged application tree is
+3,939. If a local documentation-audit test file is added, report the exact new
+case arithmetic. Do not weaken existing tests to satisfy this count.
+
+Run:
+
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+uv lock --check
+uv pip check
+uv run python -m compileall -q src tests tools
+git diff --check
+
+Adapt compileall paths to actually created folders. Explicitly type-check the
+audit tool with the installed checker if added; do not change the project-wide
+configuration to suppress findings. Report warnings/skips/xfails and native exit
+codes, including session cleanup.
+
+Verify all pre-existing production/config/dependency files and pre-existing
+tests are byte-identical to starting HEAD. Only narrowly scoped new tooling/tests
+are permitted. A documentation review does not require redownloading real data
+or rerunning every expensive EP profile build when their executable tree is
+unchanged. Do not represent old real-source runs as new runs.
+
+Keep an exact protected-file manifest rather than relying on a clean summary.
+
+12. Completion, findings and publication
+
+The documentation audit may be complete while an independent code defect or
+historical gap remains OPEN. It may not claim every contract is sound in that
+case. The report must clearly separate:
+
+documentation issues fixed;
+
+documented limitations/history gaps;
+
+actual application defects requiring a separate correction;
+
+independent review and cold-start acceptance still pending.
+
+Finish the documentary ledger/report first; append a truthful DOCS.CONTINUITY.1
+DEV_LOG entry, then synchronize its companion last. Do not erase earlier logs.
+
+Before commit, review every changed path and line. Stage explicit reviewed
+paths only, not git add . or git add -A.
+
+Commit message:
+
+docs: establish audited LandScout continuity reference
+
+Push only after the ticket's achievable required checks succeed and open items
+are honestly classified. Do not push on production-test failure or publish a
+partial file audit as complete. Preserve work and report the failure.
+
+Verify final clean tree, HEAD == origin/main, exact changed-file list and actual
+publication SHA. Do not delete historical recovery branches or rewrite history.
+
+Then STOP. No semantic mapping, category rules, environmental normalization,
+parcel analysis, owner workflow, scoring or next functional ticket.
+
+13. Required final report
+
+Return DOCS.CONTINUITY.1 implementation completed — independent review pending
+only if the bounded implementation/audit is complete; otherwise say PARTIAL.
+
+Report:
+
+starting/final SHA, branch, publication and worktree state;
+
+exact changed files and proof protected code/config/test bytes stayed unchanged;
+
+files/symbols/models/fields/test definitions/collected cases audited;
+
+per-file ledger location, coverage, uncovered cases and explicit exceptions;
+
+substantive documentation contradictions found and exact corrections;
+
+broken links/anchors/fences, rendered documents and real rendering limits;
+
+dependency/API/data-flow audit outcomes and unresolved dynamic edges;
+
+restored user rules/decisions/step history and their provenance;
+
+missing historical prompts/reviews, not guessed substitutes;
+
+current state and next authorized action;
+
+STEP 7F.1C.1 retained research/review status;
+
+cold-start exercise: actual executor/context/access/results or NOT_EXECUTED;
+
+local audit tool command and self-test results;
+
+actual full-suite and quality results;
+
+remaining application findings requiring independent correction tickets;
+
+ready-to-copy short new-chat prompt using only repository documents.
+
+No global independent approval can be granted by this report itself.
+
+Appendix A — Bootstrap continuity seed supplied by the current conversation
+
+This is a factual selected reconstruction of available conversation context,
+not a complete transcript or a substitute for Git/source verification. Preserve
+its source label. Validate commit identities from Git. When unavailable, record
+the gap; do not invent missing dates or reviews.
+
+A1. Product and roles
+
+Repository: hmsouhaib/landscout-ai; local Windows path C:\souhaib\landscout-ai.
+
+Final product: land-origination and preliminary-analysis engine, BESS-first.
+SCAN -> FILTER -> ANALYZE -> SCORE -> IDENTIFY -> EXPORT -> HUMAN.
+
+Muret, commune code 31395, is the current proving ground, not permanent scope.
+
+The eventual human/export workflow is a future outcome, not implemented merely
+because component APIs or diagnostic files exist. No invented owners/contacts.
+
+An overnight scan was an example, not a permanent scheduling requirement.
+
+User/product owner: Souhaib. ChatGPT: read-only architect/technical/product
+reviewer and ticket author. Codex: implementation, validation, commit/push.
+
+One Codex ticket at a time, explicit context, starting SHA, bounded scope,
+examples where useful, readiness/done criteria and exact validation commands.
+Small functional increments; consolidated corrective tickets when justified.
+
+Independent review before the next functional increment. Codex logs are leads
+to evidence, not independent proof. Read actual source/tests/docs/diff.
+
+User explicitly requested per-file, per-function documentation and a real
+audit, not boilerplate descriptions or code snapshots alone.
+
+CI/PR/pipeline implementation is deferred by user decision. Do not revive it
+merely because this ticket introduces a local documentation check.
+
+A2. Evidence and business boundaries
+
+Prefer official/open source evidence. Unknown stays unknown; no fabricated facts.
+
+Separate source acquisition, normalization, physical/spatial facts, proxy
+evidence, policy/precheck, diagnostics, later scoring and human decision.
+
+Road proximity does not establish legal/heavy-truck/construction access.
+
+Grid proximity/IGN transformation posts do not establish RTE connection points,
+available capacity, cost or connection feasibility.
+
+Planning evidence is preliminary, not authorization or prohibition.
+
+BESS ICPE applicability is not assumed; UP/AUp route conditions must not attach
+ICPE-only evidence as an unconditional general prerequisite.
+
+Physical inventory, hashes and FID alignment do not establish legal meaning or
+correct real-world georeferencing.
+
+EP, Natura 2000 and ZNIEFF are distinct source archives. Current EP work does
+not implement those other datasets or their policy semantics.
+
+Canonical text identities are rejected when malformed, not silently rewritten.
+Raw attribute TEXT values preserve exact whitespace, case and accents.
+
+A true byte snapshot is different from hash(path) -> reopen(path) -> hash(path).
+Shared network transport binds the actual socket to validated DNS addresses.
+Raw source bytes and parser-derived geometry WKB are separate evidence.
+
+Matching SHA headers does not prove correct explanatory prose. Native/runtime
+execution and independent review are distinct evidentiary scopes.
+
+A3. Critical implementation decisions to preserve
+
+Existing pipeline domains: cadastre and parcel geometry/shape; RTE/ODRÉ and IGN
+grid proxies/coverage; GPU/PLU zoning and written regulations; CNIG planning
+features/policies/application/aggregation/artifact contracts; road proxies;
+shared safe HTTPS/cache recovery/immutability; INPN source evidence.
+
+Source-complete public APIs own trusted physical reconstruction. Private
+computational/intrinsic helpers do not become equivalent public trust roots.
+
+Cache verification and recovery preserve valid offline reuse and recovery
+material. Never redownload large sources just to change unit-level code.
+
+EP acquisition/archive-member authority, metadata catalog, attribute profile,
+geometry profile and evidence bundle are separate approved components.
+
+Pyogrio 0.13.0 drops M in geometry-row conversion; approved geometry reader:
+verified GPKG bytes -> sqlite3.deserialize -> query-only SELECT FID + geometry
+BLOB -> Standard GeoPackageBinary -> embedded ISO WKB -> Shapely.
+
+Preserve XY/XYZ/XYM/XYZM and supported EMPTY behavior. No automatic repairs,
+dimension dropping or reprojection at the evidence-profiling stage.
+
+GEOMETRYCOLLECTION accepts GeometryCollection and three Multi* families, not
+bare Point/LineString/Polygon. This corrected an earlier reviewer-written ticket.
+
+FID equality requires canonical full sequence hashes, not counts/min/max alone.
+[1,2,4] and [1,3,4] are different. No substitution of id_mnhn for physical FID.
+
+The evidence bundle assembles validated immutable profiles; it does not yet
+create a joined per-feature attribute/geometry table or operational policy.
+
+A4. Latest publication versus approval
+
+Known actual current main at this ticket creation:
+
+aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+Parent:
+
+ca0ec73de37137b5515c1dfea14e2ea8a2a1ba3d
+
+Latest independently approved functional step in this conversation:
+
+STEP 7F.1B.4 — bundle assembly / FID alignment, commit ca0ec73...
+
+Latest published step:
+
+STEP 7F.1C.1 — semantic-reference research draft, commit aa4ebc...
+
+Current independent-review scope for 7F.1C.1:
+
+publication, direct parent and seven-file documentation-only scope verified;
+
+frozen source bindings, research status, coverage/null summaries, field-mapping
+limitations and documentary-version conflict inspected;
+
+NOT a completed independent audit of all 64 individual semantic entries,
+all 42 documentary sources, every JSON line or all Markdown/JSON equivalences;
+
+do NOT record global semantic approval based on this bootstrap;
+
+keep RESEARCH_DRAFT_NOT_RUNTIME_POLICY and independent semantic review PENDING;
+
+no executable semantic mapping is authorized.
+
+The user now prioritizes DOCS.CONTINUITY.1 before further functional development.
+
+A5. STEP 7F.1C.1 facts and unresolved questions
+
+Committed pair:
+
+docs/reference/inpn_ep_2026_07_semantic_reference.md
+
+docs/reference/inpn_ep_2026_07_semantic_reference.json
+
+Three exact fields: type_espace, statut, objectif_protection.
+
+Dossier-reported observed inventory:
+
+type_espace: 61 non-null values, 11,381 non-null cells, zero nulls;
+
+statut: no non-null value, 11,381 nulls;
+
+objectif_protection: Géologie 263, Nature 8,813, nature 290, plus 2,015 nulls;
+
+64 exact non-null composite value keys total, 45 layer/field records;
+
+55 type_espace and two objective meanings have official-context status;
+seven exact meanings unresolved;
+
+confirmed snapshot meanings: 0/64; snapshot applicability unresolved for all;
+
+no inference of cross-field co-occurrence from marginal domains;
+
+no splitting of delimiters or automatic Nature/nature equivalence;
+
+no runtime reader or policy consumes the JSON.
+
+Documentary questions:
+
+Which exact producer edition/export dictionary defines these physical columns?
+
+What establishes field/value correspondence to EP 07/2026 rather than merely
+an official category definition elsewhere?
+
+Why is statut uniformly NULL, and what contract applies to null/empty values?
+
+How do older COVADIS and later CNIG draft status/chronology relate to the export?
+
+Dossier records unavailable sources and no visual PDF inspection. This review
+obtained parsed official PDF text but screenshot attempts also failed; do not
+claim that visual limitation was closed.
+
+Every scope/jurisdiction/seasonal/buffer/composite wording remains subject to
+its documented limitations; no BESS authorization/exclusion follows.
+
+A6. Exact pinned EP evidence
+
+Declared version: 07/2026
+Archive size: 99,835,011 bytes
+Regular extracted files / packages / layers: 15 / 15 / 15
+Field definitions: 195
+Source rows/FIDs: 11,381
+
+Archive SHA256:
+73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5
+
+Catalog schema 2 SHA256:
+ba1b9be89d6b951a5c3b5d6b54d1c42f14e0c7bc6669079b1944ff2ffd4c6b34
+
+Attribute schema 1 SHA256:
+c0bfb73643f2143bd050a7b3f6f59e7ddb52cbcd0efe8612cc45adbc8bc254e8
+
+Geometry schema 1 SHA256 on the recorded toolchain:
+997c8c27cbbedb2860778386b3f2eb5afa9f64de6ad07e41fc67b4cec9060ee7
+
+Evidence-bundle schema 1 SHA256:
+a558236c6a246999fca83ac10c443cd686807675327cdab2da5405143db56016
+
+Recorded geometry totals: 11,381 valid non-empty XY MultiPolygons;
+10,281,493 coordinates; zero NULL/EMPTY/invalid/Z/M.
+
+These are versioned snapshot facts, not universal facts about every future EP
+release. Inherit geometry/bundle toolchain dependence; do not call those hashes
+platform-independent.
+
+Unresolved sig_tadl observation:
+
+EP/sig_tadl.gpkg; declared SRS/EPSG 32753; Z/M flags 0/0;
+
+one valid XY MultiPolygon, 620 coordinates;
+
+catalog and observed bounds both
+(140.000388639325, -66.6746135205968,
+140.027762750552, -66.660531007899);
+
+exact agreement does not establish correctness of georeferencing;
+
+no silent inference of EPSG:4326, CRS replacement or reprojection.
+
+A7. Environment and interruption history
+
+User's Windows computer is PERSONAL, not an assumed enterprise-managed PC.
+
+Earlier genuine Pyogrio _io.pyd import was blocked by Smart App Control.
+The user found it enabled, disabled it, then native imports/tests succeeded.
+Do not assume the current environment is still blocked or request corporate IT.
+Do not change any security setting as part of repository work.
+
+Pytest later failed AFTER successful test bodies in session cleanup at the
+default pytest-current alias with WinError 5. Full command exit 0 matters.
+
+Approved workaround: fresh SHORT unique --basetemp under
+%LOCALAPPDATA%\LandScout\pytest-runs for each invocation; long names also caused
+Windows fixture-path issues. Do not delete broad temp trees or change tests.
+
+Reported approved native stack: Python 3.12.13, SQLite 3.53.1, Pyogrio 0.13.0,
+GDAL 3.12.4, Shapely 2.1.2, GEOS 3.13.1, PyProj 3.7.2.
+These are observed versions to verify against the actual lock/runtime, not a
+reason to reinstall or invent a new Python pin.
+
+Historic WIP branch recovery/step-7f-1b-1-2-wdac-blocked preserved interrupted
+work; final clean main squash had an equal tree to the validated recovery tree.
+Preserve that history. Ordinary main workflow does not authorize arbitrary WIP
+commits or force-pushes.
+
+Current application test baseline reported by completed 7F.1C.1: 944 focused
+INPN, 3,939 full, four pre-existing warnings. No tests added by that docs step.
+
+No GitHub CI proof should be inferred from these local executions.
+
+A8. Historical anchors for the step ledger
+
+Verify each association against Git before treating it as repository-derived.
+These anchors are not an exhaustive history and do not supply missing full prompts.
+
+Step / anchor
+
+Commit
+
+7F.1A.2 corrective source trust
+
+0078b4d7b39845615e5e1535a2d1e438b4edfc79
+
+7F.1A.2.1 correction
+
+16de8c0e0f78e4da651015c2ac68228b99abd540
+
+7F.1A.3 initial code reference
+
+712921ae06c2cae0d2469cd2932369b2332bae66
+
+7F.1A.3.1 documentation correction
+
+10cd448ef0647438c755ccf9dde619f23a96594c
+
+Input anchor before 7F.1A.4, earlier exact step mapping to verify
+
+6c4d7ac285a7a9a126807b52446a53e542c5612e
+
+7F.1A.4 end-to-end trust correction
+
+b19a21ea3d059606ff8ce1c8a6f5450f3dc29953
+
+Input anchor before 7F.1A.4.2.1, earlier mapping to verify
+
+c76386eff3746f6a28d36ee42c1fcbe19c9b2902
+
+7F.1A.4.2.1 doc sync
+
+6c20cb4ba51bded40ad314a10faa13179a39bb9b
+
+7F.1A.4.2.2 doc correction
+
+6ed496e89a42ba9642deb9363f987b7fb7f45102
+
+7F.1B.1 metadata catalogue
+
+0ae05234ead6ff9fc2eb2d62bfe8830032d748cb
+
+7F.1B.1.1 archive/package snapshot correction
+
+090626e8680c97854d940fcf5ee4872f5cd06bf3
+
+7F.1B.1.2 recovery checkpoint
+
+26824f14e9725daed6261bb6555e9962c587edc0
+
+7F.1B.1.2.1 recovery correction
+
+f20687f1c2f09190530cfaffae3cfa8e4b18fa94
+
+7F.1B.1.2 final recovery evidence
+
+dcf071f9751948c810c720d588711ce690fc2f8e
+
+7F.1B.1.2 clean main finalization
+
+40e9493e5c178f483907a052235186bf984ee84c
+
+7F.1B.2 attribute profile
+
+77d0e9382e633b48d9c5ae6a94e05f65fef8856a
+
+7F.1B.2.1 intrinsic profile correction
+
+3ecb918d2e01d63332513bbf63e4fd331a1a64ce
+
+7F.1B.2.2 shared path grammar/FID evidence
+
+abcba8e5311726c16cbfd7f9da95d415a79495c2
+
+7F.1B.3 raw SQLite geometry profile
+
+57edf93611d028092450a58de1b6df73bc6a1ee2
+
+7F.1B.3.1 declared geometry types
+
+a2ebe5266a37cb8de6131b52631111e47e0235f3
+
+7F.1B.3.2 collection subtype correction
+
+9f696c2d687edddff4dc453e195034a7d9b41fac
+
+7F.1B.4 aligned evidence bundle
+
+ca0ec73de37137b5515c1dfea14e2ea8a2a1ba3d
+
+7F.1C.1 research reference publication
+
+aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+Earlier foundations, grid/road/planning milestones, intermediate corrective
+steps and decisions must be recovered from Git/DEV_LOG where available. Missing
+conversation-only decisions remain explicit HISTORY_GAP records.
+
+Do not infer approval of an intermediate faulty commit merely because a later
+corrected boundary was approved. Keep implementation, correction and review links.
+
+A9. New-chat prompt to implement in the durable resume file
+
+French user-facing template, with actual verified paths once created:
+
+Reprends LandScout depuis le dépôt hmsouhaib/landscout-ai. Tu es uniquement
+reviewer/architecte/PO : aucune écriture Git. Lis AGENTS.md, puis les règles,
+l'état courant, le registre des étapes/décisions et le backlog indiqués.
+Vérifie le HEAD distant et les preuves du dernier verdict, sans considérer
+« terminé » dans un log comme une approbation indépendante. Charge ensuite les
+documents techniques nécessaires. Avant de proposer quoi que ce soit, restitue
+le but, l'état implémenté/approuvé, le ticket actif, les règles, les limites et
+les informations manquantes. Un seul ticket Codex à la fois ; n'invente pas
+l'historique absent et ne passe pas à l'étape fonctionnelle suivante sans revue.
+

@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+- Responsibility: Tests GPU config, discovery, cache/extraction recovery and source-bound spatial inspection using mocked transport and synthetic local files; coverage is limited to the explicit assertions in this file.
 - Source SHA256: `e03d758f96f52b143f2908557cea2b10c087316d73a093ddf0174f86abe46622`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,9 +16,9 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+Tests GPU config, discovery, cache/extraction recovery and source-bound spatial inspection using mocked transport and synthetic local files; coverage is limited to the explicit assertions in this file.
 
-The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
+The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to its actual fixtures, attacks and assertions. The per-callable prose below is the behavioral explanation; exact code blocks and call-expression tables are verification aids, not substitutes for that explanation. `GpuSourceConfig.model_validate` is the model-facing Pydantic API inherited from `BaseModel`, not a method implemented in this test or overridden in `gpu_fr`.
 
 ## 3. Imports and dependencies
 
@@ -98,7 +98,7 @@ _UNSAFE_ARCHIVE_NAMES = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Used by the parametrization decorators on `test_discovery_rejects_unsafe_archive_name` and `test_download_rejects_forged_unsafe_archive_name_before_io`; the sixteen literal values are reused at both public boundaries.
 
 
 ### Executable module-import-time statements
@@ -109,7 +109,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `_Response`
 
-**Source purpose:** Defines `_Response`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** In-memory response fixture implementing the context-manager protocol expected by the GPU transport consumer. It inherits `io.BytesIO` storage and read behavior; its own exit method closes that buffer. It owns no socket, HTTP headers or new fields.
 
 - Exact decorators: none.
 - Exact bases: `io.BytesIO`.
@@ -143,7 +143,7 @@ class _Response(io.BytesIO):
 
 ### `_Response.__enter__`
 
-**Purpose:** Implements `enter` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Return the same in-memory byte stream for a `with` statement; no HTTP connection or filesystem stream is opened.
 
 **Exact signature**
 
@@ -158,13 +158,12 @@ def __enter__(self) -> Self:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
 - Exact observed return expressions:
   - `self`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -174,21 +173,6 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 - No calls.
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -196,13 +180,9 @@ def __enter__(self) -> Self:
         return self
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_Response.__exit__`
 
-**Purpose:** Implements `exit` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Close the inherited `io.BytesIO` buffer on context exit, ignoring the exception arguments and returning `None`, so any active exception is not suppressed. This changes only the in-memory stream state.
 
 **Exact signature**
 
@@ -217,13 +197,11 @@ def __exit__(self, *args: object) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | not annotated | `required` |
 | `*args` | variadic positional | `object` | `variadic` |
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -233,22 +211,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `self.close` | `tests.unit.test_gpu_fr._Response.close` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `self.close` | `io.BytesIO.close` (inherited by `_Response`; no local override) |
 
 **Complete source-ordered implementation**
 
@@ -257,13 +220,9 @@ def __exit__(self, *args: object) -> None:
         self.close()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_config`
 
-**Purpose:** Implements `config` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Load the checked-in `configs/sources/gpu_fr.yaml` through the real strict loader and return its validated immutable `GpuSourceConfig`. This helper reads local YAML; it does not contact the GPU API.
 
 **Exact signature**
 
@@ -282,7 +241,6 @@ def _config() -> GpuSourceConfig:
 
 - Exact observed return expressions:
   - `load_gpu_source_config(Path("configs/sources/gpu_fr.yaml"))`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -378,21 +336,6 @@ Outbound call expressions and conservative ownership:
 | `load_gpu_source_config` | `landscout.sources.gpu_fr.load_gpu_source_config` |
 | `Path` | `pathlib.Path` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -400,13 +343,9 @@ def _config() -> GpuSourceConfig:
     return load_gpu_source_config(Path("configs/sources/gpu_fr.yaml"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_listing_item`
 
-**Purpose:** Implements `listing item` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Create a new mutable listing-response dictionary for current, approved, in-force `doc-1`, type `PLU`, archive `31395_PLU_20240215`, partition `DU_31395` and Muret grid. Apply keyword overrides to that new dictionary and return it; it is a synthetic API payload, not validated source evidence.
 
 **Exact signature**
 
@@ -427,7 +366,6 @@ def _listing_item(**overrides: object) -> dict[str, object]:
 
 - Exact observed return expressions:
   - `result`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -458,21 +396,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `result.update` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `result.update(overrides)` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -491,13 +414,9 @@ def _listing_item(**overrides: object) -> dict[str, object]:
     return result
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_details`
 
-**Purpose:** Implements `details` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Start with a fresh listing payload, add synthetic Muret title/producer, EPSG:2154, publication/update strings, metadata ID, official archive URL and written-material URL mapping, then apply the supplied overrides. Only the new dictionary is mutated; no metadata or document is fetched.
 
 **Exact signature**
 
@@ -518,7 +437,6 @@ def _details(**overrides: object) -> dict[str, object]:
 
 - Exact observed return expressions:
   - `result`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -542,21 +460,6 @@ Outbound call expressions and conservative ownership:
 | `_listing_item` | `tests.unit.test_gpu_fr._listing_item` |
 | `result.update` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `result.update(overrides)` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -577,13 +480,9 @@ def _details(**overrides: object) -> dict[str, object]:
     return result
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_files`
 
-**Purpose:** Implements `files` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Return a new one-item mutable files-list payload naming `reglement.pdf`, its accented written-regulation title and `Règlements` path. This describes a synthetic API response; it does not create or read a PDF.
 
 **Exact signature**
 
@@ -602,7 +501,6 @@ def _files() -> list[dict[str, object]]:
 
 - Exact observed return expressions:
   - `[{"name": "reglement.pdf", "title": "Règlement écrit", "path": "Règlements"}]`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -623,21 +521,6 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 - No calls.
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -645,13 +528,9 @@ def _files() -> list[dict[str, object]]:
     return [{"name": "reglement.pdf", "title": "Règlement écrit", "path": "Règlements"}]
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_patch_json_responses`
 
-**Purpose:** Implements `patch json responses` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Retain an iterator over the supplied response sequence and monkeypatch `gpu.open_safe_https` with the nested opener for this test. The patch replaces the shared transport entry point, bypassing real DNS, socket validation and HTTP while leaving the GPU JSON decoder and document-selection logic active.
 
 **Exact signature**
 
@@ -673,8 +552,6 @@ def _patch_json_responses(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -702,22 +579,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `iter` | `unresolved local/third-party receiver; no ownership inferred` |
-| `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `monkeypatch.setattr` | `pytest.MonkeyPatch.setattr` (test-scoped replacement; target described above) |
 
 **Complete source-ordered implementation**
 
@@ -733,13 +595,9 @@ def _patch_json_responses(
     monkeypatch.setattr(gpu, "open_safe_https", opener)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_patch_json_responses.opener`
 
-**Purpose:** Implements `opener` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** When the patched `gpu.open_safe_https` is called, consume the next supplied object, JSON-serialize and encode it, and return an in-memory `_Response`. Request arguments are ignored; exhaustion raises `StopIteration`, and no request URL or live network behavior is verified by this callback.
 
 **Exact signature**
 
@@ -761,7 +619,6 @@ def opener(*args: object, **kwargs: object) -> _Response:
 
 - Exact observed return expressions:
   - `_Response(json.dumps(next(responses)).encode())`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -776,21 +633,6 @@ Outbound call expressions and conservative ownership:
 | `json.dumps` | `json.dumps` |
 | `next` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -798,13 +640,9 @@ def opener(*args: object, **kwargs: object) -> _Response:
         return _Response(json.dumps(next(responses)).encode())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_document`
 
-**Purpose:** Implements `document` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Install the ordered synthetic listing, detail and file responses, then call the real `discover_current_gpu_document(_config())` and return its metadata record. The function has no return annotation; its actual return is `GpuDocumentMetadata`, not `None`. Discovery/parsing is exercised, but transport and remote provenance are mocked.
 
 **Exact signature**
 
@@ -813,7 +651,7 @@ def _document(monkeypatch: pytest.MonkeyPatch):
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- Declared return annotation: absent (the actual return is `GpuDocumentMetadata`).
 
 **Inputs**
 
@@ -825,7 +663,6 @@ def _document(monkeypatch: pytest.MonkeyPatch):
 
 - Exact observed return expressions:
   - `discover_current_gpu_document(_config())`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -857,21 +694,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -880,13 +702,9 @@ def _document(monkeypatch: pytest.MonkeyPatch):
     return discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_zip_bytes`
 
-**Purpose:** Implements `zip bytes` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Write each entry of `files` into a DEFLATED ZIP held in `io.BytesIO`, close the ZIP and return immutable bytes. `None` and an empty dictionary both select the default `document/readme.txt` payload because the implementation uses `files or default`; no file is written to disk.
 
 **Exact signature**
 
@@ -907,7 +725,6 @@ def _zip_bytes(files: dict[str, bytes] | None = None) -> bytes:
 
 - Exact observed return expressions:
   - `stream.getvalue()`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -936,21 +753,6 @@ Outbound call expressions and conservative ownership:
 | `archive.writestr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `stream.getvalue` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `zipfile.ZipFile` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -962,13 +764,9 @@ def _zip_bytes(files: dict[str, bytes] | None = None) -> bytes:
     return stream.getvalue()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_zip_member_bytes`
 
-**Purpose:** Implements `zip member bytes` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Create an in-memory DEFLATED ZIP from the ordered member list, allowing duplicate names for hostile fixtures. Suppress only `UserWarning` during fixture construction, not warnings from the validator under test; return the completed bytes without filesystem or network I/O.
 
 **Exact signature**
 
@@ -989,7 +787,6 @@ def _zip_member_bytes(members: list[tuple[str, bytes]]) -> bytes:
 
 - Exact observed return expressions:
   - `stream.getvalue()`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -1009,21 +806,6 @@ Outbound call expressions and conservative ownership:
 | `archive.writestr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `stream.getvalue` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `zipfile.ZipFile` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1037,13 +819,9 @@ def _zip_member_bytes(members: list[tuple[str, bytes]]) -> bytes:
     return stream.getvalue()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_download`
 
-**Purpose:** Implements `download` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Discover the synthetic document through `_document`, replace the transport with an in-memory ZIP response and invoke the real downloader in `tmp_path`. A falsey `archive_bytes` selects the default ZIP. The public downloader performs real temporary-file, ZIP, hash, sidecar and publication work on synthetic local bytes; HTTP and DNS are bypassed.
 
 **Exact signature**
 
@@ -1070,7 +848,6 @@ def _download(
 
 - Exact observed return expressions:
   - `download_gpu_document(document, _config(), tmp_path)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -1128,21 +905,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1160,13 +922,9 @@ def _download(
     return download_gpu_document(document, _config(), tmp_path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_planning_archive`
 
-**Purpose:** Implements `planning archive` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Create a local synthetic package containing a real EPSG:2154 GeoPackage: three zoning polygons (valid square, invalid bow-tie, NULL) with raw label/code attributes and one prescription polygon. Write marker PDF bytes and a CNIG-standard XML file, then traverse and ZIP those regular files into `planning.zip`. GeoPandas/native GIS writing and local archive I/O are real; the PDF marker is not evidence of readable written regulations.
 
 **Exact signature**
 
@@ -1187,7 +945,6 @@ def _planning_archive(tmp_path: Path) -> Path:
 
 - Exact observed return expressions:
   - `archive_path`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -1228,21 +985,6 @@ Outbound call expressions and conservative ownership:
 | `path.relative_to(package).as_posix` | `unresolved local/third-party receiver; no ownership inferred` |
 | `path.relative_to` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `zipfile.ZipFile`<br>`path.is_file` |
-| Filesystem/archive write or publication | `package.mkdir`<br>`(package / "31395_reglement.pdf").write_bytes`<br>`(package / "metadata.xml").write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1274,13 +1016,9 @@ def _planning_archive(tmp_path: Path) -> Path:
     return archive_path
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_valid_config_and_urls`
 
-**Purpose:** Regression invariant: valid config and urls. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Load real checked-in YAML and assert the Muret partition is `DU_31395`, its listing query contains that partition, and its download URL ends with the exact partition endpoint. URL construction is exercised without network requests; substring/suffix assertions are not a full transport-safety test.
 
 **Exact signature**
 
@@ -1297,8 +1035,6 @@ def test_valid_config_and_urls() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert build_gpu_partition(config) == "DU_31395"`
   - `assert "partition=DU_31395" in build_gpu_document_list_url(config)`
@@ -1318,21 +1054,6 @@ Outbound call expressions and conservative ownership:
 | `build_gpu_partition_download_url(config).endswith` | `unresolved local/third-party receiver; no ownership inferred` |
 | `build_gpu_partition_download_url` | `landscout.sources.gpu_fr.build_gpu_partition_download_url` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1345,13 +1066,9 @@ def test_valid_config_and_urls() -> None:
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_duplicate_gpu_yaml_key_is_rejected`
 
-**Purpose:** Regression invariant: duplicate gpu yaml key is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Copy the checked-in YAML to a temporary file with a second `provider` key, invoke the real loader, and require `GpuConfigError` whose cause mentions a duplicate. The temporary write is the attack; parser rejection, not a later provider comparison, is asserted.
 
 **Exact signature**
 
@@ -1370,8 +1087,6 @@ def test_duplicate_gpu_yaml_key_is_rejected(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(gpu.GpuConfigError)`
 - Exact assertions:
@@ -1393,21 +1108,6 @@ Outbound call expressions and conservative ownership:
 | `str(captured.value.__cause__).casefold` | `unresolved local/third-party receiver; no ownership inferred` |
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `Path("configs/sources/gpu_fr.yaml").read_bytes` |
-| Filesystem/archive write or publication | `config_path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1423,13 +1123,9 @@ def test_duplicate_gpu_yaml_key_is_rejected(tmp_path: Path) -> None:
     assert "duplicate" in str(captured.value.__cause__).casefold()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_invalid_config_values_are_rejected`
 
-**Purpose:** Regression invariant: invalid config values are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** For nine declared path/value cases, dump a valid config to a mutable payload, replace one nested value and require Pydantic `ValidationError` during reconstruction. Cases cover a short commune code, file/HTTP/foreign/port/query API origins, wrong download strategy, empty partition template and negative cache age; no network or GIS work occurs.
 
 **Exact signature**
 
@@ -1464,8 +1160,6 @@ def test_invalid_config_values_are_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(ValidationError)`
 
@@ -1483,21 +1177,6 @@ Outbound call expressions and conservative ownership:
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload[path[0]][path[1]] = value` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1510,13 +1189,9 @@ def test_invalid_config_values_are_rejected(
         GpuSourceConfig.model_validate(payload)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_mutated_loaded_api_origin_is_rejected_before_discovery_network`
 
-**Purpose:** Regression invariant: mutated loaded api origin is rejected before discovery network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** First require direct assignment to the frozen API config to fail immediately. Then deliberately bypass validation with nested `model_copy(update=...)` objects carrying a foreign API origin, install a counting transport failure and call public discovery. Require a controlled discovery error and zero transport calls, demonstrating boundary reconstruction independently of frozen assignment.
 
 **Exact signature**
 
@@ -1537,8 +1212,6 @@ def test_mutated_loaded_api_origin_is_rejected_before_discovery_network(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(ValidationError, match="frozen")`
   - `pytest.raises(GpuDiscoveryError, match="config\|official\|origin")`
@@ -1560,21 +1233,6 @@ Outbound call expressions and conservative ownership:
 | `config.model_copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `config.api.base_url = HttpUrl("https://unrelated.example/api")` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1604,13 +1262,9 @@ def test_mutated_loaded_api_origin_is_rejected_before_discovery_network(
     assert network_calls == 0
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_mutated_loaded_api_origin_is_rejected_before_discovery_network.fail_network`
 
-**Purpose:** Implements `fail network` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu.open_safe_https`, increment the enclosing network counter and unconditionally raise `AssertionError` if invalid-origin discovery reaches transport. No HTTP is issued and there is no normal return.
 
 **Exact signature**
 
@@ -1630,7 +1284,6 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("network used after GPU origin mutation")`.
 
@@ -1644,21 +1297,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1668,13 +1306,9 @@ def fail_network(*args: object, **kwargs: object) -> object:
         raise AssertionError("network used after GPU origin mutation")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_gpu_source_identity_is_exact`
 
-**Purpose:** Regression invariant: gpu source identity is exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** For `provider` and `portal` separately, replace the field in a mutable dump with `UNTRUSTED` and require `GpuSourceConfig.model_validate` to raise `ValidationError`. This verifies exact configured source identity, not a live producer response.
 
 **Exact signature**
 
@@ -1693,8 +1327,6 @@ def test_gpu_source_identity_is_exact(field: str) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(ValidationError)`
 
@@ -1712,21 +1344,6 @@ Outbound call expressions and conservative ownership:
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload[field] = "UNTRUSTED"` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1738,13 +1355,9 @@ def test_gpu_source_identity_is_exact(field: str) -> None:
         GpuSourceConfig.model_validate(payload)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_gpu_cache_age_rejects_coercion_and_nonfinite`
 
-**Purpose:** Regression invariant: gpu cache age rejects coercion and nonfinite. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Replace `cache.max_age_hours` with each of `True`, text `168`, NaN and infinity, and require immediate Pydantic validation failure. Four declared cases isolate coercion/non-finite rejection after reading the valid local config.
 
 **Exact signature**
 
@@ -1763,8 +1376,6 @@ def test_gpu_cache_age_rejects_coercion_and_nonfinite(value: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(ValidationError)`
 
@@ -1783,21 +1394,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["cache"]["max_age_hours"] = value` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1809,13 +1405,9 @@ def test_gpu_cache_age_rejects_coercion_and_nonfinite(value: object) -> None:
         GpuSourceConfig.model_validate(payload)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_gpu_source_config_identity_is_deterministic_and_content_bound`
 
-**Purpose:** Regression invariant: gpu source config identity is deterministic and content bound. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Reconstruct a config from the same outer mapping in reverse insertion order and compare its computed config SHA with the original. Then change cache age from 168 to 169 in a fresh dump and require a different SHA. This tests semantic config hashing, not YAML-byte identity or all possible field mutations.
 
 **Exact signature**
 
@@ -1832,8 +1424,6 @@ def test_gpu_source_config_identity_is_deterministic_and_content_bound() -> None
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert gpu._source_config_sha256(reconstructed) == gpu._source_config_sha256(config)`
   - `assert gpu._source_config_sha256(changed) != gpu._source_config_sha256(config)`
@@ -1855,21 +1445,6 @@ Outbound call expressions and conservative ownership:
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `gpu._source_config_sha256` | `landscout.sources.gpu_fr._source_config_sha256` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `gpu._source_config_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `changed_payload["cache"]["max_age_hours"] = 169` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1886,13 +1461,9 @@ def test_gpu_source_config_identity_is_deterministic_and_content_bound() -> None
     assert gpu._source_config_sha256(changed) != gpu._source_config_sha256(config)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_unknown_config_field_is_rejected`
 
-**Purpose:** Regression invariant: unknown config field is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Add root key `unexpected` to a mutable config dump and require `ValidationError` on reconstruction. The checked-in YAML and original immutable model remain unchanged.
 
 **Exact signature**
 
@@ -1909,8 +1480,6 @@ def test_unknown_config_field_is_rejected() -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(ValidationError)`
 
@@ -1927,21 +1496,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["unexpected"] = True` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1952,13 +1506,9 @@ def test_unknown_config_field_is_rejected() -> None:
         GpuSourceConfig.model_validate(payload)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_document_discovery_success`
 
-**Purpose:** Regression invariant: document discovery success. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Run real discovery over the ordered in-memory API fixtures and check document ID, type, effective status, archive name, absent version, written-file title and canonical official file URL. These are fixture-backed parsing/selection assertions, not a new real-source discovery.
 
 **Exact signature**
 
@@ -1977,8 +1527,6 @@ def test_document_discovery_success(monkeypatch: pytest.MonkeyPatch) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert document.document_id == "doc-1"`
   - `assert document.document_type == "PLU"`
@@ -1998,21 +1546,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_document` | `tests.unit.test_gpu_fr._document` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2030,13 +1563,9 @@ def test_document_discovery_success(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_gpu_api_json_is_strict_before_document_selection`
 
-**Purpose:** Regression invariant: gpu api json is strict before document selection. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Patch the transport to return raw bytes containing a duplicate ID key, NaN or Infinity, and require a controlled JSON/metadata discovery error in each of three cases. Raw bytes deliberately bypass `json.dumps` so the strict decoder, rather than fixture serialization, sees the malformed JSON.
 
 **Exact signature**
 
@@ -2066,8 +1595,6 @@ def test_gpu_api_json_is_strict_before_document_selection(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="JSON\|duplicate\|finite\|metadata")`
 
@@ -2084,21 +1611,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2117,13 +1629,9 @@ def test_gpu_api_json_is_strict_before_document_selection(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_written_material_url_must_be_exact_official_https_api_url`
 
-**Purpose:** Regression invariant: written material url must be exact official https api url. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Supply an HTTP or unrelated-HTTPS written-material URL in otherwise consistent listing/detail/file responses. Require discovery to reject the written-material URL; the API responses are in-memory, so this establishes lexical provenance enforcement rather than DNS/socket safety.
 
 **Exact signature**
 
@@ -2156,8 +1664,6 @@ def test_written_material_url_must_be_exact_official_https_api_url(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="written material URL")`
 
@@ -2177,21 +1683,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2213,13 +1704,9 @@ def test_written_material_url_must_be_exact_official_https_api_url(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_written_material_fallback_rejects_unsafe_archive_url_provenance`
 
-**Purpose:** Regression invariant: written material fallback rejects unsafe archive url provenance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Remove `writingMaterials`, supply an unsafe HTTP or foreign-HTTPS archive URL and retain the files-list fallback fixture. Require an archive-URL discovery error in both cases; fallback must not conceal the unsafe archive provenance.
 
 **Exact signature**
 
@@ -2255,8 +1742,6 @@ def test_written_material_fallback_rejects_unsafe_archive_url_provenance(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="archive URL")`
 
@@ -2276,21 +1761,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2312,13 +1782,9 @@ def test_written_material_fallback_rejects_unsafe_archive_url_provenance(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_no_current_document_is_rejected`
 
-**Purpose:** Regression invariant: no current document is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Provide only a listing item with deleted status and require discovery to raise a `No current` error. The one-response iterator ensures selection ends without fetching details for a non-current document.
 
 **Exact signature**
 
@@ -2337,8 +1803,6 @@ def test_no_current_document_is_rejected(monkeypatch: pytest.MonkeyPatch) -> Non
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="No current")`
 
@@ -2356,21 +1820,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2380,13 +1829,9 @@ def test_no_current_document_is_rejected(monkeypatch: pytest.MonkeyPatch) -> Non
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_ambiguous_current_documents_are_rejected`
 
-**Purpose:** Regression invariant: ambiguous current documents are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Provide two distinct otherwise-current document IDs in the listing and require an ambiguous-selection error. No arbitrary first-document selection is accepted and no detail response is supplied.
 
 **Exact signature**
 
@@ -2407,8 +1852,6 @@ def test_ambiguous_current_documents_are_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="Ambiguous")`
 
@@ -2426,21 +1869,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2452,13 +1880,9 @@ def test_ambiguous_current_documents_are_rejected(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_missing_document_identity_is_rejected`
 
-**Purpose:** Regression invariant: missing document identity is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Remove `id`, `originalName` or `type` from an otherwise valid listing dictionary, one field per case. Feed that listing through real discovery and require a missing-identity error before detail retrieval.
 
 **Exact signature**
 
@@ -2480,8 +1904,6 @@ def test_missing_document_identity_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="missing")`
 
@@ -2501,21 +1923,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `item.pop(field)` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2529,13 +1936,9 @@ def test_missing_document_identity_is_rejected(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_document_details_must_match_selected_listing`
 
-**Purpose:** Regression invariant: document details must match selected listing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Keep the selected listing fixed and change one of seven detail fields: ID, archive name, partition name, type, status, legal status or effective status. Require a mismatch/changed/current discovery error; details cannot silently replace the selected identity or eligibility state.
 
 **Exact signature**
 
@@ -2571,8 +1974,6 @@ def test_document_details_must_match_selected_listing(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="match\|changed\|current")`
 
@@ -2593,21 +1994,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2625,13 +2011,9 @@ def test_document_details_must_match_selected_listing(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_document_details_commune_must_match_selected_listing`
 
-**Purpose:** Regression invariant: document details commune must match selected listing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Keep the valid Muret listing but replace the detail grid with commune `99999`. Require discovery to reject the mismatch rather than trusting a consistent-looking document ID alone.
 
 **Exact signature**
 
@@ -2652,8 +2034,6 @@ def test_document_details_commune_must_match_selected_listing(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="match")`
 
@@ -2672,21 +2052,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2707,13 +2072,9 @@ def test_document_details_commune_must_match_selected_listing(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_discovery_rejects_unsafe_archive_name`
 
-**Purpose:** Regression invariant: discovery rejects unsafe archive name. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Apply each of the sixteen `_UNSAFE_ARCHIVE_NAMES` to both listing and detail archive names while supplying normal file metadata. Require an archive-name/safety discovery error for traversal, absolute/drive paths, dot names, whitespace/control characters, Windows device/forbidden names, repeated ZIP suffix and overlength input.
 
 **Exact signature**
 
@@ -2739,8 +2100,6 @@ def test_discovery_rejects_unsafe_archive_name(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDiscoveryError, match="archive name\|safe")`
 
@@ -2760,21 +2119,6 @@ Outbound call expressions and conservative ownership:
 | `discover_current_gpu_document` | `landscout.sources.gpu_fr.discover_current_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -2796,13 +2140,9 @@ def test_discovery_rejects_unsafe_archive_name(
         discover_current_gpu_document(_config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_successful_download_persists_sha_and_sidecar`
 
-**Purpose:** Regression invariant: successful download persists sha and sidecar. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Download a synthetic ZIP through the mocked transport using real cache publication, then read the sidecar and check physical archive existence, positive size, 64-character SHA, sidecar/result SHA agreement, document ID and absence of top-level `.part` files. These assertions do not independently recompute the digest.
 
 **Exact signature**
 
@@ -2824,8 +2164,6 @@ def test_successful_download_persists_sha_and_sidecar(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert result.path.is_file()`
   - `assert result.file_size > 0`
@@ -2850,21 +2188,6 @@ Outbound call expressions and conservative ownership:
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(tmp_path / f"{result.filename}.metadata.json").read_text`<br>`result.path.is_file`<br>`tmp_path.glob` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2881,13 +2204,9 @@ def test_successful_download_persists_sha_and_sidecar(
     assert not list(tmp_path.glob("*.part"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_download_rejects_document_inconsistent_with_config`
 
-**Purpose:** Regression invariant: download rejects document inconsistent with config. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Forge one of nine metadata fields/values with `dataclasses.replace`, including source identity, commune/partition/state and unrelated or wrong-partition URLs. Replace transport with `pytest.fail`, call the public downloader and require `GpuDownloadError` plus an entirely empty temporary destination directory.
 
 **Exact signature**
 
@@ -2933,8 +2252,6 @@ def test_download_rejects_document_inconsistent_with_config(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="document\|identity\|config")`
 - Exact assertions:
@@ -2958,21 +2275,6 @@ Outbound call expressions and conservative ownership:
 | `tmp_path.iterdir` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `tmp_path.iterdir` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -2995,13 +2297,9 @@ def test_download_rejects_document_inconsistent_with_config(
     assert not any(tmp_path.iterdir())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_download_rejects_forged_written_file_provenance_before_network`
 
-**Purpose:** Regression invariant: download rejects forged written file provenance before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Replace written files with either a record carrying an HTTP source URL or an object of the wrong runtime type. Install a counting failing transport; require a controlled download error and zero calls in both cases, demonstrating provenance/type checks before network use.
 
 **Exact signature**
 
@@ -3026,8 +2324,6 @@ def test_download_rejects_forged_written_file_provenance_before_network(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="written\|document\|source\|URL")`
 - Exact assertions:
@@ -3049,21 +2345,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3099,13 +2380,9 @@ def test_download_rejects_forged_written_file_provenance_before_network(
     assert network_calls == 0
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_download_rejects_forged_written_file_provenance_before_network.fail_network`
 
-**Purpose:** Implements `fail network` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed at `gpu.open_safe_https`, increment the closed-over counter and unconditionally raise `AssertionError` if forged written-file provenance reaches transport. It performs no actual network work and cannot return normally.
 
 **Exact signature**
 
@@ -3125,7 +2402,6 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("forged written-file provenance reached network")`.
 
@@ -3139,21 +2415,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3163,13 +2424,9 @@ def fail_network(*args: object, **kwargs: object) -> object:
         raise AssertionError("forged written-file provenance reached network")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_download_rejects_forged_unsafe_archive_name_before_io`
 
-**Purpose:** Regression invariant: download rejects forged unsafe archive name before io. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Forge each of the same sixteen unsafe archive names on an otherwise discovered document, replace transport with a failure sentinel, and require a controlled download error. The explicit filesystem assertion is that `tmp_path/escape.zip` does not exist; it is not an assertion that every possible path was untouched.
 
 **Exact signature**
 
@@ -3197,8 +2454,6 @@ def test_download_rejects_forged_unsafe_archive_name_before_io(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="archive name\|archive filename\|safe")`
 - Exact assertions:
@@ -3221,21 +2476,6 @@ Outbound call expressions and conservative ownership:
 | `(tmp_path / "escape.zip").exists` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(tmp_path / "escape.zip").exists` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3257,13 +2497,9 @@ def test_download_rejects_forged_unsafe_archive_name_before_io(
     assert not (tmp_path / "escape.zip").exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_archive_name_with_one_zip_suffix_is_not_duplicated`
 
-**Purpose:** Regression invariant: archive name with one zip suffix is not duplicated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Forge the safe already-suffixed archive name `safe-name.zip`, serve valid ZIP bytes through the mock and run real download/cache publication. Require both the result filename and path to contain exactly one `.zip` suffix.
 
 **Exact signature**
 
@@ -3286,8 +2522,6 @@ def test_archive_name_with_one_zip_suffix_is_not_duplicated(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert result.filename == "safe-name.zip"`
   - `assert result.path == tmp_path / "safe-name.zip"`
@@ -3305,21 +2539,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3341,13 +2560,9 @@ def test_archive_name_with_one_zip_suffix_is_not_duplicated(
     assert result.path == tmp_path / "safe-name.zip"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_fresh_cache_is_reused`
 
-**Purpose:** Regression invariant: fresh cache is reused. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Populate a real local cache with synthetic ZIP bytes, then replace transport with `pytest.fail` and download the same document again. Require `cache_hit=True` and unchanged SHA; the second call performs local verification without reaching the patched HTTP entry point.
 
 **Exact signature**
 
@@ -3367,8 +2582,6 @@ def test_fresh_cache_is_reused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert second.cache_hit`
   - `assert second.sha256 == first.sha256`
@@ -3386,21 +2599,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3414,13 +2612,9 @@ def test_fresh_cache_is_reused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     assert second.sha256 == first.sha256
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_boolean_cache_integrity_counts_are_not_accepted_as_integers`
 
-**Purpose:** Regression invariant: boolean cache integrity counts are not accepted as integers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** For sidecar `file_size` and `member_count`, set both numeric expectations to one and replace only the selected field with `True`. Mock archive size, ZIP member list and SHA to matching values, then require the private cache loader to return `None`. These two cases isolate bool-versus-int validation; the mocked physical checks do not certify a real one-byte ZIP.
 
 **Exact signature**
 
@@ -3445,8 +2639,6 @@ def test_boolean_cache_integrity_counts_are_not_accepted_as_integers(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert (<br>        gpu._load_cached_archive(<br>            first.path,<br>            metadata_path,<br>            first.document,<br>            max_age_hours=168,<br>        )<br>        is None<br>    )`
 
@@ -3466,21 +2658,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `gpu._load_cached_archive` | `landscout.sources.gpu_fr._load_cached_archive` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `metadata_path.read_text` |
-| Filesystem/archive write or publication | `metadata_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["file_size"] = 1`<br>`payload["member_count"] = 1`<br>`payload[field] = True` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3524,13 +2701,9 @@ def test_boolean_cache_integrity_counts_are_not_accepted_as_integers(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_boolean_cache_integrity_counts_are_not_accepted_as_integers.one_byte_archive_stat`
 
-**Purpose:** Implements `one byte archive stat` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.stat`, call the saved real stat first; for the cached archive only, copy its tuple fields, set size slot 6 to one and return a new `os.stat_result`. Other paths retain their real result. The filesystem read comes from `original_stat`, not construction of `os.stat_result`.
 
 **Exact signature**
 
@@ -3556,7 +2729,6 @@ def one_byte_archive_stat(
 - Exact observed return expressions:
   - `result`
   - `os.stat_result(values)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -3566,24 +2738,9 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_stat` | `unresolved local/third-party receiver; no ownership inferred` |
+| `original_stat` | pathlib.Path.stat (saved before monkeypatch) |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `os.stat_result` | `os.stat_result` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `os.stat_result` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `values[6] = 1` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -3599,13 +2756,9 @@ def one_byte_archive_stat(
         return os.stat_result(values)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_recovery_backup_rejects_cache_before_network`
 
-**Purpose:** Regression invariant: stale recovery backup rejects cache before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Populate the cache, write a manual-recovery archive backup, install a failing transport and invoke the downloader again. Require a backup/recovery/manual error and exact preservation of the backup bytes; the otherwise usable cache may not consume unresolved recovery material.
 
 **Exact signature**
 
@@ -3627,8 +2780,6 @@ def test_stale_recovery_backup_rejects_cache_before_network(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="backup\|recovery\|manual")`
 - Exact assertions:
@@ -3651,21 +2802,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `recovery_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `recovery_path.read_bytes` |
-| Filesystem/archive write or publication | `recovery_path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3687,13 +2823,9 @@ def test_stale_recovery_backup_rejects_cache_before_network(
     assert recovery_path.read_bytes() == recovery_bytes
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_recovery_backup_rejects_cache_before_network.fail_network`
 
-**Purpose:** Implements `fail network` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as the transport replacement, unconditionally call `pytest.fail` if download attempts network access while a recovery backup exists. The `_Response` annotation does not imply a normal return.
 
 **Exact signature**
 
@@ -3713,8 +2845,6 @@ def fail_network(*args: object, **kwargs: object) -> _Response:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -3726,21 +2856,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `pytest.fail` | `pytest.fail` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3748,13 +2863,9 @@ def fail_network(*args: object, **kwargs: object) -> _Response:
         pytest.fail("stale recovery must fail before network")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_expired_cache_is_refreshed`
 
-**Purpose:** Regression invariant: expired cache is refreshed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Rewrite the cached sidecar timestamp to eight days before the test clock, supply different valid ZIP bytes through the transport mock and run download again. Require a non-cache-hit result with changed SHA, exercising real replacement of expired local bytes.
 
 **Exact signature**
 
@@ -3776,8 +2887,6 @@ def test_expired_cache_is_refreshed(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert not refreshed.cache_hit`
   - `assert refreshed.sha256 != first.sha256`
@@ -3803,21 +2912,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sidecar_path.read_text` |
-| Filesystem/archive write or publication | `sidecar_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `sidecar["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3838,13 +2932,9 @@ def test_expired_cache_is_refreshed(
     assert refreshed.sha256 != first.sha256
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_failed_refresh_preserves_previous_cache`
 
-**Purpose:** Regression invariant: failed refresh preserves previous cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Expire a real synthetic cache, retain exact old archive/sidecar bytes and replace transport with an injected offline `URLError`. Require `GpuDownloadError`, byte-for-byte preservation of both old cache files and no top-level `.part` remnants.
 
 **Exact signature**
 
@@ -3866,8 +2956,6 @@ def test_failed_refresh_preserves_previous_cache(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError)`
 - Exact assertions:
@@ -3900,21 +2988,6 @@ Outbound call expressions and conservative ownership:
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sidecar_path.read_text`<br>`first.path.read_bytes`<br>`sidecar_path.read_bytes`<br>`tmp_path.glob` |
-| Filesystem/archive write or publication | `sidecar_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `sidecar["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -3940,13 +3013,9 @@ def test_failed_refresh_preserves_previous_cache(
     assert not list(tmp_path.glob("*.part"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_failed_refresh_preserves_previous_cache.fail`
 
-**Purpose:** Implements `fail` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu.open_safe_https`, always raise `URLError('offline')` to trigger the downloader's controlled transport-failure path without a real request. It never returns a response.
 
 **Exact signature**
 
@@ -3966,7 +3035,6 @@ def fail(*args: object, **kwargs: object) -> _Response:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `URLError("offline")`.
 
@@ -3980,21 +3048,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `URLError` | `urllib.error.URLError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -4002,13 +3055,9 @@ def fail(*args: object, **kwargs: object) -> _Response:
         raise URLError("offline")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_metadata_publication_failure_rolls_back_both_cache_files`
 
-**Purpose:** Regression invariant: metadata publication failure rolls back both cache files. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Expire a populated cache, retain exact old bytes, supply refresh ZIP bytes and patch `_replace_file` to fail once when publishing the new sidecar. Require `GpuDownloadError`, restoration of both original files and absence of `.part` and `.bak` remnants after successful rollback.
 
 **Exact signature**
 
@@ -4030,8 +3079,6 @@ def test_metadata_publication_failure_rolls_back_both_cache_files(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError)`
 - Exact assertions:
@@ -4064,21 +3111,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sidecar_path.read_text`<br>`first.path.read_bytes`<br>`sidecar_path.read_bytes`<br>`tmp_path.glob` |
-| Filesystem/archive write or publication | `sidecar_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `sidecar["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4117,13 +3149,9 @@ def test_metadata_publication_failure_rolls_back_both_cache_files(
     assert not list(tmp_path.glob("*.bak"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_metadata_publication_failure_rolls_back_both_cache_files.fail_new_metadata_once`
 
-**Purpose:** Implements `fail new metadata once` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu._replace_file`, raise `OSError` once for a `.part` source targeting the metadata sidecar and set the closed-over failure flag. Delegate every other call to the saved real replacement helper, so rollback and its filesystem writes remain real.
 
 **Exact signature**
 
@@ -4143,7 +3171,6 @@ def fail_new_metadata_once(source: Path, target: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `OSError("simulated metadata lock")` under lexical guard `source.suffix == ".part" and target == sidecar_path and not failed`.
 
@@ -4156,22 +3183,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_replace` | landscout.sources.gpu_fr._replace_file (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4184,13 +3196,9 @@ def fail_new_metadata_once(source: Path, target: Path) -> None:
         original_replace(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_publication_and_rollback_failure_preserves_exact_recovery_backups`
 
-**Purpose:** Regression invariant: publication and rollback failure preserves exact recovery backups. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create simple old/new byte files and call the private cache-pair publisher directly while injecting failures for new-sidecar publication and old-archive restoration. Require a rollback error and exact old archive and metadata bytes in both backups. These are publication-state fixtures, not validated ZIP archives.
 
 **Exact signature**
 
@@ -4212,8 +3220,6 @@ def test_publication_and_rollback_failure_preserves_exact_recovery_backups(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="rollback")`
 - Exact assertions:
@@ -4239,21 +3245,6 @@ Outbound call expressions and conservative ownership:
 | `gpu._publish_cache_pair` | `landscout.sources.gpu_fr._publish_cache_pair` |
 | `archive_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive_backup.read_bytes`<br>`metadata_backup.read_bytes` |
-| Filesystem/archive write or publication | `archive_path.write_bytes`<br>`metadata_path.write_bytes`<br>`temporary_archive.write_bytes`<br>`temporary_metadata.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4299,13 +3290,9 @@ def test_publication_and_rollback_failure_preserves_exact_recovery_backups(
     assert metadata_backup.read_bytes() == old_metadata
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_publication_and_rollback_failure_preserves_exact_recovery_backups.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `_replace_file`, raise `OSError` for the selected new-metadata move and archive-backup rollback; delegate all other replacements to the original helper. This makes two particular filesystem transitions fail without globally disabling publication.
 
 **Exact signature**
 
@@ -4325,7 +3312,6 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `OSError("simulated metadata publication failure")` under lexical guard `source == temporary_metadata and target == metadata_path`.
   - `OSError("simulated archive rollback failure")` under lexical guard `source == archive_backup and target == archive_path`.
@@ -4339,22 +3325,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_replace` | landscout.sources.gpu_fr._replace_file (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4367,13 +3338,9 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
         original_replace(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error`
 
-**Purpose:** Regression invariant: cleanup failure does not mask double failure recovery error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Expire a real synthetic cache and inject sidecar-publication failure, archive-rollback failure, then temporary-sidecar unlink failure. Require the public downloader's error still to mention rollback and both recovery backups to preserve the exact old bytes; cleanup failure must not replace the primary recovery diagnosis.
 
 **Exact signature**
 
@@ -4395,8 +3362,6 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="rollback")`
 - Exact assertions:
@@ -4429,21 +3394,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `archive_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `metadata_path.read_text`<br>`first.path.read_bytes`<br>`metadata_path.read_bytes`<br>`archive_backup.read_bytes`<br>`metadata_backup.read_bytes` |
-| Filesystem/archive write or publication | `metadata_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `metadata["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4493,13 +3443,9 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
     assert metadata_backup.read_bytes() == old_metadata
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Replace `_replace_file` only for the chosen new-sidecar publication and archive-backup restoration. On the latter set `rollback_failed` before raising, enabling the separate unlink fault; other calls perform real saved replacements.
 
 **Exact signature**
 
@@ -4519,7 +3465,6 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `OSError("simulated metadata publication failure")` under lexical guard `source == temporary_metadata and target == metadata_path`.
   - `OSError("simulated archive rollback failure")` under lexical guard `source == archive_backup and target == first.path`.
@@ -4533,22 +3478,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_replace` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_replace` | landscout.sources.gpu_fr._replace_file (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4563,13 +3493,9 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
         original_replace(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
 
-**Purpose:** Implements `fail temporary cleanup` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.unlink`, raise `PermissionError` only after the rollback-failure flag is set and only for the temporary sidecar. Otherwise invoke the saved real unlink with the supplied `missing_ok`; this callback may remove other temporary files.
 
 **Exact signature**
 
@@ -4589,7 +3515,6 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `PermissionError("simulated temporary cleanup failure")` under lexical guard `rollback_failed and path == temporary_metadata`.
 
@@ -4602,22 +3527,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `PermissionError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_unlink` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_unlink` | pathlib.Path.unlink (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4628,13 +3538,9 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
         original_unlink(path, missing_ok=missing_ok)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_cache_recovery_backup_fails_closed_without_destroying_it`
 
-**Purpose:** Regression invariant: stale cache recovery backup fails closed without destroying it. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create old cache files, candidate replacement files and a pre-existing manual archive backup, then call the private publisher. Require a recovery/manual error and exact preservation of both old targets and the manual backup. The fixtures isolate publication safeguards, without ZIP or source-discovery validation.
 
 **Exact signature**
 
@@ -4655,8 +3561,6 @@ def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError, match="backup\|recovery\|manual")`
 - Exact assertions:
@@ -4682,21 +3586,6 @@ Outbound call expressions and conservative ownership:
 | `archive_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `archive_backup.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive_path.read_bytes`<br>`metadata_path.read_bytes`<br>`archive_backup.read_bytes` |
-| Filesystem/archive write or publication | `archive_path.write_bytes`<br>`metadata_path.write_bytes`<br>`temporary_archive.write_bytes`<br>`temporary_metadata.write_bytes`<br>`archive_backup.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4728,13 +3617,9 @@ def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
     assert archive_backup.read_bytes() == b"manual recovery archive"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_preexisting_temporary_archive_symlink_cannot_modify_target`
 
-**Purpose:** Regression invariant: preexisting temporary archive symlink cannot modify target. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Simulate the expected temporary archive path being a symlink by monkeypatching `Path.is_symlink`, and redirect any attempted opening of it to a protected sentinel file. Invoke the real downloader with a counted response mock; require a download error, zero transport calls and unchanged sentinel bytes. No OS symlink is created.
 
 **Exact signature**
 
@@ -4756,8 +3641,6 @@ def test_preexisting_temporary_archive_symlink_cannot_modify_target(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError)`
 - Exact assertions:
@@ -4780,21 +3663,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sentinel.read_bytes` |
-| Filesystem/archive write or publication | `sentinel.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -4837,13 +3705,9 @@ def test_preexisting_temporary_archive_symlink_cannot_modify_target(
     assert sentinel.read_bytes() == sentinel_bytes
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_preexisting_temporary_archive_symlink_cannot_modify_target.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.is_symlink`, return true for the attack temporary path and otherwise call the saved real metadata check. This simulates a link classification; it does not create or alter a link.
 
 **Exact signature**
 
@@ -4864,7 +3728,6 @@ def simulated_is_symlink(path: Path) -> bool:
 
 - Exact observed return expressions:
   - `path == temporary_archive or original_is_symlink(path)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -4874,22 +3737,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_is_symlink` | pathlib.Path.is_symlink (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4898,13 +3746,9 @@ def simulated_is_symlink(path: Path) -> bool:
         return path == temporary_archive or original_is_symlink(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_preexisting_temporary_archive_symlink_cannot_modify_target.simulated_symlink_open`
 
-**Purpose:** Implements `simulated symlink open` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.open`, redirect only the attack temporary path to the sentinel and delegate every other open unchanged, preserving all mode arguments. If reached with a write mode this would affect the sentinel; the enclosing regression requires rejection before that unsafe opening.
 
 **Exact signature**
 
@@ -4928,7 +3772,6 @@ def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> objec
 - Exact observed return expressions:
   - `original_open(sentinel, *args, **kwargs)`
   - `original_open(path, *args, **kwargs)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -4938,22 +3781,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_open` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_open` | pathlib.Path.open (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -4964,13 +3792,9 @@ def simulated_symlink_open(path: Path, *args: object, **kwargs: object) -> objec
         return original_open(path, *args, **kwargs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_preexisting_temporary_archive_symlink_cannot_modify_target.record_network`
 
-**Purpose:** Implements `record network` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as the mocked transport, increment the enclosing opener count and return a fresh in-memory valid ZIP response. It performs no HTTP; a correct early link rejection leaves its count at zero.
 
 **Exact signature**
 
@@ -4992,7 +3816,6 @@ def record_network(*args: object, **kwargs: object) -> _Response:
 
 - Exact observed return expressions:
   - `_Response(_zip_bytes())`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -5005,21 +3828,6 @@ Outbound call expressions and conservative ownership:
 | `_Response` | `tests.unit.test_gpu_fr._Response` |
 | `_zip_bytes` | `tests.unit.test_gpu_fr._zip_bytes` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5029,13 +3837,9 @@ def record_network(*args: object, **kwargs: object) -> _Response:
         return _Response(_zip_bytes())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_corrupt_download_is_rejected`
 
-**Purpose:** Regression invariant: corrupt download is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Serve non-ZIP bytes after synthetic document discovery and call the real downloader. Require `GpuDownloadError` and no top-level `.part` files, exercising validation and cleanup of a physically written corrupt temporary archive.
 
 **Exact signature**
 
@@ -5057,8 +3861,6 @@ def test_corrupt_download_is_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuDownloadError)`
 - Exact assertions:
@@ -5080,21 +3882,6 @@ Outbound call expressions and conservative ownership:
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tmp_path.glob` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `tmp_path.glob` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5110,13 +3897,9 @@ def test_corrupt_download_is_rejected(
     assert not list(tmp_path.glob("*.part"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_tampered_sidecar_invalidates_cache`
 
-**Purpose:** Regression invariant: tampered sidecar invalidates cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Populate a synthetic cache, replace its recorded SHA with sixty-four zeroes, supply valid ZIP bytes through the mock and download again. Require a fresh result rather than a cache hit, proving a sidecar checksum claim alone cannot authorize reuse.
 
 **Exact signature**
 
@@ -5138,8 +3921,6 @@ def test_tampered_sidecar_invalidates_cache(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert not download_gpu_document(first.document, _config(), tmp_path).cache_hit`
 
@@ -5160,21 +3941,6 @@ Outbound call expressions and conservative ownership:
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sidecar_path.read_text` |
-| Filesystem/archive write or publication | `sidecar_path.write_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `sidecar["sha256"] = "0" * 64` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5192,13 +3958,9 @@ def test_tampered_sidecar_invalidates_cache(
     assert not download_gpu_document(first.document, _config(), tmp_path).cache_hit
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_archive_path_traversal_is_rejected`
 
-**Purpose:** Regression invariant: archive path traversal is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Write a real temporary ZIP containing `../escape.txt`, then require `validate_gpu_archive` to raise an unsafe-path archive error. The test validates ZIP metadata/member safety without extracting the attack entry.
 
 **Exact signature**
 
@@ -5217,8 +3979,6 @@ def test_archive_path_traversal_is_rejected(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="Unsafe")`
 
@@ -5235,21 +3995,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5260,13 +4005,9 @@ def test_archive_path_traversal_is_rejected(tmp_path: Path) -> None:
         validate_gpu_archive(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_archive_symlink_is_rejected`
 
-**Purpose:** Regression invariant: archive symlink is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Write a ZIP member with Unix symlink mode bits and a target string payload, then require the real archive validator to reject symbolic links. The ZIP file and `ZipInfo` attributes are real fixture bytes; no filesystem symlink is created.
 
 **Exact signature**
 
@@ -5285,8 +4026,6 @@ def test_archive_symlink_is_rejected(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="Symbolic")`
 
@@ -5304,21 +4043,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `zipfile.ZipFile`<br>`zipfile.ZipInfo` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `entry.create_system = 3`<br>`entry.external_attr = (0o120777 << 16) \| 0xA000` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5333,13 +4057,9 @@ def test_archive_symlink_is_rejected(tmp_path: Path) -> None:
         validate_gpu_archive(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_duplicate_zip_extraction_targets_are_rejected`
 
-**Purpose:** Regression invariant: duplicate zip extraction targets are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Write four hostile ZIP fixtures covering duplicate raw names, slash/backslash aliases, dot-component aliases and case-folded aliases. Require duplicate/collision archive errors; `_zip_member_bytes` suppresses only the expected fixture-construction warning.
 
 **Exact signature**
 
@@ -5370,8 +4090,6 @@ def test_duplicate_zip_extraction_targets_are_rejected(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="(?i)duplicate\|collid")`
 
@@ -5389,21 +4107,6 @@ Outbound call expressions and conservative ownership:
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5418,13 +4121,9 @@ def test_duplicate_zip_extraction_targets_are_rejected(
         validate_gpu_archive(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_zip_file_directory_target_collision_is_rejected`
 
-**Purpose:** Regression invariant: zip file directory target collision is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Write a ZIP containing file `blocked` and child `blocked/child.txt`, then require a collision/target archive error. A file cannot simultaneously act as a parent extraction directory.
 
 **Exact signature**
 
@@ -5443,8 +4142,6 @@ def test_zip_file_directory_target_collision_is_rejected(tmp_path: Path) -> None
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="collision\|target")`
 
@@ -5461,21 +4158,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5489,13 +4171,9 @@ def test_zip_file_directory_target_collision_is_rejected(tmp_path: Path) -> None
         validate_gpu_archive(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_zip_cannot_claim_extraction_manifest_path`
 
-**Purpose:** Regression invariant: zip cannot claim extraction manifest path. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Write a ZIP with an entry underneath the reserved extraction-manifest name and require an archive error mentioning the manifest. This rejects collision with the local integrity marker before extraction.
 
 **Exact signature**
 
@@ -5514,8 +4192,6 @@ def test_zip_cannot_claim_extraction_manifest_path(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="manifest")`
 
@@ -5532,21 +4208,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `validate_gpu_archive` | `landscout.sources.gpu_fr.validate_gpu_archive` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -5560,13 +4221,9 @@ def test_zip_cannot_claim_extraction_manifest_path(tmp_path: Path) -> None:
         validate_gpu_archive(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_inventory_and_cache`
 
-**Purpose:** Regression invariant: extraction inventory and cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Download and extract a synthetic two-member archive, then verify sorted relative paths, metadata/written-regulation categories and a cache hit on repeat extraction. Read the schema-2 manifest and compare its archive SHA and exact path/size/SHA records with the returned inventory; assert no `.part` entries in the checked extraction-cache location.
 
 **Exact signature**
 
@@ -5588,8 +4245,6 @@ def test_extraction_inventory_and_cache(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert [item.relative_path for item in extracted.files] == [<br>        "data/a.txt",<br>        "docs/reglement.pdf",<br>    ]`
   - `assert {item.category for item in extracted.files} == {<br>        "METADATA",<br>        "WRITTEN_REGULATION",<br>    }`
@@ -5614,21 +4269,6 @@ Outbound call expressions and conservative ownership:
 | `(extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME).read_text` | `unresolved local/third-party receiver; no ownership inferred` |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `(tmp_path / "cache" / "x").glob` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME).read_text`<br>`(tmp_path / "cache" / "x").glob` |
-| Filesystem/archive write or publication | `(extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME).read_text` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5669,13 +4309,9 @@ def test_extraction_inventory_and_cache(
     assert not list((tmp_path / "cache" / "x").glob("*.part"))
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_manifest_is_created_exclusively`
 
-**Purpose:** Regression invariant: extraction manifest is created exclusively. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Wrap `Path.open` while performing a real synthetic extraction, recording only accesses to the manifest filename. Require the exact mode sequence `['x', 'rb']`: exclusive creation followed by byte verification, not an overwrite mode.
 
 **Exact signature**
 
@@ -5698,8 +4334,6 @@ def test_extraction_manifest_is_created_exclusively(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert manifest_modes == ["x", "rb"]`
 
@@ -5714,21 +4348,6 @@ Outbound call expressions and conservative ownership:
 | `_download` | `tests.unit.test_gpu_fr._download` |
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5758,13 +4377,9 @@ def test_extraction_manifest_is_created_exclusively(
     assert manifest_modes == ["x", "rb"]
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_manifest_is_created_exclusively.observed_open`
 
-**Purpose:** Implements `observed open` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.open`, append the mode only when the filename is the extraction manifest, then delegate every open to the saved real method. The callback records in-memory observations while preserving actual local reads, writes and their errors.
 
 **Exact signature**
 
@@ -5793,7 +4408,6 @@ def observed_open(
 
 - Exact observed return expressions:
   - `original_open(path, mode, *args, **kwargs)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -5804,22 +4418,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `manifest_modes.append` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_open` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `manifest_modes.append(mode)` |
-| Direct parameter mutation | None directly present. |
+| `original_open` | pathlib.Path.open (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -5835,13 +4434,9 @@ def observed_open(
         return original_open(path, mode, *args, **kwargs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_extraction_backup_fails_closed_and_is_preserved`
 
-**Purpose:** Regression invariant: stale extraction backup fails closed and is preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Extract a valid synthetic archive, create a sibling `.bak` directory containing a sentinel, and attempt extraction again. Require a recovery/manual error, unchanged sentinel bytes and an intact current extraction directory; even an otherwise reusable cache must preserve unresolved backup material.
 
 **Exact signature**
 
@@ -5864,8 +4459,6 @@ def test_stale_extraction_backup_fails_closed_and_is_preserved(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="backup\|recovery\|manual")`
 - Exact assertions:
@@ -5888,21 +4481,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `extracted.extraction_root.is_dir` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sentinel.read_bytes`<br>`extracted.extraction_root.is_dir` |
-| Filesystem/archive write or publication | `extracted.extraction_root.with_name`<br>`backup.mkdir`<br>`sentinel.write_bytes`<br>`extracted.extraction_root.is_dir` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -5927,13 +4505,9 @@ def test_stale_extraction_backup_fails_closed_and_is_preserved(
     assert extracted.extraction_root.is_dir()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_publication_and_rollback_failure_preserves_backup`
 
-**Purpose:** Regression invariant: extraction publication and rollback failure preserves backup. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Add an unexpected sentinel to a real extracted tree so reuse fails, then inject both replacement-tree publication and backup-restoration failures. Require a rollback error and preserved sentinel in the backup; a second call must reject that remaining backup as manual recovery and preserve it again.
 
 **Exact signature**
 
@@ -5956,8 +4530,6 @@ def test_extraction_publication_and_rollback_failure_preserves_backup(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="rollback")`
   - `pytest.raises(GpuArchiveError, match="backup\|recovery\|manual")`
@@ -5979,21 +4551,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `(backup / sentinel.name).read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(backup / sentinel.name).read_bytes` |
-| Filesystem/archive write or publication | `sentinel.write_bytes`<br>`extracted.extraction_root.with_name` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6034,13 +4591,9 @@ def test_extraction_publication_and_rollback_failure_preserves_backup(
     assert (backup / sentinel.name).read_bytes() == b"preserve"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_publication_and_rollback_failure_preserves_backup.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `shutil.move`, compare converted source/target paths and fail only temporary-tree publication or backup restoration to the current root. Delegate other moves to the saved real function, allowing the initial backup transition to occur.
 
 **Exact signature**
 
@@ -6076,22 +4629,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `Path` | `pathlib.Path` |
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_move` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_move` | shutil.move (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6106,13 +4644,9 @@ def fail_publication_and_rollback(source: str, target: str) -> object:
         return original_move(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_publication_failure_restores_existing_root`
 
-**Purpose:** Regression invariant: extraction publication failure restores existing root. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Invalidate a synthetic extraction by adding a sentinel and inject failure only when the replacement temporary tree moves to the root. Require a publication error, sentinel restored at its original location and no remaining backup, proving successful rollback of the old directory.
 
 **Exact signature**
 
@@ -6135,8 +4669,6 @@ def test_extraction_publication_failure_restores_existing_root(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="publication")`
 - Exact assertions:
@@ -6159,21 +4691,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `backup.exists` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sentinel.read_bytes`<br>`backup.exists` |
-| Filesystem/archive write or publication | `sentinel.write_bytes`<br>`extracted.extraction_root.with_name` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6208,13 +4725,9 @@ def test_extraction_publication_failure_restores_existing_root(
     assert not backup.exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_publication_failure_restores_existing_root.fail_publication`
 
-**Purpose:** Implements `fail publication` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `shutil.move`, reject the exact temporary-to-root transition and delegate all other moves, including backup restoration, to the saved real function. This isolates publication failure from rollback failure.
 
 **Exact signature**
 
@@ -6249,22 +4762,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `Path` | `pathlib.Path` |
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_move` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_move` | shutil.move (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6275,13 +4773,9 @@ def fail_publication(source: str, target: str) -> object:
         return original_move(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_backup_move_failure_preserves_existing_root`
 
-**Purpose:** Regression invariant: extraction backup move failure preserves existing root. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Add a sentinel to an extracted tree and inject failure on the initial current-root-to-backup move. Require a controlled backup-failed error, unchanged sentinel and no created backup; the old root must not be removed because a backup attempt failed.
 
 **Exact signature**
 
@@ -6304,8 +4798,6 @@ def test_extraction_backup_move_failure_preserves_existing_root(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="backup.*failed")`
 - Exact assertions:
@@ -6328,21 +4820,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `backup.exists` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sentinel.read_bytes`<br>`backup.exists` |
-| Filesystem/archive write or publication | `sentinel.write_bytes`<br>`extracted.extraction_root.with_name` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6374,13 +4851,9 @@ def test_extraction_backup_move_failure_preserves_existing_root(
     assert not backup.exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_backup_move_failure_preserves_existing_root.fail_initial_backup`
 
-**Purpose:** Implements `fail initial backup` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `shutil.move`, raise only for the exact initial root-to-backup transition and delegate other moves. The failure is injected before moving the original tree.
 
 **Exact signature**
 
@@ -6415,22 +4888,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `Path` | `pathlib.Path` |
 | `OSError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_move` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_move` | shutil.move (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6441,13 +4899,9 @@ def fail_initial_backup(source: str, target: str) -> object:
         return original_move(source, target)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_inventory_rejects_special_entry`
 
-**Purpose:** Regression invariant: extraction inventory rejects special entry. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create a regular local file, then monkeypatch its `is_file` and `is_dir` answers to false while leaving other paths genuine. Require the private inventory routine to reject a special filesystem entry; this is a simulated classification, not a created device or socket.
 
 **Exact signature**
 
@@ -6470,8 +4924,6 @@ def test_extraction_inventory_rejects_special_entry(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="special filesystem entry")`
 
@@ -6488,21 +4940,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `gpu._inventory` | `landscout.sources.gpu_fr._inventory` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `root.mkdir`<br>`special.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6531,13 +4968,9 @@ def test_extraction_inventory_rejects_special_entry(
         gpu._inventory(root)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_inventory_rejects_special_entry.simulated_is_file`
 
-**Purpose:** Implements `simulated is file` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.is_file`, return false for the designated synthetic special entry and otherwise execute the saved real metadata query. No filesystem type is actually changed.
 
 **Exact signature**
 
@@ -6558,7 +4991,6 @@ def simulated_is_file(path: Path) -> bool:
 
 - Exact observed return expressions:
   - `False if path == special else original_is_file(path)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -6568,22 +5000,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_is_file` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_is_file` | pathlib.Path.is_file (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6592,13 +5009,9 @@ def simulated_is_file(path: Path) -> bool:
         return False if path == special else original_is_file(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_inventory_rejects_special_entry.simulated_is_dir`
 
-**Purpose:** Implements `simulated is dir` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.is_dir`, return false for the same designated entry and otherwise execute the saved real directory check. Together with the file-check patch it drives the special-entry rejection path.
 
 **Exact signature**
 
@@ -6619,7 +5032,6 @@ def simulated_is_dir(path: Path) -> bool:
 
 - Exact observed return expressions:
   - `False if path == special else original_is_dir(path)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -6629,22 +5041,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_is_dir` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_is_dir` | pathlib.Path.is_dir (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6653,13 +5050,9 @@ def simulated_is_dir(path: Path) -> bool:
         return False if path == special else original_is_dir(path)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_cleanup_preserves_primary_controlled_error`
 
-**Purpose:** Regression invariant: extraction cleanup preserves primary controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Patch directory removal to raise `PermissionError`, then call the private cleanup helper with a primary `GpuArchiveError` and require normal completion so the original error can remain authoritative. Calling it again without a primary error must instead raise a controlled could-not-clean archive error. No tree is actually deleted.
 
 **Exact signature**
 
@@ -6682,8 +5075,6 @@ def test_extraction_cleanup_preserves_primary_controlled_error(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="could not be cleaned")`
 
@@ -6699,21 +5090,6 @@ Outbound call expressions and conservative ownership:
 | `GpuArchiveError` | `landscout.sources.gpu_fr.GpuArchiveError` |
 | `gpu._cleanup_temporary_extraction_directory` | `landscout.sources.gpu_fr._cleanup_temporary_extraction_directory` |
 | `pytest.raises` | `pytest.raises` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6737,13 +5113,9 @@ def test_extraction_cleanup_preserves_primary_controlled_error(
         gpu._cleanup_temporary_extraction_directory(temporary, None)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_cleanup_preserves_primary_controlled_error.fail_cleanup`
 
-**Purpose:** Implements `fail cleanup` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu._remove_extraction_path`, assert the requested path is exactly the intended temporary directory and then raise `PermissionError`. It performs no removal and has no normal return.
 
 **Exact signature**
 
@@ -6762,7 +5134,6 @@ def fail_cleanup(path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `PermissionError("simulated cleanup failure")`.
 - Exact assertions:
@@ -6778,21 +5149,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `PermissionError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -6801,13 +5157,9 @@ def fail_cleanup(path: Path) -> None:
         raise PermissionError("simulated cleanup failure")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target`
 
-**Purpose:** Regression invariant: extraction temporary link is rejected without unlinking target. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** For simulated symlink and junction classifications at the expected extraction temporary path, wrap unlink/rmdir/rmtree with protected counters and call real extraction. Require a controlled temporary-link error and zero protected deletion calls. No OS link is created; the test proves pre-cleanup rejection at these simulated metadata boundaries.
 
 **Exact signature**
 
@@ -6832,8 +5184,6 @@ def test_extraction_temporary_link_is_rejected_without_unlinking_target(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="temporary\|link\|junction")`
 - Exact assertions:
@@ -6855,21 +5205,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -6936,13 +5271,9 @@ def test_extraction_temporary_link_is_rejected_without_unlinking_target(
     assert rmtree_calls == 0
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.is_symlink`, return true only for the selected symlink case at the expected temporary path; all other checks delegate to the real saved method. The junction case is not forced true by this callback.
 
 **Exact signature**
 
@@ -6963,7 +5294,6 @@ def simulated_is_symlink(path: Path) -> bool:
 
 - Exact observed return expressions:
   - `(link_kind == "symlink" and path == temporary) or original_is_symlink(<br>            path<br>        )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -6973,22 +5303,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_is_symlink` | pathlib.Path.is_symlink (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -6999,13 +5314,9 @@ def simulated_is_symlink(path: Path) -> bool:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target.simulated_is_junction`
 
-**Purpose:** Implements `simulated is junction` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.is_junction`, return true only for the selected junction case at the temporary path, otherwise delegate to the saved real method. This is metadata simulation, not junction creation.
 
 **Exact signature**
 
@@ -7026,7 +5337,6 @@ def simulated_is_junction(path: Path) -> bool:
 
 - Exact observed return expressions:
   - `(link_kind == "junction" and path == temporary) or original_is_junction(<br>            path<br>        )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -7036,22 +5346,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `original_is_junction` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_is_junction` | pathlib.Path.is_junction (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -7062,13 +5357,9 @@ def simulated_is_junction(path: Path) -> bool:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target.protected_unlink`
 
-**Purpose:** Implements `protected unlink` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.unlink`, increment the enclosing protected counter and raise `AssertionError` if the temporary link is targeted. For all other paths delegate to the real saved unlink, retaining ordinary cleanup behavior.
 
 **Exact signature**
 
@@ -7089,7 +5380,6 @@ def protected_unlink(path: Path, *args: object, **kwargs: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("temporary link was unlinked")` under lexical guard `path == temporary`.
 
@@ -7102,22 +5392,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_unlink` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_unlink` | pathlib.Path.unlink (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -7130,13 +5405,9 @@ def protected_unlink(path: Path, *args: object, **kwargs: object) -> None:
         original_unlink(path, *args, **kwargs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target.protected_rmdir`
 
-**Purpose:** Implements `protected rmdir` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `Path.rmdir`, increment the enclosing counter and raise if the designated temporary path is targeted. Other directory removals execute through the saved real method.
 
 **Exact signature**
 
@@ -7157,7 +5428,6 @@ def protected_rmdir(path: Path, *args: object, **kwargs: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("temporary junction was removed")` under lexical guard `path == temporary`.
 
@@ -7170,22 +5440,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_rmdir` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_rmdir` | pathlib.Path.rmdir (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -7198,13 +5453,9 @@ def protected_rmdir(path: Path, *args: object, **kwargs: object) -> None:
         original_rmdir(path, *args, **kwargs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_temporary_link_is_rejected_without_unlinking_target.protected_rmtree`
 
-**Purpose:** Implements `protected rmtree` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `shutil.rmtree`, convert the supplied path for comparison, count and reject an attempt to remove the protected temporary path recursively, and delegate other calls. The enclosing test requires this protected branch never to be reached.
 
 **Exact signature**
 
@@ -7225,7 +5476,6 @@ def protected_rmtree(path: object, *args: object, **kwargs: object) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("temporary link tree was removed")` under lexical guard `Path(path) == temporary`.
 
@@ -7239,22 +5489,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `Path` | `pathlib.Path` |
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `original_rmtree` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+| `original_rmtree` | shutil.rmtree (saved before monkeypatch) |
 
 **Complete source-ordered implementation**
 
@@ -7267,13 +5502,9 @@ def protected_rmtree(path: object, *args: object, **kwargs: object) -> None:
         original_rmtree(path, *args, **kwargs)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_extraction_temporary_directory_fails_closed_and_is_preserved`
 
-**Purpose:** Regression invariant: stale extraction temporary directory fails closed and is preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create an actual pre-existing temporary extraction directory containing a sentinel before calling extraction. Require a temporary/manual/recovery error and exact preservation of the sentinel, distinguishing stale real directories from the separately simulated links.
 
 **Exact signature**
 
@@ -7296,8 +5527,6 @@ def test_stale_extraction_temporary_directory_fails_closed_and_is_preserved(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="temporary\|manual\|recovery")`
 - Exact assertions:
@@ -7319,21 +5548,6 @@ Outbound call expressions and conservative ownership:
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
 | `sentinel.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sentinel.read_bytes` |
-| Filesystem/archive write or publication | `temporary.mkdir`<br>`sentinel.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -7354,13 +5568,9 @@ def test_stale_extraction_temporary_directory_fails_closed_and_is_preserved(
     assert sentinel.read_bytes() == b"preserve-stale-temporary"
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_duplicate_extraction_manifest_key_forces_verified_rebuild`
 
-**Purpose:** Regression invariant: duplicate extraction manifest key forces verified rebuild. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Extract valid synthetic bytes, rewrite the manifest with the archive-SHA key duplicated even though its repeated value agrees, and call extraction again. Require a rebuild rather than a cache hit and no leftover backup; duplicate-key JSON is not valid integrity evidence.
 
 **Exact signature**
 
@@ -7383,8 +5593,6 @@ def test_duplicate_extraction_manifest_key_forces_verified_rebuild(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert not rebuilt.cache_hit`
   - `assert not rebuilt.extraction_root.with_name(<br>        f"{rebuilt.extraction_root.name}.bak"<br>    ).exists()`
@@ -7405,21 +5613,6 @@ Outbound call expressions and conservative ownership:
 | `json.dumps` | `json.dumps` |
 | `rebuilt.extraction_root.with_name(<br>        f"{rebuilt.extraction_root.name}.bak"<br>    ).exists` | `unresolved local/third-party receiver; no ownership inferred` |
 | `rebuilt.extraction_root.with_name` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `manifest.read_text`<br>`rebuilt.extraction_root.with_name(<br>        f"{rebuilt.extraction_root.name}.bak"<br>    ).exists` |
-| Filesystem/archive write or publication | `manifest.write_text`<br>`rebuilt.extraction_root.with_name(<br>        f"{rebuilt.extraction_root.name}.bak"<br>    ).exists`<br>`rebuilt.extraction_root.with_name` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -7450,13 +5643,9 @@ def test_duplicate_extraction_manifest_key_forces_verified_rebuild(
     ).exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_stale_download_object_rejects_replaced_valid_archive`
 
-**Purpose:** Regression invariant: stale download object rejects replaced valid archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Populate a downloaded ZIP, replace its physical bytes with a different valid ZIP of exactly the same byte length, and attempt extraction using the stale download record. Require a checksum/stale-metadata archive error and absence of the old-hash extraction root; size equality cannot replace byte identity.
 
 **Exact signature**
 
@@ -7479,8 +5668,6 @@ def test_stale_download_object_rejects_replaced_valid_archive(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="checksum\|SHA\|stale\|metadata")`
 - Exact assertions:
@@ -7502,21 +5689,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
 | `(tmp_path / "cache" / "x" / download.sha256[:16]).exists` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(tmp_path / "cache" / "x" / download.sha256[:16]).exists` |
-| Filesystem/archive write or publication | `download.path.write_bytes` |
-| Hashing/byte identity | `(tmp_path / "cache" / "x" / download.sha256[:16]).exists` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -7540,13 +5712,9 @@ def test_stale_download_object_rejects_replaced_valid_archive(
     assert not (tmp_path / "cache" / "x" / download.sha256[:16]).exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_extraction_rejects_archive_object_inconsistent_with_path`
 
-**Purpose:** Regression invariant: extraction rejects archive object inconsistent with path. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Forge the recorded SHA, size, filename or archive format while leaving a real synthetic ZIP path in place. For each of four cases require the public extractor to reject inconsistent archive metadata rather than trusting the frozen record's constructor.
 
 **Exact signature**
 
@@ -7581,8 +5749,6 @@ def test_extraction_rejects_archive_object_inconsistent_with_path(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuArchiveError, match="archive\|metadata\|checksum\|size")`
 
@@ -7600,21 +5766,6 @@ Outbound call expressions and conservative ownership:
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -7631,13 +5782,9 @@ def test_extraction_rejects_archive_object_inconsistent_with_path(
         extract_gpu_document(stale, tmp_path / "cache")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_tampered_extraction_is_rebuilt_from_verified_archive`
 
-**Purpose:** Regression invariant: tampered extraction is rebuilt from verified archive. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** After a real extraction, modify member content, delete it, add an unexpected file or rename it, one mutation per case. Re-extract from the unchanged verified synthetic archive and require `cache_hit=False`, original source bytes restored, and both renamed/unexpected paths absent. The attacks and repair of this disposable cache are physical local I/O, not geometry repair.
 
 **Exact signature**
 
@@ -7662,8 +5809,6 @@ def test_tampered_extraction_is_rebuilt_from_verified_archive(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert not refreshed.cache_hit`
   - `assert (refreshed.extraction_root / "data" / "value.txt").read_bytes() == b"source"`
@@ -7690,21 +5835,6 @@ Outbound call expressions and conservative ownership:
 | `(refreshed.extraction_root / "data" / "renamed.txt").exists` | `unresolved local/third-party receiver; no ownership inferred` |
 | `(refreshed.extraction_root / "unexpected.txt").exists` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `(refreshed.extraction_root / "data" / "value.txt").read_bytes`<br>`(refreshed.extraction_root / "data" / "renamed.txt").exists`<br>`(refreshed.extraction_root / "unexpected.txt").exists` |
-| Filesystem/archive write or publication | `original.write_bytes`<br>`original.unlink`<br>`(first.extraction_root / "unexpected.txt").write_bytes`<br>`(refreshed.extraction_root / "data" / "value.txt").read_bytes`<br>`(refreshed.extraction_root / "data" / "renamed.txt").exists`<br>`(refreshed.extraction_root / "unexpected.txt").exists` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `original.rename(original.with_name("renamed.txt"))` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -7743,13 +5873,9 @@ def test_tampered_extraction_is_rebuilt_from_verified_archive(
     assert not (refreshed.extraction_root / "unexpected.txt").exists()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_extraction_from_archive`
 
-**Purpose:** Implements `extraction from archive` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Construct synthetic current Muret document metadata and a `GpuArchiveDownload` using the actual supplied local ZIP path, current UTC timestamp, physical byte size and computed SHA. Call the real extractor under `tmp_path/cache` and return its extraction. Discovery/download network steps are bypassed, while ZIP validation, extraction, inventory and manifest generation are real.
 
 **Exact signature**
 
@@ -7771,7 +5897,6 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
 
 - Exact observed return expressions:
   - `extract_gpu_document(download, tmp_path / "cache")`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -7807,21 +5932,6 @@ Outbound call expressions and conservative ownership:
 | `path.stat` | `unresolved local/third-party receiver; no ownership inferred` |
 | `gpu._sha256` | `landscout.sources.gpu_fr._sha256` |
 | `extract_gpu_document` | `landscout.sources.gpu_fr.extract_gpu_document` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.stat` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `gpu._sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -7865,13 +5975,9 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
     return extract_gpu_document(download, tmp_path / "cache")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_spatial_inventory_and_inspection_preserve_source_quality`
 
-**Purpose:** Regression invariant: spatial inventory and inspection preserve source quality. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create and extract the real synthetic GeoPackage package, discover its two physical layers and inspect with the real config. Check layer ordering/roles, EPSG:2154, three zoning rows, one NULL and one invalid geometry, persistence of the invalid bow-tie, CNIG XML identity and sorted file inventory. No source geometry is repaired.
 
 **Exact signature**
 
@@ -7892,8 +5998,6 @@ def test_spatial_inventory_and_inspection_preserve_source_quality(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert [item.source_layer for item in references] == [<br>        "prescription_surf",<br>        "zone_urba",<br>    ]`
   - `assert result.zoning.reference.source_layer == "zone_urba"`
@@ -7921,21 +6025,6 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -7962,13 +6051,9 @@ def test_spatial_inventory_and_inspection_preserve_source_quality(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_missing_zoning_layer_fails_clearly`
 
-**Purpose:** Regression invariant: missing zoning layer fails clearly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Construct a real synthetic package and a validated config whose zoning match token is `missing`. Require physical inspection to fail with a zoning error instead of producing an empty or invented zoning role.
 
 **Exact signature**
 
@@ -7987,8 +6072,6 @@ def test_missing_zoning_layer_fails_clearly(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="zoning")`
 
@@ -8008,21 +6091,6 @@ Outbound call expressions and conservative ownership:
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["spatial_layers"]["zoning"]["match_tokens"] = ["missing"]` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8037,13 +6105,9 @@ def test_missing_zoning_layer_fails_clearly(tmp_path: Path) -> None:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_ambiguous_zoning_layer_fails_clearly`
 
-**Purpose:** Regression invariant: ambiguous zoning layer fails clearly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Give zoning both `zone_urba` and `prescription_surf` tokens against the real two-layer synthetic package. Require inspection to report two matches rather than selecting one arbitrarily.
 
 **Exact signature**
 
@@ -8062,8 +6126,6 @@ def test_ambiguous_zoning_layer_fails_clearly(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="found 2")`
 
@@ -8083,21 +6145,6 @@ Outbound call expressions and conservative ownership:
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["spatial_layers"]["zoning"]["match_tokens"] = [<br>        "zone_urba",<br>        "prescription_surf",<br>    ]` |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8114,13 +6161,9 @@ def test_ambiguous_zoning_layer_fails_clearly(tmp_path: Path) -> None:
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_config_with_shared_role_token`
 
-**Purpose:** Implements `config with shared role token` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Dump a freshly loaded config to an independent mutable payload, assign the same token list to the two named logical roles, then validate a new immutable config. The existing loaded config is not mutated; role ambiguity is intentionally left for physical inspection rather than simulated by a fake layer reader.
 
 **Exact signature**
 
@@ -8147,7 +6190,6 @@ def _config_with_shared_role_token(
 
 - Exact observed return expressions:
   - `GpuSourceConfig.model_validate(payload)`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -8161,21 +6203,6 @@ Outbound call expressions and conservative ownership:
 | `_config().model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `GpuSourceConfig.model_validate` | `landscout.sources.gpu_fr.GpuSourceConfig.model_validate` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `payload["spatial_layers"][first_role]["match_tokens"] = [token]`<br>`payload["spatial_layers"][second_role]["match_tokens"] = [token]` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8191,13 +6218,9 @@ def _config_with_shared_role_token(
     return GpuSourceConfig.model_validate(payload)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_one_physical_layer_for_two_logical_roles`
 
-**Purpose:** Regression invariant: inspection rejects one physical layer for two logical roles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** For three declared role pairs, assign one shared token so the same physical zoning or prescription layer would satisfy both logical roles. Inspect the real synthetic package and require a role/same-layer error, including cross-family and cross-prescription/information collisions.
 
 **Exact signature**
 
@@ -8231,8 +6254,6 @@ def test_inspection_rejects_one_physical_layer_for_two_logical_roles(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="role\|logical\|same layer")`
 
@@ -8251,21 +6272,6 @@ Outbound call expressions and conservative ownership:
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8282,13 +6288,9 @@ def test_inspection_rejects_one_physical_layer_for_two_logical_roles(
         inspect_gpu_planning_document(extraction, config)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_mutated_config_before_layer_discovery`
 
-**Purpose:** Regression invariant: inspection rejects mutated config before layer discovery. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create a real synthetic extraction, bypass config validation with `model_copy` carrying an untrusted provider, and replace layer discovery with a counted assertion failure. Require controlled config/provider rejection with zero discovery calls; the forged object is reconstructed before spatial discovery.
 
 **Exact signature**
 
@@ -8311,8 +6313,6 @@ def test_inspection_rejects_mutated_config_before_layer_discovery(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="config\|provider")`
 - Exact assertions:
@@ -8333,21 +6333,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8373,13 +6358,9 @@ def test_inspection_rejects_mutated_config_before_layer_discovery(
     assert discovery_calls == 0
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_mutated_config_before_layer_discovery.counted`
 
-**Purpose:** Implements `counted` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu.discover_gpu_spatial_layers`, increment the enclosing counter and always raise `AssertionError` if invalid-config inspection reaches layer discovery. It performs no GIS read and never returns normally.
 
 **Exact signature**
 
@@ -8399,7 +6380,6 @@ def counted(*args: object, **kwargs: object) -> object:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("layer discovery ran for an invalid config")`.
 
@@ -8413,21 +6393,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8437,13 +6402,9 @@ def counted(*args: object, **kwargs: object) -> object:
         raise AssertionError("layer discovery ran for an invalid config")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_archive_byte_mutation_before_layer_discovery`
 
-**Purpose:** Regression invariant: inspection rejects archive byte mutation before layer discovery. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Create and extract a valid synthetic package, append changed bytes to the source ZIP and replace spatial discovery with a counted failure callback. Require controlled archive/source/config rejection and zero discovery calls, proving archive revalidation precedes layer discovery.
 
 **Exact signature**
 
@@ -8466,8 +6427,6 @@ def test_inspection_rejects_archive_byte_mutation_before_layer_discovery(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="archive\|source\|config")`
 - Exact assertions:
@@ -8489,21 +6448,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive.read_bytes` |
-| Filesystem/archive write or publication | `archive.write_bytes` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8530,13 +6474,9 @@ def test_inspection_rejects_archive_byte_mutation_before_layer_discovery(
     assert discovery_calls == 0
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_archive_byte_mutation_before_layer_discovery.counted`
 
-**Purpose:** Implements `counted` within the file role: Provides complete unit and regression coverage for the `gpu_fr` contracts exercised in this file.
+**Purpose, ordered behavior and effects:** Installed as `gpu.discover_gpu_spatial_layers`, increment the counter and unconditionally raise if inspection of the stale archive reaches spatial discovery. It performs no actual layer listing or feature read.
 
 **Exact signature**
 
@@ -8556,7 +6496,6 @@ def counted(*args: object, **kwargs: object) -> object:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `AssertionError("layer discovery ran after archive mutation")`.
 
@@ -8570,21 +6509,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8594,13 +6518,9 @@ def counted(*args: object, **kwargs: object) -> object:
         raise AssertionError("layer discovery ran after archive mutation")
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_inspection_rejects_document_lineage_not_matching_config`
 
-**Purpose:** Regression invariant: inspection rejects document lineage not matching config. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Forge the extraction's nested document commune, partition, empty document type or wrong-partition official URL while retaining the real extracted package. Require inspection to reject each of four source/config lineage inconsistencies before accepting a planning document.
 
 **Exact signature**
 
@@ -8636,8 +6556,6 @@ def test_inspection_rejects_document_lineage_not_matching_config(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(<br>        GpuSpatialInspectionError,<br>        match="config\|commune\|partition\|URL\|type\|planning",<br>    )`
 
@@ -8656,21 +6574,6 @@ Outbound call expressions and conservative ownership:
 | `inspect_gpu_planning_document` | `landscout.sources.gpu_fr.inspect_gpu_planning_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8694,13 +6597,9 @@ def test_inspection_rejects_document_lineage_not_matching_config(
         inspect_gpu_planning_document(forged, _config())
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_planning_document_records_and_revalidates_exact_config_identity`
 
-**Purpose:** Regression invariant: planning document records and revalidates exact config identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Inspect a real synthetic package and verify the returned record retains the validated config and matching full config hash. Forge either the config SHA or the immutable all-layer inventory as a list, then call the public single-layer revalidator and require controlled rejection for each attack.
 
 **Exact signature**
 
@@ -8721,8 +6620,6 @@ def test_planning_document_records_and_revalidates_exact_config_identity(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="config\|SHA")`
   - `pytest.raises(GpuSpatialInspectionError, match="inventory\|tuple")`
@@ -8747,21 +6644,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `gpu.revalidate_gpu_spatial_layer_source` | `landscout.sources.gpu_fr.revalidate_gpu_spatial_layer_source` |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `gpu._source_config_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8788,13 +6670,9 @@ def test_planning_document_records_and_revalidates_exact_config_identity(
         )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_source_complete_revalidation_rejects_coordinated_spatial_omission`
 
-**Purpose:** Regression invariant: source complete revalidation rejects coordinated spatial omission. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Inspect the real two-layer package, then forge both the related-layer tuple and all-spatial-layer inventory to omit the prescription layer while keeping zoning. Public zoning revalidation must reject the mismatch against physical inventory; coordinated caller omissions are not authoritative.
 
 **Exact signature**
 
@@ -8815,8 +6693,6 @@ def test_source_complete_revalidation_rejects_coordinated_spatial_omission(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(GpuSpatialInspectionError, match="spatial inventory\|physical")`
 
@@ -8836,21 +6712,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `gpu.revalidate_gpu_spatial_layer_source` | `landscout.sources.gpu_fr.revalidate_gpu_spatial_layer_source` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -8869,13 +6730,9 @@ def test_source_complete_revalidation_rejects_coordinated_spatial_omission(
         gpu.revalidate_gpu_spatial_layer_source(forged, forged.zoning)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_cached_document_lineage_change_forces_refresh`
 
-**Purpose:** Regression invariant: cached document lineage change forces refresh. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Populate a cache for `doc-1`, construct metadata for `doc-2` and consistently rewrite its written-file URLs, then serve a valid synthetic ZIP through the transport mock. Require a non-cache-hit result, showing that internally consistent changed document lineage cannot reuse the previous sidecar.
 
 **Exact signature**
 
@@ -8897,8 +6754,6 @@ def test_cached_document_lineage_change_forces_refresh(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert not download_gpu_document(changed, _config(), tmp_path).cache_hit`
 
@@ -8917,21 +6772,6 @@ Outbound call expressions and conservative ownership:
 | `monkeypatch.setattr` | `unresolved local/third-party receiver; no ownership inferred` |
 | `download_gpu_document` | `landscout.sources.gpu_fr.download_gpu_document` |
 | `_config` | `tests.unit.test_gpu_fr._config` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `item.source_url.replace` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -8961,84 +6801,83 @@ def test_cached_document_lineage_change_forces_refresh(
     assert not download_gpu_document(changed, _config(), tmp_path).cache_hit
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 
 ## 7. Test-specific regression contract
 
-- Test functions: **64**.
+- Top-level test definitions: **64**; their explicit decorators declare **143 cases**. This is static parameter arithmetic, not a claim that Pytest collection or execution occurred during this prose audit.
+- Additional callable definitions: **41** (fixture helpers, response methods and nested callbacks). The response class has no locally declared fields.
 - Pytest fixtures (decorator-proven): **0**.
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
-|---|---|---|---:|---|
-| `test_valid_config_and_urls` | none | none | 3 | Proves valid config and urls using the exact source reproduced in section 7. |
-| `test_duplicate_gpu_yaml_key_is_rejected` | none | pytest.raises(gpu.GpuConfigError) | 1 | Proves duplicate gpu yaml key is rejected using the exact source reproduced in section 7. |
-| `test_invalid_config_values_are_rejected` | pytest.mark.parametrize(<br>    ("path", "value"),<br>    [<br>        (("pilot", "commune_code"), "3139"),<br>        (("api", "base_url"), "file:///api"),<br>        (("api", "base_url"), "http://www.geoportail-urbanisme.gouv.fr/api"),<br>        (("api", "base_url"), "https://example.com/api"),<br>        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr:8443/api"),<br>        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr/api?x=1"),<br>        (("download", "strategy"), "parcel"),<br>        (("download", "partition_template"), ""),<br>        (("cache", "max_age_hours"), -1),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves invalid config values are rejected using the exact source reproduced in section 7. |
-| `test_mutated_loaded_api_origin_is_rejected_before_discovery_network` | none | pytest.raises(ValidationError, match="frozen"); pytest.raises(GpuDiscoveryError, match="config\|official\|origin") | 1 | Proves mutated loaded api origin is rejected before discovery network using the exact source reproduced in section 7. |
-| `test_gpu_source_identity_is_exact` | pytest.mark.parametrize("field", ["provider", "portal"]) | pytest.raises(ValidationError) | 0 | Proves gpu source identity is exact using the exact source reproduced in section 7. |
-| `test_gpu_cache_age_rejects_coercion_and_nonfinite` | pytest.mark.parametrize("value", [True, "168", float("nan"), float("inf")]) | pytest.raises(ValidationError) | 0 | Proves gpu cache age rejects coercion and nonfinite using the exact source reproduced in section 7. |
-| `test_gpu_source_config_identity_is_deterministic_and_content_bound` | none | none | 2 | Proves gpu source config identity is deterministic and content bound using the exact source reproduced in section 7. |
-| `test_unknown_config_field_is_rejected` | none | pytest.raises(ValidationError) | 0 | Proves unknown config field is rejected using the exact source reproduced in section 7. |
-| `test_document_discovery_success` | none | none | 7 | Proves document discovery success using the exact source reproduced in section 7. |
-| `test_gpu_api_json_is_strict_before_document_selection` | pytest.mark.parametrize(<br>    "payload",<br>    [<br>        b'[{"id":"doc-1","id":"doc-2"}]',<br>        b"[NaN]",<br>        b"[Infinity]",<br>    ],<br>) | pytest.raises(GpuDiscoveryError, match="JSON\|duplicate\|finite\|metadata") | 0 | Proves gpu api json is strict before document selection using the exact source reproduced in section 7. |
-| `test_written_material_url_must_be_exact_official_https_api_url` | pytest.mark.parametrize(<br>    "source_url",<br>    [<br>        (<br>            "http://www.geoportail-urbanisme.gouv.fr/api/document/"<br>            "doc-1/files/reglement.pdf"<br>        ),<br>        "https://unrelated.example/api/document/doc-1/files/reglement.pdf",<br>    ],<br>    ids=["http", "unrelated-https-origin"],<br>) | pytest.raises(GpuDiscoveryError, match="written material URL") | 0 | Proves written material url must be exact official https api url using the exact source reproduced in section 7. |
-| `test_written_material_fallback_rejects_unsafe_archive_url_provenance` | pytest.mark.parametrize(<br>    "archive_url",<br>    [<br>        (<br>            "http://www.geoportail-urbanisme.gouv.fr/api/document/"<br>            "doc-1/download/31395_PLU_20240215.zip"<br>        ),<br>        (<br>            "https://unrelated.example/api/document/doc-1/download/"<br>            "31395_PLU_20240215.zip"<br>        ),<br>    ],<br>    ids=["http", "unrelated-https-origin"],<br>) | pytest.raises(GpuDiscoveryError, match="archive URL") | 0 | Proves written material fallback rejects unsafe archive url provenance using the exact source reproduced in section 7. |
-| `test_no_current_document_is_rejected` | none | pytest.raises(GpuDiscoveryError, match="No current") | 0 | Proves no current document is rejected using the exact source reproduced in section 7. |
-| `test_ambiguous_current_documents_are_rejected` | none | pytest.raises(GpuDiscoveryError, match="Ambiguous") | 0 | Proves ambiguous current documents are rejected using the exact source reproduced in section 7. |
-| `test_missing_document_identity_is_rejected` | pytest.mark.parametrize("field", ["id", "originalName", "type"]) | pytest.raises(GpuDiscoveryError, match="missing") | 0 | Proves missing document identity is rejected using the exact source reproduced in section 7. |
-| `test_document_details_must_match_selected_listing` | pytest.mark.parametrize(<br>    ("field", "different_value"),<br>    [<br>        ("id", "doc-2"),<br>        ("originalName", "31395_PLU_OTHER"),<br>        ("name", "DU_99999"),<br>        ("type", "CC"),<br>        ("status", "document.deleted"),<br>        ("legalStatus", "CANCELLED"),<br>        ("effectiveStatus", "ANNULE"),<br>    ],<br>) | pytest.raises(GpuDiscoveryError, match="match\|changed\|current") | 0 | Proves document details must match selected listing using the exact source reproduced in section 7. |
-| `test_document_details_commune_must_match_selected_listing` | none | pytest.raises(GpuDiscoveryError, match="match") | 0 | Proves document details commune must match selected listing using the exact source reproduced in section 7. |
-| `test_discovery_rejects_unsafe_archive_name` | pytest.mark.parametrize(<br>    "archive_name",<br>    _UNSAFE_ARCHIVE_NAMES,<br>) | pytest.raises(GpuDiscoveryError, match="archive name\|safe") | 0 | Proves discovery rejects unsafe archive name using the exact source reproduced in section 7. |
-| `test_successful_download_persists_sha_and_sidecar` | none | none | 6 | Proves successful download persists sha and sidecar using the exact source reproduced in section 7. |
-| `test_download_rejects_document_inconsistent_with_config` | pytest.mark.parametrize(<br>    ("field", "different_value"),<br>    [<br>        ("provider", "OTHER PROVIDER"),<br>        ("portal", "OTHER PORTAL"),<br>        ("commune_code", "99999"),<br>        ("partition", "DU_99999"),<br>        ("status", "document.deleted"),<br>        ("legal_status", "CANCELLED"),<br>        ("effective_status", "ANNULE"),<br>        ("source_url", "https://example.test/not-the-gpu.zip"),<br>        (<br>            "source_url",<br>            (<br>                "https://www.geoportail-urbanisme.gouv.fr/api/document/"<br>                "download-by-partition/DU_99999"<br>            ),<br>        ),<br>    ],<br>) | pytest.raises(GpuDownloadError, match="document\|identity\|config") | 1 | Proves download rejects document inconsistent with config using the exact source reproduced in section 7. |
-| `test_download_rejects_forged_written_file_provenance_before_network` | pytest.mark.parametrize("mutation", ["forged-source-url", "wrong-item-type"]) | pytest.raises(GpuDownloadError, match="written\|document\|source\|URL") | 1 | Proves download rejects forged written file provenance before network using the exact source reproduced in section 7. |
-| `test_download_rejects_forged_unsafe_archive_name_before_io` | pytest.mark.parametrize(<br>    "archive_name",<br>    _UNSAFE_ARCHIVE_NAMES,<br>) | pytest.raises(GpuDownloadError, match="archive name\|archive filename\|safe") | 1 | Proves download rejects forged unsafe archive name before io using the exact source reproduced in section 7. |
-| `test_archive_name_with_one_zip_suffix_is_not_duplicated` | none | none | 2 | Proves archive name with one zip suffix is not duplicated using the exact source reproduced in section 7. |
-| `test_fresh_cache_is_reused` | none | none | 2 | Proves fresh cache is reused using the exact source reproduced in section 7. |
-| `test_boolean_cache_integrity_counts_are_not_accepted_as_integers` | pytest.mark.parametrize("field", ["file_size", "member_count"]) | none | 1 | Proves boolean cache integrity counts are not accepted as integers using the exact source reproduced in section 7. |
-| `test_stale_recovery_backup_rejects_cache_before_network` | none | pytest.raises(GpuDownloadError, match="backup\|recovery\|manual") | 1 | Proves stale recovery backup rejects cache before network using the exact source reproduced in section 7. |
-| `test_expired_cache_is_refreshed` | none | none | 2 | Proves expired cache is refreshed using the exact source reproduced in section 7. |
-| `test_failed_refresh_preserves_previous_cache` | none | pytest.raises(GpuDownloadError) | 3 | Proves failed refresh preserves previous cache using the exact source reproduced in section 7. |
-| `test_metadata_publication_failure_rolls_back_both_cache_files` | none | pytest.raises(GpuDownloadError) | 4 | Proves metadata publication failure rolls back both cache files using the exact source reproduced in section 7. |
-| `test_publication_and_rollback_failure_preserves_exact_recovery_backups` | none | pytest.raises(GpuDownloadError, match="rollback") | 2 | Proves publication and rollback failure preserves exact recovery backups using the exact source reproduced in section 7. |
-| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(GpuDownloadError, match="rollback") | 2 | Proves cleanup failure does not mask double failure recovery error using the exact source reproduced in section 7. |
-| `test_stale_cache_recovery_backup_fails_closed_without_destroying_it` | none | pytest.raises(GpuDownloadError, match="backup\|recovery\|manual") | 3 | Proves stale cache recovery backup fails closed without destroying it using the exact source reproduced in section 7. |
-| `test_preexisting_temporary_archive_symlink_cannot_modify_target` | none | pytest.raises(GpuDownloadError) | 2 | Proves preexisting temporary archive symlink cannot modify target using the exact source reproduced in section 7. |
-| `test_corrupt_download_is_rejected` | none | pytest.raises(GpuDownloadError) | 1 | Proves corrupt download is rejected using the exact source reproduced in section 7. |
-| `test_tampered_sidecar_invalidates_cache` | none | none | 1 | Proves tampered sidecar invalidates cache using the exact source reproduced in section 7. |
-| `test_archive_path_traversal_is_rejected` | none | pytest.raises(GpuArchiveError, match="Unsafe") | 0 | Proves archive path traversal is rejected using the exact source reproduced in section 7. |
-| `test_archive_symlink_is_rejected` | none | pytest.raises(GpuArchiveError, match="Symbolic") | 0 | Proves archive symlink is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_zip_extraction_targets_are_rejected` | pytest.mark.parametrize(<br>    "members",<br>    [<br>        [("duplicate.txt", b"first"), ("duplicate.txt", b"second")],<br>        [("folder/file.txt", b"first"), (r"folder\file.txt", b"second")],<br>        [("folder/file.txt", b"first"), ("folder/./file.txt", b"second")],<br>        [("Folder/File.txt", b"first"), ("folder/file.txt", b"second")],<br>    ],<br>) | pytest.raises(GpuArchiveError, match="(?i)duplicate\|collid") | 0 | Proves duplicate zip extraction targets are rejected using the exact source reproduced in section 7. |
-| `test_zip_file_directory_target_collision_is_rejected` | none | pytest.raises(GpuArchiveError, match="collision\|target") | 0 | Proves zip file directory target collision is rejected using the exact source reproduced in section 7. |
-| `test_zip_cannot_claim_extraction_manifest_path` | none | pytest.raises(GpuArchiveError, match="manifest") | 0 | Proves zip cannot claim extraction manifest path using the exact source reproduced in section 7. |
-| `test_extraction_inventory_and_cache` | none | none | 7 | Proves extraction inventory and cache using the exact source reproduced in section 7. |
-| `test_extraction_manifest_is_created_exclusively` | none | none | 1 | Proves extraction manifest is created exclusively using the exact source reproduced in section 7. |
-| `test_stale_extraction_backup_fails_closed_and_is_preserved` | none | pytest.raises(GpuArchiveError, match="backup\|recovery\|manual") | 2 | Proves stale extraction backup fails closed and is preserved using the exact source reproduced in section 7. |
-| `test_extraction_publication_and_rollback_failure_preserves_backup` | none | pytest.raises(GpuArchiveError, match="rollback"); pytest.raises(GpuArchiveError, match="backup\|recovery\|manual") | 2 | Proves extraction publication and rollback failure preserves backup using the exact source reproduced in section 7. |
-| `test_extraction_publication_failure_restores_existing_root` | none | pytest.raises(GpuArchiveError, match="publication") | 2 | Proves extraction publication failure restores existing root using the exact source reproduced in section 7. |
-| `test_extraction_backup_move_failure_preserves_existing_root` | none | pytest.raises(GpuArchiveError, match="backup.*failed") | 2 | Proves extraction backup move failure preserves existing root using the exact source reproduced in section 7. |
-| `test_extraction_inventory_rejects_special_entry` | none | pytest.raises(GpuArchiveError, match="special filesystem entry") | 0 | Proves extraction inventory rejects special entry using the exact source reproduced in section 7. |
-| `test_extraction_cleanup_preserves_primary_controlled_error` | none | pytest.raises(GpuArchiveError, match="could not be cleaned") | 0 | Proves extraction cleanup preserves primary controlled error using the exact source reproduced in section 7. |
-| `test_extraction_temporary_link_is_rejected_without_unlinking_target` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(GpuArchiveError, match="temporary\|link\|junction") | 3 | Proves extraction temporary link is rejected without unlinking target using the exact source reproduced in section 7. |
-| `test_stale_extraction_temporary_directory_fails_closed_and_is_preserved` | none | pytest.raises(GpuArchiveError, match="temporary\|manual\|recovery") | 1 | Proves stale extraction temporary directory fails closed and is preserved using the exact source reproduced in section 7. |
-| `test_duplicate_extraction_manifest_key_forces_verified_rebuild` | none | none | 2 | Proves duplicate extraction manifest key forces verified rebuild using the exact source reproduced in section 7. |
-| `test_stale_download_object_rejects_replaced_valid_archive` | none | pytest.raises(GpuArchiveError, match="checksum\|SHA\|stale\|metadata") | 2 | Proves stale download object rejects replaced valid archive using the exact source reproduced in section 7. |
-| `test_extraction_rejects_archive_object_inconsistent_with_path` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("sha256", "0" * 64),<br>        ("file_size", 1),<br>        ("filename", "other.zip"),<br>        ("archive_format", "7z"),<br>    ],<br>) | pytest.raises(GpuArchiveError, match="archive\|metadata\|checksum\|size") | 0 | Proves extraction rejects archive object inconsistent with path using the exact source reproduced in section 7. |
-| `test_tampered_extraction_is_rebuilt_from_verified_archive` | pytest.mark.parametrize("mutation", ["content", "deleted", "added", "path"]) | none | 4 | Proves tampered extraction is rebuilt from verified archive using the exact source reproduced in section 7. |
-| `test_spatial_inventory_and_inspection_preserve_source_quality` | none | none | 10 | Proves spatial inventory and inspection preserve source quality using the exact source reproduced in section 7. |
-| `test_missing_zoning_layer_fails_clearly` | none | pytest.raises(GpuSpatialInspectionError, match="zoning") | 0 | Proves missing zoning layer fails clearly using the exact source reproduced in section 7. |
-| `test_ambiguous_zoning_layer_fails_clearly` | none | pytest.raises(GpuSpatialInspectionError, match="found 2") | 0 | Proves ambiguous zoning layer fails clearly using the exact source reproduced in section 7. |
-| `test_inspection_rejects_one_physical_layer_for_two_logical_roles` | pytest.mark.parametrize(<br>    ("first_role", "second_role", "token"),<br>    [<br>        ("zoning", "prescription_surface", "zone_urba"),<br>        ("prescription_surface", "prescription_line", "prescription_surf"),<br>        ("prescription_surface", "information_surface", "prescription_surf"),<br>    ],<br>) | pytest.raises(GpuSpatialInspectionError, match="role\|logical\|same layer") | 0 | Proves inspection rejects one physical layer for two logical roles using the exact source reproduced in section 7. |
-| `test_inspection_rejects_mutated_config_before_layer_discovery` | none | pytest.raises(GpuSpatialInspectionError, match="config\|provider") | 1 | Proves inspection rejects mutated config before layer discovery using the exact source reproduced in section 7. |
-| `test_inspection_rejects_archive_byte_mutation_before_layer_discovery` | none | pytest.raises(GpuSpatialInspectionError, match="archive\|source\|config") | 1 | Proves inspection rejects archive byte mutation before layer discovery using the exact source reproduced in section 7. |
-| `test_inspection_rejects_document_lineage_not_matching_config` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("commune_code", "99999"),<br>        ("partition", "DU_99999"),<br>        ("document_type", ""),<br>        (<br>            "source_url",<br>            "https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_99999",<br>        ),<br>    ],<br>) | pytest.raises(<br>        GpuSpatialInspectionError,<br>        match="config\|commune\|partition\|URL\|type\|planning",<br>    ) | 0 | Proves inspection rejects document lineage not matching config using the exact source reproduced in section 7. |
-| `test_planning_document_records_and_revalidates_exact_config_identity` | none | pytest.raises(GpuSpatialInspectionError, match="config\|SHA"); pytest.raises(GpuSpatialInspectionError, match="inventory\|tuple") | 2 | Proves planning document records and revalidates exact config identity using the exact source reproduced in section 7. |
-| `test_source_complete_revalidation_rejects_coordinated_spatial_omission` | none | pytest.raises(GpuSpatialInspectionError, match="spatial inventory\|physical") | 0 | Proves source complete revalidation rejects coordinated spatial omission using the exact source reproduced in section 7. |
-| `test_cached_document_lineage_change_forces_refresh` | none | none | 1 | Proves cached document lineage change forces refresh using the exact source reproduced in section 7. |
+The ordered setup, attacked boundary, assertion meaning and mock limitations are explained for every test in section 6. The table below is an index of declared cases and direct assertion statements, not an execution report; expected-exception contexts and callback assertions also contribute to a test's checks.
+
+| Test | Parametrization | Expected exception contexts | Assertion count | Declared cases |
+|---|---|---|---:|---:|
+| `test_valid_config_and_urls` | none | none | 3 | 1 |
+| `test_duplicate_gpu_yaml_key_is_rejected` | none | pytest.raises(gpu.GpuConfigError) | 1 | 1 |
+| `test_invalid_config_values_are_rejected` | pytest.mark.parametrize(<br>    ("path", "value"),<br>    [<br>        (("pilot", "commune_code"), "3139"),<br>        (("api", "base_url"), "file:///api"),<br>        (("api", "base_url"), "http://www.geoportail-urbanisme.gouv.fr/api"),<br>        (("api", "base_url"), "https://example.com/api"),<br>        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr:8443/api"),<br>        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr/api?x=1"),<br>        (("download", "strategy"), "parcel"),<br>        (("download", "partition_template"), ""),<br>        (("cache", "max_age_hours"), -1),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | 9 |
+| `test_mutated_loaded_api_origin_is_rejected_before_discovery_network` | none | pytest.raises(ValidationError, match="frozen"); pytest.raises(GpuDiscoveryError, match="config\|official\|origin") | 1 | 1 |
+| `test_gpu_source_identity_is_exact` | pytest.mark.parametrize("field", ["provider", "portal"]) | pytest.raises(ValidationError) | 0 | 2 |
+| `test_gpu_cache_age_rejects_coercion_and_nonfinite` | pytest.mark.parametrize("value", [True, "168", float("nan"), float("inf")]) | pytest.raises(ValidationError) | 0 | 4 |
+| `test_gpu_source_config_identity_is_deterministic_and_content_bound` | none | none | 2 | 1 |
+| `test_unknown_config_field_is_rejected` | none | pytest.raises(ValidationError) | 0 | 1 |
+| `test_document_discovery_success` | none | none | 7 | 1 |
+| `test_gpu_api_json_is_strict_before_document_selection` | pytest.mark.parametrize(<br>    "payload",<br>    [<br>        b'[{"id":"doc-1","id":"doc-2"}]',<br>        b"[NaN]",<br>        b"[Infinity]",<br>    ],<br>) | pytest.raises(GpuDiscoveryError, match="JSON\|duplicate\|finite\|metadata") | 0 | 3 |
+| `test_written_material_url_must_be_exact_official_https_api_url` | pytest.mark.parametrize(<br>    "source_url",<br>    [<br>        (<br>            "http://www.geoportail-urbanisme.gouv.fr/api/document/"<br>            "doc-1/files/reglement.pdf"<br>        ),<br>        "https://unrelated.example/api/document/doc-1/files/reglement.pdf",<br>    ],<br>    ids=["http", "unrelated-https-origin"],<br>) | pytest.raises(GpuDiscoveryError, match="written material URL") | 0 | 2 |
+| `test_written_material_fallback_rejects_unsafe_archive_url_provenance` | pytest.mark.parametrize(<br>    "archive_url",<br>    [<br>        (<br>            "http://www.geoportail-urbanisme.gouv.fr/api/document/"<br>            "doc-1/download/31395_PLU_20240215.zip"<br>        ),<br>        (<br>            "https://unrelated.example/api/document/doc-1/download/"<br>            "31395_PLU_20240215.zip"<br>        ),<br>    ],<br>    ids=["http", "unrelated-https-origin"],<br>) | pytest.raises(GpuDiscoveryError, match="archive URL") | 0 | 2 |
+| `test_no_current_document_is_rejected` | none | pytest.raises(GpuDiscoveryError, match="No current") | 0 | 1 |
+| `test_ambiguous_current_documents_are_rejected` | none | pytest.raises(GpuDiscoveryError, match="Ambiguous") | 0 | 1 |
+| `test_missing_document_identity_is_rejected` | pytest.mark.parametrize("field", ["id", "originalName", "type"]) | pytest.raises(GpuDiscoveryError, match="missing") | 0 | 3 |
+| `test_document_details_must_match_selected_listing` | pytest.mark.parametrize(<br>    ("field", "different_value"),<br>    [<br>        ("id", "doc-2"),<br>        ("originalName", "31395_PLU_OTHER"),<br>        ("name", "DU_99999"),<br>        ("type", "CC"),<br>        ("status", "document.deleted"),<br>        ("legalStatus", "CANCELLED"),<br>        ("effectiveStatus", "ANNULE"),<br>    ],<br>) | pytest.raises(GpuDiscoveryError, match="match\|changed\|current") | 0 | 7 |
+| `test_document_details_commune_must_match_selected_listing` | none | pytest.raises(GpuDiscoveryError, match="match") | 0 | 1 |
+| `test_discovery_rejects_unsafe_archive_name` | pytest.mark.parametrize(<br>    "archive_name",<br>    _UNSAFE_ARCHIVE_NAMES,<br>) | pytest.raises(GpuDiscoveryError, match="archive name\|safe") | 0 | 16 |
+| `test_successful_download_persists_sha_and_sidecar` | none | none | 6 | 1 |
+| `test_download_rejects_document_inconsistent_with_config` | pytest.mark.parametrize(<br>    ("field", "different_value"),<br>    [<br>        ("provider", "OTHER PROVIDER"),<br>        ("portal", "OTHER PORTAL"),<br>        ("commune_code", "99999"),<br>        ("partition", "DU_99999"),<br>        ("status", "document.deleted"),<br>        ("legal_status", "CANCELLED"),<br>        ("effective_status", "ANNULE"),<br>        ("source_url", "https://example.test/not-the-gpu.zip"),<br>        (<br>            "source_url",<br>            (<br>                "https://www.geoportail-urbanisme.gouv.fr/api/document/"<br>                "download-by-partition/DU_99999"<br>            ),<br>        ),<br>    ],<br>) | pytest.raises(GpuDownloadError, match="document\|identity\|config") | 1 | 9 |
+| `test_download_rejects_forged_written_file_provenance_before_network` | pytest.mark.parametrize("mutation", ["forged-source-url", "wrong-item-type"]) | pytest.raises(GpuDownloadError, match="written\|document\|source\|URL") | 1 | 2 |
+| `test_download_rejects_forged_unsafe_archive_name_before_io` | pytest.mark.parametrize(<br>    "archive_name",<br>    _UNSAFE_ARCHIVE_NAMES,<br>) | pytest.raises(GpuDownloadError, match="archive name\|archive filename\|safe") | 1 | 16 |
+| `test_archive_name_with_one_zip_suffix_is_not_duplicated` | none | none | 2 | 1 |
+| `test_fresh_cache_is_reused` | none | none | 2 | 1 |
+| `test_boolean_cache_integrity_counts_are_not_accepted_as_integers` | pytest.mark.parametrize("field", ["file_size", "member_count"]) | none | 1 | 2 |
+| `test_stale_recovery_backup_rejects_cache_before_network` | none | pytest.raises(GpuDownloadError, match="backup\|recovery\|manual") | 1 | 1 |
+| `test_expired_cache_is_refreshed` | none | none | 2 | 1 |
+| `test_failed_refresh_preserves_previous_cache` | none | pytest.raises(GpuDownloadError) | 3 | 1 |
+| `test_metadata_publication_failure_rolls_back_both_cache_files` | none | pytest.raises(GpuDownloadError) | 4 | 1 |
+| `test_publication_and_rollback_failure_preserves_exact_recovery_backups` | none | pytest.raises(GpuDownloadError, match="rollback") | 2 | 1 |
+| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(GpuDownloadError, match="rollback") | 2 | 1 |
+| `test_stale_cache_recovery_backup_fails_closed_without_destroying_it` | none | pytest.raises(GpuDownloadError, match="backup\|recovery\|manual") | 3 | 1 |
+| `test_preexisting_temporary_archive_symlink_cannot_modify_target` | none | pytest.raises(GpuDownloadError) | 2 | 1 |
+| `test_corrupt_download_is_rejected` | none | pytest.raises(GpuDownloadError) | 1 | 1 |
+| `test_tampered_sidecar_invalidates_cache` | none | none | 1 | 1 |
+| `test_archive_path_traversal_is_rejected` | none | pytest.raises(GpuArchiveError, match="Unsafe") | 0 | 1 |
+| `test_archive_symlink_is_rejected` | none | pytest.raises(GpuArchiveError, match="Symbolic") | 0 | 1 |
+| `test_duplicate_zip_extraction_targets_are_rejected` | pytest.mark.parametrize(<br>    "members",<br>    [<br>        [("duplicate.txt", b"first"), ("duplicate.txt", b"second")],<br>        [("folder/file.txt", b"first"), (r"folder\file.txt", b"second")],<br>        [("folder/file.txt", b"first"), ("folder/./file.txt", b"second")],<br>        [("Folder/File.txt", b"first"), ("folder/file.txt", b"second")],<br>    ],<br>) | pytest.raises(GpuArchiveError, match="(?i)duplicate\|collid") | 0 | 4 |
+| `test_zip_file_directory_target_collision_is_rejected` | none | pytest.raises(GpuArchiveError, match="collision\|target") | 0 | 1 |
+| `test_zip_cannot_claim_extraction_manifest_path` | none | pytest.raises(GpuArchiveError, match="manifest") | 0 | 1 |
+| `test_extraction_inventory_and_cache` | none | none | 7 | 1 |
+| `test_extraction_manifest_is_created_exclusively` | none | none | 1 | 1 |
+| `test_stale_extraction_backup_fails_closed_and_is_preserved` | none | pytest.raises(GpuArchiveError, match="backup\|recovery\|manual") | 2 | 1 |
+| `test_extraction_publication_and_rollback_failure_preserves_backup` | none | pytest.raises(GpuArchiveError, match="rollback"); pytest.raises(GpuArchiveError, match="backup\|recovery\|manual") | 2 | 1 |
+| `test_extraction_publication_failure_restores_existing_root` | none | pytest.raises(GpuArchiveError, match="publication") | 2 | 1 |
+| `test_extraction_backup_move_failure_preserves_existing_root` | none | pytest.raises(GpuArchiveError, match="backup.*failed") | 2 | 1 |
+| `test_extraction_inventory_rejects_special_entry` | none | pytest.raises(GpuArchiveError, match="special filesystem entry") | 0 | 1 |
+| `test_extraction_cleanup_preserves_primary_controlled_error` | none | pytest.raises(GpuArchiveError, match="could not be cleaned") | 0 | 1 |
+| `test_extraction_temporary_link_is_rejected_without_unlinking_target` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(GpuArchiveError, match="temporary\|link\|junction") | 3 | 2 |
+| `test_stale_extraction_temporary_directory_fails_closed_and_is_preserved` | none | pytest.raises(GpuArchiveError, match="temporary\|manual\|recovery") | 1 | 1 |
+| `test_duplicate_extraction_manifest_key_forces_verified_rebuild` | none | none | 2 | 1 |
+| `test_stale_download_object_rejects_replaced_valid_archive` | none | pytest.raises(GpuArchiveError, match="checksum\|SHA\|stale\|metadata") | 2 | 1 |
+| `test_extraction_rejects_archive_object_inconsistent_with_path` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("sha256", "0" * 64),<br>        ("file_size", 1),<br>        ("filename", "other.zip"),<br>        ("archive_format", "7z"),<br>    ],<br>) | pytest.raises(GpuArchiveError, match="archive\|metadata\|checksum\|size") | 0 | 4 |
+| `test_tampered_extraction_is_rebuilt_from_verified_archive` | pytest.mark.parametrize("mutation", ["content", "deleted", "added", "path"]) | none | 4 | 4 |
+| `test_spatial_inventory_and_inspection_preserve_source_quality` | none | none | 10 | 1 |
+| `test_missing_zoning_layer_fails_clearly` | none | pytest.raises(GpuSpatialInspectionError, match="zoning") | 0 | 1 |
+| `test_ambiguous_zoning_layer_fails_clearly` | none | pytest.raises(GpuSpatialInspectionError, match="found 2") | 0 | 1 |
+| `test_inspection_rejects_one_physical_layer_for_two_logical_roles` | pytest.mark.parametrize(<br>    ("first_role", "second_role", "token"),<br>    [<br>        ("zoning", "prescription_surface", "zone_urba"),<br>        ("prescription_surface", "prescription_line", "prescription_surf"),<br>        ("prescription_surface", "information_surface", "prescription_surf"),<br>    ],<br>) | pytest.raises(GpuSpatialInspectionError, match="role\|logical\|same layer") | 0 | 3 |
+| `test_inspection_rejects_mutated_config_before_layer_discovery` | none | pytest.raises(GpuSpatialInspectionError, match="config\|provider") | 1 | 1 |
+| `test_inspection_rejects_archive_byte_mutation_before_layer_discovery` | none | pytest.raises(GpuSpatialInspectionError, match="archive\|source\|config") | 1 | 1 |
+| `test_inspection_rejects_document_lineage_not_matching_config` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("commune_code", "99999"),<br>        ("partition", "DU_99999"),<br>        ("document_type", ""),<br>        (<br>            "source_url",<br>            "https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_99999",<br>        ),<br>    ],<br>) | pytest.raises(<br>        GpuSpatialInspectionError,<br>        match="config\|commune\|partition\|URL\|type\|planning",<br>    ) | 0 | 4 |
+| `test_planning_document_records_and_revalidates_exact_config_identity` | none | pytest.raises(GpuSpatialInspectionError, match="config\|SHA"); pytest.raises(GpuSpatialInspectionError, match="inventory\|tuple") | 2 | 1 |
+| `test_source_complete_revalidation_rejects_coordinated_spatial_omission` | none | pytest.raises(GpuSpatialInspectionError, match="spatial inventory\|physical") | 0 | 1 |
+| `test_cached_document_lineage_change_forces_refresh` | none | none | 1 | 1 |
 
 ## 8. Public exports and package ownership
 
@@ -9048,7 +6887,8 @@ This module declares no `__all__`; no package-level public guarantee is inferred
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Each callable's manually reviewed purpose/ordered-behavior paragraph distinguishes fixture setup, the attacked boundary, actual local I/O and injected callbacks. Every `gpu.open_safe_https` replacement bypasses shared DNS/socket behavior; separate shared-transport tests own that contract. Real synthetic GeoPackage and ZIP readers remain active except where a named regression deliberately isolates a scalar/cache gate.
+- Pytest restores monkeypatches after the test. Temporary files and model-dump dictionaries are disposable fixtures, not modifications to the checked-in config or the real GPU cache. No test result is inferred from reading this companion.
 
 ## 10. Change impact
 

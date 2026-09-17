@@ -2,8 +2,8 @@
 
 ## Canonical CRSs
 
-- `WGS84 = "EPSG:4326"` is the canonical stored parcel CRS used by Cadastre normalization and parcel result preservation.
-- `LAMBERT93 = "EPSG:2154"` is the canonical metric CRS used for French mainland area, length, width, perimeter, centroid-distance, nearest-distance, intersection, and coverage-boundary calculations.
+- `WGS84` is the `pyproj.CRS` object created by `CRS.from_epsg(4326)`, used for canonical stored parcels and parcel result preservation.
+- `LAMBERT93` is the `pyproj.CRS` object created by `CRS.from_epsg(2154)`, used for French mainland metric calculations. Other modules may declare the equivalent EPSG text locally; the exported constants themselves are not strings.
 - IGN BD TOPO source layers are required to be projected Lambert-93/EPSG:2154. GPU layers must satisfy their source/normalization CRS contracts and are projected only on explicit calculation copies where needed.
 
 Equivalent textual CRS spellings are not automatically accepted everywhere. Some physical source/result envelopes require canonical EPSG identity or exact deterministic representation because hashes/schema lineage depend on it. Each companion documents the local validator.
@@ -33,17 +33,17 @@ LandScout does not silently repair source geometry. Depending on the stage:
 - Source coverage boundaries require one valid Polygon/MultiPolygon under EPSG:2154.
 - Metric geometry helpers raise controlled errors for empty, invalid, unsupported, non-metric, or zero-area inputs.
 
-Z coordinates in valid IGN source LineString/Point/Multi geometries are preserved in stored output. When a stage requires 2D topology or distance, it calls `shapely.force_2d` only on a calculation copy.
+Z coordinates in supported valid IGN line and polygonal transformation-post geometries are preserved in stored output. When a stage requires 2D topology or distance, it calls `shapely.force_2d` only on a calculation copy. Exact supported types remain module-specific; grid transformation posts are Polygon/MultiPolygon proxies, not points.
 
 ## Parcel shape measurements
 
 `parcel_shape_metrics_m` validates a Polygon/MultiPolygon in a projected metre CRS and derives:
 
-- `area_m2`: Shapely polygonal area.
+- area: Shapely polygonal area is used internally; the separate `area_m2` helper returns it, but `ParcelShapeMetrics` has no area field.
 - `perimeter_m`: the standalone helper returns Shapely boundary length; `parcel_shape_metrics_m` uses that perimeter internally for compactness but does not include perimeter in `ParcelShapeMetrics`.
 - `length_m` and `width_m`: sides of the minimum rotated rectangle, ordered so length is not less than width.
 - `length_width_ratio`: length divided by width; zero width is rejected.
-- `compactness`: `4π area / perimeter²`, with physical-domain checks in downstream stages.
+- `compactness`: `min(4π area / perimeter², 1.0)`, with a positive-value gate and further physical-domain checks in downstream stages.
 - centroid values: the geometric centroid; `centroid_to_latlon` reprojects that centroid to EPSG:4326 and returns latitude/longitude in the code's declared order.
 
 The minimum rotated rectangle describes orientation-independent envelope dimensions; it is not a buildable footprint, access corridor, or engineering layout.
@@ -57,7 +57,7 @@ Cadastre source storage is EPSG:4326. Normalization copies the GeoDataFrame, rep
 Grid proximity validates parcels and normalized IGN catalogs, creates force-2D EPSG:2154 calculation geometry, and uses Shapely `STRtree.query_nearest(..., all_matches=True)`. It retains all equal nearest matches, calculates exact distance in metres, and chooses a representative by deterministic lexical feature ID after parcel/distance ordering. It creates:
 
 - nearest line/post proxy fields;
-- tie counts and canonical tie-ID JSON;
+- tie counts and one selected representative ID (no complete tie-ID JSON in the grid result);
 - exact-voltage views per observed exact voltage.
 
 Distance zero means geometries touch or intersect under Shapely distance. It does not mean a connectable grid bay, spare capacity, ownership, voltage compatibility beyond recorded proxy fields, or connection feasibility.

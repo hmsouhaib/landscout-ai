@@ -1,0 +1,1435 @@
+{
+  "schema_version": 1,
+  "ticket": "DOCS.CONTINUITY.1",
+  "date": "2026-09-17",
+  "record_type": "PARTIAL_RECOVERY_EVIDENCE_NOT_COMPLETION_OR_APPROVAL",
+  "starting_sha": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+  "remote_query": {
+    "command": "git ls-remote https://github.com/hmsouhaib/landscout-ai.git refs/heads/main",
+    "working_directory": "C:\\Windows\\Temp",
+    "exit_code": 0,
+    "observed_sha": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+    "fetch_succeeded": false,
+    "fetch_attempts": [
+      {
+        "mode": "sandbox",
+        "exit_code": 1,
+        "reason": "GitHub connection unavailable"
+      },
+      {
+        "mode": "authorized native",
+        "exit_code": 1,
+        "reason": "dubious ownership; no safe.directory or other security/ownership change"
+      }
+    ]
+  },
+  "git": {
+    "root": "C:/souhaib/landscout-ai",
+    "branch": "main",
+    "head": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+    "origin_main": "aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02",
+    "local_only_commits": [],
+    "staged": [],
+    "tracked_changes": [
+      "M\tREADME.md",
+      "M\tdocs/code/ARCHITECTURE.md",
+      "M\tdocs/code/CACHE_AND_RECOVERY.md",
+      "M\tdocs/code/CADASTRE_PIPELINE.md",
+      "M\tdocs/code/CHANGE_IMPACT_GUIDE.md",
+      "M\tdocs/code/DATA_FLOW.md",
+      "M\tdocs/code/ENVIRONMENT_PIPELINE.md",
+      "M\tdocs/code/FILE_INDEX.md",
+      "M\tdocs/code/GIS_AND_CRS.md",
+      "M\tdocs/code/GLOSSARY.md",
+      "M\tdocs/code/GRID_PIPELINE.md",
+      "M\tdocs/code/README.md",
+      "M\tdocs/code/ROAD_PIPELINE.md",
+      "M\tdocs/code/SOURCE_TRUST_MODEL.md",
+      "M\tdocs/code/TESTING_STRATEGY.md",
+      "M\tdocs/code/files/.env.example.md",
+      "M\tdocs/code/files/.gitignore.md",
+      "M\tdocs/code/files/.python-version.md",
+      "M\tdocs/code/files/README.md.md",
+      "M\tdocs/code/files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md",
+      "M\tdocs/code/files/configs/profiles/bess_default_fr.yaml.md",
+      "M\tdocs/code/files/configs/scans/bess_muret.yaml.md",
+      "M\tdocs/code/files/configs/sources/gpu_fr.yaml.md",
+      "M\tdocs/code/files/configs/sources/ign_bdtopo_fr.yaml.md",
+      "M\tdocs/code/files/configs/sources/inpn_protected_areas_fr.yaml.md",
+      "M\tdocs/code/files/configs/sources/rte_odre_fr.yaml.md",
+      "M\tdocs/code/files/data/cache/.gitkeep.md",
+      "M\tdocs/code/files/data/processed/.gitkeep.md",
+      "M\tdocs/code/files/data/raw/.gitkeep.md",
+      "M\tdocs/code/files/outputs/.gitkeep.md",
+      "M\tdocs/code/files/pyproject.toml.md",
+      "M\tdocs/code/files/src/landscout/__init__.py.md",
+      "M\tdocs/code/files/src/landscout/common/__init__.py.md",
+      "M\tdocs/code/files/src/landscout/common/artifact_paths.py.md",
+      "M\tdocs/code/files/src/landscout/common/bess_application_contract.py.md",
+      "M\tdocs/code/files/src/landscout/common/cadastre_contract.py.md",
+      "M\tdocs/code/files/src/landscout/common/frame_integrity.py.md",
+      "M\tdocs/code/files/src/landscout/common/planning_feature_contract.py.md",
+      "M\tdocs/code/files/src/landscout/common/planning_feature_schema.py.md",
+      "M\tdocs/code/files/src/landscout/common/planning_overlay.py.md",
+      "M\tdocs/code/files/src/landscout/common/planning_text.py.md",
+      "M\tdocs/code/files/src/landscout/common/safe_http.py.md",
+      "M\tdocs/code/files/src/landscout/common/strict_json.py.md",
+      "M\tdocs/code/files/src/landscout/common/strict_yaml.py.md",
+      "M\tdocs/code/files/src/landscout/config.py.md",
+      "M\tdocs/code/files/src/landscout/geo/__init__.py.md",
+      "M\tdocs/code/files/src/landscout/geo/crs.py.md",
+      "M\tdocs/code/files/src/landscout/geo/geometry.py.md",
+      "M\tdocs/code/files/src/landscout/sources/__init__.py.md",
+      "M\tdocs/code/files/src/landscout/sources/cadastre_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/cadastre_loader_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/gpu_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/ign_bdtopo_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/inpn_protected_areas_attributes_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/inpn_protected_areas_catalog_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/inpn_protected_areas_evidence_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/inpn_protected_areas_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/inpn_protected_areas_geometry_fr.py.md",
+      "M\tdocs/code/files/src/landscout/sources/rte_odre_fr.py.md",
+      "M\tdocs/code/files/src/landscout/stages/__init__.py.md",
+      "M\tdocs/code/files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md",
+      "M\tdocs/code/files/src/landscout/stages/assess_grid_coverage.py.md",
+      "M\tdocs/code/files/src/landscout/stages/assess_road_proximity_coverage.py.md",
+      "M\tdocs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
+      "M\tdocs/code/files/src/landscout/stages/enrich_planning_features.py.md",
+      "M\tdocs/code/files/src/landscout/stages/enrich_planning_zoning.py.md",
+      "M\tdocs/code/files/src/landscout/stages/enrich_road_proximity.py.md",
+      "M\tdocs/code/files/src/landscout/stages/enrich_shape.py.md",
+      "M\tdocs/code/files/src/landscout/stages/filter_parcels.py.md",
+      "M\tdocs/code/files/src/landscout/stages/index_planning_regulation.py.md",
+      "M\tdocs/code/files/src/landscout/stages/normalize_access_ign.py.md",
+      "M\tdocs/code/files/src/landscout/stages/normalize_cadastre.py.md",
+      "M\tdocs/code/files/src/landscout/stages/normalize_grid_ign.py.md",
+      "M\tdocs/code/files/src/landscout/stages/profile_shape.py.md",
+      "M\tdocs/code/files/src/landscout/stages/road_vehicle_proxy_policy.py.md",
+      "M\tdocs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+      "M\tdocs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
+      "M\tdocs/code/files/tests/unit/test_apply_road_vehicle_proxy_policy.py.md",
+      "M\tdocs/code/files/tests/unit/test_assess_grid_coverage.py.md",
+      "M\tdocs/code/files/tests/unit/test_assess_road_proximity_coverage.py.md",
+      "M\tdocs/code/files/tests/unit/test_cadastre_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_cadastre_loader_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_config.py.md",
+      "M\tdocs/code/files/tests/unit/test_crs.py.md",
+      "M\tdocs/code/files/tests/unit/test_deep_immutability.py.md",
+      "M\tdocs/code/files/tests/unit/test_enrich_planning_features.py.md",
+      "M\tdocs/code/files/tests/unit/test_enrich_planning_zoning.py.md",
+      "M\tdocs/code/files/tests/unit/test_enrich_road_proximity.py.md",
+      "M\tdocs/code/files/tests/unit/test_enrich_shape.py.md",
+      "M\tdocs/code/files/tests/unit/test_filter_parcels.py.md",
+      "M\tdocs/code/files/tests/unit/test_filter_shape.py.md",
+      "M\tdocs/code/files/tests/unit/test_geometry.py.md",
+      "M\tdocs/code/files/tests/unit/test_gpu_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_index_planning_regulation.py.md",
+      "M\tdocs/code/files/tests/unit/test_inpn_protected_areas_attributes_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_inpn_protected_areas_catalog_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_inpn_protected_areas_evidence_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_inpn_protected_areas_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_inpn_protected_areas_geometry_fr.py.md",
+      "M\tdocs/code/files/tests/unit/test_normalize_access_ign.py.md",
+      "M\tdocs/code/files/tests/unit/test_normalize_cadastre.py.md",
+      "M\tdocs/code/files/tests/unit/test_normalize_grid_ign.py.md",
+      "M\tdocs/code/files/tests/unit/test_package.py.md",
+      "M\tdocs/code/files/tests/unit/test_profile_shape.py.md",
+      "M\tdocs/code/files/tests/unit/test_road_vehicle_proxy_policy.py.md",
+      "M\tdocs/code/files/tests/unit/test_safe_http.py.md",
+      "M\tdocs/code/files/tests/unit/test_strict_serialization.py.md",
+      "M\tdocs/code/files/uv.lock.md"
+    ],
+    "untracked": [
+      "AGENTS.md",
+      "docs/code/audit/DOCUMENTATION_AUDIT.md",
+      "docs/code/audit/RECOVERY_STATUS_2026-09-17.md",
+      "docs/code/audit/cold_start_resume_2026-09-17.md",
+      "docs/code/audit/coverage.json",
+      "docs/code/audit/protected_files.json",
+      "docs/code/audit/recovery_evidence_2026-09-17.json",
+      "docs/code/audit/recovery_file_matrix_2026-09-17.json",
+      "docs/code/audit/reviews/foundations.json",
+      "docs/code/audit/reviews/inpn_roads.json",
+      "docs/code/audit/reviews/inpn_roads_extension.json",
+      "docs/code/audit/reviews/planning.json",
+      "docs/code/audit/reviews/root.json",
+      "docs/code/audit/reviews/semantic_reference.json",
+      "docs/code/files/tests/unit/test_audit_documentation.py.md",
+      "docs/code/files/tools/audit_documentation.py.md",
+      "docs/project/BACKLOG_AND_GAPS.md",
+      "docs/project/COLD_START_EXERCISE.md",
+      "docs/project/CONTEXT_PROVENANCE.md",
+      "docs/project/CURRENT_STATE.md",
+      "docs/project/DECISIONS.md",
+      "docs/project/RESUME.md",
+      "docs/project/STEP_INDEX.md",
+      "docs/project/STEP_LEDGER.json",
+      "docs/project/WORKING_RULES.md",
+      "docs/project/tickets/DOCS.CONTINUITY.1.RESUME.2026-09-17.txt",
+      "docs/project/tickets/DOCS.CONTINUITY.1.txt",
+      "tests/unit/test_audit_documentation.py",
+      "tools/audit_documentation.py"
+    ],
+    "tracked_count": 108,
+    "untracked_count": 29,
+    "total_changed_paths": 137,
+    "archives": {
+      "DOCS.CONTINUITY.1.txt": {
+        "bytes": 38843,
+        "sha256": "ce2d79126feb5ac13075116217b0559241ec5b82499e6ceecb25ea034cdd42cb",
+        "equals_attachment": true
+      },
+      "DOCS.CONTINUITY.1.RESUME.2026-09-17.txt": {
+        "bytes": 7040,
+        "sha256": "9e18c25d571c5cfe34391d1f35833634bb4c3672087781360752fa0fba7243ed",
+        "equals_attachment": true
+      }
+    },
+    "excluded_production_diff": ""
+  },
+  "protected_comparison": {
+    "protected_count": 106,
+    "all_protected_unchanged": true,
+    "files": [
+      {
+        "path": ".python-version",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
+        "git_content_sha256": "7b55f8e67b5623c4bef3fa691288da9437d79d3aba156de48d481db32ac7d16d",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/access/ign_bdtopo_vehicle_proxy_policy.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166",
+        "git_content_sha256": "2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/planning/cnig_plu_2017_feature_codes.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e",
+        "git_content_sha256": "77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/planning/muret_bess_cnig_feature_policy.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "8a26fcb8ee7e2f028baca65d94c2b5be5445ba9fc4b82b9b1a21843f933f8b2a",
+        "git_content_sha256": "8a26fcb8ee7e2f028baca65d94c2b5be5445ba9fc4b82b9b1a21843f933f8b2a",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/planning/muret_bess_zoning_policy.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "879d50627c063bb10096950d004cf4d4e446ff04ef9a1178b3e3fb28e2ffdae3",
+        "git_content_sha256": "c736ea8901997f4852fd1f72a3f6f34282452f18dcd9abc0ccbce8255adaad45",
+        "eol_only_difference": true
+      },
+      {
+        "path": "configs/planning/muret_plu_structure.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a",
+        "git_content_sha256": "74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/profiles/bess_default_fr.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "5126d21c94cc399f9318f988b6ba9b7a07d24006e542861e167c08c9ace39684",
+        "git_content_sha256": "5126d21c94cc399f9318f988b6ba9b7a07d24006e542861e167c08c9ace39684",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/scans/bess_muret.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "6da68dfa5442b7b856687d5c9d5b0db10a2a2f799a2d7b8b35342573d54c65ba",
+        "git_content_sha256": "6da68dfa5442b7b856687d5c9d5b0db10a2a2f799a2d7b8b35342573d54c65ba",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/sources/gpu_fr.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "f069bf398c752380ca58c90504aa34c322376d52422fd237805e67f2f7829066",
+        "git_content_sha256": "f069bf398c752380ca58c90504aa34c322376d52422fd237805e67f2f7829066",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/sources/ign_bdtopo_fr.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "fa3cc4e82f7c5a2a917a60508fdba6de37f0bde07d7da6b27f2cd00124e44a86",
+        "git_content_sha256": "fa3cc4e82f7c5a2a917a60508fdba6de37f0bde07d7da6b27f2cd00124e44a86",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/sources/inpn_protected_areas_fr.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "75e3e45003b66cff10a755dfd64c27d3066ba65e4807af6e17e82bd3eae03397",
+        "git_content_sha256": "75e3e45003b66cff10a755dfd64c27d3066ba65e4807af6e17e82bd3eae03397",
+        "eol_only_difference": false
+      },
+      {
+        "path": "configs/sources/rte_odre_fr.yaml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "f2b5ffb43b1e8a73e1396eda3d91b42fe9074bc348a94a61ea84c1c29e1a8649",
+        "git_content_sha256": "f2b5ffb43b1e8a73e1396eda3d91b42fe9074bc348a94a61ea84c1c29e1a8649",
+        "eol_only_difference": false
+      },
+      {
+        "path": "pyproject.toml",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "9e07f6e2aa5c86dfab991f374412101243bacbf1203d1a1c120486893a513148",
+        "git_content_sha256": "9e07f6e2aa5c86dfab991f374412101243bacbf1203d1a1c120486893a513148",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/__init__.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+        "git_content_sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/__init__.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "9b611873f7640178643e6242590df86cdddb0a4c16d36171b2c79a49253c6ac4",
+        "git_content_sha256": "9b611873f7640178643e6242590df86cdddb0a4c16d36171b2c79a49253c6ac4",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/artifact_paths.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "729fb042286323d6417e14690c70094d293c9a3905b2ca640b640c7e64397975",
+        "git_content_sha256": "729fb042286323d6417e14690c70094d293c9a3905b2ca640b640c7e64397975",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/bess_application_contract.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "710ddf6051636362585071089a566d8386844767b0cd8a00c1e6e877a2ca1d6b",
+        "git_content_sha256": "710ddf6051636362585071089a566d8386844767b0cd8a00c1e6e877a2ca1d6b",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/cadastre_contract.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "d4114d81eba70240885bf959ce1f1aaebe09ef2cb21f284fecb6e98e3e79f95e",
+        "git_content_sha256": "d4114d81eba70240885bf959ce1f1aaebe09ef2cb21f284fecb6e98e3e79f95e",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/frame_integrity.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "dc5adb54d47e31171fa95c36c98d6e73bddfa109b65f26f5d5dc8f1a6183f861",
+        "git_content_sha256": "dc5adb54d47e31171fa95c36c98d6e73bddfa109b65f26f5d5dc8f1a6183f861",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/immutable_mapping.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b79ebb5b81d466d262b12adcf7bf54816036f1a922345558cd9da54806b3e727",
+        "git_content_sha256": "b79ebb5b81d466d262b12adcf7bf54816036f1a922345558cd9da54806b3e727",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/planning_feature_contract.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b70e9bd8a63dedae29603d3cae1ef7d81ee776c25c7b53389fcc7a0736a73f36",
+        "git_content_sha256": "b70e9bd8a63dedae29603d3cae1ef7d81ee776c25c7b53389fcc7a0736a73f36",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/planning_feature_schema.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "c8b96c834d46cf9bcdddb0a4200e7a3520b94b70ed32122b591b810dce39ac1f",
+        "git_content_sha256": "c8b96c834d46cf9bcdddb0a4200e7a3520b94b70ed32122b591b810dce39ac1f",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/planning_overlay.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "f28349ab5f3f8223b537184ac28a98d6d6e328a724957dabb7089c3809351086",
+        "git_content_sha256": "f28349ab5f3f8223b537184ac28a98d6d6e328a724957dabb7089c3809351086",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/planning_text.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "1e4d6ec3de5914174eaa053c2c6afdf700ab00bfd6d96db98281a1991f7eae80",
+        "git_content_sha256": "1e4d6ec3de5914174eaa053c2c6afdf700ab00bfd6d96db98281a1991f7eae80",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/safe_http.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "a67d00b8aa312f26e4785813a2dcaa58ffdb8daccc6526c5953c7d521dd13ecf",
+        "git_content_sha256": "a67d00b8aa312f26e4785813a2dcaa58ffdb8daccc6526c5953c7d521dd13ecf",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/strict_json.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "c214bbca0260bdfe035f056ad533c4198099b68c1970b6271657baa13ca23ecf",
+        "git_content_sha256": "c214bbca0260bdfe035f056ad533c4198099b68c1970b6271657baa13ca23ecf",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/common/strict_yaml.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2affe2cb67de83b4c493d6df1567d4f6809464a86fd47b57fcff48da99a9acc5",
+        "git_content_sha256": "2affe2cb67de83b4c493d6df1567d4f6809464a86fd47b57fcff48da99a9acc5",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/config.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e598e0d9a849856eb005b5f4876ce4f61de6428759159e0561c2f60f46e0d0c0",
+        "git_content_sha256": "e598e0d9a849856eb005b5f4876ce4f61de6428759159e0561c2f60f46e0d0c0",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/geo/__init__.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "1855749b207417104b804e83399266787cf5d0f5cdefd2913fec0b70ad6571c4",
+        "git_content_sha256": "1855749b207417104b804e83399266787cf5d0f5cdefd2913fec0b70ad6571c4",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/geo/crs.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "22f5eff7b49ed92b2e4fffed3bc02ab2e0f159f809a16bf49d05d6ef177f2de5",
+        "git_content_sha256": "22f5eff7b49ed92b2e4fffed3bc02ab2e0f159f809a16bf49d05d6ef177f2de5",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/geo/geometry.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "465e20701bcf325f0191548e4ed7c7c471d7764e595ada632efabcd1404fced6",
+        "git_content_sha256": "465e20701bcf325f0191548e4ed7c7c471d7764e595ada632efabcd1404fced6",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/__init__.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "70af29a1a8d27e7fdfe07c06f364aa07ec664565fc70988d81cf9ca80dac2177",
+        "git_content_sha256": "70af29a1a8d27e7fdfe07c06f364aa07ec664565fc70988d81cf9ca80dac2177",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/cadastre_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "8d99fb63b6815ef12acb5318bf0cbc8a4b3d87fffe54aa2205d9dd4b26304418",
+        "git_content_sha256": "8d99fb63b6815ef12acb5318bf0cbc8a4b3d87fffe54aa2205d9dd4b26304418",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/cadastre_loader_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "84541082877632e63708f090cb7d02d8f3ea224afad50341fb788273b4685d13",
+        "git_content_sha256": "84541082877632e63708f090cb7d02d8f3ea224afad50341fb788273b4685d13",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/gpu_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "fe34ea035dc7536ef448f23f5cb3df9b8731a8cc866418732cc9f558c60400e4",
+        "git_content_sha256": "fe34ea035dc7536ef448f23f5cb3df9b8731a8cc866418732cc9f558c60400e4",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/ign_bdtopo_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "598df901cd8dfe543595f22ff511b511a196f345474acd6355d7929a7a512101",
+        "git_content_sha256": "598df901cd8dfe543595f22ff511b511a196f345474acd6355d7929a7a512101",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/inpn_protected_areas_attributes_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b2d5c4451cb10b82e33cdb147c1cf7e0038b531537e9d96db003590ff5917d1d",
+        "git_content_sha256": "b2d5c4451cb10b82e33cdb147c1cf7e0038b531537e9d96db003590ff5917d1d",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/inpn_protected_areas_catalog_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "101c773fc37ac5b22633a464d35327e412828cdbc16646d16943b92e0962e4ce",
+        "git_content_sha256": "101c773fc37ac5b22633a464d35327e412828cdbc16646d16943b92e0962e4ce",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/inpn_protected_areas_evidence_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "55762f6a3ae7b51c5d3550e32d69b424aa300a2eac508c5b492e8a502b641bd6",
+        "git_content_sha256": "55762f6a3ae7b51c5d3550e32d69b424aa300a2eac508c5b492e8a502b641bd6",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/inpn_protected_areas_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "54680b35f24383278a61aae12bdd301af9a4c22c4306db680428290d1297a4f3",
+        "git_content_sha256": "54680b35f24383278a61aae12bdd301af9a4c22c4306db680428290d1297a4f3",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/inpn_protected_areas_geometry_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "d65efdd0475a72b96088593ba86df301aeea4d746f032c8b880b91244231e710",
+        "git_content_sha256": "d65efdd0475a72b96088593ba86df301aeea4d746f032c8b880b91244231e710",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/sources/rte_odre_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "0954d4025b779a7fa75813edb81c8f3b3227243da6b22b2066a0443762927c0e",
+        "git_content_sha256": "0954d4025b779a7fa75813edb81c8f3b3227243da6b22b2066a0443762927c0e",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/__init__.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "c9f0d43ca4cb37ef2a5a9ca2b25fa5ea18809d4d533644b05f2705f8b62c99be",
+        "git_content_sha256": "c9f0d43ca4cb37ef2a5a9ca2b25fa5ea18809d4d533644b05f2705f8b62c99be",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/aggregate_bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "27bc7dcc9c67fead2c6f0638b033aab6e98282cfd2d865aec37dbf11b681c598",
+        "git_content_sha256": "27bc7dcc9c67fead2c6f0638b033aab6e98282cfd2d865aec37dbf11b681c598",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/apply_bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "76b4f4d2fa3dbe09442718810c0a113cc8d7b4b1c2ffa3f7f07fcc4f3a250a61",
+        "git_content_sha256": "76b4f4d2fa3dbe09442718810c0a113cc8d7b4b1c2ffa3f7f07fcc4f3a250a61",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/apply_road_vehicle_proxy_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "09d3aee41ca6878faba39e2f3165dce174f22fa64014913edc281ce6c3458b4c",
+        "git_content_sha256": "09d3aee41ca6878faba39e2f3165dce174f22fa64014913edc281ce6c3458b4c",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/assess_grid_coverage.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "303571815dbdc314a0800b72ce782958e2603b3c93119d7e15ae96c620121abb",
+        "git_content_sha256": "303571815dbdc314a0800b72ce782958e2603b3c93119d7e15ae96c620121abb",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/assess_road_proximity_coverage.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "d9e4b36d0f211906e74489a22dbf51455ac8ac8b86be9416a255740a783217c6",
+        "git_content_sha256": "d9e4b36d0f211906e74489a22dbf51455ac8ac8b86be9416a255740a783217c6",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "9568f12e7f70c8e7d06b105020d486e285d0a2eef2a0eee5a266d5c1a7d545dd",
+        "git_content_sha256": "9568f12e7f70c8e7d06b105020d486e285d0a2eef2a0eee5a266d5c1a7d545dd",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/enrich_grid_proximity.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "7131d0b980dad7b5c73a4c7cf2d0bd6f9fe5572c089ad39c4a592c02098c9015",
+        "git_content_sha256": "7131d0b980dad7b5c73a4c7cf2d0bd6f9fe5572c089ad39c4a592c02098c9015",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/enrich_planning_features.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148",
+        "git_content_sha256": "01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/enrich_planning_zoning.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2a4d6b9669fc091cb394b3d17f0f94effdd6a6aa74543c06ce77c2c99dabf4ec",
+        "git_content_sha256": "2a4d6b9669fc091cb394b3d17f0f94effdd6a6aa74543c06ce77c2c99dabf4ec",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/enrich_road_proximity.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "8ebf75667fe539cb121ad0e9e1475abf442be82f61847771e91de2b5f1850439",
+        "git_content_sha256": "8ebf75667fe539cb121ad0e9e1475abf442be82f61847771e91de2b5f1850439",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/enrich_shape.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "244ecb7f0cd10d6104da76275df57829e13e80a5966727da8bfd329b60498887",
+        "git_content_sha256": "244ecb7f0cd10d6104da76275df57829e13e80a5966727da8bfd329b60498887",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/filter_parcels.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "53487ea689f4b650c17a3e692d5b3bf0fb80b57aefaf0621b66883ed40e45713",
+        "git_content_sha256": "53487ea689f4b650c17a3e692d5b3bf0fb80b57aefaf0621b66883ed40e45713",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/index_planning_regulation.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "30246abb4ca296ccfbb4f6d80328883e49f6563191d3ece0ee5aad4184f84a36",
+        "git_content_sha256": "30246abb4ca296ccfbb4f6d80328883e49f6563191d3ece0ee5aad4184f84a36",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/interpret_bess_zoning.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b60434426a981dab3dcd000a4fc9e745202984672f8e96bc4ea8aa661c86682e",
+        "git_content_sha256": "b60434426a981dab3dcd000a4fc9e745202984672f8e96bc4ea8aa661c86682e",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/normalize_access_ign.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "a9f84f4d65fa9c597a1069cfb36c7cd5313bf20c12fbfd30cda719d6e4eccf35",
+        "git_content_sha256": "a9f84f4d65fa9c597a1069cfb36c7cd5313bf20c12fbfd30cda719d6e4eccf35",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/normalize_cadastre.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "ec01db7f8fd7e16d6938ab0c36a4fa2b2343d88ed126f833ef1da6e45a25fa50",
+        "git_content_sha256": "ec01db7f8fd7e16d6938ab0c36a4fa2b2343d88ed126f833ef1da6e45a25fa50",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/normalize_grid_ign.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e89baab63d48517ce48f3fbdf03602673786ca33f1671f3abf9cb366d57948a0",
+        "git_content_sha256": "e89baab63d48517ce48f3fbdf03602673786ca33f1671f3abf9cb366d57948a0",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/planning_overlay.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "7ba1e577956408550871aa0e817472e9b9443f900b48ed0fa28f09351951cf0b",
+        "git_content_sha256": "7ba1e577956408550871aa0e817472e9b9443f900b48ed0fa28f09351951cf0b",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/profile_shape.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "bafac8d1b9c67c338bdf2937d1717bd7f64c1723668a6dfb325fb41d532deeb8",
+        "git_content_sha256": "bafac8d1b9c67c338bdf2937d1717bd7f64c1723668a6dfb325fb41d532deeb8",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/resolve_planning_feature_codes.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "cdb463f06cea6f58881681bca7e95e80b0770e69f4cdf3cc373329eca7bc0235",
+        "git_content_sha256": "cdb463f06cea6f58881681bca7e95e80b0770e69f4cdf3cc373329eca7bc0235",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/road_vehicle_proxy_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "ae277b11b2d83bd82dfcf390757abc9bfc8e4aa8583c70ff3abe67512d78196d",
+        "git_content_sha256": "ae277b11b2d83bd82dfcf390757abc9bfc8e4aa8583c70ff3abe67512d78196d",
+        "eol_only_difference": false
+      },
+      {
+        "path": "src/landscout/stages/structure_planning_regulation.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2338569ce08bf5fc632803299c3ea3913301b6722ba63befc24edd276165d614",
+        "git_content_sha256": "2338569ce08bf5fc632803299c3ea3913301b6722ba63befc24edd276165d614",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/integration/test_gpu_planning_end_to_end.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "384fc848b7c1ddbedbc45fc20374546970381ab2549379e7b256a6ef1076247f",
+        "git_content_sha256": "384fc848b7c1ddbedbc45fc20374546970381ab2549379e7b256a6ef1076247f",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_aggregate_bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "52f53bc0808d49b0a50f4b09b2383af9b473308824472bfc3f6a3faf99479d83",
+        "git_content_sha256": "52f53bc0808d49b0a50f4b09b2383af9b473308824472bfc3f6a3faf99479d83",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_apply_bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "563c9382062de5406384bd574df5ca169dde642ae768102c4973bd8d9be68184",
+        "git_content_sha256": "563c9382062de5406384bd574df5ca169dde642ae768102c4973bd8d9be68184",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_apply_road_vehicle_proxy_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "21a34be0292629d035c000c6bfce154e5d31c2b7573acc61ae4b5623cf0ab7ca",
+        "git_content_sha256": "21a34be0292629d035c000c6bfce154e5d31c2b7573acc61ae4b5623cf0ab7ca",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_assess_grid_coverage.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b2a00d7b4008fdd2daea8fd858866d9d7f51a452aa9da2cd0af6f37c67494664",
+        "git_content_sha256": "b2a00d7b4008fdd2daea8fd858866d9d7f51a452aa9da2cd0af6f37c67494664",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_assess_road_proximity_coverage.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "c596dc762bf271879f6ca0361a2126147f9b251eb0710d1d6613ac6597a926c1",
+        "git_content_sha256": "c596dc762bf271879f6ca0361a2126147f9b251eb0710d1d6613ac6597a926c1",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_bess_planning_feature_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "49d02758c7dd407fe95e10340c0b80d7da71cb9d39b27aac18f5cfacca9888d8",
+        "git_content_sha256": "49d02758c7dd407fe95e10340c0b80d7da71cb9d39b27aac18f5cfacca9888d8",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_cadastre_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "6d0cc8419a7dc41440e8a296eb64e7c451e553f344d67e72156425faaa3e5e01",
+        "git_content_sha256": "6d0cc8419a7dc41440e8a296eb64e7c451e553f344d67e72156425faaa3e5e01",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_cadastre_loader_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "11133b8fec1b86b6fef37300aa005c152cbdc577b02b2354041f57fdd7f3df18",
+        "git_content_sha256": "11133b8fec1b86b6fef37300aa005c152cbdc577b02b2354041f57fdd7f3df18",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_config.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "73c1455c23e98d6a24c3cc712ea14663542777082b6439e6d8ebbda8225e42f2",
+        "git_content_sha256": "73c1455c23e98d6a24c3cc712ea14663542777082b6439e6d8ebbda8225e42f2",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_crs.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "c6b7a69a038e545413e3a5db8d6a636a5d2e51f411110dadfef8410e4a5860f4",
+        "git_content_sha256": "c6b7a69a038e545413e3a5db8d6a636a5d2e51f411110dadfef8410e4a5860f4",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_deep_immutability.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "325383428aaa376e3b30380bbc8e9a2c925c618e280b254a286aaa15eb80ab1a",
+        "git_content_sha256": "325383428aaa376e3b30380bbc8e9a2c925c618e280b254a286aaa15eb80ab1a",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_enrich_grid_proximity.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "436de7dd475f09b28356502b0b4eaed66ead17253da7bf6d3869aaf8bbcee728",
+        "git_content_sha256": "436de7dd475f09b28356502b0b4eaed66ead17253da7bf6d3869aaf8bbcee728",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_enrich_planning_features.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "f742a30c7921e83fd28114c7419ba0d4c2ca36aa0aed5d04c8881cad1feaef57",
+        "git_content_sha256": "f742a30c7921e83fd28114c7419ba0d4c2ca36aa0aed5d04c8881cad1feaef57",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_enrich_planning_zoning.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "0a5dfb7650061c6492f0d298c9dbd43d011a715c12fd6eb135347e5e6185b821",
+        "git_content_sha256": "0a5dfb7650061c6492f0d298c9dbd43d011a715c12fd6eb135347e5e6185b821",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_enrich_road_proximity.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "153e2611e0d1ddc8ae4f28389e5311cca7b4c14668efbb809cc88f2645831367",
+        "git_content_sha256": "153e2611e0d1ddc8ae4f28389e5311cca7b4c14668efbb809cc88f2645831367",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_enrich_shape.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "4803e1c4fce5eb152b1005842702fb77b5e13de2be61a882e7d8128d0fb28901",
+        "git_content_sha256": "4803e1c4fce5eb152b1005842702fb77b5e13de2be61a882e7d8128d0fb28901",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_filter_parcels.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "3122ccfd47fbaf6ac079ab733ddb5235b5053d25c4cba5017fe9cf30b3392a89",
+        "git_content_sha256": "3122ccfd47fbaf6ac079ab733ddb5235b5053d25c4cba5017fe9cf30b3392a89",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_filter_shape.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2e79e0eaf5d81ce2a6f9f1257e3c3b5d5dd5405594a6c02451c4ef029ed2b70a",
+        "git_content_sha256": "2e79e0eaf5d81ce2a6f9f1257e3c3b5d5dd5405594a6c02451c4ef029ed2b70a",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_geometry.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "50e59494276ba92023531f77811de11ae09a23445948c59109ff4ea02539242c",
+        "git_content_sha256": "50e59494276ba92023531f77811de11ae09a23445948c59109ff4ea02539242c",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_gpu_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e03d758f96f52b143f2908557cea2b10c087316d73a093ddf0174f86abe46622",
+        "git_content_sha256": "e03d758f96f52b143f2908557cea2b10c087316d73a093ddf0174f86abe46622",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_ign_bdtopo_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "39d0e303aec55a24866a2c41b32bdb215203b4280fb748421454120eae24f078",
+        "git_content_sha256": "39d0e303aec55a24866a2c41b32bdb215203b4280fb748421454120eae24f078",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_index_planning_regulation.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e36baad245c33bef983f78bb49fc8060bc4e45152c420c5d658f2853d742df8b",
+        "git_content_sha256": "e36baad245c33bef983f78bb49fc8060bc4e45152c420c5d658f2853d742df8b",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_inpn_protected_areas_attributes_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "3c7605e5017eb94536e8a8a6da90fe9000b62495d92434298934c6c18a4bf154",
+        "git_content_sha256": "3c7605e5017eb94536e8a8a6da90fe9000b62495d92434298934c6c18a4bf154",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_inpn_protected_areas_catalog_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "a44952e3ee5623f16864140ef80bdb0027417e519ef740e80b61bc9889c3a1be",
+        "git_content_sha256": "a44952e3ee5623f16864140ef80bdb0027417e519ef740e80b61bc9889c3a1be",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_inpn_protected_areas_evidence_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2248c5b5e6cb295086674a29f25d6c801ee7e50f04c7aec9f390336bb527b97b",
+        "git_content_sha256": "2248c5b5e6cb295086674a29f25d6c801ee7e50f04c7aec9f390336bb527b97b",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_inpn_protected_areas_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "8835930ed2a1f9c18462e8dac957f7283b27f6979cd50135c6e8f616215b7719",
+        "git_content_sha256": "8835930ed2a1f9c18462e8dac957f7283b27f6979cd50135c6e8f616215b7719",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_inpn_protected_areas_geometry_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e17c3f03537e5bb58d7365f360ae4677cb7ea865975c749720495586cbd36d6f",
+        "git_content_sha256": "e17c3f03537e5bb58d7365f360ae4677cb7ea865975c749720495586cbd36d6f",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_interpret_bess_zoning.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e5ad284bb61a67a348377ad4d68092c4425c16eb13519c6440a0c52de70b70d3",
+        "git_content_sha256": "e5ad284bb61a67a348377ad4d68092c4425c16eb13519c6440a0c52de70b70d3",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_normalize_access_ign.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "2cbb2d2b2664f861fd36f81be31e0af2903b93c06dde70e5ce22fcadc5994adf",
+        "git_content_sha256": "2cbb2d2b2664f861fd36f81be31e0af2903b93c06dde70e5ce22fcadc5994adf",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_normalize_cadastre.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "db89effb40b328e03a5101d60378cceef8c6e368e93e85870eaecab4e5e3868e",
+        "git_content_sha256": "db89effb40b328e03a5101d60378cceef8c6e368e93e85870eaecab4e5e3868e",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_normalize_grid_ign.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "1a25cd5fb8517d9d4065c2af6c5517d6bb75b0ae2a599fc90f3f925ba1659c20",
+        "git_content_sha256": "1a25cd5fb8517d9d4065c2af6c5517d6bb75b0ae2a599fc90f3f925ba1659c20",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_package.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "217cdd39bf3105ba5d546c822ba2a3d8a13344abf91812f408cec981eb6d8057",
+        "git_content_sha256": "217cdd39bf3105ba5d546c822ba2a3d8a13344abf91812f408cec981eb6d8057",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_profile_shape.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "b7ab56caf8bf6abb5cac08f9c36f5420dccac713137c6bb95eb0c6dc70530239",
+        "git_content_sha256": "b7ab56caf8bf6abb5cac08f9c36f5420dccac713137c6bb95eb0c6dc70530239",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_resolve_planning_feature_codes.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "f089c7cf174ecf5fa745d5909f817884a6c9df6d52f0e53f8702a639106e574c",
+        "git_content_sha256": "f089c7cf174ecf5fa745d5909f817884a6c9df6d52f0e53f8702a639106e574c",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_road_vehicle_proxy_policy.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "e20c61a170cdffde5387fd4b367e5433097c0c333c830843e52bd5e73a14b4fc",
+        "git_content_sha256": "e20c61a170cdffde5387fd4b367e5433097c0c333c830843e52bd5e73a14b4fc",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_rte_odre_fr.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "30bf71ecb360553cdcd1efd6e797379d16668f346f4ef59bfa7b22d2569cdd46",
+        "git_content_sha256": "30bf71ecb360553cdcd1efd6e797379d16668f346f4ef59bfa7b22d2569cdd46",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_safe_http.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "da5bf1e22f8aac6d3c0634d88786dcb5c79a7c764902490d0157f9b6965b69f0",
+        "git_content_sha256": "da5bf1e22f8aac6d3c0634d88786dcb5c79a7c764902490d0157f9b6965b69f0",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_strict_serialization.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "98f223391076f36ae48c679b2bfaefd73f075ea67c78918227865a2d6fa7aac3",
+        "git_content_sha256": "98f223391076f36ae48c679b2bfaefd73f075ea67c78918227865a2d6fa7aac3",
+        "eol_only_difference": false
+      },
+      {
+        "path": "tests/unit/test_structure_planning_regulation.py",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "80ab6feaf5e77d99f538c1aab53f0520f496a45c18758a7d33d4c7554646b6d2",
+        "git_content_sha256": "80ab6feaf5e77d99f538c1aab53f0520f496a45c18758a7d33d4c7554646b6d2",
+        "eol_only_difference": false
+      },
+      {
+        "path": "uv.lock",
+        "basis_matches_manifest": true,
+        "head_exactly_matches_basis": true,
+        "index_exactly_matches_basis": true,
+        "checkout_exactly_matches_initial": true,
+        "checkout_sha256": "82f927f72b7f95e2db1d2654bd461dd7eeab15534418ffc7bdeed0cff26d0fa7",
+        "git_content_sha256": "82f927f72b7f95e2db1d2654bd461dd7eeab15534418ffc7bdeed0cff26d0fa7",
+        "eol_only_difference": false
+      }
+    ],
+    "original_ticket": {
+      "byte_count": 38843,
+      "sha256": "ce2d79126feb5ac13075116217b0559241ec5b82499e6ceecb25ea034cdd42cb",
+      "equals_attachment": true
+    },
+    "bootstrap": {
+      "path": "C:\\souhaib\\bootstrap_continuity_inventory.py",
+      "inside_git_root": false,
+      "sha256": "a46aab940c8da84ea60b3409ebf6fcf851b2a119f0ee2f9c889511169e80146c"
+    }
+  },
+  "coverage": {
+    "matrix": "docs/code/audit/recovery_file_matrix_2026-09-17.json",
+    "original_mechanical_files": 245,
+    "original_mechanical_symbols": 4769,
+    "files": {
+      "CHECKED": 24,
+      "CORRECTED": 43,
+      "READ": 141,
+      "NOT_READ": 37,
+      "BLOCKED": 0
+    },
+    "symbols": {
+      "CHECKED": 1387,
+      "CORRECTED": 1,
+      "READ": 2078,
+      "NOT_READ": 1303,
+      "BLOCKED": 0
+    },
+    "literal_coverage_json_unmerged_status": "all original files and symbols NOT_READ",
+    "semantically_closed_files": 67,
+    "semantically_closed_symbols": 1388,
+    "original_test_definitions": 1615,
+    "new_test_definitions": 7,
+    "new_test_cases": 23,
+    "full_pytest_executed": false,
+    "baseline_reported_cases": 3939,
+    "expected_arithmetic_only": 3962
+  },
+  "executions": [
+    {
+      "command": "uv run pytest -q tests/unit/test_audit_documentation.py --basetemp C:\\Users\\souha\\AppData\\Local\\LandScout\\pytest-runs\\r9b197",
+      "exit_code": 1,
+      "scope": "before collection",
+      "reason": "sandbox uv-cache access denied"
+    },
+    {
+      "command": "uv run pytest -q tests/unit/test_audit_documentation.py --basetemp C:\\Users\\souha\\AppData\\Local\\LandScout\\pytest-runs\\reefcb",
+      "exit_code": 0,
+      "mode": "authorized native, same installed environment",
+      "passed": 23,
+      "duration_seconds": 7.61,
+      "cleanup_included": true,
+      "warnings_skips_xfails_reported": false
+    },
+    {
+      "command": "uv run ruff check tools/audit_documentation.py tests/unit/test_audit_documentation.py",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run ruff format --check tools/audit_documentation.py tests/unit/test_audit_documentation.py",
+      "exit_code": 0,
+      "files_already_formatted": 2
+    },
+    {
+      "command": "uv run mypy tools/audit_documentation.py",
+      "exit_code": 0,
+      "source_files": 1
+    },
+    {
+      "command": "uv run ruff check .",
+      "chunk_id": "710a36",
+      "wall_time_seconds": 0.4359718,
+      "exit_code": 0,
+      "original_token_count": 5,
+      "output": "All checks passed!\n"
+    },
+    {
+      "command": "uv run ruff format --check .",
+      "chunk_id": "3465cf",
+      "wall_time_seconds": 0.4326281,
+      "exit_code": 0,
+      "original_token_count": 7,
+      "output": "122 files already formatted\n"
+    },
+    {
+      "command": "uv run mypy src",
+      "chunk_id": "89fa5c",
+      "wall_time_seconds": 0.7178444,
+      "exit_code": 0,
+      "original_token_count": 12,
+      "output": "Success: no issues found in 52 source files\r\n"
+    },
+    {
+      "command": "uv lock --check",
+      "chunk_id": "c06349",
+      "wall_time_seconds": 0.3916063,
+      "exit_code": 0,
+      "original_token_count": 7,
+      "output": "Resolved 48 packages in 1ms\n"
+    },
+    {
+      "command": "uv pip check",
+      "chunk_id": "5b6cec",
+      "wall_time_seconds": 0.3983478,
+      "exit_code": 0,
+      "original_token_count": 17,
+      "output": "Checked 45 packages in 2ms\nAll installed packages are compatible\n"
+    },
+    {
+      "command": "uv run python -m compileall -q src tests tools",
+      "mode": "sandbox",
+      "exit_code": 1,
+      "reason": "sandbox uv-cache access denied"
+    },
+    {
+      "command": "uv run python -m compileall -q src tests tools",
+      "mode": "authorized native",
+      "chunk_id": "dc3d8d",
+      "wall_time_seconds": 0.5059566,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe tools/audit_documentation.py --check",
+      "exit_code": 1,
+      "output": "missing coverage ledger: docs/code/audit/coverage.json\n",
+      "scope": "current unchanged index, not unstaged/untracked candidate"
+    },
+    {
+      "command": "git diff --check",
+      "chunk_id": "1574e4",
+      "wall_time_seconds": 0.1196957,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": "",
+      "scope": "tracked diff; no staged candidate"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -X utf8 C:\\souhaib\\reproduce_planning_feature_optional_text.py",
+      "exit_code": 0,
+      "duration_seconds": 9.94,
+      "scope": "A-003 synthetic local source, network fatal-patched; not official acquisition",
+      "output": "physical_source_label= ' Label '\nbuilder_catalog_label= ' Label '\nbuilder_relation_label= ' Label '\npublic_validator_rejected= PlanningFeaturesError Feature catalog label raw must be a non-empty exact string\nsynthetic_files_only=True; network_calls=0; temporary_root_verified_for_cleanup=True"
+    }
+  ],
+  "cold_start": {
+    "executor": "/root/continuity_cold_start",
+    "fork_turns": "none",
+    "record": "docs/code/audit/cold_start_resume_2026-09-17.md",
+    "record_sha256": "956091fa15c041e2613d0e46ab2335c010bb58d8cfca12636823bf6e939f9372",
+    "status": "EXECUTED_INTERIM_FRESH_CONTEXT",
+    "separate_verifier": "/root/resume_checker_review",
+    "verifier_fork_turns": "none",
+    "verification": "COMPLETED_BOUNDED",
+    "final_acceptance": "PENDING",
+    "independent_review": "PENDING"
+  },
+  "findings": {
+    "existing_corrected_documentation": 32,
+    "additional_resume_navigation_correction": 1,
+    "open_test_evidence_limitations": 5,
+    "open_application": [
+      "A-001",
+      "A-002",
+      "A-003"
+    ],
+    "open_checker_static_findings": 4
+  },
+  "publication": {
+    "staged": false,
+    "committed": false,
+    "pushed": false,
+    "reason": "Original semantic file/symbol audit partial; final complete-candidate and full-suite gates pending",
+    "dev_log_final_completion_entry_written": false,
+    "independent_approval_claimed": false
+  },
+  "self_reference_notice": "This artifact and other newly created project/audit documents are original documentation, not recursively companioned or self-hashed. Changed-file list captures their paths; no self-content hash claim is made."
+}

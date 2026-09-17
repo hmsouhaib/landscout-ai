@@ -158,7 +158,7 @@ class CadastreNormalizationError(ValueError):
 
 ### `normalize_cadastre_parcels`
 
-**Purpose:** Implements `normalize cadastre parcels` within the file role: Source-completely normalizes a fresh physical `CadastreParcelSource` into the stable canonical parcel schema.
+**Purpose:** Require an exact CadastreParcelSource and obtain the freshly reread/exact-compared frame from `revalidate_cadastre_parcel_source`. Check unique columns, WGS84-equivalent source CRS, all identity fields, collisions with normalized target names, nonempty unpadded strings, unique IDs, canonical commune syntax and equality to the download commune. Require canonical active polygon geometry and reject Z. Rename the nine mapped facts on a copy with a new RangeIndex, fill absent optional raw fields with None, mark actual valid rows VALID and all others INVALID, and compute positive finite EPSG:2154 areas only on valid calculation copies. Select exactly the canonical 12 columns and run the shared identity/geometry/area validator before return. No repair, filtering, extra-column retention, download or configuration loading occurs here.
 
 **Exact signature**
 
@@ -399,7 +399,9 @@ def normalize_cadastre_parcels(source: CadastreParcelSource) -> gpd.GeoDataFrame
 
 ## 7. Validation and data-contract summary
 
-- Canonical schema/mapping declarations inventoried above: `FIELD_MAPPING`, `REQUIRED_IDENTITY_COLUMNS`.
+- `FIELD_MAPPING` maps nine raw source attributes to factual outputs; `REQUIRED_IDENTITY_COLUMNS` requires the five raw identity fields. Missing optional contenance/arpente/created/updated become None; unrelated raw attributes are not included in the 12-column output. The shared `CADASTRE_NORMALIZED_PREFIX` fixes output order and the common validator reconstructs the cadastral identity and independently remeasures area.
+- Geometry defects are represented as INVALID with null area, not repaired or dropped. The local dimension guard checks `has_z`; the separately recorded XYM limitation of the shared contract must not be rewritten as a proven all-dimensional guard.
+- The callable delegates filesystem reads and SHA256 checks to source revalidation. The direct-call matrix below is not a claim that the complete public stage is filesystem-free.
 - Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
 ## 8. Public exports and package ownership

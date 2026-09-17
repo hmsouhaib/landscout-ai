@@ -11,6 +11,37 @@
 
 Defines the approved versioned IGN general-car/light-vehicle evidence policy, source references, vocabularies, outcomes, and exact precedence.
 
+### Audited validation and runtime representation
+
+Every leaf below is required and non-null. Identity/schema/scope, the two reference
+records, evidence date, vehicle scope, heavy-vehicle `NOT_PROVEN`, class labels and
+sixteen rule outcomes are exact loader constraints. Asset-state singletons and
+importance sequences are also exact. Nature/access/restriction vocabularies must
+be non-empty strict strings without edge whitespace or duplicates; the four
+nature groups and four access groups cannot overlap. Their configured strings
+are not additionally constrained to the checked-in vocabulary by an equality
+test. `width_below_m` is a positive finite threshold in metres, currently 2.9;
+the application checks strictly below it, not below-or-equal.
+
+YAML sequences validate into immutable tuples. Compilation uses frozensets for
+membership groups and retains the sixteen-rule order as a tuple; source-value
+member ordering is not a routing or precedence ranking. References become frozen
+records, not caller-owned mutable mappings. There is no nullable fallback or
+default value for a missing field. Unknown source-row values are handled by the
+application stage, not by relaxing this configuration validation.
+
+`scope` and `vehicle_scope` restrict the kind of road evidence produced;
+`heavy_vehicle_access` explicitly withholds heavy-vehicle proof. Reference
+publisher/title/revision/document ID and evidence date identify the evidence used
+to author the policy, not an HTTP resource fetched during loading. Class labels
+name outputs; each outcome connects a rule to one label; source-value groups
+select rule triggers. Only `decision_precedence` defines rule priority.
+
+The real loader is exercised by all tests in
+[`test_road_vehicle_proxy_policy.py`](../../tests/unit/test_road_vehicle_proxy_policy.py.md).
+The D031 domains named there are fixed fixture inventories rather than new live
+source observations. No test in that module reads an IGN GeoPackage.
+
 ## 2. Position in LandScout architecture
 
 The exact YAML bytes are parsed by `landscout.stages.road_vehicle_proxy_policy.load_ign_road_vehicle_proxy_policy` into `landscout.stages.road_vehicle_proxy_policy.IgnRoadVehicleProxyPolicy`. Runtime consumers include `apply_ign_road_vehicle_proxy_policy`.
@@ -642,7 +673,7 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `apply_ign_road_vehicle_proxy_policy`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime consumers include `apply_ign_road_vehicle_proxy_policy`, `enrich_parcel_road_proximity`, and `assess_road_proximity_coverage`. Each uses the road policy loader; its default is resolved relative to the source module's repository location. An explicit relative policy path instead follows the caller's working directory. Scan profile-path resolution belongs to another configuration family and is not an interface of this file.
 
 ## 9. Error handling
 

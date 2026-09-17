@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: integration regression
 - Domain: physical end-to-end test evidence
-- Responsibility: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+- Responsibility: Exercises a synthetic physical GPU ZIP-to-zoning/PDF/structure/written-precheck chain without bypassing zoning validation; live discovery/download and planning-feature enrichment are outside this fixture.
 - Source SHA256: `384fc848b7c1ddbedbc45fc20374546970381ab2549379e7b256a6ef1076247f`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+Exercises a synthetic physical GPU ZIP-to-zoning/PDF/structure/written-precheck chain without bypassing zoning validation; live discovery/download and planning-feature enrichment are outside this fixture.
 
 The file belongs to the **integration regression** layer and **physical end-to-end test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -92,7 +92,7 @@ _ARCHIVE_NAME = "synthetic_gpu_document"
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - `_write_gpu_archive` (raw IDURBA attribute and ZIP filename), `_gpu_document` (archive metadata name).
 
 ### `_DOCUMENT_ID`
 
@@ -104,7 +104,7 @@ _DOCUMENT_ID = "synthetic-document"
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - `_gpu_document` (document ID and quoted written-file endpoint).
 
 ### `_REGULATION_FILENAME`
 
@@ -116,7 +116,7 @@ _REGULATION_FILENAME = "reglement.pdf"
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - `_write_gpu_archive` (raw NOMFIC attribute, physical PDF path and ZIP entry), `_gpu_document` (written-file metadata and endpoint).
 
 
 ### Executable module-import-time statements
@@ -127,7 +127,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `_PhysicalPlanningChain`
 
-**Source purpose:** Defines `_PhysicalPlanningChain`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** Bundle the synthetic test chain without recalculating it. Required `planning_document` retains the inspected ZIP/extraction/source-config context; `zoning` holds normalized zones, intersections and enriched parcels; `index` holds physical PDF/page/search evidence; `structure_config` defines the fixture's locked parsing rules; `structure` holds section/topic evidence; `parcels` is a separate prepared copy with manually supplied zero planning-feature counts; `policy` is the fixture's source-locked UNKNOWN written-zoning policy. None of the seven fields has a default. The frozen dataclass prevents reassignment, but nested GeoDataFrames remain mutable and `replace` can construct forged records for attacks.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -144,7 +144,7 @@ No executable module-import-time statement is declared outside imports, assignme
 | `parcels` | `gpd.GeoDataFrame` | `required` | `parcels: gpd.GeoDataFrame` |
 | `policy` | `BessZoningPolicyConfig` | `required` | `policy: BessZoningPolicyConfig` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+This fixture carrier is not a public trust root. Production validators must verify the supplied objects and source bytes rather than trusting its dataclass freezing.
 
 **Qualified consumers**
 
@@ -171,7 +171,7 @@ class _PhysicalPlanningChain:
 
 ### `_sha256`
 
-**Purpose:** Implements `sha256` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Read the entire supplied local file and return its lowercase SHA256 hexadecimal digest. This helper performs actual filesystem I/O and hashing; it neither creates an immutable file snapshot nor validates ZIP structure.
 
 **Exact signature**
 
@@ -192,7 +192,6 @@ def _sha256(path: Path) -> str:
 
 - Exact observed return expressions:
   - `sha256(path.read_bytes()).hexdigest()`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -207,21 +206,6 @@ Outbound call expressions and conservative ownership:
 | `sha256` | `hashlib.sha256` |
 | `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `sha256(path.read_bytes()).hexdigest`<br>`path.read_bytes` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `sha256(path.read_bytes()).hexdigest`<br>`sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -229,13 +213,9 @@ def _sha256(path: Path) -> str:
     return sha256(path.read_bytes()).hexdigest()
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_write_text_pdf`
 
-**Purpose:** Implements `write text pdf` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Build a one-page, extractable synthetic PDF with a zone-U heading, article 1 and its factual sentence, optionally followed by article 2 and its sentence. Create a 612×792 PDF-point page with Helvetica and explicit ASCII text operators positioned 18 points apart, add the resource/content objects, create the parent directory and write the file in `wb` mode. The source is generated locally rather than downloaded, and no OCR is involved.
 
 **Exact signature**
 
@@ -255,8 +235,6 @@ def _write_text_pdf(path: Path, *, include_article_two: bool) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -282,21 +260,6 @@ Outbound call expressions and conservative ownership:
 | `path.parent.mkdir` | `unresolved local/third-party receiver; no ownership inferred` |
 | `path.open` | `unresolved local/third-party receiver; no ownership inferred` |
 | `writer.write` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.open` |
-| Filesystem/archive write or publication | `path.parent.mkdir` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `lines.extend(<br>            (<br>                "ARTICLE U 2 - OTHER",<br>                "Second factual source sentence.",<br>            )<br>        )`<br>`page[NameObject("/Resources")] = DictionaryObject(<br>        {<br>            NameObject("/Font"): DictionaryObject(<br>                {NameObject("/F1"): writer._add_object(font)}<br>            )<br>        }<br>    )`<br>`operations.append(b"0 -18 Td")`<br>`operations.append(f"({line}) Tj".encode("ascii"))`<br>`operations.append(b"ET")`<br>`page[NameObject("/Contents")] = writer._add_object(stream)` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -344,13 +307,9 @@ def _write_text_pdf(path: Path, *, include_article_two: bool) -> None:
         writer.write(output)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_write_gpu_archive`
 
-**Purpose:** Implements `write gpu archive` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Create a temporary source package with a real Pyogrio-written EPSG:2154 `zone_urba` GeoPackage layer: one square from (0,0) to (100,100), zone-U labels and literal source metadata. Generate its PDF using the article-two flag, then write a DEFLATED ZIP containing both files under `package/`. These deliberately synthetic coordinates do not locate a Muret parcel; the example.invalid raw URL field is not fetched.
 
 **Exact signature**
 
@@ -376,7 +335,6 @@ def _write_gpu_archive(
 
 - Exact observed return expressions:
   - `archive_path`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -394,21 +352,6 @@ Outbound call expressions and conservative ownership:
 | `_write_text_pdf` | `tests.integration.test_gpu_planning_end_to_end._write_text_pdf` |
 | `ZipFile` | `zipfile.ZipFile` |
 | `archive.write` | `unresolved local/third-party receiver; no ownership inferred` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `ZipFile` |
-| Filesystem/archive write or publication | `package.mkdir`<br>`_write_text_pdf` |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -450,13 +393,9 @@ def _write_gpu_archive(
     return archive_path
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_gpu_document`
 
-**Purpose:** Implements `gpu document` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Build synthetic frozen GPU metadata using the validated config's exact provider/portal/pilot and public partition URL builders, plus fixed fixture IDs/current-state literals and a quoted official written-file endpoint. Return the record with nullable optional metadata left absent. This bypasses live listing/detail discovery and download; the official-looking URL is synthetic provenance used by local boundary validation, not evidence of an HTTP request.
 
 **Exact signature**
 
@@ -477,7 +416,6 @@ def _gpu_document(config: GpuSourceConfig) -> GpuDocumentMetadata:
 
 - Exact observed return expressions:
   - `GpuDocumentMetadata(<br>        provider=config.provider,<br>        portal=config.portal,<br>        commune_code=config.pilot.commune_code,<br>        partition=build_gpu_partition(config),<br>        document_id=_DOCUMENT_ID,<br>        document_family="DU",<br>        document_type="PLU",<br>        document_title="Synthetic planning document",<br>        status="document.production",<br>        legal_status="APPROVED",<br>        effective_status="EN_VIGUEUR",<br>        version="1",<br>        archive_name=_ARCHIVE_NAME,<br>        publication_timestamp=None,<br>        update_timestamp=None,<br>        revision_date=None,<br>        producer=None,<br>        standard_model=None,<br>        projection="EPSG:2154",<br>        metadata_identifier=None,<br>        source_url=build_gpu_partition_download_url(config),<br>        written_files=(<br>            GpuWrittenFile(<br>                filename=_REGULATION_FILENAME,<br>                title="Synthetic regulation",<br>                document_path=None,<br>                source_url=written_url,<br>            ),<br>        ),<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -495,21 +433,6 @@ Outbound call expressions and conservative ownership:
 | `build_gpu_partition` | `landscout.sources.gpu_fr.build_gpu_partition` |
 | `build_gpu_partition_download_url` | `landscout.sources.gpu_fr.build_gpu_partition_download_url` |
 | `GpuWrittenFile` | `landscout.sources.gpu_fr.GpuWrittenFile` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -553,13 +476,9 @@ def _gpu_document(config: GpuSourceConfig) -> GpuDocumentMetadata:
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_structure_config`
 
-**Purpose:** Implements `structure config` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Construct and validate an in-memory schema-2 structure config locked to the actual index's document, PDF, pages, index and normalization identities. It starts body parsing at page 1, has no table-of-contents/ignored/continuation lines or aliases, defines exact zone/article/general heading regexes and one `factual` topic with token boundaries, longest-match resolution and ten-character context. It does not load or rewrite the checked-in Muret structure YAML.
 
 **Exact signature**
 
@@ -582,7 +501,6 @@ def _structure_config(
 
 - Exact observed return expressions:
   - `PlanningRegulationStructureConfig.model_validate(<br>        {<br>            "schema_version": 2,<br>            "structure_profile": "synthetic_physical_v1",<br>            "document_lock": {<br>                "document_id": index.document_id,<br>                "pdf_sha256": index.pdf_sha256,<br>                "pages_content_sha256": index.pages_content_sha256,<br>                "index_content_sha256": index.index_content_sha256,<br>                "normalization_profile": index.search_normalization_profile,<br>            },<br>            "document_layout": {<br>                "body_start_page": 1,<br>                "table_of_contents_pages": [],<br>                "max_heading_continuation_lines": 0,<br>                "include_table_of_contents_in_topic_evidence": False,<br>            },<br>            "heading_patterns": {<br>                "zone_chapter": [r"^ZONE\s+(?P<label>[A-Za-z0-9]+)$"],<br>                "article": [<br>                    r"^ARTICLE\s+(?P<zone>[A-Za-z0-9]+)\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$"<br>                ],<br>                "general_section": [r"^ARTICLE\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$"],<br>                "continuation": [],<br>            },<br>            "ignored_patterns": {"page_headers": [], "page_footers": []},<br>            "zone_aliases": {},<br>            "topics": {"factual": ["factual"]},<br>            "topic_match_policy": {<br>                "boundary_mode": "token",<br>                "overlap_resolution": "longest_match",<br>            },<br>            "topic_context_characters": 10,<br>        }<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -594,21 +512,6 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -653,13 +556,9 @@ def _structure_config(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_policy`
 
-**Purpose:** Implements `policy` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Collect every observed ARTICLE section ID in existing section order, then construct a schema-5 written-zoning-only policy locked to the index and structure hashes/profile. Require article numbers 1 and 2 for zone U while configuring UNKNOWN/LOW with empty evidence/routes. Its completeness/review-note strings are fixture inputs, not an independent review receipt; omitting physical article 2 intentionally leaves a later source-completeness failure.
 
 **Exact signature**
 
@@ -684,7 +583,6 @@ def _policy(
 
 - Exact observed return expressions:
   - `BessZoningPolicyConfig.model_validate(<br>        {<br>            "schema_version": 5,<br>            "policy_profile": "synthetic_physical_policy_v5",<br>            "planning_precheck_scope": "WRITTEN_ZONING_REGULATION_ONLY",<br>            "review_scope": "CONFIGURED_USE_CONTROL_ARTICLES_ONLY",<br>            "source_lock": {<br>                "document_id": index.document_id,<br>                "archive_sha256": index.archive_sha256,<br>                "pdf_sha256": index.pdf_sha256,<br>                "index_content_sha256": index.index_content_sha256,<br>                "structure_result_content_sha256": (<br>                    structure.structure_result_content_sha256<br>                ),<br>                "structure_profile": structure.structure_profile,<br>            },<br>            "required_zone_article_numbers": ["1", "2"],<br>            "chapters": [<br>                {<br>                    "resolved_zone_chapter_label": "U",<br>                    "review_completeness": (<br>                        "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES"<br>                    ),<br>                    "reviewed_section_ids": reviewed,<br>                    "review_note": "The configured source articles were reviewed.",<br>                    "zoning_precheck_status": "UNKNOWN",<br>                    "zoning_precheck_confidence": "LOW",<br>                    "rationale": "No decision evidence is configured in this fixture.",<br>                    "missing_information": "Formal planning review remains required.",<br>                    "evidence": [],<br>                    "route_assessments": [],<br>                }<br>            ],<br>        }<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -699,21 +597,6 @@ Outbound call expressions and conservative ownership:
 | `structure.sections.loc[<br>            structure.sections["section_type"].eq("ARTICLE"), "section_id"<br>        ].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
 | `structure.sections["section_type"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
 | `BessZoningPolicyConfig.model_validate` | `landscout.stages.interpret_bess_zoning.BessZoningPolicyConfig.model_validate` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -764,13 +647,9 @@ def _policy(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_build_physical_chain`
 
-**Purpose:** Implements `build physical chain` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Load the real GPU YAML, write the synthetic ZIP/GPKG/PDF package, and construct a download record with actual size/SHA and a fixed timestamp. Run the real extractor, GPU inspector, one synthetic parcel's zoning intersection, PDF index and section/topic structurer. Copy the resulting parcel frame, manually add five zero planning-feature relation counts plus document/archive lineage, and return these objects with the synthetic policy. Zoning/text physical validation is not mocked; acquisition/discovery and full planning-feature enrichment are not exercised, because metadata and those zero feature facts are supplied by the fixture.
 
 **Exact signature**
 
@@ -796,7 +675,6 @@ def _build_physical_chain(
 
 - Exact observed return expressions:
   - `_PhysicalPlanningChain(<br>        planning_document=planning_document,<br>        zoning=zoning,<br>        index=index,<br>        structure_config=structure_config,<br>        structure=structure,<br>        parcels=parcels,<br>        policy=_policy(index, structure),<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -831,21 +709,6 @@ Outbound call expressions and conservative ownership:
 | `zoning.parcels.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_PhysicalPlanningChain` | `tests.integration.test_gpu_planning_end_to_end._PhysicalPlanningChain` |
 | `_policy` | `tests.integration.test_gpu_planning_end_to_end._policy` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive_path.stat` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_sha256` |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `parcels[column] = 0`<br>`parcels["planning_feature_document_id"] = index.document_id`<br>`parcels["planning_feature_archive_sha256"] = index.archive_sha256` |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -909,13 +772,9 @@ def _build_physical_chain(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_interpret`
 
-**Purpose:** Implements `interpret` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Forward the chain's actual index, structured text/config, zoning frames, prepared parcel frame, physical planning document and synthetic policy to the public written-zoning interpreter. Return its `BessZoningPrecheckResult`; this helper adds no bypass or error translation, so upstream validation/precheck failures propagate.
 
 **Exact signature**
 
@@ -936,7 +795,6 @@ def _interpret(chain: _PhysicalPlanningChain) -> BessZoningPrecheckResult:
 
 - Exact observed return expressions:
   - `interpret_bess_zoning(<br>        chain.index,<br>        chain.structure,<br>        chain.structure_config,<br>        chain.zoning.zones,<br>        chain.zoning.intersections,<br>        chain.parcels,<br>        chain.planning_document,<br>        chain.policy,<br>    )`
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -955,21 +813,6 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `interpret_bess_zoning` | `landscout.stages.interpret_bess_zoning.interpret_bess_zoning` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -986,13 +829,9 @@ def _interpret(chain: _PhysicalPlanningChain) -> BessZoningPrecheckResult:
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `_validate`
 
-**Purpose:** Implements `validate` within the file role: Exercises the complete synthetic physical GPU archive-to-zoning/PDF/structure/policy/result chain without bypassing zoning validation.
+**Purpose, ordered behavior and effects:** Forward the same complete chain inputs plus the supplied result to `validate_bess_zoning_precheck`. Normal completion returns `None`; validation errors propagate to the enclosing test's expected-exception context. The helper does not substitute intrinsic/hash-only checks for the public validator.
 
 **Exact signature**
 
@@ -1015,8 +854,6 @@ def _validate(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 
 **Qualified relationships**
 
@@ -1032,21 +869,6 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `validate_bess_zoning_precheck` | `landscout.stages.interpret_bess_zoning.validate_bess_zoning_precheck` |
-
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
 
@@ -1068,13 +890,9 @@ def _validate(
     )
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_physical_gpu_planning_chain_builds_and_revalidates`
 
-**Purpose:** Regression invariant: physical gpu planning chain builds and revalidates. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Build the physical synthetic chain, interpret it, then run the independent public result validator. Assert exactly one zone, one parcel-zone intersection and one result parcel, and preservation of the prior factual column `['unchanged']`. This is an executable chain regression, not proof of real Muret policy approval or a full production planning-feature pipeline.
 
 **Exact signature**
 
@@ -1093,8 +911,6 @@ def test_physical_gpu_planning_chain_builds_and_revalidates(tmp_path: Path) -> N
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact assertions:
   - `assert len(chain.zoning.zones) == 1`
   - `assert len(chain.zoning.intersections) == 1`
@@ -1115,21 +931,6 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.parcels["prior_fact"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1145,13 +946,9 @@ def test_physical_gpu_planning_chain_builds_and_revalidates(tmp_path: Path) -> N
     assert result.parcels["prior_fact"].tolist() == ["unchanged"]
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_physical_gpu_source_byte_mutation_is_rejected`
 
-**Purpose:** Regression invariant: physical gpu source byte mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Build and interpret the valid synthetic chain, then append bytes to the extracted zoning GeoPackage using `ab` mode. Revalidate the already-built result and require `BessZoningPrecheckError` mentioning source/GPU/zoning. The attack changes actual extracted source bytes after interpretation, not merely a result hash or a fake frame.
 
 **Exact signature**
 
@@ -1170,8 +967,6 @@ def test_physical_gpu_source_byte_mutation_is_rejected(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning")`
 
@@ -1190,21 +985,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `_validate` | `tests.integration.test_gpu_planning_end_to_end._validate` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `dataset.open` |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1219,13 +999,9 @@ def test_physical_gpu_source_byte_mutation_is_rejected(tmp_path: Path) -> None:
         _validate(chain, result)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_physical_gpu_config_hash_mutation_is_rejected`
 
-**Purpose:** Regression invariant: physical gpu config hash mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Build and interpret the physical chain, forge only `GpuPlanningDocument.source_config_sha256` with sixty-four zeroes via `dataclasses.replace`, and place that record in a new chain. Require the public result validator to reject the forged configuration identity; original config/source bytes and the original chain are not changed.
 
 **Exact signature**
 
@@ -1244,8 +1020,6 @@ def test_physical_gpu_config_hash_mutation_is_rejected(tmp_path: Path) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning")`
 
@@ -1263,21 +1037,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `_validate` | `tests.integration.test_gpu_planning_end_to_end._validate` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1294,13 +1053,9 @@ def test_physical_gpu_config_hash_mutation_is_rejected(tmp_path: Path) -> None:
         _validate(forged_chain, result)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 ### `test_physical_gpu_missing_required_article_is_rejected`
 
-**Purpose:** Regression invariant: physical gpu missing required article is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose, ordered behavior and effects:** Generate the physical PDF without article 2 while the synthetic policy still requires articles 1 and 2 and claims review completeness. Call the public interpreter and require the exact configured-article-2 completeness error. The missing physical text, not a manually omitted result row, drives this regression.
 
 **Exact signature**
 
@@ -1319,8 +1074,6 @@ def test_physical_gpu_missing_required_article_is_rejected(tmp_path: Path) -> No
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
-- No explicit `raise` expression in this callable; delegated calls may still raise their documented controlled errors.
 - Exact expected-exception contexts:
   - `pytest.raises(<br>        BessZoningPrecheckError,<br>        match="exactly one configured article '2'",<br>    )`
 
@@ -1336,21 +1089,6 @@ Outbound call expressions and conservative ownership:
 | `pytest.raises` | `pytest.raises` |
 | `_interpret` | `tests.integration.test_gpu_planning_end_to_end._interpret` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
-
 **Complete source-ordered implementation**
 
 ```python
@@ -1364,24 +1102,20 @@ def test_physical_gpu_missing_required_article_is_rejected(tmp_path: Path) -> No
         _interpret(chain)
 ```
 
-**Business boundary**
-
-- This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
-
 
 ## 7. Test-specific regression contract
 
-- Test functions: **4**.
+- Top-level test definitions: **4**, with no parametrization: **4 declared cases**, not an execution report. There are **9 other helper definitions**, one frozen fixture dataclass and seven required fields.
 - Pytest fixtures (decorator-proven): **0**.
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+| Test | Parametrization | Expected exception contexts | Direct assertion count | Attack / check |
 |---|---|---|---:|---|
-| `test_physical_gpu_planning_chain_builds_and_revalidates` | none | none | 4 | Proves physical gpu planning chain builds and revalidates using the exact source reproduced in section 7. |
-| `test_physical_gpu_source_byte_mutation_is_rejected` | none | pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning") | 0 | Proves physical gpu source byte mutation is rejected using the exact source reproduced in section 7. |
-| `test_physical_gpu_config_hash_mutation_is_rejected` | none | pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning") | 0 | Proves physical gpu config hash mutation is rejected using the exact source reproduced in section 7. |
-| `test_physical_gpu_missing_required_article_is_rejected` | none | pytest.raises(<br>        BessZoningPrecheckError,<br>        match="exactly one configured article '2'",<br>    ) | 0 | Proves physical gpu missing required article is rejected using the exact source reproduced in section 7. |
+| `test_physical_gpu_planning_chain_builds_and_revalidates` | none | none | 4 | Build → interpret → public revalidate; one zone/relation/parcel and prior fact preserved. |
+| `test_physical_gpu_source_byte_mutation_is_rejected` | none | pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning") | 0 | Append bytes to extracted GPKG after interpretation; public revalidation rejects. |
+| `test_physical_gpu_config_hash_mutation_is_rejected` | none | pytest.raises(BessZoningPrecheckError, match="source\|GPU\|zoning") | 0 | Forge only retained config SHA on a replacement document; public revalidation rejects. |
+| `test_physical_gpu_missing_required_article_is_rejected` | none | pytest.raises(<br>        BessZoningPrecheckError,<br>        match="exactly one configured article '2'",<br>    ) | 0 | Physically omit required article 2 while policy claims complete review; interpretation rejects. |
 
 ## 8. Public exports and package ownership
 
@@ -1391,7 +1125,8 @@ This module declares no `__all__`; no package-level public guarantee is inferred
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Actual local GPKG/PDF/ZIP creation and extraction, GIS intersection, PDF indexing and result validation are exercised through the imported public calls; no network transport is invoked because document/download records are constructed locally. Planning-feature count/lineage columns are injected explicitly, not produced by a physical feature-enrichment stage.
+- Per-helper/test ordered explanations above name physical writes and attack points. Assertions and exact snapshots show only the regression's scope; a test source file is not a claim that this audit executed it or that any real planning decision is authorized.
 
 ## 10. Change impact
 

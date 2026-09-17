@@ -127,7 +127,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `_ConfigModel`
 
-**Source purpose:** Defines `_ConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Shared Pydantic base: reject undeclared fields and ordinary attribute reassignment. Deep immutability additionally comes from nested frozen models and the AOI tuple, not from `frozen=True` alone.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -153,7 +153,7 @@ class _ConfigModel(BaseModel):
 
 ### `ParcelConfig`
 
-**Source purpose:** Defines `ParcelConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required inclusive screening limits `min_area_m2` and `max_area_m2`, in square metres, consumed by the area filter. Both accept finite real numbers excluding booleans and numeric strings; both must be positive and the maximum must strictly exceed the minimum. They do not measure parcel geometry.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -212,7 +212,7 @@ class ParcelConfig(_ConfigModel):
 
 ### `ShapeCalibrationConfig`
 
-**Source purpose:** Defines `ShapeCalibrationConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required provenance for an enabled shape policy. `policy_version` identifies the applied rule; `method` names calibration methodology; `calibration_scope` labels the calibration sample; `sample_size` is a strict positive integer. `calibrated_at` is a trimmed nonempty label, not a parsed timestamp. The target percentage is finite in `(0,100]`, while the observed percentage is finite in `[0,100]`; neither is recalculated by this loader.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -256,7 +256,7 @@ class ShapeCalibrationConfig(_ConfigModel):
 
 ### `ShapeScreeningConfig`
 
-**Source purpose:** Defines `ShapeScreeningConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Strict Boolean `enabled` selects screening. Optional `min_width_m` is a positive metre limit; optional `max_length_width_ratio` is finite and at least one; optional `calibration` carries policy provenance. All three default to `None` and are mandatory together when enabled. Supplied values are still field-validated when disabled.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -336,7 +336,7 @@ class ShapeScreeningConfig(_ConfigModel):
 
 ### `CrsConfig`
 
-**Source purpose:** Defines `CrsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nonempty `storage` and `calculation` strings must parse to CRS objects equivalent to EPSG:4326 and EPSG:2154 respectively. Validation preserves the trimmed strings; it does not rewrite equivalent spellings to canonical EPSG text or reproject any geometry.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -378,7 +378,7 @@ class CrsConfig(_ConfigModel):
 
 ### `BessProfile`
 
-**Source purpose:** Defines `BessProfile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required `country` and `technology` labels plus nested `parcel`, `shape_screening`, and `crs` contracts. The two labels are nonempty trimmed strings, not closed FR/BESS enums; equality with scan metadata is checked by the loaded envelope.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -412,7 +412,7 @@ class BessProfile(_ConfigModel):
 
 ### `ScanMetadata`
 
-**Source purpose:** Defines `ScanMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nonempty trimmed `name`, `country`, and `technology` labels. A name identifies the scan; the remaining labels must match the selected profile when a `LoadedScanConfig` is built. No scheduling or scan execution is implemented here.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -442,7 +442,7 @@ class ScanMetadata(_ConfigModel):
 
 ### `AoiConfig`
 
-**Source purpose:** Defines `AoiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Nonempty, duplicate-free ordered tuple of strictly string-valued commune codes matching the declared French identifier pattern. YAML sequences become tuples without sorting or stripping individual codes, so no mutable input-list alias remains.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -474,7 +474,7 @@ class AoiConfig(_ConfigModel):
 
 ### `ProfileReference`
 
-**Source purpose:** Defines `ProfileReference`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required filesystem `Path` reference to the profile. Pydantic accepts path-like input; the loader, not this model, resolves relative paths and checks file existence.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -500,7 +500,7 @@ class ProfileReference(_ConfigModel):
 
 ### `OutputConfig`
 
-**Source purpose:** Defines `OutputConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required output-directory `Path` declaration. Loading does not resolve it, create the directory, check writability, or export any artifact.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -526,7 +526,7 @@ class OutputConfig(_ConfigModel):
 
 ### `ScanConfig`
 
-**Source purpose:** Defines `ScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nested `scan`, `aoi`, `profile`, and `output` declarations. The envelope is configuration, not an orchestrated pipeline or proof that all referenced communes have been downloaded.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -558,7 +558,7 @@ class ScanConfig(_ConfigModel):
 
 ### `LoadedScanConfig`
 
-**Source purpose:** Defines `LoadedScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Retains the validated `scan_config`, loaded `profile`, and selected `profile_path`; rejects mismatched country or technology. No source-config object or deterministic configuration hash is created by this loader.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -600,7 +600,7 @@ class LoadedScanConfig(_ConfigModel):
 
 ### `_strict_finite_number`
 
-**Purpose:** Implements `strict finite number` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Before Pydantic numeric conversion, reject booleans and non-`Real` inputs with a custom validation error, then reject a nonfinite float conversion; otherwise return the original numeric value for the owning annotated field to convert and constrain.
 
 **Exact signature**
 
@@ -674,7 +674,7 @@ def _strict_finite_number(value: object) -> object:
 
 ### `ParcelConfig.validate_area_range`
 
-**Purpose:** Implements `validate area range` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** After both positive area fields validate, compare their values and reject an equal or reversed interval; return the same frozen model for an increasing interval.
 
 **Exact signature**
 
@@ -739,7 +739,7 @@ def validate_area_range(self) -> "ParcelConfig":
 
 ### `ShapeScreeningConfig.validate_enabled_policy`
 
-**Purpose:** Implements `validate enabled policy` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Return immediately for disabled screening; otherwise collect missing width, ratio, and calibration values in declaration order and reject them together in one message. Complete enabled policies return unchanged.
 
 **Exact signature**
 
@@ -816,7 +816,7 @@ def validate_enabled_policy(self) -> "ShapeScreeningConfig":
 
 ### `CrsConfig.validate_crs_contract`
 
-**Purpose:** Implements `validate crs contract` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Parse storage then calculation CRS, translating parser exceptions into field-labelled validation errors; compare each parsed CRS for equivalence to its required EPSG CRS. Preserve the model strings and return the same model without GIS work.
 
 **Exact signature**
 
@@ -893,7 +893,7 @@ def validate_crs_contract(self) -> "CrsConfig":
 
 ### `AoiConfig.validate_unique_communes`
 
-**Purpose:** Implements `validate unique communes` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Compare tuple cardinality with its set cardinality after code validation; reject duplicates while retaining original ordering for unique codes.
 
 **Exact signature**
 
@@ -960,7 +960,7 @@ def validate_unique_communes(self) -> "AoiConfig":
 
 ### `LoadedScanConfig.validate_scan_profile_identity`
 
-**Purpose:** Implements `validate scan profile identity` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Check scan/profile country equality first and technology equality second; reject the first mismatch and otherwise retain the assembled models and path.
 
 **Exact signature**
 
@@ -1028,7 +1028,7 @@ def validate_scan_profile_identity(self) -> "LoadedScanConfig":
 
 ### `_load_yaml`
 
-**Purpose:** Implements `load yaml` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Read exact path bytes, decode through the duplicate-rejecting safe YAML helper, and require an exact dictionary at the root. Filesystem and strict-YAML exceptions propagate; the explicit root-shape failure is `TypeError`. The returned temporary dictionary is mutable until Pydantic validation constructs the trust object.
 
 **Exact signature**
 
@@ -1097,7 +1097,7 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 ### `_resolve_profile_path`
 
-**Purpose:** Implements `resolve profile path` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Return an absolute profile path unchanged; otherwise resolve the scan path, take its third ancestor as repository root, and append the relative profile path. This intentionally assumes `configs/scans/<file>` placement; it is not a general root-discovery algorithm or path-containment check.
 
 **Exact signature**
 
@@ -1167,7 +1167,7 @@ def _resolve_profile_path(scan_path: Path, profile_path: Path) -> Path:
 
 ### `load_scan_config`
 
-**Purpose:** Implements `load scan config` within the file role: Strictly loads duplicate-safe, frozen/deeply immutable scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
+**Purpose:** Resolve the scan filename, read/validate its YAML, select the profile path, require an existing profile file, read/validate the profile YAML, and construct the identity-checked loaded envelope. Missing files, strict-YAML/root errors, and Pydantic errors propagate rather than becoming one custom loader exception. It performs two local reads, no network requests, no hash calculation, and no output-directory creation.
 
 **Exact signature**
 

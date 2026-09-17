@@ -105,7 +105,7 @@ class StrictJsonError(ValueError):
 
 ### `_unique_object`
 
-**Purpose:** Implements `unique object` within the file role: Decodes trust-bearing JSON with strict UTF-8, duplicate-key, finite-number, overflow, and object-root enforcement.
+**Purpose:** JSON object-pairs hook: build a new dictionary in input order, rejecting a repeated key before its previous value could be overwritten. The decoder invokes the hook at every object depth.
 
 **Exact signature**
 
@@ -172,7 +172,7 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 ### `_finite_float`
 
-**Purpose:** Implements `finite float` within the file role: Decodes trust-bearing JSON with strict UTF-8, duplicate-key, finite-number, overflow, and object-root enforcement.
+**Purpose:** Convert a JSON fractional/exponent number token to a Python float, reject overflow to infinity, and return finite values. Ordinary finite rounding and underflow follow Python float behavior; this is not arbitrary-precision decimal parsing.
 
 **Exact signature**
 
@@ -239,7 +239,7 @@ def _finite_float(value: str) -> float:
 
 ### `_reject_constant`
 
-**Purpose:** Implements `reject constant` within the file role: Decodes trust-bearing JSON with strict UTF-8, duplicate-key, finite-number, overflow, and object-root enforcement.
+**Purpose:** Reject each nonstandard `NaN`, `Infinity`, or `-Infinity` decoder constant immediately with `StrictJsonError`; there is no successful return path despite the annotated `float` return type.
 
 **Exact signature**
 
@@ -258,7 +258,7 @@ def _reject_constant(value: str) -> float:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- This callable always raises `StrictJsonError`; normal completion and a `None` result are impossible.
 - Explicit raise paths:
   - `StrictJsonError(f"JSON number must be finite: {value}")`.
 
@@ -323,7 +323,7 @@ def loads_strict_json(value: str | bytes) -> object:
   - `json.loads(<br>            document,<br>            object_pairs_hook=_unique_object,<br>            parse_constant=_reject_constant,<br>            parse_float=_finite_float,<br>        )`
 - Explicit raise paths:
   - `StrictJsonError("JSON document is not valid UTF-8")` under lexical guard `type(value) is bytes`.
-  - `StrictJsonError("JSON input must be an exact string or bytes")` under lexical guard `type(value) is bytes`.
+  - `StrictJsonError("JSON input must be an exact string or bytes")` when neither exact `bytes` nor exact `str` is supplied.
   - `re-raise`.
   - `StrictJsonError("JSON document is invalid")`.
 

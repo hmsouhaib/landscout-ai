@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+- Responsibility: Exercises real safe-HTTPS control flow with mocked DNS, socket and TLS boundaries: strict headers/URLs, all-address DNS rejection, literal no-DNS handling, pinned endpoint/Host/SNI forwarding, redirect guards and proxy independence; it does not perform real network or certificate validation.
 - Source SHA256: `da5bf1e22f8aac6d3c0634d88786dcb5c79a7c764902490d0157f9b6965b69f0`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+Exercises real safe-HTTPS control flow with mocked DNS, socket and TLS boundaries: strict headers/URLs, all-address DNS rejection, literal no-DNS handling, pinned endpoint/Host/SNI forwarding, redirect guards and proxy independence; it does not perform real network or certificate validation.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -77,7 +77,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `_FakeSocket`
 
-**Source purpose:** Defines `_FakeSocket`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** In-memory socket protocol double: response bytes are immutable fixtures; recording lists are intentionally shared mutable aliases used to observe endpoints/requests; endpoint, timeout and closed record lifecycle state.
 
 - Exact decorators: none.
 - Exact bases: plain object.
@@ -148,7 +148,7 @@ class _FakeSocket:
 
 ### `_FakeTlsContext`
 
-**Source purpose:** Defines `_FakeTlsContext`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** TLS context double with fixed verification flags and a shared server-name recorder; wrapping returns the input fake socket without cryptographic verification.
 
 - Exact decorators: none.
 - Exact bases: plain object.
@@ -186,7 +186,7 @@ class _FakeTlsContext:
 
 ### `_NetworkHarness`
 
-**Source purpose:** Defines `_NetworkHarness`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Owns a copied response queue and shared mutable call recordings; factories create fake sockets/contexts consumed by the production HTTP control flow.
 
 - Exact decorators: none.
 - Exact bases: plain object.
@@ -252,7 +252,7 @@ class _NetworkHarness:
 
 ### `_http_response`
 
-**Purpose:** Implements `http response` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Implements `http response` within the file role: Exercises real safe-HTTPS control flow with mocked DNS, socket and TLS boundaries: strict headers/URLs, all-address DNS rejection, literal no-DNS handling, pinned endpoint/Host/SNI forwarding, redirect guards and proxy independence; it does not perform real network or certificate validation.
 
 **Exact signature**
 
@@ -353,7 +353,7 @@ def _http_response(
 
 ### `_dns_records`
 
-**Purpose:** Implements `dns records` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Build getaddrinfo-shaped IPv4/IPv6 records from explicit addresses and port, using address colon presence to choose the fixture family.
 
 **Exact signature**
 
@@ -448,7 +448,7 @@ def _dns_records(
 
 ### `_FakeSocket.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Retain response bytes and shared recording lists; initialize disconnected endpoint, open flag and unset timeout. This object never creates an operating-system socket.
 
 **Exact signature**
 
@@ -528,7 +528,7 @@ def __init__(
 
 ### `_FakeSocket.settimeout`
 
-**Purpose:** Implements `settimeout` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Record the requested timeout on the fake socket.
 
 **Exact signature**
 
@@ -587,7 +587,7 @@ def settimeout(self, timeout: float) -> None:
 
 ### `_FakeSocket.connect`
 
-**Purpose:** Implements `connect` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Record the exact family/endpoint in the shared harness and retain it as the fake peer; no network connect occurs.
 
 **Exact signature**
 
@@ -649,7 +649,7 @@ def connect(self, endpoint: tuple[object, ...]) -> None:
 
 ### `_FakeSocket.getpeername`
 
-**Purpose:** Implements `getpeername` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Assert connect recorded an endpoint, then return that same synthetic peer tuple.
 
 **Exact signature**
 
@@ -711,7 +711,7 @@ def getpeername(self) -> tuple[object, ...]:
 
 ### `_FakeSocket.sendall`
 
-**Purpose:** Implements `sendall` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Append exact outbound request bytes to the shared harness instead of transmitting them.
 
 **Exact signature**
 
@@ -772,7 +772,7 @@ def sendall(self, payload: bytes) -> None:
 
 ### `_FakeSocket.makefile`
 
-**Purpose:** Implements `makefile` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Return a new BytesIO over the fixture response bytes for the real HTTP response parser.
 
 **Exact signature**
 
@@ -835,7 +835,7 @@ def makefile(self, *args: object, **kwargs: object) -> io.BytesIO:
 
 ### `_FakeSocket.setsockopt`
 
-**Purpose:** Implements `setsockopt` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Accept and ignore socket-option arguments, returning None.
 
 **Exact signature**
 
@@ -896,7 +896,7 @@ def setsockopt(self, *args: object, **kwargs: object) -> None:
 
 ### `_FakeSocket.close`
 
-**Purpose:** Implements `close` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Set the fake socket's closed flag to True.
 
 **Exact signature**
 
@@ -954,7 +954,7 @@ def close(self) -> None:
 
 ### `_FakeTlsContext.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Retain the harness's shared server-name list; class attributes default to hostname checking and CERT_REQUIRED.
 
 **Exact signature**
 
@@ -1013,7 +1013,7 @@ def __init__(self, server_names: list[str]) -> None:
 
 ### `_FakeTlsContext.wrap_socket`
 
-**Purpose:** Implements `wrap socket` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Record server_hostname and return the same fake socket; no TLS handshake or certificate verification occurs.
 
 **Exact signature**
 
@@ -1077,7 +1077,7 @@ def wrap_socket(self, sock: _FakeSocket, *, server_hostname: str) -> _FakeSocket
 
 ### `_NetworkHarness.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Copy queued response bytes and create fresh mutable recordings for connect endpoints, request bytes, server names, fake contexts and sockets.
 
 **Exact signature**
 
@@ -1143,7 +1143,7 @@ def __init__(self, responses: list[bytes]) -> None:
 
 ### `_NetworkHarness.socket`
 
-**Purpose:** Implements `socket` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Require stream type and no fileno, fail on response exhaustion, pop the next HTTP response and return/record a fake socket.
 
 **Exact signature**
 
@@ -1238,7 +1238,7 @@ def socket(
 
 ### `_NetworkHarness.context`
 
-**Purpose:** Implements `context` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Create and record a fake TLS context sharing the server-name list.
 
 **Exact signature**
 
@@ -1304,7 +1304,7 @@ def context(self, *args: object, **kwargs: object) -> _FakeTlsContext:
 
 ### `_install_network`
 
-**Purpose:** Implements `install network` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Monkeypatch socket.socket and ssl.create_default_context with the recording harness, using a default OK response when no response list is supplied.
 
 **Exact signature**
 
@@ -1379,7 +1379,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `monkeypatch.setattr` temporarily replaces network-related callables. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1402,7 +1402,7 @@ def _install_network(
 
 ### `_install_dns`
 
-**Purpose:** Implements `install dns` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Install a deterministic getaddrinfo callback and return its shared hostname/port call list.
 
 **Exact signature**
 
@@ -1470,7 +1470,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `monkeypatch.setattr` temporarily replaces network-related callables. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1497,7 +1497,7 @@ def _install_dns(
 
 ### `_install_dns.resolve`
 
-**Purpose:** Implements `resolve` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Assert the resolver is called with exactly type=SOCK_STREAM, append hostname/port and return explicit fixture address records.
 
 **Exact signature**
 
@@ -1565,7 +1565,7 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 
 ### `_read`
 
-**Purpose:** Implements `read` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Use the real open_safe_https control flow and context manager, then read response bytes; the tests replace DNS/socket/TLS dependencies or reject before they are reached.
 
 **Exact signature**
 
@@ -1634,7 +1634,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -1657,7 +1657,7 @@ def _read(url: str = "https://source.example/archive.zip") -> bytes:
 
 ### `test_sensitive_and_hop_by_hop_headers_fail_before_dns`
 
-**Purpose:** Regression invariant: sensitive and hop by hop headers fail before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject thirteen sensitive, Host-owned and hop-by-hop header spellings with DNS protected by a forbidden-call sentinel.
 
 **Exact signature**
 
@@ -1721,7 +1721,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -1760,7 +1760,7 @@ def test_sensitive_and_hop_by_hop_headers_fail_before_dns(
 
 ### `test_case_insensitive_duplicate_header_names_fail_before_dns`
 
-**Purpose:** Regression invariant: case insensitive duplicate header names fail before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject two headers with case-insensitively equal names before the DNS sentinel.
 
 **Exact signature**
 
@@ -1804,7 +1804,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -1842,7 +1842,7 @@ def test_case_insensitive_duplicate_header_names_fail_before_dns(
 
 ### `test_request_and_explicit_headers_cannot_ambiguously_override_each_other`
 
-**Purpose:** Regression invariant: request and explicit headers cannot ambiguously override each other. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject duplicate header ownership between urllib Request headers and explicit headers before DNS.
 
 **Exact signature**
 
@@ -1887,7 +1887,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -1929,7 +1929,7 @@ def test_request_and_explicit_headers_cannot_ambiguously_override_each_other(
 
 ### `test_cross_origin_redirect_cannot_receive_a_sensitive_header`
 
-**Purpose:** Regression invariant: cross origin redirect cannot receive a sensitive header. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Prepare a cross-origin redirect but supply a forbidden sensitive header; assert rejection before DNS and no recorded request bytes. The redirect is never followed in this negative control.
 
 **Exact signature**
 
@@ -1977,7 +1977,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -2030,7 +2030,7 @@ def test_cross_origin_redirect_cannot_receive_a_sensitive_header(
 
 ### `test_cross_origin_redirect_forwards_only_safe_ordinary_headers`
 
-**Purpose:** Regression invariant: cross origin redirect forwards only safe ordinary headers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Follow a fake cross-origin redirect and assert both captured requests retain User-Agent/Accept while containing neither Authorization nor Cookie, then read exact archive body.
 
 **Exact signature**
 
@@ -2082,7 +2082,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -2131,7 +2131,7 @@ def test_cross_origin_redirect_forwards_only_safe_ordinary_headers(
 
 ### `test_public_dns_answers_are_accepted`
 
-**Purpose:** Regression invariant: public dns answers are accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept public IPv4, public mixed IPv4/IPv6 and duplicate-public answers, asserting one resolver call and a recorded connection.
 
 **Exact signature**
 
@@ -2218,7 +2218,7 @@ def test_public_dns_answers_are_accepted(
 
 ### `test_malformed_or_unusable_dns_results_fail_before_socket`
 
-**Purpose:** Regression invariant: malformed or unusable dns results fail before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject eight zero/short/family/type/protocol/sockaddr/family-mismatch/non-string DNS record shapes before the socket sentinel.
 
 **Exact signature**
 
@@ -2339,7 +2339,7 @@ def test_malformed_or_unusable_dns_results_fail_before_socket(
 
 ### `test_any_nonpublic_dns_answer_fails_before_socket`
 
-**Purpose:** Regression invariant: any nonpublic dns answer fails before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject twelve loopback/private/link-local/unspecified/reserved/multicast and mapped-private IPv4/IPv6 answers before the socket sentinel.
 
 **Exact signature**
 
@@ -2450,7 +2450,7 @@ def test_any_nonpublic_dns_answer_fails_before_socket(
 
 ### `test_mixed_public_private_dns_answer_fails_closed`
 
-**Purpose:** Regression invariant: mixed public private dns answer fails closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Return one public and one private answer and require a controlled rejection without creating a socket.
 
 **Exact signature**
 
@@ -2527,7 +2527,7 @@ def test_mixed_public_private_dns_answer_fails_closed(
 
 ### `test_dns_errors_are_controlled_before_socket`
 
-**Purpose:** Regression invariant: dns errors are controlled before socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Raise gaierror, OSError or UnicodeError from the mocked resolver and require controlled DNS/resolve errors before the socket sentinel; constructing gaierror is not network I/O.
 
 **Exact signature**
 
@@ -2585,7 +2585,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `socket.gaierror` |
+| Network I/O | None; constructing socket.gaierror only creates an exception object. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -2621,7 +2621,7 @@ def test_dns_errors_are_controlled_before_socket(
 
 ### `test_dns_errors_are_controlled_before_socket.fail`
 
-**Purpose:** Implements `fail` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Always raise the supplied resolver exception; the list annotation is not a normal return contract.
 
 **Exact signature**
 
@@ -2641,7 +2641,7 @@ def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Always raises the supplied exception; there is no normal return.
 - Explicit raise paths:
   - `error`.
 
@@ -2681,7 +2681,7 @@ def fail(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
 
 ### `test_unsafe_url_identity_fails_before_dns`
 
-**Purpose:** Regression invariant: unsafe url identity fails before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject eight HTTP/credential/localhost/subdomain/Unicode-trailing-dot/missing-host URLs before DNS.
 
 **Exact signature**
 
@@ -2782,7 +2782,7 @@ def test_unsafe_url_identity_fails_before_dns(
 
 ### `test_literal_and_malformed_numeric_ip_rejection_never_uses_dns`
 
-**Purpose:** Regression invariant: literal and malformed numeric ip rejection never uses dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject eleven unsafe or malformed dotted/short/octal/integer/hex/IPv6 address URLs with DNS forbidden.
 
 **Exact signature**
 
@@ -2876,7 +2876,7 @@ def test_literal_and_malformed_numeric_ip_rejection_never_uses_dns(
 
 ### `test_public_literal_ip_uses_exact_socket_without_dns`
 
-**Purpose:** Regression invariant: public literal ip uses exact socket without dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For a public literal IPv4, require no DNS call and the exact recorded AF_INET address/443 endpoint.
 
 **Exact signature**
 
@@ -2953,7 +2953,7 @@ def test_public_literal_ip_uses_exact_socket_without_dns(
 
 ### `test_explicit_https_port_is_resolved_and_connected_exactly`
 
-**Purpose:** Regression invariant: explicit https port is resolved and connected exactly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert port 8443 is passed to DNS/connect, while TLS receives only the hostname and captured Host includes the explicit port.
 
 **Exact signature**
 
@@ -3033,7 +3033,7 @@ def test_explicit_https_port_is_resolved_and_connected_exactly(
 
 ### `test_safe_https_redirect_is_manually_revalidated`
 
-**Purpose:** Regression invariant: safe https redirect is manually revalidated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Follow one fake safe redirect and assert final URL/history, two hostname resolutions, two exact public endpoints, separate TLS hostnames and corresponding Host request headers.
 
 **Exact signature**
 
@@ -3086,7 +3086,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -3135,7 +3135,7 @@ def test_safe_https_redirect_is_manually_revalidated(
 
 ### `test_unsafe_redirect_is_rejected_before_target_socket`
 
-**Purpose:** Regression invariant: unsafe redirect is rejected before target socket. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Resolve the initial host publicly and redirect host privately; require controlled failure with only the initial endpoint recorded.
 
 **Exact signature**
 
@@ -3225,7 +3225,7 @@ def test_unsafe_redirect_is_rejected_before_target_socket(
 
 ### `test_unsafe_redirect_is_rejected_before_target_socket.resolve`
 
-**Purpose:** Implements `resolve` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Choose public address for the initial source host and private address for the redirected host, returning synthetic records only.
 
 **Exact signature**
 
@@ -3289,7 +3289,7 @@ def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]
 
 ### `test_redirect_loop_is_rejected`
 
-**Purpose:** Regression invariant: redirect loop is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Return a redirect to an already requested URL and require the loop guard.
 
 **Exact signature**
 
@@ -3366,7 +3366,7 @@ def test_redirect_loop_is_rejected(
 
 ### `test_redirect_limit_is_enforced`
 
-**Purpose:** Regression invariant: redirect limit is enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Supply a chain longer than the fixed redirect limit and require a controlled redirect error.
 
 **Exact signature**
 
@@ -3445,7 +3445,7 @@ def test_redirect_limit_is_enforced(
 
 ### `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host`
 
-**Purpose:** Regression invariant: validated dns snapshot binds actual socket and preserves tls host. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use a resolver that would rebind privately on a second call; assert only one resolution, exact public endpoint, original TLS hostname and captured GET/Host bytes. The observed connect is the harness callback, not a real socket.
 
 **Exact signature**
 
@@ -3538,7 +3538,7 @@ def test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host(
 
 ### `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host.rebind`
 
-**Purpose:** Implements `rebind` within the file role: Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file.
+**Purpose:** Increment the closed-over resolution counter and return public on the first call, private on subsequent calls.
 
 **Exact signature**
 
@@ -3585,7 +3585,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `resolutions += 1` changes the closed-over counter. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3604,7 +3604,7 @@ def rebind(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
 
 ### `test_environment_proxy_does_not_change_bound_destination`
 
-**Purpose:** Regression invariant: environment proxy does not change bound destination. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Temporarily set proxy environment variables, then assert the fake connection still targets the validated public endpoint; environment changes are reverted by monkeypatch.
 
 **Exact signature**
 
@@ -3655,7 +3655,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
+| External process/environment | `monkeypatch.setenv` temporarily changes process proxy environment variables. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
 
@@ -3681,7 +3681,7 @@ def test_environment_proxy_does_not_change_bound_destination(
 
 ### `test_malformed_header_name_is_rejected_before_dns`
 
-**Purpose:** Regression invariant: malformed header name is rejected before dns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject Host with trailing space and a name containing an internal space before DNS.
 
 **Exact signature**
 
@@ -3732,7 +3732,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `open_safe_https` |
+| Network I/O | Calls the real transport control flow with mocked boundaries or pre-network failure sentinels; no real network I/O occurs in these tests. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -3771,7 +3771,7 @@ def test_malformed_header_name_is_rejected_before_dns(
 
 ### `test_tls_context_keeps_hostname_verification_enabled`
 
-**Purpose:** Regression invariant: tls context keeps hostname verification enabled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert one fake context retains check_hostname=True/CERT_REQUIRED and receives the source hostname; no real TLS handshake is tested.
 
 **Exact signature**
 
@@ -3852,6 +3852,10 @@ def test_tls_context_keeps_hostname_verification_enabled(
 
 ## 7. Test-specific regression contract
 
+Exercises real safe-HTTPS control flow with mocked DNS, socket and TLS boundaries: strict headers/URLs, all-address DNS rejection, literal no-DNS handling, pinned endpoint/Host/SNI forwarding, redirect guards and proxy independence; it does not perform real network or certificate validation.
+
+The 22 test definitions expand statically to 74 cases; no test run is claimed by this documentation audit. All network-like effects are captured by an in-memory harness or prevented by sentinels.
+
 - Test functions: **22**.
 - Pytest fixtures (decorator-proven): **0**.
 
@@ -3859,28 +3863,28 @@ def test_tls_context_keeps_hostname_verification_enabled(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_sensitive_and_hop_by_hop_headers_fail_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    [<br>        "Authorization",<br>        "authorization",<br>        "Proxy-Authorization",<br>        "Cookie",<br>        "Cookie2",<br>        "Host",<br>        "Connection",<br>        "Proxy-Connection",<br>        "Keep-Alive",<br>        "Transfer-Encoding",<br>        "TE",<br>        "Trailer",<br>        "Upgrade",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="header\|forbidden\|owned") | 0 | Proves sensitive and hop by hop headers fail before dns using the exact source reproduced in section 7. |
-| `test_case_insensitive_duplicate_header_names_fail_before_dns` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Proves case insensitive duplicate header names fail before dns using the exact source reproduced in section 7. |
-| `test_request_and_explicit_headers_cannot_ambiguously_override_each_other` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Proves request and explicit headers cannot ambiguously override each other using the exact source reproduced in section 7. |
-| `test_cross_origin_redirect_cannot_receive_a_sensitive_header` | none | pytest.raises(SafeHttpsError, match="header\|forbidden") | 1 | Proves cross origin redirect cannot receive a sensitive header using the exact source reproduced in section 7. |
-| `test_cross_origin_redirect_forwards_only_safe_ordinary_headers` | none | none | 6 | Proves cross origin redirect forwards only safe ordinary headers using the exact source reproduced in section 7. |
-| `test_public_dns_answers_are_accepted` | pytest.mark.parametrize(<br>    "addresses",<br>    [<br>        (PUBLIC_IPV4,),<br>        (PUBLIC_IPV4, PUBLIC_IPV6),<br>        (PUBLIC_IPV4, PUBLIC_IPV4),<br>    ],<br>    ids=["public-ipv4", "public-ipv4-and-ipv6", "duplicate-public"],<br>) | none | 3 | Proves public dns answers are accepted using the exact source reproduced in section 7. |
-| `test_malformed_or_unusable_dns_results_fail_before_socket` | pytest.mark.parametrize(<br>    "records",<br>    [<br>        [],<br>        [(socket.AF_INET, socket.SOCK_STREAM)],<br>        [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_DGRAM,<br>                socket.IPPROTO_UDP,<br>                "",<br>                (PUBLIC_IPV4, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_STREAM,<br>                socket.IPPROTO_TCP,<br>                "",<br>                (PUBLIC_IPV6, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],<br>    ],<br>    ids=[<br>        "zero",<br>        "short-record",<br>        "unsupported-family",<br>        "wrong-socket-type",<br>        "non-integer-protocol",<br>        "bad-sockaddr",<br>        "family-mismatch",<br>        "non-string-address",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="DNS\|address") | 0 | Proves malformed or unusable dns results fail before socket using the exact source reproduced in section 7. |
-| `test_any_nonpublic_dns_answer_fails_before_socket` | pytest.mark.parametrize(<br>    "address",<br>    [<br>        "127.0.0.1",<br>        "10.0.0.2",<br>        "169.254.1.1",<br>        "0.0.0.0",<br>        "240.0.0.1",<br>        "224.0.0.1",<br>        "::1",<br>        "fd00::1",<br>        "fe80::1",<br>        "::",<br>        "ff02::1",<br>        "::ffff:127.0.0.1",<br>    ],<br>    ids=[<br>        "ipv4-loopback",<br>        "ipv4-private",<br>        "ipv4-link-local",<br>        "ipv4-unspecified",<br>        "ipv4-reserved",<br>        "ipv4-multicast",<br>        "ipv6-loopback",<br>        "ipv6-private",<br>        "ipv6-link-local",<br>        "ipv6-unspecified",<br>        "ipv6-multicast",<br>        "ipv4-mapped-private",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Proves any nonpublic dns answer fails before socket using the exact source reproduced in section 7. |
-| `test_mixed_public_private_dns_answer_fails_closed` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Proves mixed public private dns answer fails closed using the exact source reproduced in section 7. |
-| `test_dns_errors_are_controlled_before_socket` | pytest.mark.parametrize(<br>    "error",<br>    [<br>        socket.gaierror("DNS failed"),<br>        OSError("resolver failed"),<br>        UnicodeError("bad hostname"),<br>    ],<br>    ids=["gaierror", "oserror", "unicode-error"],<br>) | pytest.raises(SafeHttpsError, match="DNS\|resolve") | 0 | Proves dns errors are controlled before socket using the exact source reproduced in section 7. |
-| `test_unsafe_url_identity_fails_before_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "http://source.example/archive.zip",<br>        "https://user:secret@source.example/archive.zip",<br>        "https://localhost/archive.zip",<br>        "https://api.localhost/archive.zip",<br>        "https://localhost\u3002/archive.zip",<br>        "https://api.localhost\uff0e/archive.zip",<br>        "https://api.localhost\uff61/archive.zip",<br>        "https:///archive.zip",<br>    ],<br>    ids=[<br>        "http",<br>        "credentials",<br>        "localhost",<br>        "localhost-subdomain",<br>        "localhost-ideographic-trailing-dot",<br>        "localhost-subdomain-fullwidth-trailing-dot",<br>        "localhost-subdomain-halfwidth-trailing-dot",<br>        "missing-host",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="HTTPS\|credential\|localhost\|host\|URL") | 0 | Proves unsafe url identity fails before dns using the exact source reproduced in section 7. |
-| `test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "https://127.0.0.1/archive.zip",<br>        "https://127.1/archive.zip",<br>        "https://0177.0.0.1/archive.zip",<br>        "https://10.0.0.2/archive.zip",<br>        "https://2130706433/archive.zip",<br>        "https://0x7f000001/archive.zip",<br>        "https://[::1]/archive.zip",<br>        "https://[fd00::1]/archive.zip",<br>        "https://[fe80::1]/archive.zip",<br>        "https://999999999999999999999/archive.zip",<br>        "https://0xnotanaddress/archive.zip",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|IP\|URL") | 0 | Proves literal and malformed numeric ip rejection never uses dns using the exact source reproduced in section 7. |
-| `test_public_literal_ip_uses_exact_socket_without_dns` | none | none | 2 | Proves public literal ip uses exact socket without dns using the exact source reproduced in section 7. |
-| `test_explicit_https_port_is_resolved_and_connected_exactly` | none | none | 5 | Proves explicit https port is resolved and connected exactly using the exact source reproduced in section 7. |
-| `test_safe_https_redirect_is_manually_revalidated` | none | none | 8 | Proves safe https redirect is manually revalidated using the exact source reproduced in section 7. |
-| `test_unsafe_redirect_is_rejected_before_target_socket` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 1 | Proves unsafe redirect is rejected before target socket using the exact source reproduced in section 7. |
-| `test_redirect_loop_is_rejected` | none | pytest.raises(SafeHttpsError, match="loop") | 0 | Proves redirect loop is rejected using the exact source reproduced in section 7. |
-| `test_redirect_limit_is_enforced` | none | pytest.raises(SafeHttpsError, match="redirect") | 0 | Proves redirect limit is enforced using the exact source reproduced in section 7. |
-| `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` | none | none | 6 | Proves validated dns snapshot binds actual socket and preserves tls host using the exact source reproduced in section 7. |
-| `test_environment_proxy_does_not_change_bound_destination` | none | none | 2 | Proves environment proxy does not change bound destination using the exact source reproduced in section 7. |
-| `test_malformed_header_name_is_rejected_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    ["Host ", "Bad Header"],<br>    ids=["host-with-trailing-space", "non-token-field-name"],<br>) | pytest.raises(SafeHttpsError, match="header\|Host") | 0 | Proves malformed header name is rejected before dns using the exact source reproduced in section 7. |
-| `test_tls_context_keeps_hostname_verification_enabled` | none | none | 5 | Proves tls context keeps hostname verification enabled using the exact source reproduced in section 7. |
+| `test_sensitive_and_hop_by_hop_headers_fail_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    [<br>        "Authorization",<br>        "authorization",<br>        "Proxy-Authorization",<br>        "Cookie",<br>        "Cookie2",<br>        "Host",<br>        "Connection",<br>        "Proxy-Connection",<br>        "Keep-Alive",<br>        "Transfer-Encoding",<br>        "TE",<br>        "Trailer",<br>        "Upgrade",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="header\|forbidden\|owned") | 0 | Reject thirteen sensitive, Host-owned and hop-by-hop header spellings with DNS protected by a forbidden-call sentinel. |
+| `test_case_insensitive_duplicate_header_names_fail_before_dns` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Reject two headers with case-insensitively equal names before the DNS sentinel. |
+| `test_request_and_explicit_headers_cannot_ambiguously_override_each_other` | none | pytest.raises(SafeHttpsError, match="duplicate\|ambiguous") | 0 | Reject duplicate header ownership between urllib Request headers and explicit headers before DNS. |
+| `test_cross_origin_redirect_cannot_receive_a_sensitive_header` | none | pytest.raises(SafeHttpsError, match="header\|forbidden") | 1 | Prepare a cross-origin redirect but supply a forbidden sensitive header; assert rejection before DNS and no recorded request bytes. The redirect is never followed in this negative control. |
+| `test_cross_origin_redirect_forwards_only_safe_ordinary_headers` | none | none | 6 | Follow a fake cross-origin redirect and assert both captured requests retain User-Agent/Accept while containing neither Authorization nor Cookie, then read exact archive body. |
+| `test_public_dns_answers_are_accepted` | pytest.mark.parametrize(<br>    "addresses",<br>    [<br>        (PUBLIC_IPV4,),<br>        (PUBLIC_IPV4, PUBLIC_IPV6),<br>        (PUBLIC_IPV4, PUBLIC_IPV4),<br>    ],<br>    ids=["public-ipv4", "public-ipv4-and-ipv6", "duplicate-public"],<br>) | none | 3 | Accept public IPv4, public mixed IPv4/IPv6 and duplicate-public answers, asserting one resolver call and a recorded connection. |
+| `test_malformed_or_unusable_dns_results_fail_before_socket` | pytest.mark.parametrize(<br>    "records",<br>    [<br>        [],<br>        [(socket.AF_INET, socket.SOCK_STREAM)],<br>        [(9999, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4, 443))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_DGRAM,<br>                socket.IPPROTO_UDP,<br>                "",<br>                (PUBLIC_IPV4, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, object(), "", (PUBLIC_IPV4, 443))],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (PUBLIC_IPV4,))],<br>        [<br>            (<br>                socket.AF_INET,<br>                socket.SOCK_STREAM,<br>                socket.IPPROTO_TCP,<br>                "",<br>                (PUBLIC_IPV6, 443),<br>            )<br>        ],<br>        [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (123, 443))],<br>    ],<br>    ids=[<br>        "zero",<br>        "short-record",<br>        "unsupported-family",<br>        "wrong-socket-type",<br>        "non-integer-protocol",<br>        "bad-sockaddr",<br>        "family-mismatch",<br>        "non-string-address",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="DNS\|address") | 0 | Reject eight zero/short/family/type/protocol/sockaddr/family-mismatch/non-string DNS record shapes before the socket sentinel. |
+| `test_any_nonpublic_dns_answer_fails_before_socket` | pytest.mark.parametrize(<br>    "address",<br>    [<br>        "127.0.0.1",<br>        "10.0.0.2",<br>        "169.254.1.1",<br>        "0.0.0.0",<br>        "240.0.0.1",<br>        "224.0.0.1",<br>        "::1",<br>        "fd00::1",<br>        "fe80::1",<br>        "::",<br>        "ff02::1",<br>        "::ffff:127.0.0.1",<br>    ],<br>    ids=[<br>        "ipv4-loopback",<br>        "ipv4-private",<br>        "ipv4-link-local",<br>        "ipv4-unspecified",<br>        "ipv4-reserved",<br>        "ipv4-multicast",<br>        "ipv6-loopback",<br>        "ipv6-private",<br>        "ipv6-link-local",<br>        "ipv6-unspecified",<br>        "ipv6-multicast",<br>        "ipv4-mapped-private",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Reject twelve loopback/private/link-local/unspecified/reserved/multicast and mapped-private IPv4/IPv6 answers before the socket sentinel. |
+| `test_mixed_public_private_dns_answer_fails_closed` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 0 | Return one public and one private answer and require a controlled rejection without creating a socket. |
+| `test_dns_errors_are_controlled_before_socket` | pytest.mark.parametrize(<br>    "error",<br>    [<br>        socket.gaierror("DNS failed"),<br>        OSError("resolver failed"),<br>        UnicodeError("bad hostname"),<br>    ],<br>    ids=["gaierror", "oserror", "unicode-error"],<br>) | pytest.raises(SafeHttpsError, match="DNS\|resolve") | 0 | Raise gaierror, OSError or UnicodeError from the mocked resolver and require controlled DNS/resolve errors before the socket sentinel; constructing gaierror is not network I/O. |
+| `test_unsafe_url_identity_fails_before_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "http://source.example/archive.zip",<br>        "https://user:secret@source.example/archive.zip",<br>        "https://localhost/archive.zip",<br>        "https://api.localhost/archive.zip",<br>        "https://localhost\u3002/archive.zip",<br>        "https://api.localhost\uff0e/archive.zip",<br>        "https://api.localhost\uff61/archive.zip",<br>        "https:///archive.zip",<br>    ],<br>    ids=[<br>        "http",<br>        "credentials",<br>        "localhost",<br>        "localhost-subdomain",<br>        "localhost-ideographic-trailing-dot",<br>        "localhost-subdomain-fullwidth-trailing-dot",<br>        "localhost-subdomain-halfwidth-trailing-dot",<br>        "missing-host",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="HTTPS\|credential\|localhost\|host\|URL") | 0 | Reject eight HTTP/credential/localhost/subdomain/Unicode-trailing-dot/missing-host URLs before DNS. |
+| `test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` | pytest.mark.parametrize(<br>    "url",<br>    [<br>        "https://127.0.0.1/archive.zip",<br>        "https://127.1/archive.zip",<br>        "https://0177.0.0.1/archive.zip",<br>        "https://10.0.0.2/archive.zip",<br>        "https://2130706433/archive.zip",<br>        "https://0x7f000001/archive.zip",<br>        "https://[::1]/archive.zip",<br>        "https://[fd00::1]/archive.zip",<br>        "https://[fe80::1]/archive.zip",<br>        "https://999999999999999999999/archive.zip",<br>        "https://0xnotanaddress/archive.zip",<br>    ],<br>) | pytest.raises(SafeHttpsError, match="public\|global\|address\|IP\|URL") | 0 | Reject eleven unsafe or malformed dotted/short/octal/integer/hex/IPv6 address URLs with DNS forbidden. |
+| `test_public_literal_ip_uses_exact_socket_without_dns` | none | none | 2 | For a public literal IPv4, require no DNS call and the exact recorded AF_INET address/443 endpoint. |
+| `test_explicit_https_port_is_resolved_and_connected_exactly` | none | none | 5 | Assert port 8443 is passed to DNS/connect, while TLS receives only the hostname and captured Host includes the explicit port. |
+| `test_safe_https_redirect_is_manually_revalidated` | none | none | 8 | Follow one fake safe redirect and assert final URL/history, two hostname resolutions, two exact public endpoints, separate TLS hostnames and corresponding Host request headers. |
+| `test_unsafe_redirect_is_rejected_before_target_socket` | none | pytest.raises(SafeHttpsError, match="public\|global\|address\|DNS") | 1 | Resolve the initial host publicly and redirect host privately; require controlled failure with only the initial endpoint recorded. |
+| `test_redirect_loop_is_rejected` | none | pytest.raises(SafeHttpsError, match="loop") | 0 | Return a redirect to an already requested URL and require the loop guard. |
+| `test_redirect_limit_is_enforced` | none | pytest.raises(SafeHttpsError, match="redirect") | 0 | Supply a chain longer than the fixed redirect limit and require a controlled redirect error. |
+| `test_validated_dns_snapshot_binds_actual_socket_and_preserves_tls_host` | none | none | 6 | Use a resolver that would rebind privately on a second call; assert only one resolution, exact public endpoint, original TLS hostname and captured GET/Host bytes. The observed connect is the harness callback, not a real socket. |
+| `test_environment_proxy_does_not_change_bound_destination` | none | none | 2 | Temporarily set proxy environment variables, then assert the fake connection still targets the validated public endpoint; environment changes are reverted by monkeypatch. |
+| `test_malformed_header_name_is_rejected_before_dns` | pytest.mark.parametrize(<br>    "header_name",<br>    ["Host ", "Bad Header"],<br>    ids=["host-with-trailing-space", "non-token-field-name"],<br>) | pytest.raises(SafeHttpsError, match="header\|Host") | 0 | Reject Host with trailing space and a name containing an internal space before DNS. |
+| `test_tls_context_keeps_hostname_verification_enabled` | none | none | 5 | Assert one fake context retains check_hostname=True/CERT_REQUIRED and receives the source hostname; no real TLS handshake is tested. |
 
 ## 8. Public exports and package ownership
 

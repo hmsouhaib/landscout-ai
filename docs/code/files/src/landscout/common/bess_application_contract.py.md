@@ -270,7 +270,7 @@ def _null_value(value: object) -> object:
 
 **Purpose**
 
-Private `common contract` helper for null value; its complete implementation below is the authoritative behavioral contract.
+Return `None` for Python `None`, the singleton `pandas.NA`, or a NaN recognized by `isinstance(value, float)` and `math.isnan`; return every other object unchanged. This is not a general `pandas.isna` conversion and does not rewrite textual sentinels.
 
 **Return contract**
 
@@ -330,7 +330,7 @@ def _exact_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Private `common contract` helper for exact string; its complete implementation below is the authoritative behavioral contract.
+Require a string instance that is nonempty and already equal to its stripped form, then return it unchanged. There is no trimming, case conversion or exact-built-in-type requirement; `label` only provides error context.
 
 **Return contract**
 
@@ -387,7 +387,7 @@ def _sha256(value: object, label: str) -> str:
 
 **Purpose**
 
-Private `common contract` helper for sha256; its complete implementation below is the authoritative behavioral contract.
+Apply `_exact_string`, then require exactly 64 lowercase hexadecimal characters through `SHA_PATTERN.fullmatch`. Return the textual digest unchanged. No bytes are read or hashed, and no digest authenticity is established.
 
 **Return contract**
 
@@ -442,7 +442,7 @@ def _optional_official_string(value: object, label: str) -> str | None:
 
 **Purpose**
 
-Private `common contract` helper for optional official string; its complete implementation below is the authoritative behavioral contract.
+Return `None` only for the null cases recognized by `_null_value`; otherwise require an exact nonempty string and reject the three literal missing-value spellings in `NULL_LITERALS`. Optionality does not authorize empty/trimmed strings or invented meaning.
 
 **Return contract**
 
@@ -508,7 +508,7 @@ def _validate_official_row(
 
 **Purpose**
 
-Rejects malformed or inconsistent official row; exact branches, calls, and return construction are reproduced below.
+Compare document/archive and CNIG profile/hash lineage with the supplied envelope, then validate both textual digests. Parse the four optional meaning cells. RESOLVED_OFFICIAL requires a label and source URL, while legal/regulation references may remain truly null; its URL is checked only for HTTPS scheme and a nonempty authority. UNKNOWN_CODE_PAIR requires all four meaning cells to remain null. Any other status is rejected. This helper does not fetch the URL, apply safe-transport DNS rules, consult an official dictionary, or prove the upstream meaning.
 
 **Return contract**
 
@@ -534,7 +534,7 @@ Rejects malformed or inconsistent official row; exact branches, calls, and retur
 - Filesystem read: none.
 - Filesystem write: none.
 - CRS/geometry calculation: none.
-- Hashing: `_sha256`.
+- Hashing: none; `_sha256` validates a digest string without computing a hash.
 - Environment/process effects: none.
 - In-memory mutation: none.
 - Input mutation: none.
@@ -621,6 +621,10 @@ def validate_bess_application_policy_frame(
 
 Validate the complete canonical application suffix and every row.
 
+Validate the source document/archive and CNIG profile/hash arguments first. Require a DataFrame without duplicate columns, the exact 18-column policy suffix in order, its exact dtypes, and all needed identity/official columns. Each row then passes `_validate_official_row`, the feature-family domain, and two-digit code checks. APPLIED_EXACT_POLICY requires RESOLVED_OFFICIAL and six populated decision fields: allowed status/confidence, positive integral priority, and exact rationale/action/limitations strings. UNRESOLVED_CODE_PAIR requires UNKNOWN_CODE_PAIR and six true-null decision fields. Textual missing-value sentinels are rejected, both scopes must match, all six boundary flags must be the Python value `False`, and policy lineage must equal the supplied expectations.
+
+Empty frames still receive envelope-argument and structural checks, but have no row-level checks. The policy-profile/hash expectations are compared with rows here; their independent validation and compiled-policy authority belong to the upstream caller. This helper does not establish the full factual prefix schema, global IDs, geometry, row-to-policy equality or physical source trust.
+
 **Return contract**
 
 - Declared return annotation: `None`.
@@ -657,7 +661,7 @@ Validate the complete canonical application suffix and every row.
 - Filesystem read: none.
 - Filesystem write: none.
 - CRS/geometry calculation: none.
-- Hashing: `_sha256`.
+- Hashing: none; `_sha256` validates a digest string without computing a hash.
 - Environment/process effects: none.
 - In-memory mutation: none.
 - Input mutation: none.
@@ -803,7 +807,7 @@ def _relation_identity_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Private `common contract` helper for relation identity string; its complete implementation below is the authoritative behavioral contract.
+Require an exact nonempty string and reject the three textual null sentinels. Return the original identifier without normalization; namespace/source equality is a separate caller check.
 
 **Return contract**
 
@@ -859,7 +863,7 @@ def _portable_feature_id(value: object, label: str) -> str:
 
 **Purpose**
 
-Private `common contract` helper for portable feature id; its complete implementation below is the authoritative behavioral contract.
+Validate the identity string, then reject paths considered absolute by either POSIX or Windows syntax. This is an identifier guard, not the portable Parquet-basename validator: it does not validate every relative path component or access the filesystem. The catalog validator additionally reconstructs the exact GPU namespace.
 
 **Return contract**
 
@@ -919,7 +923,7 @@ def _status_priority_mapping(
 
 **Purpose**
 
-Private `common contract` helper for status priority mapping; its complete implementation below is the authoritative behavioral contract.
+Select APPLIED_EXACT_POLICY rows only, accumulate a set of statuses for each priority and a set of priorities for each status, then reject either direction with more than one member. Return two new mutable dictionaries representing the observed bijection. No applied rows yield two empty dictionaries. This checks consistency of observed rows, not completeness against the configured policy, and assumes scalar rows were already validated.
 
 **Return contract**
 
@@ -996,7 +1000,7 @@ def _feature_metric(value: object, expected: float, label: str) -> None:
 
 **Purpose**
 
-Private `common contract` helper for feature metric; its complete implementation below is the authoritative behavioral contract.
+Require a non-boolean real number, convert to float, and reject non-finite or non-positive values. Compare it with the geometry-derived expectation using the shared tolerance at the larger absolute magnitude. Return `None` on agreement; this helper compares numbers but does not itself measure geometry.
 
 **Return contract**
 
@@ -1068,6 +1072,10 @@ def validate_bess_application_feature_catalogs(
 
 Validate all intrinsic feature facts, identities, geometry, and mappings.
 
+For SURFACE, LINE and POINT in order, validate the exact coded-plus-policy schema and policy rows. Check active geometry/CRS and each row's source CRS against Lambert-93 (row source-CRS equivalence ignores axis order). Require the logical layer to belong to its geometry family, derive PRESCRIPTION/INFORMATION from that layer, and reconstruct `GPU:{document_id}:{logical_layer}:{source_id}` exactly. Require a valid nonempty Shapely geometry of the allowed single/multi family with coordinate dimension exactly two. Recompute area/length from that geometry and compare the stored metric; for points compare the positive integral count with `len(get_parts(geometry))`.
+
+Collect every feature ID, including unreferenced features, reject duplicates across all three catalogs, concatenate the frames only for document-wide status/priority consistency, and return the observed bijection. No disk read, reprojection, geometry repair, GPU reconstruction or relation-to-catalog join occurs here. The input frames are not mutated; temporary lists/concatenated frames are newly allocated.
+
 **Return contract**
 
 - Declared return annotation: `tuple[dict[int, str], dict[str, int]]`.
@@ -1098,7 +1106,7 @@ _status_priority_mapping(combined, 'feature document-wide')
 - Network I/O: none.
 - Filesystem read: none.
 - Filesystem write: none.
-- CRS/geometry calculation: none.
+- CRS/geometry calculation: CRS equivalence, Shapely validity/type/dimension checks, area/length measurement and point-part counting; no reprojection or repair.
 - Hashing: none.
 - Environment/process effects: none.
 - In-memory mutation: `applied_frames`, `feature_ids`.
@@ -1286,6 +1294,8 @@ def validate_bess_application_relation_frame(
 
 Validate canonical application rows and the complete relation identity.
 
+Validate the exact non-geospatial coded-plus-policy schema, then the policy/official row contract. Require nonempty non-sentinel parcel and feature IDs, reject duplicate `(parcel_id, planning_feature_id)` pairs, delegate family-specific metrics/null/count rules to `validate_intrinsic_planning_feature_relations`, and return the observed status/priority bijection. A relation-only frame does not prove that its feature exists in a catalog, that the parcel exists, or that geometry actually intersects; the application/aggregation caller checks its additional upstream relationships.
+
 **Return contract**
 
 - Declared return annotation: `tuple[dict[int, str], dict[str, int]]`.
@@ -1391,132 +1401,34 @@ def validate_bess_application_relation_frame(
 
 ## 7. Data contracts
 
-### `POLICY_COLUMNS` — canonical or derived frame-column schema
+The exact ordered `POLICY_COLUMNS` suffix has 18 fields. `DECISION_COLUMNS` selects the six decision fields; `FLAG_COLUMNS` selects six mandatory-false boundary flags; `STRING_POLICY_COLUMNS` is the remaining string-typed subset. These are DataFrame schemas, not fields of a frozen model. String dtype identity is checked by `str(dtype) == "str"`, priority by `"Int64"`, and flags by `"bool"`.
 
-```python
-POLICY_COLUMNS = (
-    "bess_cnig_policy_application_status",
-    "bess_cnig_precheck_status",
-    "bess_cnig_precheck_confidence",
-    "bess_cnig_status_priority",
-    "bess_cnig_rationale",
-    "bess_cnig_required_human_action",
-    "bess_cnig_limitations",
-    "bess_cnig_application_scope",
-    "bess_cnig_policy_scope",
-    "bess_cnig_local_feature_text_interpreted",
-    "bess_cnig_local_regulation_content_interpreted",
-    "bess_cnig_legal_conclusion_produced",
-    "bess_cnig_parcel_status_aggregated",
-    "bess_cnig_parcel_rejection_performed",
-    "bess_cnig_score_calculated",
-    "bess_cnig_policy_profile",
-    "bess_cnig_policy_sha256",
-    "bess_cnig_policy_result_sha256",
-)
-```
+| Exact field | Runtime column contract and meaning |
+|---|---|
+| `bess_cnig_policy_application_status` | Non-null APPLIED_EXACT_POLICY or UNRESOLVED_CODE_PAIR; must agree with official-code resolution. |
+| `bess_cnig_precheck_status` | Applied: one allowed precheck status; unresolved: true null. |
+| `bess_cnig_precheck_confidence` | Applied: HIGH, MEDIUM or LOW; unresolved: true null. |
+| `bess_cnig_status_priority` | Applied: positive non-boolean integer; unresolved: nullable-Int64 null. Observed status/priority must be one-to-one. |
+| `bess_cnig_rationale` | Applied: exact nonempty rationale string; unresolved: true null. |
+| `bess_cnig_required_human_action` | Applied: exact nonempty action string; unresolved: true null. |
+| `bess_cnig_limitations` | Applied: exact nonempty limitation string; unresolved: true null. |
+| `bess_cnig_application_scope` | Exactly FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY. |
+| `bess_cnig_policy_scope` | Exactly OFFICIAL_CNIG_CODE_MEANING_ONLY. |
+| `bess_cnig_local_feature_text_interpreted` | Boolean false: the application does not interpret local feature text. |
+| `bess_cnig_local_regulation_content_interpreted` | Boolean false: local regulation content is not interpreted here. |
+| `bess_cnig_legal_conclusion_produced` | Boolean false: no legal conclusion is produced. |
+| `bess_cnig_parcel_status_aggregated` | Boolean false: this is not the later parcel-aggregation result. |
+| `bess_cnig_parcel_rejection_performed` | Boolean false: no parcel rejection. |
+| `bess_cnig_score_calculated` | Boolean false: no score. |
+| `bess_cnig_policy_profile` | String equal to the caller's policy-profile expectation. |
+| `bess_cnig_policy_sha256` | String equal to the caller's policy-config digest expectation; not independently recomputed here. |
+| `bess_cnig_policy_result_sha256` | String equal to the caller's compiled-result digest expectation; not independently recomputed here. |
 
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `bess_cnig_policy_application_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 2 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 3 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `bess_cnig_status_priority` | Pandas nullable Int64 | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 5 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `bess_cnig_application_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `bess_cnig_policy_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `bess_cnig_local_feature_text_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 11 | `bess_cnig_local_regulation_content_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 12 | `bess_cnig_legal_conclusion_produced` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 13 | `bess_cnig_parcel_status_aggregated` | non-null Boolean dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 14 | `bess_cnig_parcel_rejection_performed` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 15 | `bess_cnig_score_calculated` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 16 | `bess_cnig_policy_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 17 | `bess_cnig_policy_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 18 | `bess_cnig_policy_result_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+Allowed applied precheck statuses are LIKELY_MATERIAL_CONSTRAINT, MATERIAL_REVIEW_REQUIRED, DESIGN_REVIEW_REQUIRED, CONTEXT_REVIEW_REQUIRED and UNKNOWN. They are preliminary policy states, not permissions or prohibitions.
 
-### `DECISION_COLUMNS` — canonical or derived frame-column schema
+The policy-row validator additionally consumes the source document/archive, feature family and type/subtype codes, and the seven official-code fields declared by `planning_feature_schema`. Optional official legal/regulation references may be null on a resolved row; an unresolved official code requires label, legal reference, regulation reference and source URL all to be true null. Exact upstream dictionary meaning is validated elsewhere.
 
-```python
-DECISION_COLUMNS = (
-    "bess_cnig_precheck_status",
-    "bess_cnig_precheck_confidence",
-    "bess_cnig_status_priority",
-    "bess_cnig_rationale",
-    "bess_cnig_required_human_action",
-    "bess_cnig_limitations",
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 2 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `bess_cnig_status_priority` | Pandas nullable Int64 | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 4 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-### `FLAG_COLUMNS` — canonical or derived frame-column schema
-
-```python
-FLAG_COLUMNS = (
-    "bess_cnig_local_feature_text_interpreted",
-    "bess_cnig_local_regulation_content_interpreted",
-    "bess_cnig_legal_conclusion_produced",
-    "bess_cnig_parcel_status_aggregated",
-    "bess_cnig_parcel_rejection_performed",
-    "bess_cnig_score_calculated",
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `bess_cnig_local_feature_text_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 2 | `bess_cnig_local_regulation_content_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 3 | `bess_cnig_legal_conclusion_produced` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `bess_cnig_parcel_status_aggregated` | non-null Boolean dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 5 | `bess_cnig_parcel_rejection_performed` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `bess_cnig_score_calculated` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-
-### `STRING_POLICY_COLUMNS` — canonical or derived frame-column schema
-
-```python
-STRING_POLICY_COLUMNS = tuple(
-    column
-    for column in POLICY_COLUMNS
-    if column not in {"bess_cnig_status_priority", *FLAG_COLUMNS}
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `bess_cnig_policy_application_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 2 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
-| 3 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 4 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 5 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 6 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 7 | `bess_cnig_application_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 8 | `bess_cnig_policy_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 9 | `bess_cnig_policy_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
-| 10 | `bess_cnig_policy_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-| 11 | `bess_cnig_policy_result_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
-
-### `POLICY_SUFFIX_DTYPES` — dtype contract aligned with a canonical schema
-
-```python
-POLICY_SUFFIX_DTYPES = {
-    **{column: "str" for column in STRING_POLICY_COLUMNS},
-    "bess_cnig_status_priority": "Int64",
-    **{column: "bool" for column in FLAG_COLUMNS},
-}
-```
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
+`_FEATURE_SPECS` couples each family to its two permitted logical layers, allowed single/multi geometry types and metric column: surface → Polygon/MultiPolygon/area; line → LineString/MultiLineString/length; point → Point/MultiPoint/member count. Neither a geometry-family label nor a textual digest alone is physical proof.
 
 ## 8. Interfaces
 

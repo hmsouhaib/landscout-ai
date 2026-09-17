@@ -4,20 +4,23 @@
 
 ```mermaid
 flowchart TD
-    Extract[Verified IgnBdTopoExtraction] --> Load[load_ign_bdtopo_roads]
-    Config[IgnBdTopoSourceConfig] --> Load
-    Load --> Source[IgnBdTopoRoadData]
-    Source --> Normalize[normalize_ign_roads source config]
-    Normalize --> Facts[NormalizedIgnRoadData]
-    PolicyYaml[IGN vehicle-proxy policy YAML] --> Compile[load_ign_road_vehicle_proxy_policy]
-    Facts --> Apply[apply_ign_road_vehicle_proxy_policy]
-    Compile --> Apply
-    Apply --> Classified[IgnRoadVehicleProxyApplicationResult]
-    Classified --> Proximity[enrich_parcel_road_proximity]
-    Proximity --> ParcelResult[ParcelRoadProximityResult]
-    ParcelResult --> Coverage[assess_road_proximity_coverage]
-    Coverage --> Diagnostic[RoadProximityCoverageAssessmentResult]
+    Inputs[Parcels + IgnBdTopoRoadData + source config + optional policy path] --> Coverage[assess_road_proximity_coverage]
+    Coverage -->|calls once| Proximity[enrich_parcel_road_proximity]
+    Proximity -->|calls once with original road source/config/path| Apply[apply_ign_road_vehicle_proxy_policy]
+    Apply -->|calls once| Normalize[normalize_ign_roads]
+    Normalize --> Revalidate[IGN source adapter: reconstruct configured physical road layer]
+    Revalidate --> Facts[Fresh normalized factual rows]
+    Facts --> Classify[Private classification]
+    PolicyYaml[Policy file bytes] --> Reload[load_ign_road_vehicle_proxy_policy]
+    Reload --> Classify
+    Reload -->|separate policy-lineage check| Proximity
+    Reload -->|separate upstream-lineage check| Coverage
+    Classify --> Distances[Private class-specific nearest-road calculation]
+    Distances --> Boundary[Configured department coverage load and boundary diagnosis]
+    Boundary --> Diagnostic[RoadProximityCoverageAssessmentResult]
 ```
+
+These arrows distinguish public calls from their internal data flow: the public application does **not** accept caller-normalized rows or a compiled policy, proximity does not accept a caller application result, and assessment does not accept a caller proximity result. Each public entry owns its upstream calls. The same policy path is reloaded at each relevant boundary; inconsistent file bytes are rejected through policy SHA lineage comparison rather than silently combining policies.
 
 ## Source-complete road normalization
 
@@ -76,13 +79,17 @@ Current approved classes are `GENERAL_VEHICLE_PROXY`, `LIMITED_VEHICLE_PROXY`, `
 5. chooses a deterministic lexical representative;
 6. repeats source road/policy lineage in a fixed class-proximity table.
 
-`NOT_DISTANCE_PROXY` remains in `RoadProxyClassCoverage` counts but has no proximity rows/index. Empty future eligible classes yield explicit no-match rows rather than disappearing.
+`NOT_DISTANCE_PROXY` remains in all six `RoadProxyClassCoverage` counts but has no proximity rows/index. Each of the five currently approved eligible classes has one row per parcel, even when that class is absent from this source package: distance, tie count and selected evidence are then null. Output order is input parcel order followed by policy class order. Calculation copies are transformed from stored parcel EPSG:4326 to EPSG:2154 and forced to XY; original parcel geometry, index, dtypes and facts remain unchanged. A nonempty class gets one STRtree, not an index per parcel. Ties are exact nearest matches returned by GEOS, not a tolerance band.
 
 ## Coverage diagnostics
 
 `assess_road_proximity_coverage` invokes the public proximity chain exactly once, validates its unchanged parcels/class table, loads configured department coverage from the same road extraction exactly once, and appends per-parcel boundary position/distance and per-class status. `NO_MATCH` wins over geometry position; equality of nearest-road distance and source-boundary margin is boundary-limited.
 
 The output preserves the original proximity prefix exactly and returns the unchanged source coverage object for auditability. It does not build another road STRtree or reconstruct road distances.
+
+Full coverage means the department geometry covers the entire parcel and its boundary does not intersect the parcel. Touching, crossing and wholly outside parcels all receive `OUTSIDE_OR_CROSSING_COVERAGE` and zero boundary margin. A matched fully covered parcel is `NOT_BOUNDARY_LIMITED` only when road distance is strictly below that margin; equality is `BOUNDARY_LIMITED`. This diagnoses the package's search boundary, not global road completeness or access. Final validation recomputes the boundary diagnostics but does not rerun road nearest-neighbour search.
+
+The policy/config trust objects are deeply immutable; result dataclasses freeze field reassignment only. Their GeoDataFrames and DataFrames remain mutable results, so downstream public boundaries still perform their documented reconstruction and validation. Unit proximity tests replace the application stage; coverage tests replace both upstream proximity and the physical department loader. Their synthetic geometry assertions are not additional independent real-source audits.
 
 The road and coverage source paths share the hardened IGN extraction contract: pre-existing `.bak` recovery material fails closed, temporary extraction paths are link/junction-safe, 7z destinations are validated under Windows-compatible rules before extraction, and the actual inventory is verified before transactional publication.
 

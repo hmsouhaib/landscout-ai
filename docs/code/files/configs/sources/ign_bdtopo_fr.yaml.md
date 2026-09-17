@@ -33,12 +33,12 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 | `projection` | `"EPSG:2154"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `projection` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `format` | `"GPKG"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `format` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `archive_format` | `"7z"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `archive format` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
-| `source_url` | `"https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact source url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
-| `checksum_url` | `null` | `NoneType` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact checksum url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `source_url` | `"https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z"` | `HttpUrl` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; HttpUrl field (optional for checksum_url); source_url extension must match .7z; the common transport enforces safe HTTPS before network access | Configures the exact source url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `checksum_url` | `null` | `NoneType` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; HttpUrl field (optional for checksum_url); source_url extension must match .7z; the common transport enforces safe HTTPS before network access | Configures the exact checksum url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `official_checksum_algorithm` | `"md5"` | `str` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official checksum algorithm` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `official_checksum` | `"24d4a50b7eae3c0d55bb55ffd5b525a6"` | `str` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official checksum` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
-| `expected_archive_size_bytes` | `494818677` | `int` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict positive integer; Boolean rejected; exact physical archive pin | Pins the exact approved archive byte length. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
-| `cache_max_age_hours` | `168` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `cache max age hours` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `expected_archive_size_bytes` | `494818677` | `int` | source-declared default is true null; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict positive integer; Boolean rejected; exact physical archive pin | Pins the configured archive byte length; this field alone does not document reviewer approval. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `cache_max_age_hours` | `168` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict finite nonnegative float, accepting integer numeric input but rejecting bool and numeric text; unit hours | Configures `cache max age hours` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `logical_layers.electric_lines.class_label` | `"Ligne électrique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `logical_layers.electric_lines`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `logical_layers.electric_lines.match_tokens[0]` | `"ligne"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 | `logical_layers.electric_lines.match_tokens[1]` | `"électrique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
@@ -58,6 +58,10 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 - Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
 - No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
 
+## Runtime interpretation reviewed for DOCS.CONTINUITY.1
+
+The current source edition is the declared calendar date 2026-06-15, with product version text 3.5, D031/department 31, GPKG/Lambert-93 inside 7z. The configured MD5 and byte size are verified against archive bytes when the adapter validates an archive; a separate locally computed SHA256 records its content identity. `checksum_url: null` means no checksum URL is retained, not that the pinned MD5 is absent. Match tokens select factual source layers; they are not voltage classes, road-access outcomes or coverage geometry. No source acquisition or artifact publication was performed for this documentation review.
+
 ## 5. Classes / models / dataclasses
 
 - Exact checked-in configuration SHA256 remains `fa3cc4e82f7c5a2a917a60508fdba6de37f0bde07d7da6b27f2cd00124e44a86`; its values are unchanged by STEP 7F.1A.4.
@@ -67,7 +71,7 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 ### `IgnBdTopoLogicalLayerConfig`
 
-**Source purpose:** Catalogue class label and normalized tokens used for layer discovery.
+**Source purpose:** Frozen physical-layer selector: class_label is a trimmed display/error label; match_tokens is an ordered nonempty immutable tuple retained verbatim after trimming. Each token must normalize to letters/digits, and normalized duplicates fail. Discovery normalizes actual layer names and requires every token's words to match.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -141,7 +145,7 @@ class IgnBdTopoLogicalLayerConfig(BaseModel):
 
 ### `IgnBdTopoLogicalLayersConfig`
 
-**Source purpose:** Defines `IgnBdTopoLogicalLayersConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen pair of electric-line and transformation-post selectors. Their normalized token sets must differ; this is not sufficient to prove distinct physical layers, which discovery checks separately.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -214,7 +218,7 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
 
 ### `IgnBdTopoDepartmentLayerConfig`
 
-**Source purpose:** Configured department layer and its observed identity field.
+**Source purpose:** Frozen layer selector inheriting class_label and match_tokens, adding the exact observed attribute name department_code_field. The coverage loader uses that field to select exactly one feature matching the configured department; the model does not fetch or inspect the layer.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoLogicalLayerConfig`.
@@ -272,7 +276,7 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
 
 ### `IgnBdTopoAccessConfig`
 
-**Source purpose:** Configured factual transport layers loaded outside extraction metadata.
+**Source purpose:** Frozen road_segments selector. The historical class docstring says outside extraction metadata, but schema-3 extraction metadata now includes road_segments_layer and the physical four-role inventory. The docstring is retained unchanged in the source snapshot, not treated as the current metadata contract.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -303,7 +307,7 @@ class IgnBdTopoAccessConfig(BaseModel):
 
 ### `IgnBdTopoCoverageConfig`
 
-**Source purpose:** Defines `IgnBdTopoCoverageConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen required department_layer selector, including its configured identity field. It does not represent an already measured coverage polygon.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -362,7 +366,7 @@ class IgnBdTopoCoverageConfig(BaseModel):
 
 ### `IgnBdTopoSourceConfig`
 
-**Source purpose:** Strict, reproducible description of one official IGN package.
+**Source purpose:** Frozen source identity and nested selectors. Provider/product, projection, package/archive formats have closed domains; department and calendar edition are validated; product_version is optional descriptive text. URL validation here is HttpUrl plus matching .7z extension, not a hardcoded official-host/HTTPS network gate. Optional official algorithm and digest must occur together, with matching MD5/SHA256 lengths; checksum_url requires a pinned checksum. Size is optional positive exact int, cache age is finite nonnegative float. Acquisition applies safe HTTPS and byte checks independently.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -694,7 +698,7 @@ class IgnBdTopoSourceConfig(BaseModel):
 
 ### `_CacheMetadata`
 
-**Source purpose:** Defines `_CacheMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen schema-1 download sidecar model, distinct from this YAML. Identity fields describe provider/product/department/edition/version/projection/formats/URLs and filename; timestamp governs freshness, file_size/SHA256 bind current bytes, official checksum fields report the configured comparison, and spatial_role remains PROXY_GEOMETRY. Parsing alone is not a cache hit; the reader rechecks identity, age and bytes.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -769,7 +773,7 @@ class _CacheMetadata(BaseModel):
 
 ### `_ExtractedEntryMetadata`
 
-**Source purpose:** Defines `_ExtractedEntryMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen inventory record: relative_path identifies one destination, kind is file or directory, file entries carry nonnegative exact size and lowercase SHA256, directory entries carry no byte evidence. Cross-field kind/size/hash consistency and safe paths are enforced by the owning validators.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -806,7 +810,7 @@ class _ExtractedEntryMetadata(BaseModel):
 
 ### `_ExtractionMetadata`
 
-**Source purpose:** Defines `_ExtractionMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen schema-3 marker: archive_sha256 links the archive envelope, relative GPKG path/positive size/SHA256 bind the package, all_layer_names and four selected roles record physical discovery, extracted_entries binds the entire file/directory tree, and spatial_role remains PROXY_GEOMETRY. Ordered tuples and frozen entry records prevent nested mutation. This marker is not a field of the input YAML.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -875,7 +879,7 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime consumers: `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage`. The IGN loader resolves its own default configuration path. This source config selects a road layer but does not load or apply the separate vehicle-proxy policy.
 
 ## 9. Error handling
 

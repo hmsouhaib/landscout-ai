@@ -14,6 +14,18 @@ The source file below is authoritative. STEP 7F.1B.1.2 binds the chain `pinned a
 
 ## 2. Imports and dependencies
 
+### Audited source, metadata and hash boundaries
+
+`build_inpn_protected_areas_catalog(extraction, config)` obtains a fresh source-complete extraction, inspects it, obtains a second fresh extraction and requires equality before intrinsic validation. It accepts no caller metadata mapping as a public authority. The public validator first checks supplied catalog structure/hash, obtains fresh extraction lineage, then invokes that public builder and exact-compares the whole immutable result; success returns `None`, not a replacement catalog.
+
+Each package is captured once with `Path.read_bytes` for a particular metadata inspection, and that exact `bytes` object is shared by `list_layers` and all `read_info` calls for that package. This is not a claim of one total filesystem read: the before/after extraction validations separately stream and hash physical files and reread archive authority. Forced metadata count/bounds may require native GDAL work; the contract is no feature-frame/geometry materialization by a LandScout feature-reader API, not a claim that GDAL never examines underlying feature storage.
+
+All extracted regular files must have a case-insensitive `.gpkg` suffix, positive physical size, at least one OGR-visible layer, and exact `GPKG` driver metadata for every layer. Nothing is silently filtered. Package order is extraction path order; layer and field order are returned source order. Exact and NFKC/casefold collisions are rejected independently within each package/layer/field namespace, without changing accepted names. A layer may have zero fields, but a package may not have zero layers.
+
+Spatial status is derived from non-null reported geometry type, which must agree between enumeration and `read_info`; this stage does not inspect individual geometry types, validity, Z/M, FIDs or attribute values. Every spatial layer, including an empty one, requires parseable CRS text. Non-spatial CRS and bounds must be null. Empty spatial bounds accept null or four missing (None/real NaN) values and normalize to null; finite extents on an empty layer fail. Populated extents require four finite real, non-boolean values in min-X/min-Y/max-X/max-Y order. The builder converts those values to exact float tuples; intrinsic supplied-object validation instead rejects noncanonical lists, integers, NumPy scalars and subclasses. CRS is serialized as WKT2:2019 without reprojection; its exact text is tied to the native CRS environment.
+
+All dataclass fields are required; construction alone validates none of them. Public returns are deeply immutable tuples of frozen records and exact scalar leaves. Temporary raw metadata mappings/arrays are not deeply frozen or retained; each resulting field is validated and reconstructed. Intrinsic validation proves type/domain/order/count/hash closure but not physical authority; only the public source-bound rebuild proves correspondence with current bytes. Canonical JSON uses sorted object keys, compact separators, Unicode UTF-8 and `allow_nan=False`; semantic sequence order remains unchanged. The digest omits only itself and local path/cache/timestamp state, not driver identity or the full source-ordered metadata.
+
 Every import is listed exactly; these dependencies define the filesystem, hashing, ZIP, CRS, Pyogrio, strict-validation, and source-boundary mechanisms.
 
 ```python
@@ -69,7 +81,7 @@ from typing import SupportsFloat, cast
 ```
 
 ```python
-import pyogrio
+import pyogrio  # type: ignore[import-untyped]
 ```
 
 ```python
@@ -146,7 +158,7 @@ __all__ = [
 - Decorators: `none`.
 - Purpose: Raised when exact EP GeoPackage metadata cannot be proven safely.
 - Fields: none declared directly.
-- Mutability/canonicality: frozen dataclass or frozen strict Pydantic configuration where declared; public intrinsic/boundary validation still checks exact runtime representation.
+- Mutability/canonicality: this exception is not a frozen trust record. The following catalog dataclasses are frozen, and public intrinsic/boundary validation still checks their exact runtime representation.
 
 ### `InpnProtectedAreasFieldCatalog`
 
@@ -239,8 +251,8 @@ __all__ = [
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 103: validates/branches on `type(value) is not str or not value or value != value.strip()`.
-2. line 105: returns `value`.
+1. validates/branches on `type(value) is not str or not value or value != value.strip()`.
+2. returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} must be an exact string')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -248,7 +260,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `type`, `value.strip`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -260,7 +272,7 @@ __all__ = [
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 109: returns `unicodedata.normalize('NFKC', value).casefold()`.
+1. returns `unicodedata.normalize('NFKC', value).casefold()`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -268,7 +280,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `unicodedata.normalize`, `unicodedata.normalize('NFKC', value).casefold`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -280,9 +292,9 @@ __all__ = [
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 113: validates/branches on `len(set(values)) != len(values)`.
-2. line 115: derives `normalized` for subsequent validation or output construction.
-3. line 116: validates/branches on `len(set(normalized)) != len(normalized)`.
+1. validates/branches on `len(set(values)) != len(values)`.
+2. derives `normalized` for subsequent validation or output construction.
+3. validates/branches on `len(set(normalized)) != len(normalized)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} contains duplicate exact names')`; `InpnProtectedAreasCatalogError(f'{label} contains Unicode-NFKC/casefold collisions')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -290,7 +302,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_identity_key`, `len`, `set`, `tuple`.
 - Internal caller/callee relationship: directly invokes `_identity_key`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -302,7 +314,7 @@ __all__ = [
 - Output: `bool`.
 - Ordered algorithm:
 
-1. line 123: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
+1. executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -310,7 +322,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `path.is_junction`, `path.is_symlink`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_extraction_revalidation_rejects_link_or_junction_file`
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -322,19 +334,19 @@ __all__ = [
 - Output: `Path`.
 - Ordered algorithm:
 
-1. line 133: derives `relative` for subsequent validation or output construction.
-2. line 134: derives `windows` for subsequent validation or output construction.
-3. line 135: validates/branches on `relative.is_absolute() or windows.is_absolute() or bool(windows.drive) or ('..' in relative.parts) or (relative.as_posix() != item.relative_path)`.
-4. line 145: derives `root` for subsequent validation or output construction.
-5. line 146: validates/branches on `_is_link_or_junction(root) or not root.is_dir()`.
-6. line 148: derives `path` for subsequent validation or output construction.
-7. line 149: derives `root_resolved` for subsequent validation or output construction.
-8. line 150: derives `path_resolved` for subsequent validation or output construction.
-9. line 151: validates/branches on `path_resolved == root_resolved or not path_resolved.is_relative_to(root_resolved)`.
-10. line 157: derives `current` for subsequent validation or output construction.
-11. line 158: iterates `component` over `relative.parts` in source order.
-12. line 164: validates/branches on `not path.is_file()`.
-13. line 168: returns `path`.
+1. derives `relative` for subsequent validation or output construction.
+2. derives `windows` for subsequent validation or output construction.
+3. validates/branches on `relative.is_absolute() or windows.is_absolute() or bool(windows.drive) or ('..' in relative.parts) or (relative.as_posix() != item.relative_path)`.
+4. derives `root` for subsequent validation or output construction.
+5. validates/branches on `_is_link_or_junction(root) or not root.is_dir()`.
+6. derives `path` for subsequent validation or output construction.
+7. derives `root_resolved` for subsequent validation or output construction.
+8. derives `path_resolved` for subsequent validation or output construction.
+9. validates/branches on `path_resolved == root_resolved or not path_resolved.is_relative_to(root_resolved)`.
+10. derives `current` for subsequent validation or output construction.
+11. iterates `component` over `relative.parts` in source order.
+12. validates/branches on `not path.is_file()`.
+13. returns `path`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {item.relative_path}: relative path is not canonical')`; `InpnProtectedAreasCatalogError('extraction root is missing or unsafe')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: path escapes the extraction root')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: source is not a regular file')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: links or junctions are forbidden')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: `path.resolve`, `root.resolve`
@@ -342,7 +354,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `PurePosixPath`, `PureWindowsPath`, `_is_link_or_junction`, `bool`, `path.is_file`, `path.resolve`, `path_resolved.is_relative_to`, `relative.as_posix`, `relative.is_absolute`, `root.is_dir`, `root.joinpath`, `root.resolve`, `windows.is_absolute`.
 - Internal caller/callee relationship: directly invokes `_is_link_or_junction`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -354,10 +366,10 @@ __all__ = [
 - Output: `bytes`.
 - Ordered algorithm:
 
-1. line 175: derives `path` for subsequent validation or output construction.
-2. line 176: executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
-3. line 182: validates/branches on `type(package_bytes) is not bytes or len(package_bytes) != item.file_size or sha256(package_bytes).hexdigest() != item.sha256`.
-4. line 190: returns `package_bytes`.
+1. derives `path` for subsequent validation or output construction.
+2. executes a controlled error boundary catching `OSError` and performs any declared cleanup/finalization.
+3. validates/branches on `type(package_bytes) is not bytes or len(package_bytes) != item.file_size or sha256(package_bytes).hexdigest() != item.sha256`.
+4. returns `package_bytes`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {item.relative_path}: physical byte identity changed')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: cannot read physical byte snapshot')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: `path.read_bytes`
@@ -365,7 +377,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_safe_package_path`, `len`, `path.read_bytes`, `sha256`, `sha256(package_bytes).hexdigest`, `type`.
 - Internal caller/callee relationship: directly invokes `_safe_package_path`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -377,8 +389,8 @@ __all__ = [
 - Output: `tuple[object, ...]`.
 - Ordered algorithm:
 
-1. line 194: validates/branches on `isinstance(value, (str, bytes, bytearray, Mapping))`.
-2. line 196: executes a controlled error boundary catching `(AttributeError, TypeError, ValueError)` and performs any declared cleanup/finalization.
+1. validates/branches on `isinstance(value, (str, bytes, bytearray, Mapping))`.
+2. executes a controlled error boundary catching `(AttributeError, TypeError, ValueError)` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'{label} metadata array is malformed')`; `TypeError` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -386,7 +398,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `cast`, `hasattr`, `isinstance`, `tuple`, `type`, `value.tolist`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -398,12 +410,12 @@ __all__ = [
 - Output: `tuple[tuple[str, str | None], ...]`.
 - Ordered algorithm:
 
-1. line 210: derives `rows` for subsequent validation or output construction.
-2. line 211: validates/branches on `not rows`.
-3. line 215: derives `result` for subsequent validation or output construction.
-4. line 216: iterates `(position, raw_row)` over `enumerate(rows)` in source order.
-5. line 236: performs `_require_unique_identities(tuple((name for name, _ in result)), f'package {relative_path} layer identities')`.
-6. line 240: returns `tuple(result)`.
+1. derives `rows` for subsequent validation or output construction.
+2. validates/branches on `not rows`.
+3. derives `result` for subsequent validation or output construction.
+4. iterates `(position, raw_row)` over `enumerate(rows)` in source order.
+5. performs `_require_unique_identities(tuple((name for name, _ in result)), f'package {relative_path} layer identities')`.
+6. returns `tuple(result)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path}: no OGR-visible layer')`; `InpnProtectedAreasCatalogError(f'package {relative_path}: layer enumeration row is malformed')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -411,7 +423,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_exact_text`, `_metadata_sequence`, `_require_unique_identities`, `enumerate`, `len`, `result.append`, `tuple`.
 - Internal caller/callee relationship: directly invokes `_exact_text`, `_metadata_sequence`, `_require_unique_identities`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_layer_enumeration_and_read_info_geometry_must_agree`
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -423,8 +435,8 @@ __all__ = [
 - Output: `Mapping[object, object]`.
 - Ordered algorithm:
 
-1. line 246: validates/branches on `not isinstance(value, Mapping)`.
-2. line 250: returns `value`.
+1. validates/branches on `not isinstance(value, Mapping)`.
+2. returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: metadata is not a mapping')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -432,7 +444,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `isinstance`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -444,8 +456,8 @@ __all__ = [
 - Output: `object`.
 - Ordered algorithm:
 
-1. line 259: validates/branches on `key not in metadata`.
-2. line 263: returns `metadata[key]`.
+1. validates/branches on `key not in metadata`.
+2. returns `metadata[key]`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: missing {key} metadata')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -453,25 +465,25 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
 ### `_field_catalogs`
 
 - Exact signature: `def _field_catalogs(metadata: Mapping[object, object], relative_path: str, layer_name: str) -> tuple[InpnProtectedAreasFieldCatalog, ...]`
-- Purpose: exact-compares ordered field/dtype array lengths, canonicalizes each string, rejects name collisions, and builds zero-based field records.
+- Purpose: exact-compares ordered field/dtype array lengths, validates and preserves each exact string without normalizing its spelling, rejects name collisions, and builds zero-based field records.
 - Inputs: `metadata: Mapping[object, object]`, `relative_path: str`, `layer_name: str`; defaults and keyword-only status are fixed by the exact signature and source snapshot.
 - Output: `tuple[InpnProtectedAreasFieldCatalog, ...]`.
 - Ordered algorithm:
 
-1. line 271: derives `names` for subsequent validation or output construction.
-2. line 275: derives `dtypes` for subsequent validation or output construction.
-3. line 279: validates/branches on `len(names) != len(dtypes)`.
-4. line 283: derives `fields` for subsequent validation or output construction.
-5. line 284: iterates `(position, (raw_name, raw_dtype))` over `enumerate(zip(names, dtypes, strict=True))` in source order.
-6. line 300: performs `_require_unique_identities(tuple((field.name for field in fields)), f'package {relative_path} layer {layer_name} field identities')`.
-7. line 304: returns `tuple(fields)`.
+1. derives `names` for subsequent validation or output construction.
+2. derives `dtypes` for subsequent validation or output construction.
+3. validates/branches on `len(names) != len(dtypes)`.
+4. derives `fields` for subsequent validation or output construction.
+5. iterates `(position, (raw_name, raw_dtype))` over `enumerate(zip(names, dtypes, strict=True))` in source order.
+6. performs `_require_unique_identities(tuple((field.name for field in fields)), f'package {relative_path} layer {layer_name} field identities')`.
+7. returns `tuple(fields)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: field/dtype lengths differ')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -479,7 +491,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `InpnProtectedAreasFieldCatalog`, `_exact_text`, `_metadata_sequence`, `_require_unique_identities`, `_required_metadata`, `enumerate`, `fields.append`, `len`, `tuple`, `zip`.
 - Internal caller/callee relationship: directly invokes `_exact_text`, `_metadata_sequence`, `_require_unique_identities`, `_required_metadata`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -491,8 +503,8 @@ __all__ = [
 - Output: `int`.
 - Ordered algorithm:
 
-1. line 308: validates/branches on `type(value) is not int or value < 0`.
-2. line 313: returns `value`.
+1. validates/branches on `type(value) is not int or value < 0`.
+2. returns `value`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: feature count must be an exact non-negative integer')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -500,7 +512,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `type`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`, `test_exact_non_negative_feature_count_is_accepted`, `test_boolean_or_negative_feature_count_is_rejected`, `test_metadata_calls_use_exact_forced_metadata_only_api`, `test_feature_count_rejects_non_exact_integers`
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -512,7 +524,7 @@ __all__ = [
 - Output: `bool`.
 - Ordered algorithm:
 
-1. line 317: returns `value is None or (isinstance(value, Real) and (not isinstance(value, bool)) and math.isnan(float(value)))`.
+1. returns `value is None or (isinstance(value, Real) and (not isinstance(value, bool)) and math.isnan(float(value)))`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -520,7 +532,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `float`, `isinstance`, `math.isnan`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_empty_spatial_layer_with_partially_missing_bounds_is_rejected`
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -532,9 +544,9 @@ __all__ = [
 - Output: `tuple[object, object, object, object]`.
 - Ordered algorithm:
 
-1. line 329: derives `values` for subsequent validation or output construction.
-2. line 333: validates/branches on `len(values) != 4`.
-3. line 337: returns `(values[0], values[1], values[2], values[3])`.
+1. derives `values` for subsequent validation or output construction.
+2. validates/branches on `len(values) != 4`.
+3. returns `(values[0], values[1], values[2], values[3])`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must have four values')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -542,7 +554,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_metadata_sequence`, `len`.
 - Internal caller/callee relationship: directly invokes `_metadata_sequence`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -554,18 +566,18 @@ __all__ = [
 - Output: `tuple[float, float, float, float] | None`.
 - Ordered algorithm:
 
-1. line 348: validates/branches on `not is_spatial`.
-2. line 354: validates/branches on `value is None`.
-3. line 360: derives `values` for subsequent validation or output construction.
-4. line 361: derives `missing` for subsequent validation or output construction.
-5. line 362: validates/branches on `any(missing)`.
-6. line 368: validates/branches on `feature_count == 0`.
-7. line 372: validates/branches on `any((isinstance(member, bool) or not isinstance(member, Real) for member in values))`.
-8. line 378: derives `bounds` for subsequent validation or output construction.
-9. line 379: validates/branches on `not all((math.isfinite(member) for member in bounds))`.
-10. line 383: derives `(min_x, min_y, max_x, max_y)` for subsequent validation or output construction.
-11. line 384: validates/branches on `min_x > max_x or min_y > max_y`.
-12. line 388: returns `(min_x, min_y, max_x, max_y)`.
+1. validates/branches on `not is_spatial`.
+2. validates/branches on `value is None`.
+3. derives `values` for subsequent validation or output construction.
+4. derives `missing` for subsequent validation or output construction.
+5. validates/branches on `any(missing)`.
+6. validates/branches on `feature_count == 0`.
+7. validates/branches on `any((isinstance(member, bool) or not isinstance(member, Real) for member in values))`.
+8. derives `bounds` for subsequent validation or output construction.
+9. validates/branches on `not all((math.isfinite(member) for member in bounds))`.
+10. derives `(min_x, min_y, max_x, max_y)` for subsequent validation or output construction.
+11. validates/branches on `min_x > max_x or min_y > max_y`.
+12. returns `(min_x, min_y, max_x, max_y)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: populated spatial bounds are missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds are partially missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: empty spatial bounds must be null')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must be numeric')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds must be finite')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: bounds are reversed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: non-spatial bounds must be null')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -573,7 +585,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_bounds_sequence`, `_missing_bound`, `all`, `any`, `cast`, `float`, `isinstance`, `math.isfinite`, `tuple`.
 - Internal caller/callee relationship: directly invokes `_bounds_sequence`, `_missing_bound`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -585,12 +597,12 @@ __all__ = [
 - Output: `tuple[str, str | None, str | None, str]`.
 - Ordered algorithm:
 
-1. line 396: derives `raw` for subsequent validation or output construction.
-2. line 400: executes a controlled error boundary catching `Exception` and performs any declared cleanup/finalization.
-3. line 408: validates/branches on `type(wkt) is not str or not wkt`.
-4. line 412: validates/branches on `authority is None`.
-5. line 414: validates/branches on `type(authority) is not tuple or len(authority) != 2 or any((type(member) is not str or not member for member in authority))`.
-6. line 422: returns `(raw, authority[0], authority[1], wkt)`.
+1. derives `raw` for subsequent validation or output construction.
+2. executes a controlled error boundary catching `Exception` and performs any declared cleanup/finalization.
+3. validates/branches on `type(wkt) is not str or not wkt`.
+4. validates/branches on `authority is None`.
+5. validates/branches on `type(authority) is not tuple or len(authority) != 2 or any((type(member) is not str or not member for member in authority))`.
+6. returns `(raw, authority[0], authority[1], wkt)`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: canonical CRS WKT is missing')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: CRS authority is malformed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: CRS is not parseable')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -598,7 +610,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `CRS.from_user_input`, `InpnProtectedAreasCatalogError`, `_exact_text`, `any`, `crs.to_authority`, `crs.to_wkt`, `len`, `type`.
 - Internal caller/callee relationship: directly invokes `_exact_text`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -610,9 +622,9 @@ __all__ = [
 - Output: `tuple[InpnProtectedAreasLayerCatalog, str]`.
 - Ordered algorithm:
 
-1. lines 432-443: call `pyogrio.read_info` with forced count/bounds from the package bytes while filtering only the exact known `RuntimeWarning`.
-2. lines 444-521: validate driver, reported layer/geometry identity, count, fields, CRS, and bounds, then construct the immutable layer record.
-3. lines 522-533: preserve catalog errors and translate any other metadata failure with package/layer context.
+1. call `pyogrio.read_info` with forced count/bounds from the package bytes while filtering only the exact known `RuntimeWarning`.
+2. validate driver, reported layer/geometry identity, count, fields, CRS, and bounds, then construct the immutable layer record.
+3. preserve catalog errors and translate any other metadata failure with package/layer context.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: driver must be exact GPKG')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: reported layer name differs')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: layer enumeration and metadata geometry types differ')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: metadata inspection failed')`; `InpnProtectedAreasCatalogError(f'package {relative_path} layer {layer_name}: non-spatial CRS must be null')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -620,7 +632,7 @@ __all__ = [
 - Pyogrio calls: `pyogrio.read_info`
 - Callees: `InpnProtectedAreasCatalogError`, `InpnProtectedAreasLayerCatalog`, `_canonical_crs`, `_exact_text`, `_feature_count`, `_field_catalogs`, `_metadata_mapping`, `_required_metadata`, `_validated_bounds`, `pyogrio.read_info`.
 - Internal caller/callee relationship: directly invokes `_canonical_crs`, `_exact_text`, `_feature_count`, `_field_catalogs`, `_metadata_mapping`, `_required_metadata`, `_validated_bounds`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -632,10 +644,10 @@ __all__ = [
 - Output: `InpnProtectedAreasGeoPackageCatalog`.
 - Ordered algorithm:
 
-1. lines 540-543: reject any extracted regular file whose canonical suffix is not `.gpkg`.
-2. lines 545-557: capture one verified package byte snapshot, enumerate layers from those bytes, and locally filter only the known extension warning.
-3. lines 558-579: inspect every layer from the same bytes, require one consistent exact `GPKG` driver, and construct the package record.
-4. lines 580-589: preserve catalog errors and translate other enumeration/inspection failures with package context.
+1. reject any extracted regular file whose canonical suffix is not `.gpkg`.
+2. capture one verified package byte snapshot, enumerate layers from those bytes, and locally filter only the known extension warning.
+3. inspect every layer from the same bytes, require one consistent exact `GPKG` driver, and construct the package record.
+4. preserve catalog errors and translate other enumeration/inspection failures with package context.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError(f'extracted file {item.relative_path} is not a GeoPackage and cannot be ignored')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: layer driver metadata is inconsistent')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: physical inspection failed')`; `InpnProtectedAreasCatalogError(f'package {item.relative_path}: OGR layer enumeration failed')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -643,7 +655,7 @@ __all__ = [
 - Pyogrio calls: `pyogrio.list_layers`
 - Callees: `InpnProtectedAreasCatalogError`, `InpnProtectedAreasGeoPackageCatalog`, `PurePosixPath`, `PurePosixPath(item.relative_path).suffix.casefold`, `_inspect_layer`, `_layer_enumeration`, `_read_verified_package_bytes`, `enumerate`, `len`, `pyogrio.list_layers`, `set`, `tuple`.
 - Internal caller/callee relationship: directly invokes `_inspect_layer`, `_layer_enumeration`, `_read_verified_package_bytes`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_public_api_exports_only_trusted_catalog_symbols`
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -655,7 +667,7 @@ __all__ = [
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 594: returns `{'name': field.name, 'source_dtype': field.source_dtype, 'position': field.position}`.
+1. returns `{'name': field.name, 'source_dtype': field.source_dtype, 'position': field.position}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -663,7 +675,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: none.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -675,7 +687,7 @@ __all__ = [
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 602: returns `{'layer_name': layer.layer_name, 'layer_position': layer.layer_position, 'feature_count': layer.feature_count, 'geometry_type_raw': layer.geometry_type_raw, 'is_spatial': layer.is_spatial, 'crs_raw': layer.crs_raw, 'crs_authority_name': layer.crs_authority_name, 'crs_authority_code': layer.crs_authority_code, 'crs_wkt': layer.crs_wkt, 'total_bounds': layer.total_bounds, 'fields': [_field_payload(field) for field in layer.fields]}`.
+1. returns `{'layer_name': layer.layer_name, 'layer_position': layer.layer_position, 'feature_count': layer.feature_count, 'geometry_type_raw': layer.geometry_type_raw, 'is_spatial': layer.is_spatial, 'crs_raw': layer.crs_raw, 'crs_authority_name': layer.crs_authority_name, 'crs_authority_code': layer.crs_authority_code, 'crs_wkt': layer.crs_wkt, 'total_bounds': layer.total_bounds, 'fields': [_field_payload(field) for field in layer.fields]}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -683,7 +695,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `_field_payload`.
 - Internal caller/callee relationship: directly invokes `_field_payload`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -695,7 +707,7 @@ __all__ = [
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 618: returns `{'relative_path': package.relative_path, 'file_size': package.file_size, 'file_sha256': package.file_sha256, 'package_position': package.package_position, 'driver_name': package.driver_name, 'layers': [_layer_payload(layer) for layer in package.layers]}`.
+1. returns `{'relative_path': package.relative_path, 'file_size': package.file_size, 'file_sha256': package.file_sha256, 'package_position': package.package_position, 'driver_name': package.driver_name, 'layers': [_layer_payload(layer) for layer in package.layers]}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -703,7 +715,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `_layer_payload`.
 - Internal caller/callee relationship: directly invokes `_layer_payload`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -715,7 +727,7 @@ __all__ = [
 - Output: `dict[str, object]`.
 - Ordered algorithm:
 
-1. line 629: returns `{'catalog_schema_version': catalog.catalog_schema_version, 'provider': catalog.provider, 'authority': catalog.authority, 'program': catalog.program, 'dataset_id': catalog.dataset_id, 'dataset_name': catalog.dataset_name, 'declared_version': catalog.declared_version, 'reference_page_url': catalog.reference_page_url, 'archive_url': catalog.archive_url, 'archive_filename': catalog.archive_filename, 'archive_size': catalog.archive_size, 'archive_sha256': catalog.archive_sha256, 'packages': [_package_payload(package) for package in catalog.packages], 'package_count': catalog.package_count, 'layer_count': catalog.layer_count, 'field_count': catalog.field_count, 'total_feature_count': catalog.total_feature_count}`.
+1. returns `{'catalog_schema_version': catalog.catalog_schema_version, 'provider': catalog.provider, 'authority': catalog.authority, 'program': catalog.program, 'dataset_id': catalog.dataset_id, 'dataset_name': catalog.dataset_name, 'declared_version': catalog.declared_version, 'reference_page_url': catalog.reference_page_url, 'archive_url': catalog.archive_url, 'archive_filename': catalog.archive_filename, 'archive_size': catalog.archive_size, 'archive_sha256': catalog.archive_sha256, 'packages': [_package_payload(package) for package in catalog.packages], 'package_count': catalog.package_count, 'layer_count': catalog.layer_count, 'field_count': catalog.field_count, 'total_feature_count': catalog.total_feature_count}`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -723,7 +735,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `_package_payload`.
 - Internal caller/callee relationship: directly invokes `_package_payload`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_catalog_hash_excludes_absolute_paths_and_cache_state`
+- Direct production-call contexts in this test file: `test_catalog_hash_excludes_absolute_paths_and_cache_state`.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -735,8 +747,8 @@ __all__ = [
 - Output: `str`.
 - Ordered algorithm:
 
-1. line 651: executes a controlled error boundary catching `(TypeError, ValueError)` and performs any declared cleanup/finalization.
-2. line 663: returns `sha256(encoded).hexdigest()`.
+1. executes a controlled error boundary catching `(TypeError, ValueError)` and performs any declared cleanup/finalization.
+2. returns `sha256(encoded).hexdigest()`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog content is not canonical JSON')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -744,7 +756,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_catalog_payload`, `json.dumps`, `json.dumps(_catalog_payload(catalog), sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode`, `sha256`, `sha256(encoded).hexdigest`.
 - Internal caller/callee relationship: directly invokes `_catalog_payload`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`, `test_package_layer_field_ordering_produces_deterministic_hash`, `test_absolute_extraction_path_does_not_affect_portable_catalog_hash`, `test_cache_hit_values_do_not_affect_portable_catalog_hash`, `test_public_api_exports_only_trusted_catalog_symbols`, `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`
+- Direct production-call contexts in this test file: `_catalog_with_hash`.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -756,10 +768,10 @@ __all__ = [
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 669: derives `packages` for subsequent validation or output construction.
-2. line 673: derives `download` for subsequent validation or output construction.
-3. line 674: derives `catalog` for subsequent validation or output construction.
-4. line 698: returns `InpnProtectedAreasCatalog(**{**catalog.__dict__, 'complete_catalog_content_sha256': _catalog_content_sha256(catalog)})`.
+1. derives `packages` for subsequent validation or output construction.
+2. derives `download` for subsequent validation or output construction.
+3. derives `catalog` for subsequent validation or output construction.
+4. returns `InpnProtectedAreasCatalog(**{**catalog.__dict__, 'complete_catalog_content_sha256': _catalog_content_sha256(catalog)})`.
 
 - Validation and exceptions: No explicit raise appears; validation is delegated to the listed callees and Python/library contracts. Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -767,7 +779,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalog`, `_catalog_content_sha256`, `_inspect_package`, `enumerate`, `len`, `sum`, `tuple`.
 - Internal caller/callee relationship: directly invokes `_catalog_content_sha256`, `_inspect_package`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -779,24 +791,24 @@ __all__ = [
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 712: validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
-2. line 717: validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
-3. line 721: iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
-4. line 733: validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
-5. line 735: validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
-6. line 740: validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
-7. line 745: derives `package_names` for subsequent validation or output construction.
-8. line 746: derives `layer_count` for subsequent validation or output construction.
-9. line 747: derives `field_count` for subsequent validation or output construction.
-10. line 748: derives `feature_count` for subsequent validation or output construction.
-11. line 749: iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order; each path passes `_validate_inventory_relative_path` and then the case-insensitive `.gpkg` suffix gate before being retained unchanged.
-12. line 883: performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
-13. line 884: validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
-14. line 886: derives `expected_counts` for subsequent validation or output construction.
-15. line 892: derives `actual_counts` for subsequent validation or output construction.
-16. line 898: validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
-17. line 902: validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
-18. line 908: returns `catalog`.
+1. validates/branches on `type(catalog) is not InpnProtectedAreasCatalog`.
+2. validates/branches on `type(catalog.catalog_schema_version) is not int or catalog.catalog_schema_version != CATALOG_HASH_SCHEMA_VERSION`.
+3. iterates `name` over `('provider', 'authority', 'program', 'dataset_id', 'dataset_name', 'declared_version', 'reference_page_url', 'archive_url', 'archive_filename')` in source order.
+4. validates/branches on `type(catalog.archive_size) is not int or catalog.archive_size <= 0`.
+5. validates/branches on `type(catalog.archive_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.archive_sha256) is None`.
+6. validates/branches on `type(catalog.packages) is not tuple or not catalog.packages`.
+7. derives `package_names` for subsequent validation or output construction.
+8. derives `layer_count` for subsequent validation or output construction.
+9. derives `field_count` for subsequent validation or output construction.
+10. derives `feature_count` for subsequent validation or output construction.
+11. iterates `(package_position, package)` over `enumerate(catalog.packages)` in source order; each path passes `_validate_inventory_relative_path` and then the case-insensitive `.gpkg` suffix gate before being retained unchanged.
+12. performs `_require_unique_identities(tuple(package_names), 'catalog package identities')`.
+13. validates/branches on `tuple(package_names) != tuple(sorted(package_names))`.
+14. derives `expected_counts` for subsequent validation or output construction.
+15. derives `actual_counts` for subsequent validation or output construction.
+16. validates/branches on `any((type(value) is not int or value < 0 for value in actual_counts)) or actual_counts != expected_counts`.
+17. validates/branches on `type(catalog.complete_catalog_content_sha256) is not str or _SHA_PATTERN.fullmatch(catalog.complete_catalog_content_sha256) is None or _catalog_content_sha256(catalog) != catalog.complete_catalog_content_sha256`.
+18. returns `catalog`.
 
 - Validation and exceptions: Explicit fail-closed raises include `InpnProtectedAreasCatalogError('catalog package path is invalid')` with its source/path cause chained and `InpnProtectedAreasCatalogError('catalog package path must have a GeoPackage suffix')`, plus the exact schema, source, package/layer/field type/domain/order, aggregate, driver, CRS/bounds, and content-hash failures visible in the complete source snapshot. No lower-layer `InpnProtectedAreasSourceError`, `ValueError`, or `OSError` leaks through the package-path boundary.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -804,7 +816,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `PurePosixPath`, `_SHA_PATTERN.fullmatch`, `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validate_inventory_relative_path`, `_validated_bounds`, `any`, `enumerate`, `field_names.append`, `getattr`, `layer_names.append`, `len`, `package_names.append`, `sorted`, `tuple`, `type`.
 - Internal caller/callee relationship: directly invokes `_canonical_crs`, `_catalog_content_sha256`, `_exact_text`, `_feature_count`, `_require_unique_identities`, `_validate_inventory_relative_path`, `_validated_bounds`; source path failures are chained into the catalog error boundary.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: `test_intrinsic_catalog_package_path_uses_authoritative_grammar`.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -816,10 +828,10 @@ __all__ = [
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 909: derives `download` for subsequent validation or output construction.
-2. line 910: derives `expected` for subsequent validation or output construction.
-3. line 923: derives `actual` for subsequent validation or output construction.
-4. line 936: validates/branches on `actual != expected`.
+1. derives `download` for subsequent validation or output construction.
+2. derives `expected` for subsequent validation or output construction.
+3. derives `actual` for subsequent validation or output construction.
+4. validates/branches on `actual != expected`.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog source/archive lineage differs from the verified extraction')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -827,7 +839,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`.
 - Internal caller/callee relationship: directly invokes no module helper; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: covered transitively through public-boundary tests or class validators.
+- Direct production-call contexts in this test file: none; public-flow and mocked-seam evidence is described separately in the test companion. Imported same-name helpers in other modules are not owned here.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -839,8 +851,8 @@ __all__ = [
 - Output: `InpnProtectedAreasCatalog`.
 - Ordered algorithm:
 
-1. line 946: performs `'Build a portable metadata-only catalog from one verified EP extraction.'`.
-2. line 948: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
+1. performs `'Build a portable metadata-only catalog from one verified EP extraction.'`.
+2. executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('extraction physical inventory changed during metadata inspection')`; `InpnProtectedAreasCatalogError('INPN extraction byte identity changed or failed source-complete catalog validation')`; `InpnProtectedAreasCatalogError('INPN protected-areas metadata catalog cannot be built safely')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -848,7 +860,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_build_catalog`, `_validate_catalog_intrinsic`, `validate_inpn_protected_areas_extraction`.
 - Internal caller/callee relationship: directly invokes `_build_catalog`, `_validate_catalog_intrinsic`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`, `test_package_with_multiple_layers_preserves_physical_order`, `test_multiple_geopackages_remain_in_extraction_order`, `test_non_geopackage_extracted_file_is_not_silently_ignored`, `test_zero_visible_layers_is_rejected`, `test_layer_name_with_edge_whitespace_is_rejected`, `test_duplicate_casefold_or_nfkc_layer_identity_is_rejected`, `test_file_byte_mutation_during_metadata_inspection_is_rejected`, `test_exact_field_and_dtype_order_is_preserved`, `test_field_and_dtype_length_mismatch_is_rejected`, `test_empty_or_edge_whitespace_field_name_is_rejected`, `test_duplicate_casefold_or_nfkc_field_identity_is_rejected`, `test_malformed_source_dtype_is_rejected`, `test_exact_non_negative_feature_count_is_accepted`, `test_boolean_or_negative_feature_count_is_rejected`, `test_populated_spatial_layer_without_crs_is_rejected`, `test_unparseable_crs_is_rejected`, `test_valid_crs_authority_and_canonical_wkt_are_recorded`, `test_finite_ordered_bounds_are_accepted`, `test_non_finite_populated_bounds_are_rejected`, `test_reversed_bounds_are_rejected`, `test_empty_spatial_layer_normalizes_all_nan_bounds_to_null`, `test_non_spatial_layer_with_crs_or_bounds_is_rejected`, `test_package_layer_field_ordering_produces_deterministic_hash`, `test_caller_package_reordering_is_rejected`, `test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild`, `test_absolute_extraction_path_does_not_affect_portable_catalog_hash`, `test_cache_hit_values_do_not_affect_portable_catalog_hash`, `test_catalog_validation_detects_changed_physical_metadata`, `test_catalog_construction_never_materializes_feature_rows`, `test_metadata_calls_use_exact_forced_metadata_only_api`, `test_empty_spatial_layer_with_partially_missing_bounds_is_rejected`, `test_layer_enumeration_and_read_info_geometry_must_agree`, `test_feature_count_rejects_non_exact_integers`, `test_catalog_hash_excludes_absolute_paths_and_cache_state`, `test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot`, `test_transient_package_path_swap_cannot_inject_other_package_metadata`, `test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio`, `test_exact_gpkg_driver_is_recorded`, `test_missing_null_or_wrong_driver_is_rejected`, `test_inconsistent_layer_driver_values_are_rejected`, `test_renamed_geojson_content_with_gpkg_suffix_is_rejected`, `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`, `test_catalog_schema_two_rejects_schema_one_catalog`, `test_noncanonical_supplied_bounds_are_rejected_before_rebuild`, `test_noncanonical_optional_crs_string_subclasses_are_rejected`, `test_builder_output_uses_only_exact_canonical_runtime_types`, `test_correct_exact_float_tuple_and_optional_strings_validate`
+- Direct production-call contexts in this test file: `test_absolute_extraction_path_does_not_affect_portable_catalog_hash`, `test_boolean_or_negative_feature_count_is_rejected`, `test_builder_output_uses_only_exact_canonical_runtime_types`, `test_cache_hit_values_do_not_affect_portable_catalog_hash`, `test_caller_package_reordering_is_rejected`, `test_catalog_construction_never_materializes_feature_rows`, `test_catalog_hash_excludes_absolute_paths_and_cache_state`, `test_catalog_rejects_coordinated_valid_package_marker_and_caller_forgery_before_pyogrio`, `test_catalog_schema_two_rejects_schema_one_catalog`, `test_catalog_validation_detects_changed_physical_metadata`, `test_catalog_warning_suppression_installs_no_global_filter`, `test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild`, `test_correct_exact_float_tuple_and_optional_strings_validate`, `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`, `test_duplicate_casefold_or_nfkc_field_identity_is_rejected`, `test_duplicate_casefold_or_nfkc_layer_identity_is_rejected`, `test_empty_or_edge_whitespace_field_name_is_rejected`, `test_empty_spatial_layer_normalizes_all_nan_bounds_to_null`, `test_empty_spatial_layer_with_partially_missing_bounds_is_rejected`, `test_exact_field_and_dtype_order_is_preserved`, `test_exact_gpkg_driver_is_recorded`, `test_exact_non_negative_feature_count_is_accepted`, `test_feature_count_rejects_non_exact_integers`, `test_field_and_dtype_length_mismatch_is_rejected`, `test_file_byte_mutation_during_metadata_inspection_is_rejected`, `test_finite_ordered_bounds_are_accepted`, `test_inconsistent_layer_driver_values_are_rejected`, `test_intrinsic_catalog_package_path_uses_authoritative_grammar`, `test_known_extension_warning_suppression_does_not_bypass_driver_validation`, `test_layer_enumeration_and_read_info_geometry_must_agree`, `test_layer_name_with_edge_whitespace_is_rejected`, `test_malformed_source_dtype_is_rejected`, `test_metadata_calls_use_exact_forced_metadata_only_api`, `test_missing_null_or_wrong_driver_is_rejected`, `test_multiple_geopackages_remain_in_extraction_order`, `test_non_finite_populated_bounds_are_rejected`, `test_non_geopackage_extracted_file_is_not_silently_ignored`, `test_non_spatial_layer_with_crs_or_bounds_is_rejected`, `test_noncanonical_optional_crs_string_subclasses_are_rejected`, `test_noncanonical_supplied_bounds_are_rejected_before_rebuild`, `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`, `test_package_layer_field_ordering_produces_deterministic_hash`, `test_package_with_multiple_layers_preserves_physical_order`, `test_populated_spatial_layer_without_crs_is_rejected`, `test_pyogrio_metadata_apis_receive_one_identical_package_byte_snapshot`, `test_renamed_geojson_content_with_gpkg_suffix_is_rejected`, `test_reversed_bounds_are_rejected`, `test_transient_package_path_swap_cannot_inject_other_package_metadata`, `test_unparseable_crs_is_rejected`, `test_unrelated_read_info_runtime_warning_remains_observable`, `test_valid_bytes_backed_catalog_suppresses_only_known_extension_warning`, `test_valid_crs_authority_and_canonical_wkt_are_recorded`, `test_zero_visible_layers_is_rejected`.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -860,8 +872,8 @@ __all__ = [
 - Output: `None`.
 - Ordered algorithm:
 
-1. line 975: performs `'Independently rebuild and exact-compare one supplied physical catalog.'`.
-2. line 977: executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
+1. performs `'Independently rebuild and exact-compare one supplied physical catalog.'`.
+2. executes a controlled error boundary catching `Exception`, `InpnProtectedAreasCatalogError`, `InpnProtectedAreasSourceError` and performs any declared cleanup/finalization.
 
 - Validation and exceptions: Explicit fail-closed raises: `InpnProtectedAreasCatalogError('catalog differs from the independently rebuilt physical metadata')`; `InpnProtectedAreasCatalogError('INPN extraction failed catalog source-lock validation')`; `InpnProtectedAreasCatalogError('INPN protected-areas catalog validation failed safely')` Library errors are contained by the function's visible error boundary when one exists.
 - Filesystem effects: none directly; any effects belong to named callees.
@@ -869,7 +881,7 @@ __all__ = [
 - Pyogrio calls: none.
 - Callees: `InpnProtectedAreasCatalogError`, `_validate_catalog_intrinsic`, `_validate_source_locks`, `build_inpn_protected_areas_catalog`, `validate_inpn_protected_areas_extraction`.
 - Internal caller/callee relationship: directly invokes `_validate_catalog_intrinsic`, `_validate_source_locks`, `build_inpn_protected_areas_catalog`; module callers are enumerated by the exact call graph and public flow below.
-- Direct regression references: `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`, `test_caller_package_reordering_is_rejected`, `test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild`, `test_catalog_validation_detects_changed_physical_metadata`, `test_catalog_validator_rejects_wrong_runtime_type`, `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`, `test_catalog_schema_two_rejects_schema_one_catalog`, `test_noncanonical_supplied_bounds_are_rejected_before_rebuild`, `test_noncanonical_optional_crs_string_subclasses_are_rejected`, `test_correct_exact_float_tuple_and_optional_strings_validate`
+- Direct production-call contexts in this test file: `test_caller_package_reordering_is_rejected`, `test_catalog_schema_two_rejects_schema_one_catalog`, `test_catalog_validation_detects_changed_physical_metadata`, `test_catalog_validator_rejects_wrong_runtime_type`, `test_coordinated_metadata_and_hash_mutation_is_rejected_by_rebuild`, `test_correct_exact_float_tuple_and_optional_strings_validate`, `test_driver_is_hash_bound_and_coordinated_forgery_fails_rebuild`, `test_noncanonical_optional_crs_string_subclasses_are_rejected`, `test_noncanonical_supplied_bounds_are_rejected_before_rebuild`, `test_one_valid_geopackage_with_one_spatial_layer_is_cataloged`.
 - Business boundary: factual acquisition, integrity, or physical metadata evidence only.
 - Explicit non-goals: no EP feature-row materialization, protected-area category interpretation, Natura 2000/ZNIEFF meaning, parcel relation, exclusion, scoring, or ranking.
 
@@ -904,7 +916,7 @@ For `inpn_protected_areas_fr.py`, `validate_inpn_protected_areas_extraction` is 
 
 - `tests/unit/test_inpn_protected_areas_fr.py` contains 172 cases proving controlled ZIP opening, canonical download lineage, archive/download/cache/extraction postconditions, cached-download mutation rejection and refresh/offline behavior, coordinated marker/file corruption, archive-derived inventory, local offline rebuild, and effective transient/persistent archive swaps.
 - `tests/unit/test_inpn_protected_areas_catalog_fr.py` contains 97 cases proving shared extraction/catalog path decisions across the reserved-name, forbidden-character, component-whitespace, trailing-dot, control-character, NFKC-hazard, valid nested, and uppercase-suffix corpus; byte-only Pyogrio metadata calls; narrow warning suppression with unrelated warnings preserved; package swap isolation; persistent mutation rejection; exact driver identity; schema 2; canonical final runtime types; hashing; independent rebuild; and zero feature materialization.
-- Any change requires both focused suites, controlled offline EP verification, companion SHA synchronization, full pytest, Ruff check/format, mypy, uv lock/pip checks, and `git diff --check`.
+- Production authority changes require the affected suites and physical/quality validation prescribed by their implementation ticket. A documentation-only continuity correction does not authorize EP rereads or cache/network work.
 
 ## 9. Exact complete current file content
 

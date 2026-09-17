@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+- Responsibility: Exercises private coverage geometry/lineage/summary guards on real temporary GeoPackage coverage fixtures and mocked public orchestration: strict boundary inequality, conservative outside/touching status, no-match handling, preservation, profiles and configured physical layer authority; electricity proximity is synthetic or mocked, with no archive acquisition.
 - Source SHA256: `b2a00d7b4008fdd2daea8fd858866d9d7f51a452aa9da2cd0af6f37c67494664`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+Exercises private coverage geometry/lineage/summary guards on real temporary GeoPackage coverage fixtures and mocked public orchestration: strict boundary inequality, conservative outside/touching status, no-match handling, preservation, profiles and configured physical layer authority; electricity proximity is synthetic or mocked, with no archive acquisition.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -182,7 +182,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_coverage`
 
-**Purpose:** Implements `coverage` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Create a real temporary four-layer GeoPackage and schema-3 extraction marker, then a source-coverage envelope with measured selected-layer summary and eight lineage columns. The archive path/hash is synthetic; this fixture does not download or extract a real 7z archive.
 
 **Exact signature**
 
@@ -306,9 +306,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gpd.read_file`<br>`geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction_path.mkdir`<br>`(extraction_path / ".landscout-extraction.json").write_text` |
-| Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256`<br>`{<br>        "source_provider": SOURCE_CONFIG.provider,<br>        "source_product": "BD TOPO",<br>        "source_department_code": "31",<br>        "source_edition": EDITION,<br>        "source_product_version": "3.5",<br>        "source_archive_sha256": ARCHIVE_SHA256,<br>        "source_layer": "departement",<br>        "spatial_role": spatial_role,<br>    }.items` |
+| Filesystem/archive read or metadata access | Read fixture GeoPackage bytes, `gpd.read_file` selected rows and `pyogrio.list_layers` inventory; the alternate-layer helper also reads its marker. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe` writes real fixture GeoPackage layers; fixture directory/marker publication is explicit in the implementation. |
+| Hashing/byte identity | `sha256(payload).hexdigest()` hashes physical fixture bytes; dictionary `.items()` merely iterates lineage fields. |
 | CRS/geometry/spatial calculation | `raw_frame.geometry.dropna().geom_type.unique`<br>`raw_frame.geometry.dropna`<br>`frame.geometry.isna`<br>`raw_frame.geometry.isna().sum`<br>`raw_frame.geometry.isna`<br>`(non_null_geometry & raw_frame.geometry.is_empty).sum`<br>`(non_empty_geometry & ~raw_frame.geometry.is_valid).sum` |
 | External process/environment | None directly present. |
 | In-memory mutation | `frame[column] = value` |
@@ -486,7 +486,7 @@ def _coverage(
 
 ### `_with_alternate_coverage_layer`
 
-**Purpose:** Implements `with alternate coverage layer` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Append an alternate physical department layer, refresh the package hash/inventory marker and return both the configured public-loader result and an internally assembled alternate-layer envelope for the logical-layer substitution negative control.
 
 **Exact signature**
 
@@ -548,8 +548,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `geopackage_path.read_bytes`<br>`marker_path.read_text`<br>`gpd.read_file` |
-| Filesystem/archive write or publication | `marker_path.write_text` |
+| Filesystem/archive read or metadata access | Read fixture GeoPackage bytes, `gpd.read_file` selected rows and `pyogrio.list_layers` inventory; the alternate-layer helper also reads its marker. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe` writes real fixture GeoPackage layers; fixture directory/marker publication is explicit in the implementation. |
 | Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -624,7 +624,7 @@ def _with_alternate_coverage_layer(
 
 ### `test_coverage_assessment_reproduces_configured_logical_layer`
 
-**Purpose:** Regression invariant: coverage assessment reproduces configured logical layer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept the configured physical departement layer, then reject the alternate-layer envelope even though it belongs to the same updated GeoPackage.
 
 **Exact signature**
 
@@ -698,7 +698,7 @@ def test_coverage_assessment_reproduces_configured_logical_layer() -> None:
 
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Create minimal parcel-ID/geometry fixtures with an extra preserved value and nondefault index; these frames are not the canonical twelve-column Cadastre output.
 
 **Exact signature**
 
@@ -794,7 +794,7 @@ def _parcels(
 
 ### `_lines`
 
-**Purpose:** Implements `lines` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Create normalized-looking line proxies at requested distances with supplied voltage facts and synthetic common archive lineage; no physical electricity loader runs here.
 
 **Exact signature**
 
@@ -904,7 +904,7 @@ def _lines(
 
 ### `_posts`
 
-**Purpose:** Implements `posts` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Create one polygonal transformation-post proxy at the requested distance with synthetic common archive lineage.
 
 **Exact signature**
 
@@ -998,7 +998,7 @@ def _posts(distance_m: float = 50.0) -> gpd.GeoDataFrame:
 
 ### `_electricity_source`
 
-**Purpose:** Implements `electricity source` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Wrap synthetic line/post frames with the supplied extraction and deliberately absent summaries; public orchestration tests mock the proximity stage, so this is not independently verified electricity evidence.
 
 **Exact signature**
 
@@ -1079,7 +1079,7 @@ def _electricity_source(
 
 ### `_proximity`
 
-**Purpose:** Implements `proximity` within the file role: Provides complete unit and regression coverage for the `assess_grid_coverage` contracts exercised in this file.
+**Purpose:** Call the private normalized-frame proximity kernel on synthetic parcel/line/post fixtures. The source has no return annotation and returns a GridProximityResult; it does not exercise public physical normalization.
 
 **Exact signature**
 
@@ -1096,7 +1096,7 @@ def _proximity(
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- Declared return annotation: absent; the returned value is the private proximity result.
 
 **Inputs**
 
@@ -1213,7 +1213,7 @@ def _proximity(
 
 ### `test_clean_coverage_api_is_exported`
 
-**Purpose:** Regression invariant: clean coverage api is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert identity and __all__ membership of the two public coverage entry points.
 
 **Exact signature**
 
@@ -1277,7 +1277,7 @@ def test_clean_coverage_api_is_exported() -> None:
 
 ### `test_public_coverage_owns_proximity_and_configured_coverage_once`
 
-**Purpose:** Regression invariant: public coverage owns proximity and configured coverage once. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mock both owned stages and assert one exact proximity call with parcel/source/config plus one exact configured coverage-load call with the same extraction/config; result retains that coverage object.
 
 **Exact signature**
 
@@ -1365,7 +1365,7 @@ def test_public_coverage_owns_proximity_and_configured_coverage_once() -> None:
 
 ### `test_public_coverage_proximity_failure_stops_coverage_loading`
 
-**Purpose:** Regression invariant: public coverage proximity failure stops coverage loading. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Raise ValueError from the mocked proximity stage and assert one invocation, controlled wrapping and zero calls to coverage loading.
 
 **Exact signature**
 
@@ -1451,7 +1451,7 @@ def test_public_coverage_proximity_failure_stops_coverage_loading() -> None:
 
 ### `test_public_coverage_rejects_generated_parcel_column_before_proximity`
 
-**Purpose:** Regression invariant: public coverage rejects generated parcel column before proximity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Add a generated coverage column to input parcels and require collision rejection before either mocked stage executes.
 
 **Exact signature**
 
@@ -1536,7 +1536,7 @@ def test_public_coverage_rejects_generated_parcel_column_before_proximity() -> N
 
 ### `test_caller_provided_proximity_and_coverage_are_not_public_inputs`
 
-**Purpose:** Regression invariant: caller provided proximity and coverage are not public inputs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass internally coherent but caller-forged proximity/coverage objects to the public source-complete API and assert parcel-type rejection before both owned stages; equal lineage text does not authorize supplied intermediate results.
 
 **Exact signature**
 
@@ -1591,8 +1591,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `forged_proximity.parcels["nearest_line_source_archive_sha256"]<br>        .eq(ARCHIVE_SHA256)<br>        .all`<br>`forged_proximity.parcels["nearest_line_source_archive_sha256"]<br>        .eq` |
-| CRS/geometry/spatial calculation | `forged_proximity.parcels["nearest_line_proxy_distance_m"].eq(0.0).all`<br>`forged_proximity.parcels["nearest_line_proxy_distance_m"].eq` |
+| Hashing/byte identity | No hash computation; Series operations compare existing lineage text. |
+| CRS/geometry/spatial calculation | No direct spatial calculation; Series equality/null predicates inspect previously computed evidence. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1640,7 +1640,7 @@ def test_caller_provided_proximity_and_coverage_are_not_public_inputs() -> None:
 
 ### `test_polygonal_coverage_geometry_is_accepted`
 
-**Purpose:** Regression invariant: polygonal coverage geometry is accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Accept Polygon and MultiPolygon coverage fixtures and assert the known 100-metre boundary distance.
 
 **Exact signature**
 
@@ -1723,7 +1723,7 @@ def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
 
 ### `test_invalid_coverage_geometry_is_rejected`
 
-**Purpose:** Regression invariant: invalid coverage geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject seven selected missing/wrong CRS, Point/LineString, null, empty and invalid-polygon coverage cases with contextual errors.
 
 **Exact signature**
 
@@ -1826,7 +1826,7 @@ def test_invalid_coverage_geometry_is_rejected(
 
 ### `test_strict_geometric_boundary_proof`
 
-**Purpose:** Regression invariant: strict geometric boundary proof. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For a 100-metre coverage boundary clearance, assert 50 metres is NOT_BOUNDARY_LIMITED while equality at 100 and excess at 150 are BOUNDARY_LIMITED across nearest line, exact line, post and voltage-level evidence.
 
 **Exact signature**
 
@@ -1923,7 +1923,7 @@ def test_strict_geometric_boundary_proof(
 
 ### `test_outside_crossing_or_touching_parcel_is_conservative`
 
-**Purpose:** Regression invariant: outside crossing or touching parcel is conservative. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** For crossing, boundary-touching and wholly outside parcels, assert zero boundary clearance and OUTSIDE_OR_CROSSING_COVERAGE in all four evidence views.
 
 **Exact signature**
 
@@ -2022,7 +2022,7 @@ def test_outside_crossing_or_touching_parcel_is_conservative(
 
 ### `test_no_exact_match_uses_explicit_no_match_status`
 
-**Purpose:** Regression invariant: no exact match uses explicit no match status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** With no exact-voltage line, assert null exact-line distance, NO_MATCH and an empty voltage-level table.
 
 **Exact signature**
 
@@ -2072,7 +2072,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `result.parcels["nearest_exact_line_proxy_distance_m"].isna().all`<br>`result.parcels["nearest_exact_line_proxy_distance_m"].isna` |
+| CRS/geometry/spatial calculation | No direct spatial calculation; Series equality/null predicates inspect previously computed evidence. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2098,7 +2098,7 @@ def test_no_exact_match_uses_explicit_no_match_status() -> None:
 
 ### `test_assessment_preserves_proximity_values_and_does_not_mutate_input`
 
-**Purpose:** Regression invariant: assessment preserves proximity values and does not mutate input. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Use GeoPandas/Pandas equality helpers to check original frames remain unchanged and original output columns retain their values; explicitly preserve parcel order and parcel/voltage keys.
 
 **Exact signature**
 
@@ -2186,7 +2186,7 @@ def test_assessment_preserves_proximity_values_and_does_not_mutate_input() -> No
 
 ### `test_geographic_parcel_storage_crs_and_geometry_are_preserved`
 
-**Purpose:** Regression invariant: geographic parcel storage crs and geometry are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reproject the synthetic input to EPSG:4326 and assert storage CRS and exact-coordinate geometry equality are preserved while temporary metric calculation still yields about 100 metres.
 
 **Exact signature**
 
@@ -2270,7 +2270,7 @@ def test_geographic_parcel_storage_crs_and_geometry_are_preserved() -> None:
 
 ### `test_profile_reports_dynamic_voltage_and_boundary_distributions`
 
-**Purpose:** Regression invariant: profile reports dynamic voltage and boundary distributions. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Assert one fully covered parcel, 100-metre min/median/max boundary values, line/post status counts and sorted dynamic 110/275-kV status summaries.
 
 **Exact signature**
 
@@ -2366,7 +2366,7 @@ def test_profile_reports_dynamic_voltage_and_boundary_distributions() -> None:
 
 ### `test_proximity_and_coverage_package_lineage_must_match`
 
-**Purpose:** Regression invariant: proximity and coverage package lineage must match. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge the coverage frame archive SHA and require a lineage mismatch error.
 
 **Exact signature**
 
@@ -2434,7 +2434,7 @@ def test_proximity_and_coverage_package_lineage_must_match() -> None:
 
 ### `test_coverage_rejects_arbitrary_source_identity`
 
-**Purpose:** Regression invariant: coverage rejects arbitrary source identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge provider or product consistently in envelope/frame and require source-identity rejection.
 
 **Exact signature**
 
@@ -2509,7 +2509,7 @@ def test_coverage_rejects_arbitrary_source_identity(field: str, value: str) -> N
 
 ### `test_coverage_summary_selected_count_must_match_frame`
 
-**Purpose:** Regression invariant: coverage summary selected count must match frame. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge selected count to zero or two against one physical selected row and require rejection.
 
 **Exact signature**
 
@@ -2589,7 +2589,7 @@ def test_coverage_summary_selected_count_must_match_frame(
 
 ### `test_coverage_summary_schema_must_match_selected_source_columns`
 
-**Purpose:** Regression invariant: coverage summary schema must match selected source columns. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject missing, extra, reordered column declarations and changed dtype summary against the selected raw coverage schema.
 
 **Exact signature**
 
@@ -2681,7 +2681,7 @@ def test_coverage_summary_schema_must_match_selected_source_columns(
 
 ### `test_coverage_summary_crs_must_match_frame`
 
-**Purpose:** Regression invariant: coverage summary crs must match frame. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge summary CRS while retaining the frame and require a contextual CRS error.
 
 **Exact signature**
 
@@ -2751,7 +2751,7 @@ def test_coverage_summary_crs_must_match_frame() -> None:
 
 ### `test_coverage_summary_geometry_facts_are_validated`
 
-**Purpose:** Regression invariant: coverage summary geometry facts are validated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge null/empty/invalid counts or declared geometry types and require summary/geometry rejection.
 
 **Exact signature**
 
@@ -2839,7 +2839,7 @@ def test_coverage_summary_geometry_facts_are_validated(
 
 ### `test_coverage_summary_selected_department_must_match`
 
-**Purpose:** Regression invariant: coverage summary selected department must match. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge selected department identity in the summary and require rejection.
 
 **Exact signature**
 
@@ -2909,7 +2909,7 @@ def test_coverage_summary_selected_department_must_match() -> None:
 
 ### `test_coverage_summary_department_field_must_be_exact`
 
-**Purpose:** Regression invariant: coverage summary department field must be exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Reject empty, blank and missing department-field names rather than guessing a replacement.
 
 **Exact signature**
 
@@ -2982,7 +2982,7 @@ def test_coverage_summary_department_field_must_be_exact(field: str) -> None:
 
 ### `test_coverage_summary_source_count_cannot_be_smaller_than_selection`
 
-**Purpose:** Regression invariant: coverage summary source count cannot be smaller than selection. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge source count below the selected count and require rejection.
 
 **Exact signature**
 
@@ -3052,7 +3052,7 @@ def test_coverage_summary_source_count_cannot_be_smaller_than_selection() -> Non
 
 ### `test_coverage_source_layer_lineage_must_match_summary_and_frame`
 
-**Purpose:** Regression invariant: coverage source layer lineage must match summary and frame. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Forge envelope source-layer lineage while retaining summary/frame identity and require rejection.
 
 **Exact signature**
 
@@ -3122,7 +3122,7 @@ def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
 
 ### `test_public_assessment_loads_coverage_from_the_physical_source`
 
-**Purpose:** Regression invariant: public assessment loads coverage from the physical source. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mock only proximity; let the public configured coverage loader read the temporary GeoPackage and assert the physical Haute-Garonne attribute is returned.
 
 **Exact signature**
 
@@ -3210,31 +3210,31 @@ def test_public_assessment_loads_coverage_from_the_physical_source() -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_coverage_assessment_reproduces_configured_logical_layer` | none | pytest.raises(GridCoverageAssessmentError, match="physical\|configured") | 1 | Proves coverage assessment reproduces configured logical layer using the exact source reproduced in section 7. |
-| `test_clean_coverage_api_is_exported` | none | none | 4 | Proves clean coverage api is exported using the exact source reproduced in section 7. |
-| `test_public_coverage_owns_proximity_and_configured_coverage_once` | none | none | 1 | Proves public coverage owns proximity and configured coverage once using the exact source reproduced in section 7. |
-| `test_public_coverage_proximity_failure_stops_coverage_loading` | none | pytest.raises(GridCoverageAssessmentError) | 0 | Proves public coverage proximity failure stops coverage loading using the exact source reproduced in section 7. |
-| `test_public_coverage_rejects_generated_parcel_column_before_proximity` | none | pytest.raises(GridCoverageAssessmentError, match="collides.*generated") | 0 | Proves public coverage rejects generated parcel column before proximity using the exact source reproduced in section 7. |
-| `test_caller_provided_proximity_and_coverage_are_not_public_inputs` | none | pytest.raises(<br>            GridCoverageAssessmentError,<br>            match="parcels\|GeoDataFrame",<br>        ) | 2 | Proves caller provided proximity and coverage are not public inputs using the exact source reproduced in section 7. |
-| `test_polygonal_coverage_geometry_is_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>        MultiPolygon(<br>            [<br>                Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>                Polygon([(2000, 0), (2000, 100), (2100, 100), (2100, 0), (2000, 0)]),<br>            ]<br>        ),<br>    ],<br>) | none | 1 | Proves polygonal coverage geometry is accepted using the exact source reproduced in section 7. |
-| `test_invalid_coverage_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "crs", "message"),<br>    [<br>        (<br>            Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>            None,<br>            "CRS",<br>        ),<br>        (<br>            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),<br>            "EPSG:4326",<br>            "2154",<br>        ),<br>        (Point(0, 0), "EPSG:2154", "Polygon"),<br>        (LineString([(0, 0), (10, 10)]), "EPSG:2154", "Polygon"),<br>        (None, "EPSG:2154", "null"),<br>        (Polygon(), "EPSG:2154", "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "EPSG:2154",<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(GridCoverageAssessmentError, match=message) | 0 | Proves invalid coverage geometry is rejected using the exact source reproduced in section 7. |
-| `test_strict_geometric_boundary_proof` | pytest.mark.parametrize(<br>    ("asset_distance", "expected_status"),<br>    [<br>        (50.0, "NOT_BOUNDARY_LIMITED"),<br>        (100.0, "BOUNDARY_LIMITED"),<br>        (150.0, "BOUNDARY_LIMITED"),<br>    ],<br>) | none | 6 | Proves strict geometric boundary proof using the exact source reproduced in section 7. |
-| `test_outside_crossing_or_touching_parcel_is_conservative` | pytest.mark.parametrize(<br>    "parcel_geometry",<br>    [<br>        Polygon([(950, 100), (950, 200), (1050, 200), (1050, 100), (950, 100)]),<br>        Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>        Polygon([(1100, 100), (1100, 200), (1200, 200), (1200, 100), (1100, 100)]),<br>    ],<br>    ids=["crossing", "touching", "outside"],<br>) | none | 6 | Proves outside crossing or touching parcel is conservative using the exact source reproduced in section 7. |
-| `test_no_exact_match_uses_explicit_no_match_status` | none | none | 3 | Proves no exact match uses explicit no match status using the exact source reproduced in section 7. |
-| `test_assessment_preserves_proximity_values_and_does_not_mutate_input` | none | none | 2 | Proves assessment preserves proximity values and does not mutate input using the exact source reproduced in section 7. |
-| `test_geographic_parcel_storage_crs_and_geometry_are_preserved` | none | none | 3 | Proves geographic parcel storage crs and geometry are preserved using the exact source reproduced in section 7. |
-| `test_profile_reports_dynamic_voltage_and_boundary_distributions` | none | none | 11 | Proves profile reports dynamic voltage and boundary distributions using the exact source reproduced in section 7. |
-| `test_proximity_and_coverage_package_lineage_must_match` | none | pytest.raises(GridCoverageAssessmentError, match="lineage") | 0 | Proves proximity and coverage package lineage must match using the exact source reproduced in section 7. |
-| `test_coverage_rejects_arbitrary_source_identity` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("source_provider", "arbitrary"), ("source_product", "roads")],<br>) | pytest.raises(GridCoverageAssessmentError, match="provider\|product\|identity") | 0 | Proves coverage rejects arbitrary source identity using the exact source reproduced in section 7. |
-| `test_coverage_summary_selected_count_must_match_frame` | pytest.mark.parametrize("selected_count", [0, 2]) | pytest.raises(GridCoverageAssessmentError, match="selected\|count") | 0 | Proves coverage summary selected count must match frame using the exact source reproduced in section 7. |
-| `test_coverage_summary_schema_must_match_selected_source_columns` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        GridCoverageAssessmentError, match="summary\|column\|dtype\|schema"<br>    ) | 0 | Proves coverage summary schema must match selected source columns using the exact source reproduced in section 7. |
-| `test_coverage_summary_crs_must_match_frame` | none | pytest.raises(GridCoverageAssessmentError, match="CRS\|2154") | 0 | Proves coverage summary crs must match frame using the exact source reproduced in section 7. |
-| `test_coverage_summary_geometry_facts_are_validated` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("null_geometry_count", 1),<br>        ("empty_geometry_count", 1),<br>        ("invalid_geometry_count", 1),<br>        ("geometry_types", ("Point",)),<br>    ],<br>) | pytest.raises(GridCoverageAssessmentError, match="geometry\|summary") | 0 | Proves coverage summary geometry facts are validated using the exact source reproduced in section 7. |
-| `test_coverage_summary_selected_department_must_match` | none | pytest.raises(GridCoverageAssessmentError, match="department") | 0 | Proves coverage summary selected department must match using the exact source reproduced in section 7. |
-| `test_coverage_summary_department_field_must_be_exact` | pytest.mark.parametrize("field", ["", " ", "missing"]) | pytest.raises(GridCoverageAssessmentError, match="department\|field") | 0 | Proves coverage summary department field must be exact using the exact source reproduced in section 7. |
-| `test_coverage_summary_source_count_cannot_be_smaller_than_selection` | none | pytest.raises(GridCoverageAssessmentError, match="source\|count") | 0 | Proves coverage summary source count cannot be smaller than selection using the exact source reproduced in section 7. |
-| `test_coverage_source_layer_lineage_must_match_summary_and_frame` | none | pytest.raises(GridCoverageAssessmentError, match="layer\|lineage") | 0 | Proves coverage source layer lineage must match summary and frame using the exact source reproduced in section 7. |
-| `test_public_assessment_loads_coverage_from_the_physical_source` | none | none | 1 | Proves public assessment loads coverage from the physical source using the exact source reproduced in section 7. |
+| `test_coverage_assessment_reproduces_configured_logical_layer` | none | pytest.raises(GridCoverageAssessmentError, match="physical\|configured") | 1 | Accept the configured physical departement layer, then reject the alternate-layer envelope even though it belongs to the same updated GeoPackage. |
+| `test_clean_coverage_api_is_exported` | none | none | 4 | Assert identity and __all__ membership of the two public coverage entry points. |
+| `test_public_coverage_owns_proximity_and_configured_coverage_once` | none | none | 1 | Mock both owned stages and assert one exact proximity call with parcel/source/config plus one exact configured coverage-load call with the same extraction/config; result retains that coverage object. |
+| `test_public_coverage_proximity_failure_stops_coverage_loading` | none | pytest.raises(GridCoverageAssessmentError) | 0 | Raise ValueError from the mocked proximity stage and assert one invocation, controlled wrapping and zero calls to coverage loading. |
+| `test_public_coverage_rejects_generated_parcel_column_before_proximity` | none | pytest.raises(GridCoverageAssessmentError, match="collides.*generated") | 0 | Add a generated coverage column to input parcels and require collision rejection before either mocked stage executes. |
+| `test_caller_provided_proximity_and_coverage_are_not_public_inputs` | none | pytest.raises(<br>            GridCoverageAssessmentError,<br>            match="parcels\|GeoDataFrame",<br>        ) | 2 | Pass internally coherent but caller-forged proximity/coverage objects to the public source-complete API and assert parcel-type rejection before both owned stages; equal lineage text does not authorize supplied intermediate results. |
+| `test_polygonal_coverage_geometry_is_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>        MultiPolygon(<br>            [<br>                Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>                Polygon([(2000, 0), (2000, 100), (2100, 100), (2100, 0), (2000, 0)]),<br>            ]<br>        ),<br>    ],<br>) | none | 1 | Accept Polygon and MultiPolygon coverage fixtures and assert the known 100-metre boundary distance. |
+| `test_invalid_coverage_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "crs", "message"),<br>    [<br>        (<br>            Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)]),<br>            None,<br>            "CRS",<br>        ),<br>        (<br>            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),<br>            "EPSG:4326",<br>            "2154",<br>        ),<br>        (Point(0, 0), "EPSG:2154", "Polygon"),<br>        (LineString([(0, 0), (10, 10)]), "EPSG:2154", "Polygon"),<br>        (None, "EPSG:2154", "null"),<br>        (Polygon(), "EPSG:2154", "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "EPSG:2154",<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(GridCoverageAssessmentError, match=message) | 0 | Reject seven selected missing/wrong CRS, Point/LineString, null, empty and invalid-polygon coverage cases with contextual errors. |
+| `test_strict_geometric_boundary_proof` | pytest.mark.parametrize(<br>    ("asset_distance", "expected_status"),<br>    [<br>        (50.0, "NOT_BOUNDARY_LIMITED"),<br>        (100.0, "BOUNDARY_LIMITED"),<br>        (150.0, "BOUNDARY_LIMITED"),<br>    ],<br>) | none | 6 | For a 100-metre coverage boundary clearance, assert 50 metres is NOT_BOUNDARY_LIMITED while equality at 100 and excess at 150 are BOUNDARY_LIMITED across nearest line, exact line, post and voltage-level evidence. |
+| `test_outside_crossing_or_touching_parcel_is_conservative` | pytest.mark.parametrize(<br>    "parcel_geometry",<br>    [<br>        Polygon([(950, 100), (950, 200), (1050, 200), (1050, 100), (950, 100)]),<br>        Polygon([(0, 100), (0, 200), (100, 200), (100, 100), (0, 100)]),<br>        Polygon([(1100, 100), (1100, 200), (1200, 200), (1200, 100), (1100, 100)]),<br>    ],<br>    ids=["crossing", "touching", "outside"],<br>) | none | 6 | For crossing, boundary-touching and wholly outside parcels, assert zero boundary clearance and OUTSIDE_OR_CROSSING_COVERAGE in all four evidence views. |
+| `test_no_exact_match_uses_explicit_no_match_status` | none | none | 3 | With no exact-voltage line, assert null exact-line distance, NO_MATCH and an empty voltage-level table. |
+| `test_assessment_preserves_proximity_values_and_does_not_mutate_input` | none | none | 2 | Use GeoPandas/Pandas equality helpers to check original frames remain unchanged and original output columns retain their values; explicitly preserve parcel order and parcel/voltage keys. |
+| `test_geographic_parcel_storage_crs_and_geometry_are_preserved` | none | none | 3 | Reproject the synthetic input to EPSG:4326 and assert storage CRS and exact-coordinate geometry equality are preserved while temporary metric calculation still yields about 100 metres. |
+| `test_profile_reports_dynamic_voltage_and_boundary_distributions` | none | none | 11 | Assert one fully covered parcel, 100-metre min/median/max boundary values, line/post status counts and sorted dynamic 110/275-kV status summaries. |
+| `test_proximity_and_coverage_package_lineage_must_match` | none | pytest.raises(GridCoverageAssessmentError, match="lineage") | 0 | Forge the coverage frame archive SHA and require a lineage mismatch error. |
+| `test_coverage_rejects_arbitrary_source_identity` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [("source_provider", "arbitrary"), ("source_product", "roads")],<br>) | pytest.raises(GridCoverageAssessmentError, match="provider\|product\|identity") | 0 | Forge provider or product consistently in envelope/frame and require source-identity rejection. |
+| `test_coverage_summary_selected_count_must_match_frame` | pytest.mark.parametrize("selected_count", [0, 2]) | pytest.raises(GridCoverageAssessmentError, match="selected\|count") | 0 | Forge selected count to zero or two against one physical selected row and require rejection. |
+| `test_coverage_summary_schema_must_match_selected_source_columns` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        GridCoverageAssessmentError, match="summary\|column\|dtype\|schema"<br>    ) | 0 | Reject missing, extra, reordered column declarations and changed dtype summary against the selected raw coverage schema. |
+| `test_coverage_summary_crs_must_match_frame` | none | pytest.raises(GridCoverageAssessmentError, match="CRS\|2154") | 0 | Forge summary CRS while retaining the frame and require a contextual CRS error. |
+| `test_coverage_summary_geometry_facts_are_validated` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("null_geometry_count", 1),<br>        ("empty_geometry_count", 1),<br>        ("invalid_geometry_count", 1),<br>        ("geometry_types", ("Point",)),<br>    ],<br>) | pytest.raises(GridCoverageAssessmentError, match="geometry\|summary") | 0 | Forge null/empty/invalid counts or declared geometry types and require summary/geometry rejection. |
+| `test_coverage_summary_selected_department_must_match` | none | pytest.raises(GridCoverageAssessmentError, match="department") | 0 | Forge selected department identity in the summary and require rejection. |
+| `test_coverage_summary_department_field_must_be_exact` | pytest.mark.parametrize("field", ["", " ", "missing"]) | pytest.raises(GridCoverageAssessmentError, match="department\|field") | 0 | Reject empty, blank and missing department-field names rather than guessing a replacement. |
+| `test_coverage_summary_source_count_cannot_be_smaller_than_selection` | none | pytest.raises(GridCoverageAssessmentError, match="source\|count") | 0 | Forge source count below the selected count and require rejection. |
+| `test_coverage_source_layer_lineage_must_match_summary_and_frame` | none | pytest.raises(GridCoverageAssessmentError, match="layer\|lineage") | 0 | Forge envelope source-layer lineage while retaining summary/frame identity and require rejection. |
+| `test_public_assessment_loads_coverage_from_the_physical_source` | none | none | 1 | Mock only proximity; let the public configured coverage loader read the temporary GeoPackage and assert the physical Haute-Garonne attribute is returned. |
 
 ## 8. Public exports and package ownership
 

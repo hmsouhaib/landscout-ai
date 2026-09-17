@@ -1,6 +1,6 @@
 # LandScout data flow
 
-This document shows the implemented high-level object flow. Exact parameters, frame columns, hashes, and guards are in the source-file companions.
+This document shows implemented library boundaries and conceptual evidence lineage, not an executable repository-wide orchestrator. Exact parameters, frame columns, hashes, and guards are in the source-file companions. Sequential evidence dependencies do not imply that a public function accepts an arbitrary caller-built intermediate result.
 
 ## Cadastre
 
@@ -31,10 +31,14 @@ IgnBdTopoSourceConfig
   -> IgnBdTopoElectricityData
   -> normalize_ign_electricity(source, config)
   -> NormalizedIgnElectricityData
-  -> enrich_parcel_grid_proximity(parcels, source, config)
-  -> GridProximityResult
-  -> assess_grid_coverage(parcels, source, config)
-  -> GridCoverageAssessmentResult
+
+assess_grid_coverage(parcels, source, config)
+  -> enrich_parcel_grid_proximity(parcels, source, config) [one call]
+     -> normalize_ign_electricity(source, config) [one call]
+        -> revalidate_ign_bdtopo_electricity_data [fresh physical source]
+     <- GridProximityResult
+  -> load_ign_bdtopo_department_coverage [same extraction, one call]
+  <- GridCoverageAssessmentResult
 ```
 
 The public proximity function normalizes the verified source exactly once; callers cannot nominate arbitrary normalized line/post frames. IGN revalidation reproduces globally distinct roles from immutable config, reloads the physical layers, and the normalizer derives its output only from the fresh result. The result contains an unchanged parcel copy plus nearest line/post and exact-voltage evidence. Coverage assessment owns one proximity call and one freshly configured department-coverage load from the same extraction, then adds boundary diagnostics. Profiles summarize existing rows without changing them.
@@ -45,16 +49,19 @@ The public proximity function normalizes the verified source exactly once; calle
 IgnBdTopoExtraction + IgnBdTopoSourceConfig
   -> load_ign_bdtopo_roads
   -> IgnBdTopoRoadData
-  -> normalize_ign_roads(source, config)
-  -> NormalizedIgnRoadData
-  -> load_ign_road_vehicle_proxy_policy
-  -> IgnRoadVehicleProxyPolicy
-  -> apply_ign_road_vehicle_proxy_policy
-  -> IgnRoadVehicleProxyApplicationResult
-  -> enrich_parcel_road_proximity
-  -> ParcelRoadProximityResult
-  -> assess_road_proximity_coverage
-  -> RoadProximityCoverageAssessmentResult
+
+assess_road_proximity_coverage [source-bound public API]
+  -> enrich_parcel_road_proximity [one call]
+     -> load_ign_road_vehicle_proxy_policy
+     -> apply_ign_road_vehicle_proxy_policy [one call]
+        -> normalize_ign_roads [one call; fresh physical IGN revalidation]
+        <- NormalizedIgnRoadData
+        -> load_ign_road_vehicle_proxy_policy [reload checked-in/provided bytes]
+        <- IgnRoadVehicleProxyApplicationResult
+     -> compare policy lineage and calculate per-class distances
+     <- ParcelRoadProximityResult
+  -> freshly load configured department coverage and diagnose margins
+  <- RoadProximityCoverageAssessmentResult
 ```
 
 Normalization revalidates configured role and download/extraction lineage, uses the freshly reread road object, and copies raw IGN access/restriction attributes without semantic coercion. Policy application reloads checked-in bytes, classifies each row under exact precedence, and preserves every normalized fact. Proximity builds a separate STRtree for each distance-eligible policy class, retains deterministic ties, and never indexes `NOT_DISTANCE_PROXY`. Coverage diagnosis compares those distances with a freshly loaded configured department boundary and the full parcel-to-boundary margin.
@@ -85,7 +92,7 @@ parcels + planning document
   -> ParcelPlanningFeaturesResult
 ```
 
-The planning document retains a canonical hash of the exact immutable GPU config. Every later physical revalidator verifies that identity, extraction inventory, and globally unique logical-role selection. Both stages source-completely validate normalized inputs by rebuilding from physical GPU layers. Zoning requires and reconstructs every column in the exact `PARCEL_ZONING_OUTPUT_COLUMNS` summary contract. Feature enrichment produces canonical surface/line/point catalogs and factual relation types/metrics.
+The planning document retains a canonical hash of the exact immutable GPU config. Physical revalidators verify that identity, extraction inventory, and globally unique logical-role selection. Do not merge the intersection and validation operations: `intersect_parcels_with_gpu_zoning` validates the loaded in-memory bundle and constructs the overlay; `validate_normalized_planning_zoning_inputs` separately rereads physical GPU layers and reconstructs the complete result. That validator requires and reconstructs every column in `PARCEL_ZONING_OUTPUT_COLUMNS`, including summaries. Feature enrichment produces canonical surface/line/point catalogs and factual relation types/metrics; its builder and independent validator likewise have distinct contracts documented in the paired module.
 
 ## Planning — written regulation
 

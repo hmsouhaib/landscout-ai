@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+- Responsibility: Exercises source-package exports, real temporary gzip/GeoJSON byte-bound loading and pre/post-read mutation rejection, supplemented by explicitly mocked reader-envelope geometry guards and ten malformed download-envelope controls; no network acquisition or real Cadastre cache is used.
 - Source SHA256: `11133b8fec1b86b6fef37300aa005c152cbdc577b02b2354041f57fdd7f3df18`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+Exercises source-package exports, real temporary gzip/GeoJSON byte-bound loading and pre/post-read mutation rejection, supplemented by explicitly mocked reader-envelope geometry guards and ten malformed download-envelope controls; no network acquisition or real Cadastre cache is used.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -185,7 +185,7 @@ def test_public_sources_export_the_source_bound_cadastre_api() -> None:
 
 ### `_write_geojson`
 
-**Purpose:** Implements `write geojson` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+**Purpose:** Write an uncompressed UTF-8 FeatureCollection fixture at the supplied temporary path.
 
 **Exact signature**
 
@@ -249,7 +249,7 @@ def _write_geojson(path: Path, features: list[dict]) -> None:
 
 ### `_write_gzipped_geojson`
 
-**Purpose:** Implements `write gzipped geojson` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+**Purpose:** Serialize a FeatureCollection to UTF-8 bytes, compress in memory and write gzip bytes to the temporary path. gzip.compress performs no filesystem read.
 
 **Exact signature**
 
@@ -307,7 +307,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive read or metadata access | None directly present; gzip.compress operates on in-memory bytes. |
 | Filesystem/archive write or publication | `path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -329,7 +329,7 @@ def _write_gzipped_geojson(path: Path, features: list[dict]) -> None:
 
 ### `_download`
 
-**Purpose:** Implements `download` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+**Purpose:** Construct a synthetic download envelope using the temporary file's actual size/SHA256 or the fallback bytes missing when no file exists, official-shaped commune URL, fixed timestamp, and arbitrary test overrides. It does not execute a download.
 
 **Exact signature**
 
@@ -434,7 +434,7 @@ def _download(path: Path, **changes: object) -> CadastreDownload:
 
 ### `test_load_valid_geojson_preserves_attributes`
 
-**Purpose:** Regression invariant: load valid geojson preserves attributes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Actually read a temporary gzipped Polygon/MultiPolygon FeatureCollection; assert exact source-envelope type, two rows, ordered id/section/numero/geometry columns, both geometry types and present CRS. Not every attribute value is asserted.
 
 **Exact signature**
 
@@ -536,7 +536,7 @@ def test_load_valid_geojson_preserves_attributes(tmp_path: Path) -> None:
 
 ### `test_load_valid_gzipped_geojson`
 
-**Purpose:** Regression invariant: load valid gzipped geojson. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write plain GeoJSON, gzip its actual bytes, run the public byte-verifying loader and assert one row with parcel-1 ID.
 
 **Exact signature**
 
@@ -584,7 +584,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress`<br>`plain_path.read_bytes` |
+| Filesystem/archive read or metadata access | `plain_path.read_bytes`; compression itself is in memory. |
 | Filesystem/archive write or publication | `gzip_path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -625,7 +625,7 @@ def test_load_valid_gzipped_geojson(tmp_path: Path) -> None:
 
 ### `test_empty_dataset_fails`
 
-**Purpose:** Regression invariant: empty dataset fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write a valid gzipped empty FeatureCollection and require EmptyCadastreDatasetError.
 
 **Exact signature**
 
@@ -694,7 +694,7 @@ def test_empty_dataset_fails(tmp_path: Path) -> None:
 
 ### `test_missing_file_fails`
 
-**Purpose:** Regression invariant: missing file fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Supply a synthetic envelope for an absent file and require a controlled existence error.
 
 **Exact signature**
 
@@ -759,7 +759,7 @@ def test_missing_file_fails(tmp_path: Path) -> None:
 
 ### `test_invalid_file_fails`
 
-**Purpose:** Regression invariant: invalid file fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Write valid gzip wrapping invalid GeoJSON text and require CadastreLoadError from the public loader.
 
 **Exact signature**
 
@@ -804,7 +804,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive read or metadata access | None directly present; gzip.compress operates on in-memory bytes. |
 | Filesystem/archive write or publication | `path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -829,7 +829,7 @@ def test_invalid_file_fails(tmp_path: Path) -> None:
 
 ### `test_missing_geometry_column_fails`
 
-**Purpose:** Regression invariant: missing geometry column fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Keep a real gzip fixture but mock gpd.read_file to return a frame without geometry; require MissingGeometryColumnError. This targets the returned-frame contract, not native parser behavior.
 
 **Exact signature**
 
@@ -876,7 +876,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive read or metadata access | None directly present; gzip.compress operates on in-memory bytes. |
 | Filesystem/archive write or publication | `path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -908,7 +908,7 @@ def test_missing_geometry_column_fails(tmp_path: Path) -> None:
 
 ### `test_noncanonical_active_geometry_name_fails_with_controlled_error`
 
-**Purpose:** Regression invariant: noncanonical active geometry name fails with controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Mock the reader to return points under a noncanonical active geometry name and require the canonical-geometry-name guard before geometry-type interpretation.
 
 **Exact signature**
 
@@ -958,7 +958,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive read or metadata access | None directly present; gzip.compress operates on in-memory bytes. |
 | Filesystem/archive write or publication | `path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -996,7 +996,7 @@ def test_noncanonical_active_geometry_name_fails_with_controlled_error(
 
 ### `test_unsupported_geometry_type_fails`
 
-**Purpose:** Regression invariant: unsupported geometry type fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Read a real gzipped Point feature and require UnsupportedGeometryTypeError mentioning Point.
 
 **Exact signature**
 
@@ -1074,7 +1074,7 @@ def test_unsupported_geometry_type_fails(tmp_path: Path) -> None:
 
 ### `test_three_dimensional_cadastre_geometry_is_rejected`
 
-**Purpose:** Regression invariant: three dimensional cadastre geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Read real XYZ Polygon and MultiPolygon fixtures and require the 2D error; these two cases do not exercise XYM.
 
 **Exact signature**
 
@@ -1166,7 +1166,7 @@ def test_three_dimensional_cadastre_geometry_is_rejected(
 
 ### `test_malformed_verified_download_is_rejected_before_parsing`
 
-**Purpose:** Regression invariant: malformed verified download is rejected before parsing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Cross ten wrong hash/size/filename/URL/commune envelope mutations with a parser sentinel that would raise AssertionError if called; require the corresponding controlled pre-parser error.
 
 **Exact signature**
 
@@ -1238,7 +1238,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `OFFICIAL_URL.replace` |
+| Filesystem/archive write or publication | None directly present; OFFICIAL_URL.replace constructs text only. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1272,7 +1272,7 @@ def test_malformed_verified_download_is_rejected_before_parsing(
 
 ### `test_wrong_public_input_type_is_controlled`
 
-**Purpose:** Regression invariant: wrong public input type is controlled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Pass a Path instead of CadastreDownload and require the public input-type error.
 
 **Exact signature**
 
@@ -1335,7 +1335,7 @@ def test_wrong_public_input_type_is_controlled() -> None:
 
 ### `test_physical_mutation_after_download_is_rejected_before_parsing`
 
-**Purpose:** Regression invariant: physical mutation after download is rejected before parsing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** After constructing correct size/SHA metadata, flip the final physical gzip byte; protect the parser with an AssertionError sentinel and require SHA/checksum/gzip rejection before parsing.
 
 **Exact signature**
 
@@ -1423,7 +1423,7 @@ def test_physical_mutation_after_download_is_rejected_before_parsing(
 
 ### `test_physical_change_during_read_is_rejected_by_post_read_verification`
 
-**Purpose:** Regression invariant: physical change during read is rejected by post read verification. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Wrap the real GeoPandas read with a callback that changes archive bytes after it returns; require changed/SHA/size rejection from the loader postcondition.
 
 **Exact signature**
 
@@ -1522,7 +1522,7 @@ def test_physical_change_during_read_is_rejected_by_post_read_verification(
 
 ### `test_physical_change_during_read_is_rejected_by_post_read_verification.mutate_after_read`
 
-**Purpose:** Implements `mutate after read` within the file role: Provides complete unit and regression coverage for the `cadastre_loader_fr` contracts exercised in this file.
+**Purpose:** Call the captured real GeoPandas reader, overwrite the closed-over archive path with different compressed bytes, then return the previously read frame.
 
 **Exact signature**
 
@@ -1565,7 +1565,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gzip.compress` |
+| Filesystem/archive read or metadata access | `original_read` invokes the captured real GeoPandas file reader; gzip.compress itself is in memory. |
 | Filesystem/archive write or publication | `path.write_bytes` |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -1588,7 +1588,7 @@ def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 
 ### `test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread`
 
-**Purpose:** Regression invariant: supplied cadastre frame mutation is rejected by fresh reread. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Purpose:** Load a real temporary archive, mutate the retained frame's id to FORGED, and require fresh-reread mismatch on source revalidation.
 
 **Exact signature**
 
@@ -1677,6 +1677,10 @@ def test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread(
 
 ## 7. Test-specific regression contract
 
+Exercises source-package exports, real temporary gzip/GeoJSON byte-bound loading and pre/post-read mutation rejection, supplemented by explicitly mocked reader-envelope geometry guards and ten malformed download-envelope controls; no network acquisition or real Cadastre cache is used.
+
+The 15 test definitions expand statically to 25 cases; no test run is claimed by this audit. gzip.compress is an in-memory codec, string replace is non-I/O, and temporary file access through fixture helpers/public loaders is delegated I/O.
+
 - Test functions: **15**.
 - Pytest fixtures (decorator-proven): **0**.
 
@@ -1684,21 +1688,21 @@ def test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_public_sources_export_the_source_bound_cadastre_api` | none | none | 5 | Proves public sources export the source bound cadastre api using the exact source reproduced in section 7. |
-| `test_load_valid_geojson_preserves_attributes` | none | none | 5 | Proves load valid geojson preserves attributes using the exact source reproduced in section 7. |
-| `test_load_valid_gzipped_geojson` | none | none | 2 | Proves load valid gzipped geojson using the exact source reproduced in section 7. |
-| `test_empty_dataset_fails` | none | pytest.raises(EmptyCadastreDatasetError) | 0 | Proves empty dataset fails using the exact source reproduced in section 7. |
-| `test_missing_file_fails` | none | pytest.raises(CadastreLoadError, match="exist") | 0 | Proves missing file fails using the exact source reproduced in section 7. |
-| `test_invalid_file_fails` | none | pytest.raises(CadastreLoadError) | 0 | Proves invalid file fails using the exact source reproduced in section 7. |
-| `test_missing_geometry_column_fails` | none | pytest.raises(MissingGeometryColumnError) | 0 | Proves missing geometry column fails using the exact source reproduced in section 7. |
-| `test_noncanonical_active_geometry_name_fails_with_controlled_error` | none | pytest.raises(MissingGeometryColumnError, match="canonical geometry") | 0 | Proves noncanonical active geometry name fails with controlled error using the exact source reproduced in section 7. |
-| `test_unsupported_geometry_type_fails` | none | pytest.raises(UnsupportedGeometryTypeError, match="Point") | 0 | Proves unsupported geometry type fails using the exact source reproduced in section 7. |
-| `test_three_dimensional_cadastre_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        {<br>            "type": "Polygon",<br>            "coordinates": [[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]],<br>        },<br>        {<br>            "type": "MultiPolygon",<br>            "coordinates": [[[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]]],<br>        },<br>    ],<br>) | pytest.raises(UnsupportedGeometryTypeError, match="2D") | 0 | Proves three dimensional cadastre geometry is rejected using the exact source reproduced in section 7. |
-| `test_malformed_verified_download_is_rejected_before_parsing` | pytest.mark.parametrize(<br>    ("changes", "message"),<br>    [<br>        ({"sha256": "0" * 64}, "SHA\|checksum"),<br>        ({"sha256": "A" * 64}, "SHA"),<br>        ({"sha256": "a" * 63}, "SHA"),<br>        ({"file_size": True}, "size"),<br>        ({"file_size": 0}, "size"),<br>        ({"filename": "other.json.gz"}, "filename"),<br>        ({"source_url": ""}, "URL"),<br>        ({"source_url": OFFICIAL_URL.replace("https://", "http://")}, "URL"),<br>        (<br>            {"source_url": OFFICIAL_URL.replace("cadastre.data.gouv.fr", "evil.test")},<br>            "URL",<br>        ),<br>        ({"commune_code": "31446"}, "URL\|commune"),<br>    ],<br>) | pytest.raises(CadastreLoadError, match=message) | 0 | Proves malformed verified download is rejected before parsing using the exact source reproduced in section 7. |
-| `test_wrong_public_input_type_is_controlled` | none | pytest.raises(CadastreLoadError, match="CadastreDownload") | 0 | Proves wrong public input type is controlled using the exact source reproduced in section 7. |
-| `test_physical_mutation_after_download_is_rejected_before_parsing` | none | pytest.raises(CadastreLoadError, match="SHA\|checksum\|gzip") | 0 | Proves physical mutation after download is rejected before parsing using the exact source reproduced in section 7. |
-| `test_physical_change_during_read_is_rejected_by_post_read_verification` | none | pytest.raises(CadastreLoadError, match="changed\|SHA\|size") | 0 | Proves physical change during read is rejected by post read verification using the exact source reproduced in section 7. |
-| `test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` | none | pytest.raises(CadastreLoadError, match="freshly read") | 0 | Proves supplied cadastre frame mutation is rejected by fresh reread using the exact source reproduced in section 7. |
+| `test_public_sources_export_the_source_bound_cadastre_api` | none | none | 5 | Assert class/loader/revalidator object identity across source package exports, the loader module's exact seven-name __all__, and inclusion of those names in source-package __all__. |
+| `test_load_valid_geojson_preserves_attributes` | none | none | 5 | Actually read a temporary gzipped Polygon/MultiPolygon FeatureCollection; assert exact source-envelope type, two rows, ordered id/section/numero/geometry columns, both geometry types and present CRS. Not every attribute value is asserted. |
+| `test_load_valid_gzipped_geojson` | none | none | 2 | Write plain GeoJSON, gzip its actual bytes, run the public byte-verifying loader and assert one row with parcel-1 ID. |
+| `test_empty_dataset_fails` | none | pytest.raises(EmptyCadastreDatasetError) | 0 | Write a valid gzipped empty FeatureCollection and require EmptyCadastreDatasetError. |
+| `test_missing_file_fails` | none | pytest.raises(CadastreLoadError, match="exist") | 0 | Supply a synthetic envelope for an absent file and require a controlled existence error. |
+| `test_invalid_file_fails` | none | pytest.raises(CadastreLoadError) | 0 | Write valid gzip wrapping invalid GeoJSON text and require CadastreLoadError from the public loader. |
+| `test_missing_geometry_column_fails` | none | pytest.raises(MissingGeometryColumnError) | 0 | Keep a real gzip fixture but mock gpd.read_file to return a frame without geometry; require MissingGeometryColumnError. This targets the returned-frame contract, not native parser behavior. |
+| `test_noncanonical_active_geometry_name_fails_with_controlled_error` | none | pytest.raises(MissingGeometryColumnError, match="canonical geometry") | 0 | Mock the reader to return points under a noncanonical active geometry name and require the canonical-geometry-name guard before geometry-type interpretation. |
+| `test_unsupported_geometry_type_fails` | none | pytest.raises(UnsupportedGeometryTypeError, match="Point") | 0 | Read a real gzipped Point feature and require UnsupportedGeometryTypeError mentioning Point. |
+| `test_three_dimensional_cadastre_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        {<br>            "type": "Polygon",<br>            "coordinates": [[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]],<br>        },<br>        {<br>            "type": "MultiPolygon",<br>            "coordinates": [[[[1, 43, 1], [2, 43, 1], [2, 44, 1], [1, 43, 1]]]],<br>        },<br>    ],<br>) | pytest.raises(UnsupportedGeometryTypeError, match="2D") | 0 | Read real XYZ Polygon and MultiPolygon fixtures and require the 2D error; these two cases do not exercise XYM. |
+| `test_malformed_verified_download_is_rejected_before_parsing` | pytest.mark.parametrize(<br>    ("changes", "message"),<br>    [<br>        ({"sha256": "0" * 64}, "SHA\|checksum"),<br>        ({"sha256": "A" * 64}, "SHA"),<br>        ({"sha256": "a" * 63}, "SHA"),<br>        ({"file_size": True}, "size"),<br>        ({"file_size": 0}, "size"),<br>        ({"filename": "other.json.gz"}, "filename"),<br>        ({"source_url": ""}, "URL"),<br>        ({"source_url": OFFICIAL_URL.replace("https://", "http://")}, "URL"),<br>        (<br>            {"source_url": OFFICIAL_URL.replace("cadastre.data.gouv.fr", "evil.test")},<br>            "URL",<br>        ),<br>        ({"commune_code": "31446"}, "URL\|commune"),<br>    ],<br>) | pytest.raises(CadastreLoadError, match=message) | 0 | Cross ten wrong hash/size/filename/URL/commune envelope mutations with a parser sentinel that would raise AssertionError if called; require the corresponding controlled pre-parser error. |
+| `test_wrong_public_input_type_is_controlled` | none | pytest.raises(CadastreLoadError, match="CadastreDownload") | 0 | Pass a Path instead of CadastreDownload and require the public input-type error. |
+| `test_physical_mutation_after_download_is_rejected_before_parsing` | none | pytest.raises(CadastreLoadError, match="SHA\|checksum\|gzip") | 0 | After constructing correct size/SHA metadata, flip the final physical gzip byte; protect the parser with an AssertionError sentinel and require SHA/checksum/gzip rejection before parsing. |
+| `test_physical_change_during_read_is_rejected_by_post_read_verification` | none | pytest.raises(CadastreLoadError, match="changed\|SHA\|size") | 0 | Wrap the real GeoPandas read with a callback that changes archive bytes after it returns; require changed/SHA/size rejection from the loader postcondition. |
+| `test_supplied_cadastre_frame_mutation_is_rejected_by_fresh_reread` | none | pytest.raises(CadastreLoadError, match="freshly read") | 0 | Load a real temporary archive, mutate the retained frame's id to FORGED, and require fresh-reread mismatch on source revalidation. |
 
 ## 8. Public exports and package ownership
 

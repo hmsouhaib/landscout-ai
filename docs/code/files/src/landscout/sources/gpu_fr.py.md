@@ -328,7 +328,7 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ### `GpuApiConfig`
 
-**Source purpose:** Defines `GpuApiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** The `base_url` is the required parsed HTTP URL used to build every GPU API endpoint; its validator restricts it to the exact official HTTPS /api origin/path. `model_config` forbids unknown fields and field reassignment. It has no mutable collections.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -375,7 +375,7 @@ class GpuApiConfig(BaseModel):
 
 ### `GpuDownloadConfig`
 
-**Source purpose:** Defines `GpuDownloadConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `strategy` is the required closed partition-based acquisition mode; `partition_template` is the required human-authored template for deriving one partition from a commune code. `model_config` forbids extra fields/reassignment. The NonEmptyString annotation strips surrounding whitespace before the template validator; the template is not a filesystem destination.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -421,7 +421,7 @@ class GpuDownloadConfig(BaseModel):
 
 ### `GpuCacheConfig`
 
-**Source purpose:** Defines `GpuCacheConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `max_age_hours` is the required finite nonnegative cache lifetime in hours (not a retrieval timestamp or source publication age); its before-validator accepts only exact built-in numbers. `model_config` forbids extra fields/reassignment. Zero is valid and makes only a zero-age cache eligible.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -463,7 +463,7 @@ class GpuCacheConfig(BaseModel):
 
 ### `GpuPilotConfig`
 
-**Source purpose:** Defines `GpuPilotConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `commune_code` is the required five-digit commune identity after StringConstraints whitespace stripping. URL builders may accept an explicit override, but download/inspection identity checks require this configured pilot. `model_config` forbids extra fields/reassignment.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -492,7 +492,7 @@ class GpuPilotConfig(BaseModel):
 
 ### `GpuLogicalLayerConfig`
 
-**Source purpose:** Defines `GpuLogicalLayerConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `class_label` is a required descriptive nonempty label retained in full config identity; layer discovery matches `match_tokens`, not this label. `match_tokens` is a nonempty ordered immutable tuple of whitespace-stripped strings, unique and nonempty after matching-key normalization. `model_config` forbids extra fields/reassignment. No token is a CNIG code interpretation.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -533,7 +533,7 @@ class GpuLogicalLayerConfig(BaseModel):
 
 ### `GpuSpatialLayersConfig`
 
-**Source purpose:** Defines `GpuSpatialLayersConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** Each of `zoning`, `prescription_surface`, `prescription_line`, `prescription_point`, `information_surface`, `information_line` and `information_point` is a required immutable logical-role configuration. Required configuration does not imply a required physical layer: discovery requires zoning and permits zero or one layer for each of the other six roles. `model_config` forbids extra fields/reassignment.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -574,7 +574,7 @@ class GpuSpatialLayersConfig(BaseModel):
 
 ### `GpuSourceConfig`
 
-**Source purpose:** Strict configuration for official French GPU ingestion.
+**Source purpose and field meanings:** `provider` and `portal` must both be the exact `Géoportail de l'Urbanisme` literal; `country` is FR. Required nested `api`, `download`, `cache`, `pilot` and `spatial_layers` carry endpoint, partition, expiry, commune and role contracts. All their runtime collections are tuples and all nested models are frozen; `model_config` also rejects extra fields. Public boundaries reconstruct supplied model contents rather than trusting freezing alone.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -1328,7 +1328,7 @@ class GpuSpatialInspectionError(GpuError):
 
 ### `GpuWrittenFile`
 
-**Source purpose:** Defines `GpuWrittenFile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `filename` identifies one entry from the API files list. Nullable `title` and `document_path` retain descriptive API text, not a validated local file location. Nullable-by-annotation `source_url` is populated by discovery with the exact quoted official file endpoint and is required to equal that endpoint at the download boundary. The frozen dataclass itself does not validate constructor field values.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1439,7 +1439,7 @@ class GpuWrittenFile:
 
 ### `GpuDocumentMetadata`
 
-**Source purpose:** Defines `GpuDocumentMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `provider`/`portal` identify the configured producer; `commune_code`/`partition` bind the requested commune and derived API partition; `document_id` is the API document identity. `document_family` is assigned DU, while `document_type` must match listing/details (it is not hardcoded PLU). `status`, `legal_status` and `effective_status` retain production/APPROVED/EN_VIGUEUR source state, not parcel permission. `archive_name` is the producer's original name; `source_url` is the constructed partition-download URL. Nullable `document_title`, `version`, `publication_timestamp`, `update_timestamp`, `revision_date`, `producer`, `standard_model`, `projection` and `metadata_identifier` preserve optional metadata strings; dates/projection are not parsed into a legal timeline or spatial CRS here. `written_files` is the deterministic immutable file-reference tuple. None of these constructor annotations alone performs validation.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1634,7 +1634,7 @@ class GpuDocumentMetadata:
 
 ### `GpuArchiveDownload`
 
-**Source purpose:** Defines `GpuArchiveDownload`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `document` retains the selected frozen metadata; `download_timestamp` is the local UTC acquisition time as ISO text, used for cache age. `filename` is the validated local ZIP basename, `archive_format` is zip, `file_size` is the archive byte count and `sha256` hashes those complete bytes. `path` is the local archive location; `cache_hit` records reuse, not weaker validation. The frozen envelope does not freeze disk bytes: extraction and initial inspection check them against this evidence.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1822,7 +1822,7 @@ class GpuArchiveDownload:
 
 ### `GpuExtractedFile`
 
-**Source purpose:** Defines `GpuExtractedFile`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `relative_path` is a contained POSIX-style file location relative to extraction root; `file_type` is the lowercase suffix without dot (or none), `size_bytes` is its actual byte size, `sha256` hashes the full file and `category` is the suffix-based attachment class. These are immutable inventory records, not environmental/planning classifications. Empty regular files may be inventoried, although spatial-family validation later requires positive size.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1972,7 +1972,7 @@ class GpuExtractedFile:
 
 ### `GpuExtraction`
 
-**Source purpose:** Defines `GpuExtraction`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `archive` retains the immutable download lineage; `extraction_root` is the physical cache directory. `files` is the complete sorted immutable regular-file inventory excluding the root manifest; `standard_models` contains unique XML texts matching the CNIG model pattern; `cache_hit` indicates verified tree reuse. Paths remain present, disk content remains mutable, and downstream boundaries must revalidate it.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2138,7 +2138,7 @@ class GpuExtraction:
 
 ### `GpuSpatialLayerReference`
 
-**Source purpose:** Defines `GpuSpatialLayerReference`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `dataset_path` locates the physical GPKG/Shapefile, `source_layer` names the actual GPKG layer or Shapefile stem, and `driver` distinguishes GPKG from ESRI Shapefile. It is a frozen reference, not a loaded frame or proof that the referenced bytes are unchanged.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2277,7 +2277,7 @@ class GpuSpatialLayerReference:
 
 ### `GpuLayerSummary`
 
-**Source purpose:** Defines `GpuLayerSummary`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `source_document_id`, `source_archive_sha256` and `source_layer` retain lineage; `crs` is descriptive authority/string text or UNKNOWN. `feature_count` counts all rows. `columns` preserves ordered string labels; `dtypes` and `null_counts` preserve ordered (column, dtype/count) pairs including geometry. `geometry_types` is a name-sorted count of every non-null geometry (including empties); `null_geometry_count`, `empty_geometry_count` and `invalid_geometry_count` separately count null, non-null empty, and nonempty invalid rows. These counts are factual quality evidence without repair or suitability interpretation.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2420,7 +2420,7 @@ class GpuLayerSummary:
 
 ### `GpuInspectedLayer`
 
-**Source purpose:** Defines `GpuInspectedLayer`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `logical_name` is the configured role, `reference` the physical source reference, `data` the loaded GeoDataFrame and `summary` its immutable factual summary. The frozen dataclass prevents field reassignment but does not make `data` deeply immutable; source-bound consumers compare its values/row order/WKB against a fresh physical reread.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2573,7 +2573,7 @@ class GpuInspectedLayer:
 
 ### `GpuSpatialSourceFileIntegrity`
 
-**Source purpose:** One verified physical member of an extracted GPU spatial dataset.
+**Source purpose and field meanings:** `relative_path`, `file_type`, `size_bytes`, `sha256` and `category` are copied from each spatial dataset's verified extraction record after containment, positive-size and SHA equality checks. The tuple of these records binds a GPKG file or the full recognized Shapefile family; the values are not feature attributes and have no scoring meaning.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2643,7 +2643,7 @@ class GpuSpatialSourceFileIntegrity:
 
 ### `GpuValidatedSpatialLayerSource`
 
-**Source purpose:** Freshly reloaded GPU layer plus its extraction-inventory evidence.
+**Source purpose and field meanings:** `logical_name`, `source_layer` and `driver` preserve role/physical identity; `dataset_relative_path` is portable within the extraction root. `source_crs` and `feature_count` come from the fresh summary; `files` binds the verified physical family. `ogr_fids` is the tuple of unique nonnegative built-in integer OGR IDs in physical read order, not sorted/contiguous or inferred from the reset row index. `data` is the fresh mutable GeoDataFrame with reset index, unchanged factual rows and geometry; freezing the record is not freezing that frame.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2735,7 +2735,7 @@ class GpuValidatedSpatialLayerSource:
 
 ### `GpuPlanningDocument`
 
-**Source purpose:** Defines `GpuPlanningDocument`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose and field meanings:** `source_config` is reconstructed immutable config and `source_config_sha256` its canonical validated-value identity. `extraction` retains archive/tree lineage. `all_spatial_layers` is the full physical reference inventory, including layers not selected by a logical role; `zoning` is the required inspected layer and `related_layers` the ordered tuple of present optional roles. Frozen records wrap mutable GeoDataFrames; complete physical inventory and selected rows are revalidated by public spatial-source boundaries.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2964,7 +2964,7 @@ class GpuPlanningDocument:
 
 ### `GpuApiConfig._official_api`
 
-**Purpose:** Implements `official api` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** After Pydantic URL parsing, require HTTPS, the exact GPU hostname, no credentials, only the default/443 port, and the /api path (trailing slashes are ignored for this comparison); reject params, query and fragment. Return the parsed HttpUrl unchanged. This is an origin check, not DNS or network I/O; Pydantic invokes the field validator during reconstruction.
 
 **Exact signature**
 
@@ -3044,7 +3044,7 @@ def _official_api(cls, value: HttpUrl) -> HttpUrl:
 
 ### `GpuDownloadConfig._valid_partition_template`
 
-**Purpose:** Implements `valid partition template` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Validate the already whitespace-stripped NonEmptyString: require exactly one literal {code_insee}, render a trial value 31395, reject malformed formatting and any slash/backslash in the rendered component, then return the template unchanged. This is a partition formatter, not the ZIP filename validator.
 
 **Exact signature**
 
@@ -3123,7 +3123,7 @@ def _valid_partition_template(cls, value: str) -> str:
 
 ### `GpuCacheConfig._strict_finite_number`
 
-**Purpose:** Implements `strict finite number` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Before Pydantic numeric conversion, accept only exact built-in int or float values, excluding bool, subclasses and nonfinite values. Return that number; the field subsequently enforces nonnegative hours and stores float. Hours are converted to seconds by the cache-age check.
 
 **Exact signature**
 
@@ -3199,7 +3199,7 @@ def _strict_finite_number(cls, value: object) -> object:
 
 ### `GpuLogicalLayerConfig._unique_tokens`
 
-**Purpose:** Implements `unique tokens` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Normalize each already validated token with _normalize_words; reject an empty normalized token or duplicates after normalization. Return the original ordered tuple, not the normalized tuple. This validates matching keys without rewriting the human-authored values.
 
 **Exact signature**
 
@@ -3274,7 +3274,7 @@ def _unique_tokens(cls, values: tuple[str, ...]) -> tuple[str, ...]:
 
 ### `_normalize_words`
 
-**Purpose:** Implements `normalize words` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** NFKD-decompose text, remove combining marks, casefold it, keep ASCII alphanumeric runs and join them with underscores. This key is used for layer-name token matching only; it does not change factual attributes or establish CNIG meaning. Type/Unicode errors are not translated here.
 
 **Exact signature**
 
@@ -3347,7 +3347,7 @@ def _normalize_words(value: str) -> str:
 
 ### `load_gpu_source_config`
 
-**Purpose:** Load and validate the strict GPU source configuration.
+**Purpose and ordered behavior:** Require the supplied Path to be a file, read its bytes with strict YAML parsing, require an exact dict root, and validate the deeply immutable GpuSourceConfig. Read/parse/model failures inside the try block become GpuConfigError; the initial path.is_file call is outside it. The loader performs no network request.
 
 **Exact signature**
 
@@ -3557,7 +3557,7 @@ def load_gpu_source_config(path: Path = DEFAULT_CONFIG_PATH) -> GpuSourceConfig:
 
 ### `_validated_source_config`
 
-**Purpose:** Implements `validated source config` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require the exact GpuSourceConfig runtime class, dump its supplied contents to Python values, then reconstruct through model_validate so stale/model_construct/model_copy contents face all current validators. Attribute, type, value and Pydantic validation failures become GpuConfigError. Return a newly validated config, not the caller's object.
 
 **Exact signature**
 
@@ -3646,7 +3646,7 @@ def _validated_source_config(config: object) -> GpuSourceConfig:
 
 ### `_source_config_sha256`
 
-**Purpose:** Return the private canonical identity of one validated GPU config.
+**Purpose and ordered behavior:** Reconstruct the config, serialize a JSON object containing domain=landscout.gpu.source_config and its mode=json model dump, using UTF-8, sorted keys, compact separators, Unicode preservation and allow_nan=False, then compute SHA256. This is canonical validated-value identity, not the YAML-byte hash; ordered match tokens retain their order.
 
 **Exact signature**
 
@@ -3739,7 +3739,7 @@ def _source_config_sha256(config: object) -> str:
 
 ### `build_gpu_partition`
 
-**Purpose:** Implements `build gpu partition` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reconstruct the config, choose commune_code or the configured pilot (so an empty string also uses the pilot), require five ASCII digits, then format the validated partition template. Return a string without I/O. This URL-building helper can name another explicit commune; the later download boundary requires the configured pilot.
 
 **Exact signature**
 
@@ -3889,7 +3889,7 @@ def build_gpu_partition(
 
 ### `_api_url`
 
-**Purpose:** Implements `api url` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Join a slash-normalized API base to the supplied path after removing its leading slashes, using urllib.parse.urljoin. Return the URL string without validation or I/O. Its private callers supply validated config and fixed endpoint prefixes; this helper alone is not a safe-network boundary.
 
 **Exact signature**
 
@@ -3963,7 +3963,7 @@ def _api_url(config: GpuSourceConfig, path: str) -> str:
 
 ### `build_gpu_document_list_url`
 
-**Purpose:** Implements `build gpu document list url` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reconstruct config, build the partition, encode partition/page=0/limit=100 as a query, and append it to the official document endpoint. Return the first-page listing URL; this helper does not paginate or request it.
 
 **Exact signature**
 
@@ -4095,7 +4095,7 @@ def build_gpu_document_list_url(
 
 ### `build_gpu_partition_download_url`
 
-**Purpose:** Implements `build gpu partition download url` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reconstruct config, build the partition, percent-encode it with no safe characters, and join it to document/download-by-partition/. Return the URL without I/O; download subsequently validates its equality to this configured identity.
 
 **Exact signature**
 
@@ -4239,7 +4239,7 @@ def build_gpu_partition_download_url(
 
 ### `_request_json`
 
-**Purpose:** Implements `request json` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Open the URL through common.safe_http.open_safe_https with JSON Accept and LandScout User-Agent headers and the caller's timeout, read the response fully, and parse strict JSON. HTTPError, URLError, OSError and StrictJsonError become GpuDiscoveryError. Network safety is delegated to that qualified helper, not implemented by the JSON parser.
 
 **Exact signature**
 
@@ -4314,7 +4314,7 @@ def _request_json(url: str, timeout: float) -> Any:
 
 ### `_required_string`
 
-**Purpose:** Implements `required string` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Read payload[key] via get; require a string with at least one non-whitespace character and return the original value. It does not strip or reject edge whitespace itself. Missing, null, non-string or blank data raises GpuDiscoveryError using label.
 
 **Exact signature**
 
@@ -4387,7 +4387,7 @@ def _required_string(payload: dict[str, Any], key: str, label: str) -> str:
 
 ### `_optional_string`
 
-**Purpose:** Implements `optional string` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Try keys in the caller's order, skipping None; each encountered value must be str, int or float and not bool. Convert it to text and return the first nonblank result unchanged, or None. This is descriptive metadata handling, not date parsing, URL validation or finite-number validation.
 
 **Exact signature**
 
@@ -4467,7 +4467,7 @@ def _optional_string(payload: dict[str, Any], *keys: str) -> str | None:
 
 ### `_written_files`
 
-**Purpose:** Implements `written files` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require a list of mapping entries and unique exact filenames. Build each expected official file URL from separately quoted document ID and filename; any supplied writingMaterials URL for that filename must equal it exactly. Copy optional title/path fields, retain the constructed URL, and return a casefold-filename-sorted tuple of frozen records. No PDF is opened or interpreted.
 
 **Exact signature**
 
@@ -4589,7 +4589,7 @@ def _written_files(
 
 ### `discover_current_gpu_document`
 
-**Purpose:** Resolve exactly one official production, approved and in-force DU.
+**Purpose and ordered behavior:** Reconstruct config, request the first partition listing, select exactly one mapping matching commune, partition and production/APPROVED/EN_VIGUEUR state, then fetch its details and files. Verify details retain the selected ID, original archive name, state, commune, partition and document type, and require the exact official archive URL. Return frozen descriptive metadata and validated written-file URL records; the source family is DU, without interpreting legal permission or forcing document_type to a literal PLU.
 
 **Exact signature**
 
@@ -4882,7 +4882,7 @@ def discover_current_gpu_document(
 
 ### `_safe_gpu_archive_filename`
 
-**Purpose:** Implements `safe gpu archive filename` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Validate a nonblank edge-trimmed string against controls and NFKC Windows/POSIX basename hazards, then accept zero or one case-insensitive .zip suffix. Reject a second suffix, unsafe/reserved logical stem and a normalized result longer than 255 UTF-16 code units. Return the original logical basename plus canonical .zip. NFKC is used for safety comparisons, not wholesale source-name normalization; no file is read or written.
 
 **Exact signature**
 
@@ -4908,7 +4908,7 @@ def _safe_gpu_archive_filename(archive_name: object) -> str:
   - `GpuDownloadError("GPU archive name is empty or has edge whitespace")` under lexical guard `not archive_name or archive_name != archive_name.strip()`.
   - `GpuDownloadError("GPU archive name contains control characters")` under lexical guard `any(ord(character) < 32 or ord(character) == 127 for character in archive_name)`.
   - `GpuDownloadError("GPU archive name is not a safe local basename")` under lexical guard `normalized in {".", ".."}<br>        or "/" in normalized<br>        or "\\" in normalized<br>        or PurePosixPath(normalized).is_absolute()<br>        or PureWindowsPath(normalized).is_absolute()<br>        or bool(PureWindowsPath(normalized).drive)<br>        or normalized.endswith((" ", "."))<br>        or any(character in '<>:"/\\\|?*' for character in normalized)`.
-  - `GpuDownloadError("GPU archive name contains repeated .zip suffixes")` under lexical guard `normalized.casefold().endswith(".zip")`.
+  - `GpuDownloadError("GPU archive name contains repeated .zip suffixes")` when the already suffix-stripped `normalized_basename.casefold().endswith(".zip")` is still true.
   - `GpuDownloadError("GPU archive name has no safe logical basename")` under lexical guard `not basename<br>        or normalized_basename in {".", ".."}<br>        or normalized_basename.endswith((" ", "."))`.
   - `GpuDownloadError("GPU archive name is reserved on Windows")` under lexical guard `windows_stem in _WINDOWS_RESERVED_BASENAMES`.
   - `GpuDownloadError("GPU archive filename exceeds Windows component limits")` under lexical guard `len(unicodedata.normalize("NFKC", filename).encode("utf-16-le")) // 2 > 255`.
@@ -5017,7 +5017,7 @@ def _safe_gpu_archive_filename(archive_name: object) -> str:
 
 ### `_validate_gpu_document_for_config`
 
-**Purpose:** Implements `validate gpu document for config` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require the exact metadata and written-file record types and immutable file tuple; verify provider/portal, canonical ID/filenames, exact official per-file URLs and unique filenames. Require pilot commune and derived partition, DU family, canonical nonempty type, current approved/in-force state, and the exact official partition URL. Return the safe local ZIP basename. This validates supplied lineage against config without an API refresh or archive-byte read.
 
 **Exact signature**
 
@@ -5208,7 +5208,7 @@ def _validate_gpu_document_for_config(
 
 ### `_sha256`
 
-**Purpose:** Implements `sha256` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Open the Path in binary read mode, update hashlib.sha256 with successive DOWNLOAD_CHUNK_SIZE blocks, and return the lowercase hexadecimal digest. This reads actual file bytes; it neither validates ZIP structure nor compares an expected digest and does not translate I/O failures.
 
 **Exact signature**
 
@@ -5289,7 +5289,7 @@ def _sha256(path: Path) -> str:
 
 ### `_is_link_or_junction`
 
-**Purpose:** Implements `is link or junction` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Query Path.is_symlink and, if needed, Path.is_junction, returning their logical OR. This performs filesystem metadata checks, does not resolve containment or validate a regular file, and makes no filesystem change.
 
 **Exact signature**
 
@@ -5353,7 +5353,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `path.is_symlink()` and `path.is_junction()` metadata queries. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -5374,7 +5374,7 @@ def _is_link_or_junction(path: Path) -> bool:
 
 ### `_validate_gpu_archive_download`
 
-**Purpose:** Implements `validate gpu archive download` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require exact download/document envelope types, a non-link regular Path, zip format, matching safe local filename, exact positive integer size and lowercase digest format. Recompute current size/SHA against the retained download evidence, then run complete ZIP validation and return its destination inventory. It does not re-fetch metadata or independently bind document identity to a source config.
 
 **Exact signature**
 
@@ -5500,7 +5500,7 @@ def _validate_gpu_archive_download(
 
 ### `_safe_archive_member`
 
-**Purpose:** Implements `safe archive member` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reject empty/NUL names, absolute POSIX or Windows paths, Windows drives and any parent-traversal component after interpreting backslashes as separators. Return a bool; string replacement is purely lexical. Dot/redundant separators and Windows component collisions are handled separately by _validated_zip_destinations, not by this preliminary check.
 
 **Exact signature**
 
@@ -5550,7 +5550,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `name.replace` |
+| Filesystem/archive write or publication | None. `name.replace` creates a new string, not a filesystem replacement. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -5579,7 +5579,7 @@ def _safe_archive_member(name: str) -> bool:
 
 ### `_windows_member_component`
 
-**Purpose:** Implements `windows member component` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** NFKC-normalize one ZIP path component for comparison, reject empty/dot/parent, trailing dot/space, controls, Windows-forbidden characters and reserved device stems, then return its casefold key. The key detects cross-platform collisions; the extracted spelling is retained separately.
 
 **Exact signature**
 
@@ -5662,7 +5662,7 @@ def _windows_member_component(component: str) -> str:
 
 ### `_validated_zip_destinations`
 
-**Purpose:** Implements `validated zip destinations` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Walk ZIP entries in archive order; reject duplicate raw names, traversal, symbolic links and Unix special types. Normalize separators/dot components, form Windows-compatible NFKC/casefold collision keys, reserve the extraction manifest name, and track explicit paths plus implicit parent directories to reject file/directory conflicts. Return immutable pairs of the original ZipInfo and normalized relative destination. No extraction or filesystem publication occurs here.
 
 **Exact signature**
 
@@ -5694,8 +5694,8 @@ def _validated_zip_destinations(
   - `GpuArchiveError("GPU ZIP member collides with extraction manifest")` under lexical guard `canonical[0] == EXTRACTION_MANIFEST_NAME.casefold()`.
   - `GpuArchiveError(<br>                "GPU ZIP members collide at one Windows-compatible destination: "<br>                f"{previous} / {raw_name}"<br>            )` under lexical guard `canonical in explicit_destinations`.
   - `GpuArchiveError(<br>                f"GPU ZIP file/directory destination collision: {raw_name}"<br>            )` under lexical guard `any(parent in file_destinations for parent in parents)`.
-  - `GpuArchiveError(<br>                    f"GPU ZIP file/directory destination collision: {raw_name}"<br>                )` under lexical guard `is_directory`.
-  - `GpuArchiveError(<br>                    f"GPU ZIP file/directory destination collision: {raw_name}"<br>                )` under lexical guard `is_directory`.
+  - `GpuArchiveError(<br>                    f"GPU ZIP file/directory destination collision: {raw_name}"<br>                )` when `is_directory` and `canonical in file_destinations`.
+  - `GpuArchiveError(<br>                    f"GPU ZIP file/directory destination collision: {raw_name}"<br>                )` when `not is_directory` and `canonical in directory_destinations`.
 
 **Qualified relationships**
 
@@ -5736,8 +5736,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `member.is_dir` |
-| Filesystem/archive write or publication | `raw_name.replace` |
+| Filesystem/archive read or metadata access | `member.is_dir()` examines an already loaded ZipInfo filename; no filesystem read occurs here. |
+| Filesystem/archive write or publication | None. `raw_name.replace` is lexical string replacement. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -5823,7 +5823,7 @@ def _validated_zip_destinations(
 
 ### `validate_gpu_archive`
 
-**Purpose:** Fully validate a ZIP archive and return its deterministic member inventory.
+**Purpose and ordered behavior:** Require an existing nonempty file and readable ZIP, at least one member, collision-safe destinations, and a successful full archive.testzip CRC read. Return destination strings sorted case-insensitively. OSError/BadZipFile/RuntimeError inside the try block are controlled as GpuArchiveError; initial file/stat checks precede that block. No extraction, hash comparison or source-config validation is performed.
 
 **Exact signature**
 
@@ -5991,7 +5991,7 @@ def validate_gpu_archive(path: Path) -> tuple[str, ...]:
 
 ### `_document_identity`
 
-**Purpose:** Implements `document identity` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Use dataclasses.asdict to create a detached mutable serialization dict of the document, replacing written_files with a list of record dicts for the cache JSON. This temporary payload is not a loaded trust model, does not mutate the input and computes no hash.
 
 **Exact signature**
 
@@ -6055,7 +6055,7 @@ def _document_identity(document: GpuDocumentMetadata) -> dict[str, Any]:
 
 ### `_document_from_dict`
 
-**Purpose:** Implements `document from dict` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Copy a mapping payload, remove its required written_files list, construct each dictionary entry as GpuWrittenFile and return GpuDocumentMetadata with a tuple. Dataclass constructors check their argument names, not annotated field values; cache reuse additionally requires equality with the already validated supplied document. Errors are handled by _load_cached_archive.
 
 **Exact signature**
 
@@ -6138,7 +6138,7 @@ def _document_from_dict(payload: Any) -> GpuDocumentMetadata:
 
 ### `_replace_file`
 
-**Purpose:** Implements `replace file` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Call Path.replace to move source over target and return None. This is the actual filesystem publication primitive used by cache-pair replacement/rollback and a narrow fault-injection seam; it does not make the two-file operation atomic by itself.
 
 **Exact signature**
 
@@ -6200,7 +6200,7 @@ def _replace_file(source: Path, target: Path) -> None:
 
 ### `_cache_recovery_paths`
 
-**Purpose:** Implements `cache recovery paths` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Derive an archive backup and metadata backup by appending .bak to each existing suffix. Return the two Paths without filesystem I/O, removal or recovery.
 
 **Exact signature**
 
@@ -6275,7 +6275,7 @@ def _cache_recovery_paths(
 
 ### `_require_no_cache_recovery_material`
 
-**Purpose:** Implements `require no cache recovery material` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Check both derived .bak paths for existence or link/junction state, rejecting any with GpuDownloadError requiring manual recovery. It runs before cache reuse and publication, preserves recovery material and makes no network request.
 
 **Exact signature**
 
@@ -6354,7 +6354,7 @@ def _require_no_cache_recovery_material(
 
 ### `_prepare_temporary_cache_file`
 
-**Purpose:** Implements `prepare temporary cache file` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reject link/junction temporary paths; if a temporary path already exists, require a regular file and unlink only that file. Convert OSError to GpuDownloadError. This prepares absence for subsequent exclusive creation, without writing archive content.
 
 **Exact signature**
 
@@ -6376,7 +6376,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `GpuDownloadError("GPU cache temporary path is a link or junction")` under lexical guard `_is_link_or_junction(path)`.
-  - `GpuDownloadError("GPU cache temporary path is not a regular file")` under lexical guard `path.exists()`.
+  - `GpuDownloadError("GPU cache temporary path is not a regular file")` when `path.exists()` and `not path.is_file()` (links/junctions have already been rejected).
   - `re-raise`.
   - `GpuDownloadError(<br>            "GPU cache temporary path cannot be prepared safely"<br>        )`.
 
@@ -6435,7 +6435,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 ### `_cleanup_temporary_cache_files`
 
-**Purpose:** Implements `cleanup temporary cache files` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Attempt missing-ok unlink for every temporary Path, retaining the first OSError while continuing cleanup. Raise a controlled cleanup error only if no primary exception is already active; otherwise preserve that primary failure. It never cleans .bak recovery paths.
 
 **Exact signature**
 
@@ -6514,7 +6514,7 @@ def _cleanup_temporary_cache_files(
 
 ### `_publish_cache_pair`
 
-**Purpose:** Implements `publish cache pair` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require absent backups, copy any existing regular archive/metadata to separate .bak files, then replace the archive followed by metadata. On OSError restore each pre-existing target or remove a newly introduced target; if rollback also fails raise GpuDownloadError and preserve recovery material. Successful publication or successful rollback removes backups. This is a rollback-managed pair, not one atomic filesystem transaction.
 
 **Exact signature**
 
@@ -6577,8 +6577,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `archive_path.is_file`<br>`metadata_path.is_file` |
-| Filesystem/archive write or publication | `archive_backup.unlink`<br>`metadata_backup.unlink`<br>`archive_path.unlink`<br>`metadata_path.unlink` |
+| Filesystem/archive read or metadata access | `archive_path.is_file`, `metadata_path.is_file`; `copy2` reads any previous cache files for backups. |
+| Filesystem/archive write or publication | `copy2` writes backups; `_replace_file` delegates Path.replace publication/rollback; explicit unlink calls remove successful backups or newly introduced targets. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -6644,7 +6644,7 @@ def _publish_cache_pair(
 
 ### `_load_cached_archive`
 
-**Purpose:** Implements `load cached archive` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require both local files, parse strict JSON and reconstruct document metadata, require a timezone-aware download timestamp, then verify ZIP inventory, current byte hash/size, nonnegative unexpired age, exact document equality, filename/format and exact integer size/member count. Return a cache-hit record or None for invalid/stale/caught malformed data. No DNS/HTTP occurs here; no final immutable-open-file snapshot is claimed.
 
 **Exact signature**
 
@@ -6783,7 +6783,7 @@ def _load_cached_archive(
 
 ### `download_gpu_document`
 
-**Purpose:** Download and transactionally cache one discovered official GPU ZIP.
+**Purpose and ordered behavior:** Reconstruct config and validate document identity before cache I/O; reject recovery backups before considering a fully verified local hit. Otherwise prepare exclusive .part files, stream safe HTTPS into the archive, validate/hash it, write sorted metadata JSON, and publish the rollback-managed pair. Return lineage with the canonical archive path and clean temporary paths in finally while preserving a primary error. A valid cache hit returns before network and temporary-file creation.
 
 **Exact signature**
 
@@ -6942,8 +6942,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | `open_safe_https` |
-| Filesystem/archive read or metadata access | `temporary_archive.open`<br>`temporary_archive.stat`<br>`temporary_metadata.open` |
-| Filesystem/archive write or publication | `cache_dir.mkdir`<br>`copyfileobj` |
+| Filesystem/archive read or metadata access | `temporary_archive.stat`; verified cache/ZIP/hash reads are delegated to the named helpers. |
+| Filesystem/archive write or publication | `cache_dir.mkdir`, exclusive `temporary_archive.open("xb")`/`temporary_metadata.open("x")`, `copyfileobj`, `output.write`; publication and cleanup use the named helpers. |
 | Hashing/byte identity | `_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -7037,7 +7037,7 @@ def download_gpu_document(
 
 ### `_classify_file`
 
-**Purpose:** Implements `classify file` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Classify only the casefold filename suffix into spatial data, descriptive metadata, written-regulation attachment or other attachment. The explicit suffix sets below are exhaustive for this helper. No content sniffing, document selection, category meaning or filesystem read occurs.
 
 **Exact signature**
 
@@ -7120,7 +7120,7 @@ def _classify_file(path: Path) -> FileCategory:
 
 ### `_inventory`
 
-**Purpose:** Implements `inventory` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require a regular non-link root, scan every descendant for links/junctions/special entries, then hash and size each contained regular file except the root manifest. Build extension-based category records, reject an empty package, sort by exact relative POSIX path and return a tuple. No source features are loaded or geometry altered.
 
 **Exact signature**
 
@@ -7242,7 +7242,7 @@ def _inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
 
 ### `_manifest_payload`
 
-**Purpose:** Implements `manifest payload` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Create a new mutable JSON-ready payload with schema version 2, the retained archive SHA, and ordered relative_path/size_bytes/sha256 records. File type/category are deliberately absent because _inventory derives them. It neither reads files nor hashes or validates the supplied inputs.
 
 **Exact signature**
 
@@ -7318,7 +7318,7 @@ def _manifest_payload(
 
 ### `_validate_extraction_manifest`
 
-**Purpose:** Implements `validate extraction manifest` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require a safe regular marker, strict JSON, exact top-level/entry keys, exact integer schema 2 and nonnegative file sizes, expected archive digest, lowercase per-file digests and strictly increasing safe paths. Independently inventory/hash the extraction and compare the full ordered path/size/hash list. Return freshly inventoried records; it proves tree-to-manifest equality, not extracted-member equality against a newly opened ZIP.
 
 **Exact signature**
 
@@ -7471,7 +7471,7 @@ def _validate_extraction_manifest(
 
 ### `_remove_extraction_path`
 
-**Purpose:** Implements `remove extraction path` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Remove a junction itself with rmdir, a symlink or file with missing-ok unlink, or an existing remaining directory tree with shutil.rmtree. This destructive private helper assumes its caller selected the intended temporary/recovery target; it does not derive or validate cache containment itself.
 
 **Exact signature**
 
@@ -7519,8 +7519,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.is_file`<br>`path.exists` |
-| Filesystem/archive write or publication | `path.rmdir`<br>`path.unlink` |
+| Filesystem/archive read or metadata access | `path.is_junction`, `path.is_symlink`, `path.is_file`, `path.exists`. |
+| Filesystem/archive write or publication | `path.rmdir`, `path.unlink`, `shutil.rmtree` (recursive directory removal). |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -7545,7 +7545,7 @@ def _remove_extraction_path(path: Path) -> None:
 
 ### `_cleanup_temporary_extraction_directory`
 
-**Purpose:** Implements `cleanup temporary extraction directory` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Delegate removal of the designated temporary root; translate an OSError to GpuArchiveError only when no primary exception exists. If a primary failure is active, cleanup cannot replace it. This helper does not choose or delete recovery backups.
 
 **Exact signature**
 
@@ -7622,7 +7622,7 @@ def _cleanup_temporary_extraction_directory(
 
 ### `_require_no_extraction_recovery_material`
 
-**Purpose:** Implements `require no extraction recovery material` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Derive root.name plus .bak and reject an existing or linked/junction backup with GpuArchiveError. The backup is preserved for manual recovery; no cache content is changed.
 
 **Exact signature**
 
@@ -7693,7 +7693,7 @@ def _require_no_extraction_recovery_material(root: Path) -> None:
 
 ### `_prepare_temporary_extraction_directory`
 
-**Purpose:** Implements `prepare temporary extraction directory` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Reject a link/junction or any pre-existing temporary directory/path without removing it, then create the new directory. OSError becomes GpuArchiveError. Unlike temporary download files, stale extraction directories always require manual recovery.
 
 **Exact signature**
 
@@ -7774,7 +7774,7 @@ def _prepare_temporary_extraction_directory(path: Path) -> None:
 
 ### `_publish_extraction_directory`
 
-**Purpose:** Implements `publish extraction directory` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require no recovery backup, move any old root to .bak, then move the temporary root into place. If publication fails, remove its partial destination and restore the old root; report a distinct double-failure error if rollback fails, leaving recovery material. On success remove the backup. These are filesystem moves/removals with rollback, not a simultaneous atomic multi-path operation.
 
 **Exact signature**
 
@@ -7796,7 +7796,7 @@ def _publish_extraction_directory(temporary_root: Path, root: Path) -> None:
 
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
-  - `GpuArchiveError(<br>                "GPU extraction backup publication failed before replacement"<br>            )` under lexical guard `root.exists() or _is_link_or_junction(root)`.
+  - `GpuArchiveError(<br>                "GPU extraction backup publication failed before replacement"<br>            )` on OSError while moving an existing/linked root to its backup, before replacement starts.
   - `GpuArchiveError(<br>                "GPU extraction publication and rollback both failed"<br>            )`.
   - `GpuArchiveError("GPU extraction publication failed")`.
 
@@ -7826,7 +7826,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `root.exists` |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `shutil.move` backs up/publishes/restores directories; `_remove_extraction_path` delegates failed-target or successful-backup removal. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -7870,7 +7870,7 @@ def _publish_extraction_directory(temporary_root: Path, root: Path) -> None:
 
 ### `_discover_standard_models`
 
-**Purpose:** Implements `discover standard models` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Scan lowercase *.xml paths, ignore unreadable or malformed XML, and collect stripped element texts matching the case-insensitive CNIG + alphabetic model + vYYYY pattern. Return exact unique strings sorted case-insensitively. This is descriptive XML evidence, not CNIG profile validation; unparseable files contribute no match.
 
 **Exact signature**
 
@@ -7921,7 +7921,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `root.rglob("*.xml")` and `ElementTree.parse(path)` read the directory inventory and XML files. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -7952,7 +7952,7 @@ def _discover_standard_models(root: Path) -> tuple[str, ...]:
 
 ### `extract_gpu_document`
 
-**Purpose:** Safely extract a validated GPU ZIP into a content-addressed cache.
+**Purpose and ordered behavior:** Validate retained archive bytes/ZIP before cache access; choose cache_dir/x plus the first 16 digest characters and reject recovery backups. Reuse a valid manifest/tree offline, or exclusively create a new .part directory, extract validated destinations, inventory the result and revalidate archive lineage. Exclusively write and verify manifest 2, discover XML model texts, publish with rollback and clean the temporary path. No geometry is normalized or repaired.
 
 **Exact signature**
 
@@ -8121,8 +8121,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `root.is_dir`<br>`zipfile.ZipFile`<br>`member.is_dir`<br>`archive.open`<br>`target.open`<br>`marker.open` |
-| Filesystem/archive write or publication | `root.parent.mkdir`<br>`target.mkdir`<br>`target.parent.mkdir`<br>`copyfileobj` |
+| Filesystem/archive read or metadata access | `root.is_dir`, `zipfile.ZipFile`, `archive.infolist`, `archive.open`; archive/hash/manifest/XML reads also occur in named helpers. `member.is_dir` examines in-memory ZipInfo metadata. |
+| Filesystem/archive write or publication | Directory creation, exclusive `target.open("xb")`/`marker.open("x")`, `copyfileobj`, `output.write`; transactional publication/cleanup are delegated. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -8201,7 +8201,7 @@ def extract_gpu_document(
 
 ### `discover_gpu_spatial_layers`
 
-**Purpose:** Discover every real GeoPackage or Shapefile layer in an extraction.
+**Purpose and ordered behavior:** Scan the extraction tree for *.gpkg and *.shp. List every GeoPackage layer through Pyogrio and use each Shapefile stem as its layer; reject no supported references or duplicate resolved-path/layer identities. Return deterministic path/layer order. It reads filesystem and GPKG metadata, but its public call alone does not validate the extraction/config envelope or read feature rows.
 
 **Exact signature**
 
@@ -8316,7 +8316,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `root.rglob`, `pyogrio.list_layers`, `item.dataset_path.resolve`. No feature rows are read. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -8366,7 +8366,7 @@ def discover_gpu_spatial_layers(
 
 ### `_layer_config`
 
-**Purpose:** Implements `layer config` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Return the named attribute of config.spatial_layers. This private lookup trusts a known logical role; Literal annotations do not validate arbitrary runtime values and getattr errors are not translated here.
 
 **Exact signature**
 
@@ -8433,7 +8433,7 @@ def _layer_config(
 
 ### `_discover_logical_layer`
 
-**Purpose:** Implements `discover logical layer` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Normalize configured tokens and each physical layer name; match any token bounded by underscores, not arbitrary substring similarity. Required roles demand exactly one match; optional roles return None for zero and reject multiple matches. Return the original reference without loading it or interpreting its feature attributes.
 
 **Exact signature**
 
@@ -8531,7 +8531,7 @@ def _discover_logical_layer(
 
 ### `_configured_logical_references`
 
-**Purpose:** Implements `configured logical references` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require an exact tuple of exact reference records, resolve the seven logical roles in their declared order (zoning required, six related roles optional), and reject reuse of one resolved dataset/layer for two roles. Return ordered role/reference pairs. Path resolution accesses the filesystem; this does not read the layer rows.
 
 **Exact signature**
 
@@ -8588,7 +8588,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `reference.dataset_path.resolve()` checks physical path resolution for role uniqueness. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -8636,7 +8636,7 @@ def _configured_logical_references(
 
 ### `_validate_gpu_extraction_for_config`
 
-**Purpose:** Implements `validate gpu extraction for config` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Before initial inspection, require exact extraction/archive/document types, validate document-to-config identity and immutable archive bytes, verify root and complete manifest inventory, compare retained files and freshly scanned standard-model texts, then validate the archive again. Translate failures to GpuSpatialInspectionError. This path performs physical archive/tree reads but no feature loading.
 
 **Exact signature**
 
@@ -8755,7 +8755,7 @@ def _validate_gpu_extraction_for_config(
 
 ### `_validate_gpu_planning_document_config_identity`
 
-**Purpose:** Implements `validate gpu planning document config identity` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require the exact planning envelope and extraction/archive types; reconstruct and hash the retained config, validate document identity, verify the complete extraction manifest/tree, rediscover all physical layer references, and rebuild the exact ordered unique logical-role assignment. Reject omitted/extra/changed references or inspected-role records and return config. This helper does not call _validate_gpu_archive_download or rescan standard_models; do not equate it with initial extraction validation.
 
 **Exact signature**
 
@@ -8911,7 +8911,7 @@ def _validate_gpu_planning_document_config_identity(
 
 ### `_load_reference`
 
-**Purpose:** Implements `load reference` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Read the referenced dataset through GeoPandas using the Pyogrio engine, passing an explicit layer only for driver GPKG; return its GeoDataFrame. Translate any exception to GpuSpatialInspectionError. No reprojection, repair or filtering is requested; source-authority checks belong to callers.
 
 **Exact signature**
 
@@ -8985,7 +8985,7 @@ def _load_reference(reference: GpuSpatialLayerReference) -> gpd.GeoDataFrame:
 
 ### `_validated_inventory_path`
 
-**Purpose:** Implements `validated inventory path` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require a nonempty edge-trimmed string, reject backslash/NUL, absolute POSIX paths, empty/dot/parent components and any PurePosixPath spelling change, then return that path. This lexical helper accepts str subclasses and is not the Windows ZIP component validator or a filesystem containment check.
 
 **Exact signature**
 
@@ -9075,7 +9075,7 @@ def _validated_inventory_path(value: object) -> PurePosixPath:
 
 ### `_validated_spatial_root`
 
-**Purpose:** Implements `validated spatial root` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require extraction_root to be a Path, non-link/junction and an existing directory; return both the supplied root and its strict resolved form. Convert OSError to GpuSpatialInspectionError. This establishes the reference root for later containment checks without enumerating or hashing its files.
 
 **Exact signature**
 
@@ -9127,7 +9127,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `root.is_dir` |
+| Filesystem/archive read or metadata access | `root.is_dir`, `root.resolve(strict=True)` and delegated link/junction checks. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -9164,7 +9164,7 @@ def _validated_spatial_root(extraction: GpuExtraction) -> tuple[Path, Path]:
 
 ### `_spatial_inventory`
 
-**Purpose:** Implements `spatial inventory` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require an exact tuple of GpuExtractedFile instances, validate their relative paths and reject casefold duplicate keys. Return a new mutable dict mapping path to the existing frozen record. This builds a lookup only; size/hash validity and physical reads occur in _spatial_source_family.
 
 **Exact signature**
 
@@ -9253,7 +9253,7 @@ def _spatial_inventory(
 
 ### `_contained_spatial_path`
 
-**Purpose:** Implements `contained spatial path` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Validate the relative path, join it under the supplied root, reject links/junctions at every descendant component, resolve strictly and require containment in root_resolved plus a regular file. Return the joined Path, translating filesystem/containment failures. It does not read file content or validate its digest.
 
 **Exact signature**
 
@@ -9310,7 +9310,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.is_file` |
+| Filesystem/archive read or metadata access | `path.is_file`, strict `path.resolve` and delegated link/junction checks for every path component. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -9357,7 +9357,7 @@ def _contained_spatial_path(
 
 ### `_spatial_dataset_relative_path`
 
-**Purpose:** Implements `spatial dataset relative path` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require a non-link dataset Path, resolve it strictly inside the already resolved root, and validate/return its relative POSIX spelling. Translate filesystem/containment failures; file existence/type and family byte evidence are further checked by _spatial_source_family.
 
 **Exact signature**
 
@@ -9412,7 +9412,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | Strict `path.resolve` and delegated link/junction checks. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -9447,7 +9447,7 @@ def _spatial_dataset_relative_path(
 
 ### `_spatial_source_family`
 
-**Purpose:** Implements `spatial source family` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** For GPKG require .gpkg, no existing SQLite -wal/-shm/-journal sidecars and exactly one exposed requested layer; bind the one inventory file. For Shapefile require matching .shp stem/layer, inventory all recognized same-stem members in the same directory, require .shp/.shx/.dbf and exact equality with physical siblings. Reject unsupported drivers; verify every selected member is contained, positive-sized and equal to its inventory SHA/size. Return relative dataset path and sorted physical-file/evidence pairs.
 
 **Exact signature**
 
@@ -9473,15 +9473,15 @@ def _spatial_source_family(
 - Exact observed return expressions:
   - `relative, tuple(verified)`
 - Explicit raise paths:
-  - `GpuSpatialInspectionError(<br>                "GPU GeoPackage source has an inconsistent extension"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                    "GPU GeoPackage has an unbound SQLite sidecar"<br>                )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "Cannot list the verified GPU GeoPackage source"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "GPU GeoPackage source layer is missing or ambiguous"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "GPU Shapefile source identity is inconsistent"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "GPU Shapefile inventory is missing a required family member"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "GPU Shapefile family cannot be inventoried safely"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>                "GPU Shapefile family differs from the extraction inventory"<br>            )` under lexical guard `driver == "GPKG"`.
-  - `GpuSpatialInspectionError(<br>            "GPU spatial source driver must be GPKG or ESRI Shapefile"<br>        )` under lexical guard `driver == "GPKG"`.
+  - `GpuSpatialInspectionError(<br>                "GPU GeoPackage source has an inconsistent extension"<br>            )` when driver is GPKG but the suffix is not .gpkg.
+  - `GpuSpatialInspectionError(<br>                    "GPU GeoPackage has an unbound SQLite sidecar"<br>                )` when driver is GPKG and a -wal, -shm or -journal sidecar exists.
+  - `GpuSpatialInspectionError(<br>                "Cannot list the verified GPU GeoPackage source"<br>            )` when Pyogrio layer listing raises in the GPKG branch.
+  - `GpuSpatialInspectionError(<br>                "GPU GeoPackage source layer is missing or ambiguous"<br>            )` when driver is GPKG and the requested layer occurs other than exactly once.
+  - `GpuSpatialInspectionError(<br>                "GPU Shapefile source identity is inconsistent"<br>            )` when driver is ESRI Shapefile and the suffix/stem identity is inconsistent.
+  - `GpuSpatialInspectionError(<br>                "GPU Shapefile inventory is missing a required family member"<br>            )` when the Shapefile inventory lacks .shp, .shx or .dbf.
+  - `GpuSpatialInspectionError(<br>                "GPU Shapefile family cannot be inventoried safely"<br>            )` when Shapefile sibling enumeration/resolution raises OSError or ValueError.
+  - `GpuSpatialInspectionError(<br>                "GPU Shapefile family differs from the extraction inventory"<br>            )` when physical Shapefile sibling paths differ from the retained family inventory.
+  - `GpuSpatialInspectionError(<br>            "GPU spatial source driver must be GPKG or ESRI Shapefile"<br>        )` when driver is neither GPKG nor ESRI Shapefile.
   - `GpuSpatialInspectionError(<br>                "GPU spatial source is absent from the extraction inventory"<br>            )` under lexical guard `item is None`.
   - `GpuSpatialInspectionError(<br>                "GPU spatial source inventory integrity is invalid"<br>            )` under lexical guard `type(item.size_bytes) is not int<br>            or item.size_bytes <= 0<br>            or not isinstance(item.sha256, str)<br>            or re.fullmatch(r"[0-9a-f]{64}", item.sha256) is None`.
   - `GpuSpatialInspectionError(<br>                "Cannot read GPU spatial source integrity"<br>            )`.
@@ -9536,7 +9536,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `Path(f"{reference.dataset_path}{suffix}").exists`<br>`parent.iterdir`<br>`path.stat` |
+| Filesystem/archive read or metadata access | SQLite sidecar existence checks, `pyogrio.list_layers`, `parent.iterdir`, strict path resolution and `path.stat`; named helpers also verify containment and read hashes. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | `_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -9677,7 +9677,7 @@ def _spatial_source_family(
 
 ### `_same_spatial_crs`
 
-**Purpose:** Implements `same spatial crs` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Parse both values with PyProj and return CRS.equals using its default axis-order-sensitive comparison. Translate any parse/comparison exception to GpuSpatialInspectionError. This compares CRS metadata only and does not transform coordinates.
 
 **Exact signature**
 
@@ -9726,7 +9726,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | PyProj CRS parsing and equals comparison only; no coordinate transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -9749,7 +9749,7 @@ def _same_spatial_crs(left: object, right: object) -> bool:
 
 ### `_compare_inspected_spatial_layer`
 
-**Purpose:** Implements `compare inspected spatial layer` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Compare retained and reread GeoDataFrames for row count, ordered columns/dtypes, active geometry, CRS equivalence and attrs. Compare attribute rows after resetting indexes and compare ordered WKB lists exactly. Thus retained index labels are deliberately not compared, but row order, values and geometry bytes are. Raise controlled mismatch errors without modifying either frame.
 
 **Exact signature**
 
@@ -9888,7 +9888,7 @@ def _compare_inspected_spatial_layer(
 
 ### `_revalidate_gpu_spatial_layer_source`
 
-**Purpose:** Verify and freshly reload one extracted GPU spatial-layer source.
+**Purpose and ordered behavior:** Require exact envelope/layer types, object-identity membership in the planning document and exactly one matching physical reference. Optionally verify complete config/manifest inventory, bind/hash the spatial family, read every row with Pyogrio FIDs, require unique nonnegative non-bool integral IDs, convert IDs to int and reset only the returned frame index. Compare retained data and summary, then recheck the physical family and file bytes before returning fresh data and immutable file/FID evidence. No row filtering, geometry repair or reprojection occurs.
 
 **Exact signature**
 
@@ -9964,7 +9964,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `path.stat` |
+| Filesystem/archive read or metadata access | `pyogrio.read_dataframe(..., fid_as_index=True)` reads complete physical rows; `path.stat` and delegated family/hash checks bind the bytes before and after. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | `_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -10087,7 +10087,7 @@ def _revalidate_gpu_spatial_layer_source(
 
 ### `revalidate_gpu_spatial_layer_source`
 
-**Purpose:** Verify and freshly reload one extracted GPU spatial-layer source.
+**Purpose and ordered behavior:** Invoke the private single-layer validator with verify_extraction_manifest=True, so one public call performs complete document-config/tree identity checks before the selected physical layer reread. Return its fresh source-bound record and propagate controlled spatial inspection failures.
 
 **Exact signature**
 
@@ -10207,7 +10207,7 @@ def revalidate_gpu_spatial_layer_source(
 
 ### `_revalidate_gpu_spatial_layer_sources`
 
-**Purpose:** Implements `revalidate gpu spatial layer sources` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Validate complete planning-document config/tree identity once, then require an exact inspected-layer tuple without duplicate logical names. Revalidate each selected layer in supplied order with per-layer manifest repetition disabled. An empty tuple still performs the global check and returns empty; this helper does not itself demand selection of every logical role.
 
 **Exact signature**
 
@@ -10306,7 +10306,7 @@ def _revalidate_gpu_spatial_layer_sources(
 
 ### `revalidate_gpu_spatial_layer_sources`
 
-**Purpose:** Verify an ordered collection of extracted GPU spatial-layer sources.
+**Purpose and ordered behavior:** Wrap the ordered batch validator, preserving GpuSpatialInspectionError and translating every other Exception into the batch controlled error. Return the immutable tuple of fresh records. Physical completeness of the requested role set is a caller responsibility, distinct from the globally verified document inventory.
 
 **Exact signature**
 
@@ -10439,7 +10439,7 @@ def revalidate_gpu_spatial_layer_sources(
 
 ### `_crs_text`
 
-**Purpose:** Implements `crs text` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Return UNKNOWN for absent CRS; otherwise use PyProj's authority pair if available or the CRS's own string representation. This descriptive conversion makes no EPSG:2154 requirement and performs no reprojection; malformed CRS errors are not translated in this helper.
 
 **Exact signature**
 
@@ -10486,7 +10486,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | PyProj CRS parsing, to_authority and descriptive to_string only; no reprojection. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -10507,7 +10507,7 @@ def _crs_text(frame: gpd.GeoDataFrame) -> str:
 
 ### `_summarize_layer`
 
-**Purpose:** Implements `summarize layer` within the file role: Discovers and verifies GPU config identity, document/archive/extraction recovery, globally unique spatial roles, written files, and provenance.
+**Purpose and ordered behavior:** Require an active geometry column, compute row count, ordered column/dtype/null-count tuples and sorted non-null geometry-type counts, then count null, non-null empty and nonempty invalid geometries separately. Include the extraction's document/archive lineage and descriptive CRS. Empty and invalid geometries are reported, not repaired or discarded; non-null type counts include empties.
 
 **Exact signature**
 
@@ -10576,7 +10576,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `geometry.notna`<br>`geometry[non_null]<br>        .geom_type.value_counts()<br>        .sort_index()<br>        .items`<br>`geometry[non_null]<br>        .geom_type.value_counts()<br>        .sort_index`<br>`geometry[non_null]<br>        .geom_type.value_counts`<br>`(non_null & geometry.is_empty).sum` |
+| CRS/geometry/spatial calculation | `geometry.is_empty`, `geometry.is_valid`, `geometry.geom_type` and factual counts; no repair, overlay or reprojection. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -10630,7 +10630,7 @@ def _summarize_layer(
 
 ### `inspect_gpu_planning_document`
 
-**Purpose:** Discover and inspect zoning/prescription layers without interpretation.
+**Purpose and ordered behavior:** Reconstruct config and physically validate extraction/archive first, discover all references and resolve unique configured roles, then load and summarize zoning and each present related role once. Return frozen lineage/config/reference records around mutable GeoDataFrames; later trust boundaries still reread physical sources. This is factual inspection, not spatial overlay or legal interpretation.
 
 **Exact signature**
 
@@ -10832,7 +10832,7 @@ def inspect_gpu_planning_document(
 
 ### `ingest_gpu_planning_document`
 
-**Purpose:** High-level official GPU discovery, acquisition, extraction and inspection.
+**Purpose and ordered behavior:** Sequentially discover current metadata, download or reuse the verified archive, extract or reuse its manifest-verified tree, and inspect configured layers. Pass cache_dir and timeout to the relevant stages, returning the planning document. Discovery still uses network even when later caches hit; no single all-offline guarantee applies to this orchestrator.
 
 **Exact signature**
 
@@ -10943,7 +10943,7 @@ def ingest_gpu_planning_document(
 
 ### `finite_numeric_vocabulary`
 
-**Purpose:** Return deterministic raw value counts for inspection-only reporting.
+**Purpose and ordered behavior:** For an existing non-geometry column, call value_counts(dropna=False), label Python float NaN/None as <NULL> and stringify other values, then return label-sorted count pairs. Despite its name, it neither requires numeric nor finite values and does not merge distinct raw groups after stringification. This is inspection reporting, not a lossless typed profile or field interpretation.
 
 **Exact signature**
 

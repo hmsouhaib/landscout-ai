@@ -15,7 +15,7 @@ flowchart TD
     Archive --> Extract[Transactional verified extraction]
     Extract --> Layer[Configured physical layer selection]
     Layer --> Frame[Fresh physical frame and summary]
-    Frame --> Result[Immutable source object]
+    Frame --> Result[Frozen envelope; frames may remain mutable]
     Result --> Revalidate[Source-complete consumer revalidation]
 ```
 
@@ -23,7 +23,7 @@ flowchart TD
 
 Trust-bearing YAML is decoded through the shared SafeLoader-based parser, which rejects duplicate keys at every mapping depth. Trust-bearing JSON is decoded as strict UTF-8 and rejects duplicate object keys, non-finite numbers, float overflow, malformed text, and non-object top-level values where a model/manifest requires an object. Pydantic validation still owns each source-specific schema after parsing.
 
-Decision-input configuration, profile, and policy models are frozen. Nested mappings and collections are converted to immutable forms where freezing a Pydantic shell would otherwise leave mutable state. Public source boundaries reconstruct and validate exact models from canonical dumps before using their authority; a caller-mutated or forged model copy cannot become source identity merely because it has the expected class.
+Decision-input configuration, profile, and policy models are frozen. Nested mappings and collections are converted to immutable forms where freezing a Pydantic shell would otherwise leave mutable state. Canonical immutable JSON rejects unsupported mutable/non-canonical leaves rather than retaining them. This is different from a frozen result dataclass containing Pandas/GeoPandas frames: freezing that envelope does not make its frames immutable. Public source boundaries reconstruct and validate exact models from canonical dumps before using their authority; a caller-mutated or forged model copy cannot become source identity merely because it has the expected class. The exact checks belong to each named boundary, not every function accepting a result object.
 
 ## Shared HTTPS boundary
 
@@ -51,7 +51,8 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - Cached bytes must match the strict sidecar schema, freshness rule, official commune/source identity, physical size/SHA, and valid gzip structure.
 - `load_cadastre_parcels` returns `CadastreParcelSource`, retaining the exact validated `CadastreDownload` beside the parsed GeoDataFrame.
 - `revalidate_cadastre_parcel_source` revalidates official download identity and current bytes, rereads the gzip, exact-compares columns/dtypes/index/CRS/active geometry/non-geometry values/WKB/contractual attrs, and returns the fresh frame.
-- `normalize_cadastre_parcels` derives from that fresh frame, accepts only 2D Polygon/MultiPolygon source geometry, and rejects generated-column collisions. Downstream parcel consumers share a canonical validator that recomputes VALID areas in EPSG:2154 and requires INVALID areas to remain null.
+- `normalize_cadastre_parcels` derives from that fresh frame, checks Polygon/MultiPolygon families and rejects Z-bearing geometry and generated-column collisions. The intended contract is exactly 2D; the current dimensional guard checks `has_z`, not `has_m`. Downstream parcel consumers share a canonical validator that recomputes VALID areas in EPSG:2154 and requires INVALID areas to remain null. Its statuses are exactly VALID/INVALID; null and empty geometry are not extra status strings.
+- Open application finding `A-001`: the shared intrinsic canonical validator accepts a valid XYM polygon with a coherent projected area. This is an in-memory boundary reproduction, not proof that the official GeoJSON acquisition path supplies measured geometry. The intended 2D contract is not weakened by documenting the gap; a separate corrective ticket is required. See [BACKLOG_AND_GAPS.md](../project/BACKLOG_AND_GAPS.md#application-findings).
 
 ## RTE / ODRÉ
 
@@ -60,6 +61,7 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - Metadata and GeoJSON export URLs are built from the configured dataset ID.
 - Download validates JSON structure, geometry coordinate finiteness/shape recursively, export counts, physical size/SHA, metadata result fields, and cache sidecar.
 - The adapter preserves source metadata precision: unavailable metadata values remain unavailable rather than being fabricated.
+- Open application finding `A-002`: a list or dict in a malformed GeoJSON geometry's `type` reaches an unhashable set-membership operation in `_validate_geojson_geometry` and leaks `TypeError`. The reproduction invokes the pure validation helper with in-memory input; it does not exercise the network/cache workflow. This exception-contract gap remains unmodified in this documentation ticket.
 
 ## IGN BD TOPO
 
@@ -81,7 +83,7 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - ZIP validation rejects traversal, absolute paths, normalized/case collisions, Windows reserved/forbidden names, symlinks/special files, duplicate destinations, file-directory conflicts, and marker collisions before extraction.
 - Extraction inventory binds every regular file's relative path, size, SHA, category, and archive identity; publication is transactional, `.bak` recovery material fails closed, and temporary archive/metadata/extraction paths are link/junction-safe.
 - Spatial inspection identifies actual layers and summaries, enforces global uniqueness across every populated logical role, then `GpuValidatedSpatialLayerSource` binds each source file/layer to physical file integrity. Source-complete revalidation freshly rediscovers the complete physical layer inventory and exact-compares it with `GpuPlanningDocument.all_spatial_layers`, so a coordinated in-memory omission cannot narrow the authoritative package.
-- `GpuPlanningDocument` retains the validated source config plus its deterministic canonical SHA256. Planning consumers verify that config identity, extraction/config lineage, and physical layer contents rather than accepting provider strings or textual lineage alone.
+- `GpuPlanningDocument` retains the validated source config plus its deterministic canonical SHA256. Source-complete planning validators verify that config identity, extraction/config lineage, and physical layer contents rather than accepting provider strings or textual lineage alone. In particular, `intersect_parcels_with_gpu_zoning` validates the loaded in-memory bundle and computes relations; the separate `validate_normalized_planning_zoning_inputs` owns physical rereads and reconstruction of the complete zoning summary. Do not attribute that deeper operation to the intersection function itself.
 
 ## INPN / PatriNat
 

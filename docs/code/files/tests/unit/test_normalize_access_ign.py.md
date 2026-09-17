@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+- Responsibility: Exercises factual road normalization and physical-source revalidation using synthetic local GeoPackages, with one explicitly mocked fresh-frame regression.
 - Source SHA256: `2cbb2d2b2664f861fd36f81be31e0af2903b93c06dde70e5ce22fcadc5994adf`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,15 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+Exercises factual road normalization and physical-source revalidation using synthetic local GeoPackages, with one explicitly mocked fresh-frame regression.
+
+### Audited fixtures, boundaries and limitations
+
+The 31 test definitions use four top-level helpers and one nested callback, with no local Pytest fixture definitions. Importing this test module creates a `tempfile.mkdtemp` directory, loads the checked-in IGN config, converts it to a mutable test payload and replaces selected acquisition facts with synthetic values before validation. Those assignment right-hand-side effects are not shown by the generated “standalone import-time statement” list below. The file declares no cleanup for that module-level directory.
+
+`_source` writes real synthetic electric-line, post, road and department layers with Pyogrio, reads the road layer back, hashes the package and writes a schema-3 extraction marker. The download record is fabricated lineage with a placeholder archive path; the suite does not download or open a real IGN archive. Actual configured physical-layer revalidation is retained for normal tests, including coordinated frame/summary forgery and alternate-layer substitution. `_with_alternate_road_layer` physically adds a second road layer and updates package inventory/marker hashes before constructing the forged selection, so this is not merely an in-memory layer-name check.
+
+`test_road_normalization_uses_distinct_fresh_revalidated_frame` is the deliberate exception: it replaces the adapter revalidator with a callback returning a fresh copy while mutating the supplied frame. Its two assertions establish that the returned copy is consumed, not that the replacement performs physical validation. Other assertions cover the exact 44-column schema, all raw-field series including dtype/null preservation, source ordering and RangeIndex, exact geometry WKB including Z, invalid/null/empty retention, identifier grammar, source identity/roles, summary schema and controlled public errors. Seven selected missing-column cases do not exhaust every required column. Expected-exception-only tests have zero `assert` statements in the generated table but still contain executable assertions through `pytest.raises`.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -337,7 +345,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_road_frame`
 
-**Purpose:** Implements `road frame` within the file role: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+**Purpose:** Build a synthetic road GeoDataFrame with every required raw field, configurable geometry/identifiers/CRS/index and deterministic default values, without applying a road policy.
 
 **Exact signature**
 
@@ -481,7 +489,7 @@ def _road_frame(
 
 ### `_summary`
 
-**Purpose:** Implements `summary` within the file role: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+**Purpose:** Derive a test road summary from the supplied frame: ordered columns/dtypes, row count, CRS, disjoint defect counts and sorted geometry types. This summary alone is not independent source authority.
 
 **Exact signature**
 
@@ -589,7 +597,7 @@ def _summary(
 
 ### `_source`
 
-**Purpose:** Implements `source` within the file role: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+**Purpose:** Create a unique local synthetic GeoPackage and marker, reread its road layer, and construct download/extraction/road records with matching inventory and byte hashes so real lower-level physical validation remains active.
 
 **Exact signature**
 
@@ -709,7 +717,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `gpd.read_file`<br>`geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction_path.mkdir`<br>`(extraction_path / ".landscout-extraction.json").write_text` |
+| Filesystem/archive write or publication | `extraction_path.mkdir`, `pyogrio.write_dataframe` for the synthetic layers, and `(extraction_path / ".landscout-extraction.json").write_text`. |
 | Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -836,7 +844,7 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
 
 ### `_with_alternate_road_layer`
 
-**Purpose:** Implements `with alternate road layer` within the file role: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+**Purpose:** Add and reread an alternate physical road layer, update the package hash/inventory marker, load the configured source, then construct a competing alternate-layer frame/summary pair for rejection by the configured normalization boundary.
 
 **Exact signature**
 
@@ -900,7 +908,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `geopackage_path.read_bytes`<br>`marker_path.read_text`<br>`gpd.read_file` |
-| Filesystem/archive write or publication | `marker_path.write_text` |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe` adds the alternate physical layer; `marker_path.write_text` refreshes its synthetic marker. |
 | Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -3075,7 +3083,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `roads["geometry_status"].tolist`<br>`roads.geometry.iloc[2].equals_exact` |
+| CRS/geometry/spatial calculation | `roads.geometry.iloc[2].equals_exact`; `roads["geometry_status"].tolist` only reads a string-status Series. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -3264,7 +3272,7 @@ def test_road_normalization_uses_distinct_fresh_revalidated_frame(
 
 ### `test_road_normalization_uses_distinct_fresh_revalidated_frame.return_fresh_and_mutate_supplied`
 
-**Purpose:** Implements `return fresh and mutate supplied` within the file role: Provides complete unit and regression coverage for the `normalize_access_ign` contracts exercised in this file.
+**Purpose:** Replace source revalidation in one test: mutate the closed-over supplied frame's nature value after a fresh frame has been prepared, then return that fresh source to detect accidental reuse of caller data.
 
 **Exact signature**
 
@@ -3481,37 +3489,37 @@ def test_malformed_public_input_has_controlled_error() -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_road_normalization_reproduces_configured_logical_layer` | none | pytest.raises(IgnRoadNormalizationError, match="source\|configured\|physical") | 1 | Proves road normalization reproduces configured logical layer using the exact source reproduced in section 7. |
-| `test_public_api_exports_only_stable_road_normalization_symbols` | none | none | 4 | Proves public api exports only stable road normalization symbols using the exact source reproduced in section 7. |
-| `test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` | none | none | 19 | Proves valid linestring normalization has exact schema identity and lineage using the exact source reproduced in section 7. |
-| `test_valid_multilinestring_is_preserved` | none | none | 3 | Proves valid multilinestring is preserved using the exact source reproduced in section 7. |
-| `test_z_coordinates_are_preserved_exactly` | none | none | 2 | Proves z coordinates are preserved exactly using the exact source reproduced in section 7. |
-| `test_row_count_order_geometry_and_range_index_are_preserved` | none | none | 5 | Proves row count order geometry and range index are preserved using the exact source reproduced in section 7. |
-| `test_raw_access_and_restriction_values_are_copied_without_interpretation` | none | none | 5 | Proves raw access and restriction values are copied without interpretation using the exact source reproduced in section 7. |
-| `test_every_raw_field_preserves_source_values_nulls_and_dtype` | none | none | 0 | Proves every raw field preserves source values nulls and dtype using the exact source reproduced in section 7. |
-| `test_missing_required_source_field_is_rejected` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "cleabs",<br>        "nature",<br>        "nombre_de_voies",<br>        "acces_vehicule_leger",<br>        "restriction_de_poids_total",<br>        "identifiants_sources",<br>        "geometry",<br>    ],<br>) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="freshly read physical source\|road segments",<br>    ) | 0 | Proves missing required source field is rejected using the exact source reproduced in section 7. |
-| `test_null_or_empty_cleabs_is_rejected` | pytest.mark.parametrize("identifier", [None, "", "   ", 123]) | pytest.raises(IgnRoadNormalizationError, match="cleabs") | 0 | Proves null or empty cleabs is rejected using the exact source reproduced in section 7. |
-| `test_unsafe_cleabs_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [" leading", "trailing ", "ROAD:BAD", "ROAD\nBAD", "ROAD\tBAD"],<br>) | pytest.raises(IgnRoadNormalizationError, match="cleabs") | 0 | Proves unsafe cleabs is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_cleabs_is_rejected` | none | pytest.raises(IgnRoadNormalizationError, match="unique") | 0 | Proves duplicate cleabs is rejected using the exact source reproduced in section 7. |
-| `test_wrong_or_missing_road_crs_is_rejected` | pytest.mark.parametrize("crs", [None, "EPSG:4326", "EPSG:3857"]) | pytest.raises(IgnRoadNormalizationError, match="CRS\|2154") | 0 | Proves wrong or missing road crs is rejected using the exact source reproduced in section 7. |
-| `test_wrong_archive_identity_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "OTHER"),<br>        ("product", "OTHER"),<br>        ("projection", "EPSG:4326"),<br>    ],<br>) | pytest.raises(IgnRoadNormalizationError, match="lineage\|config") | 0 | Proves wrong archive identity is rejected using the exact source reproduced in section 7. |
-| `test_wrong_source_spatial_role_is_rejected` | pytest.mark.parametrize("component", ["archive", "extraction", "summary"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="role\|spatial\|lineage\|integrity\|PROXY_GEOMETRY",<br>    ) | 0 | Proves wrong source spatial role is rejected using the exact source reproduced in section 7. |
-| `test_summary_row_count_mismatch_is_rejected` | none | pytest.raises(IgnRoadNormalizationError, match="summary\|physical") | 0 | Proves summary row count mismatch is rejected using the exact source reproduced in section 7. |
-| `test_road_summary_requires_strict_structural_types` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("feature_count", True),<br>        ("feature_count", 1.0),<br>        ("feature_count", "1"),<br>        ("feature_count", -1),<br>        ("null_geometry_count", False),<br>        ("null_geometry_count", 0.0),<br>        ("empty_geometry_count", "0"),<br>        ("invalid_geometry_count", -1),<br>        ("columns", ["cleabs", "geometry"]),<br>        ("columns", ("cleabs", "cleabs")),<br>        ("dtypes", [("cleabs", "str")]),<br>        ("dtypes", (("cleabs",),)),<br>        ("geometry_types", ["LineString"]),<br>    ],<br>) | pytest.raises(IgnRoadNormalizationError) | 0 | Proves road summary requires strict structural types using the exact source reproduced in section 7. |
-| `test_road_archive_sha256_requires_canonical_lowercase` | pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64]) | pytest.raises(IgnRoadNormalizationError) | 0 | Proves road archive sha256 requires canonical lowercase using the exact source reproduced in section 7. |
-| `test_summary_crs_mismatch_is_rejected` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|CRS\|2154",<br>    ) | 0 | Proves summary crs mismatch is rejected using the exact source reproduced in section 7. |
-| `test_forged_ordered_summary_schema_is_rejected` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|schema\|columns\|dtype",<br>    ) | 0 | Proves forged ordered summary schema is rejected using the exact source reproduced in section 7. |
-| `test_road_source_rejects_physical_role_collision` | pytest.mark.parametrize("role", ["electric", "post"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|same layer\|distinct\|role",<br>    ) | 0 | Proves road source rejects physical role collision using the exact source reproduced in section 7. |
-| `test_road_source_rejects_duplicate_layer_inventory` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="integrity\|inventory\|duplicate",<br>    ) | 0 | Proves road source rejects duplicate layer inventory using the exact source reproduced in section 7. |
-| `test_summary_geometry_facts_mismatch_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("null_geometry_count", 1),<br>        ("empty_geometry_count", 1),<br>        ("invalid_geometry_count", 1),<br>        ("geometry_types", ("MultiLineString",)),<br>    ],<br>) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|geometry summary",<br>    ) | 0 | Proves summary geometry facts mismatch is rejected using the exact source reproduced in section 7. |
-| `test_summary_layer_must_exist_in_extraction_inventory` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="integrity\|layer inventory",<br>    ) | 0 | Proves summary layer must exist in extraction inventory using the exact source reproduced in section 7. |
-| `test_summary_layer_and_logical_name_must_be_exact` | none | pytest.raises(IgnRoadNormalizationError, match="summary\|physical layer"); pytest.raises(IgnRoadNormalizationError, match="summary\|logical name") | 0 | Proves summary layer and logical name must be exact using the exact source reproduced in section 7. |
-| `test_valid_unsupported_geometry_type_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(1, 1), Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])],<br>) | pytest.raises(IgnRoadNormalizationError, match="geometry types") | 0 | Proves valid unsupported geometry type is rejected using the exact source reproduced in section 7. |
-| `test_null_empty_and_invalid_geometry_are_preserved_with_status` | none | none | 4 | Proves null empty and invalid geometry are preserved with status using the exact source reproduced in section 7. |
-| `test_normalization_does_not_mutate_input` | none | none | 0 | Proves normalization does not mutate input using the exact source reproduced in section 7. |
-| `test_road_normalization_uses_distinct_fresh_revalidated_frame` | none | none | 2 | Proves road normalization uses distinct fresh revalidated frame using the exact source reproduced in section 7. |
-| `test_high_level_rejects_coordinated_road_frame_and_summary_forgery` | none | pytest.raises(IgnRoadNormalizationError, match="physical\|fresh\|source") | 0 | Proves high level rejects coordinated road frame and summary forgery using the exact source reproduced in section 7. |
-| `test_malformed_public_input_has_controlled_error` | none | pytest.raises(IgnRoadNormalizationError) | 0 | Proves malformed public input has controlled error using the exact source reproduced in section 7. |
+| `test_road_normalization_reproduces_configured_logical_layer` | none | pytest.raises(IgnRoadNormalizationError, match="source\|configured\|physical") | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_public_api_exports_only_stable_road_normalization_symbols` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_valid_linestring_normalization_has_exact_schema_identity_and_lineage` | none | none | 19 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_valid_multilinestring_is_preserved` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_z_coordinates_are_preserved_exactly` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_row_count_order_geometry_and_range_index_are_preserved` | none | none | 5 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_raw_access_and_restriction_values_are_copied_without_interpretation` | none | none | 5 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_every_raw_field_preserves_source_values_nulls_and_dtype` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_required_source_field_is_rejected` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "cleabs",<br>        "nature",<br>        "nombre_de_voies",<br>        "acces_vehicule_leger",<br>        "restriction_de_poids_total",<br>        "identifiants_sources",<br>        "geometry",<br>    ],<br>) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="freshly read physical source\|road segments",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_null_or_empty_cleabs_is_rejected` | pytest.mark.parametrize("identifier", [None, "", "   ", 123]) | pytest.raises(IgnRoadNormalizationError, match="cleabs") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unsafe_cleabs_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [" leading", "trailing ", "ROAD:BAD", "ROAD\nBAD", "ROAD\tBAD"],<br>) | pytest.raises(IgnRoadNormalizationError, match="cleabs") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_cleabs_is_rejected` | none | pytest.raises(IgnRoadNormalizationError, match="unique") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_or_missing_road_crs_is_rejected` | pytest.mark.parametrize("crs", [None, "EPSG:4326", "EPSG:3857"]) | pytest.raises(IgnRoadNormalizationError, match="CRS\|2154") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_archive_identity_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "OTHER"),<br>        ("product", "OTHER"),<br>        ("projection", "EPSG:4326"),<br>    ],<br>) | pytest.raises(IgnRoadNormalizationError, match="lineage\|config") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_source_spatial_role_is_rejected` | pytest.mark.parametrize("component", ["archive", "extraction", "summary"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="role\|spatial\|lineage\|integrity\|PROXY_GEOMETRY",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_summary_row_count_mismatch_is_rejected` | none | pytest.raises(IgnRoadNormalizationError, match="summary\|physical") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_road_summary_requires_strict_structural_types` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("feature_count", True),<br>        ("feature_count", 1.0),<br>        ("feature_count", "1"),<br>        ("feature_count", -1),<br>        ("null_geometry_count", False),<br>        ("null_geometry_count", 0.0),<br>        ("empty_geometry_count", "0"),<br>        ("invalid_geometry_count", -1),<br>        ("columns", ["cleabs", "geometry"]),<br>        ("columns", ("cleabs", "cleabs")),<br>        ("dtypes", [("cleabs", "str")]),<br>        ("dtypes", (("cleabs",),)),<br>        ("geometry_types", ["LineString"]),<br>    ],<br>) | pytest.raises(IgnRoadNormalizationError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_road_archive_sha256_requires_canonical_lowercase` | pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64]) | pytest.raises(IgnRoadNormalizationError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_summary_crs_mismatch_is_rejected` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|CRS\|2154",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_forged_ordered_summary_schema_is_rejected` | pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|schema\|columns\|dtype",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_road_source_rejects_physical_role_collision` | pytest.mark.parametrize("role", ["electric", "post"]) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|same layer\|distinct\|role",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_road_source_rejects_duplicate_layer_inventory` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="integrity\|inventory\|duplicate",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_summary_geometry_facts_mismatch_is_rejected` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("null_geometry_count", 1),<br>        ("empty_geometry_count", 1),<br>        ("invalid_geometry_count", 1),<br>        ("geometry_types", ("MultiLineString",)),<br>    ],<br>) | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="summary\|physical\|geometry summary",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_summary_layer_must_exist_in_extraction_inventory` | none | pytest.raises(<br>        IgnRoadNormalizationError,<br>        match="integrity\|layer inventory",<br>    ) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_summary_layer_and_logical_name_must_be_exact` | none | pytest.raises(IgnRoadNormalizationError, match="summary\|physical layer"); pytest.raises(IgnRoadNormalizationError, match="summary\|logical name") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_valid_unsupported_geometry_type_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(1, 1), Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])],<br>) | pytest.raises(IgnRoadNormalizationError, match="geometry types") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_null_empty_and_invalid_geometry_are_preserved_with_status` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_normalization_does_not_mutate_input` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_road_normalization_uses_distinct_fresh_revalidated_frame` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_high_level_rejects_coordinated_road_frame_and_summary_forgery` | none | pytest.raises(IgnRoadNormalizationError, match="physical\|fresh\|source") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_public_input_has_controlled_error` | none | pytest.raises(IgnRoadNormalizationError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
 
 ## 8. Public exports and package ownership
 

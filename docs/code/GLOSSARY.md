@@ -60,7 +60,7 @@
 
 **SOURCE_COVERAGE_BOUNDARY** — IGN spatial role for the configured department polygon used only to diagnose source-package boundary effects.
 
-**tie** — More than one feature at the exact nearest distance. Code retains all tie IDs and selects a deterministic lexical representative.
+**tie** — More than one feature at the exact nearest distance. Grid results retain a deterministic representative and tie counts; road results additionally retain the complete ordered tie-ID JSON. Do not infer the road representation for the grid APIs.
 
 ## Planning evidence
 

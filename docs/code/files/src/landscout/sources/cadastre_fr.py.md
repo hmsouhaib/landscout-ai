@@ -161,7 +161,7 @@ class CadastreDownloadError(RuntimeError):
 
 ### `CadastreDownload`
 
-**Source purpose:** Defines `CadastreDownload`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen provenance envelope for one compressed commune archive: canonical commune/URL/filename, acquisition timestamp, compressed byte size and SHA256, local path and cache-hit flag. Freezing the envelope does not freeze the file at that path; the source loader must reconstruct identity and recheck its bytes.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -223,7 +223,7 @@ class CadastreDownload:
 
 ### `_CadastreCacheMetadata`
 
-**Source purpose:** Defines `_CadastreCacheMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Private frozen, extra-forbidden schema-1 sidecar model with strict strings and a strictly positive integer byte size. It contains no mutable collection. The cache loader separately validates the strings' canonical values, SHA syntax and UTC freshness and recomputes compressed file identity; successful Pydantic construction alone is not a cache-validity proof.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -276,7 +276,7 @@ class _CadastreCacheMetadata(BaseModel):
 
 ### `_CadastreCacheMetadata._strict_schema_version`
 
-**Purpose:** Implements `strict schema version` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Runs before Pydantic literal validation and requires the exact built-in `int` type, rejecting boolean, float and string representations before `Literal[1]` selects schema 1. Pydantic invokes this registered validator during cache-metadata reconstruction; it is not dead code merely because no direct call is listed.
 
 **Exact signature**
 
@@ -343,7 +343,7 @@ def _strict_schema_version(cls, value: object) -> object:
 
 ### `_department_code`
 
-**Purpose:** Implements `department code` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Returns the first three characters for commune prefixes 97/98, otherwise the first two (including 2A/2B). This private slicing helper trusts its caller's commune validation and performs no lookup of existing administrative codes.
 
 **Exact signature**
 
@@ -407,7 +407,7 @@ def _department_code(commune_code: str) -> str:
 
 ### `build_cadastre_parcelles_url`
 
-**Purpose:** Implements `build cadastre parcelles url` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Requires a string matching the complete five-digit or uppercase Corsican INSEE pattern without trimming, derives the department and constructs the Etalab latest/communes archive URL and canonical filename. Its `isinstance` guard accepts string subclasses despite the error wording 'exact string'; it does not resolve DNS, fetch bytes or establish that a commune exists.
 
 **Exact signature**
 
@@ -505,7 +505,7 @@ def build_cadastre_parcelles_url(commune_code: str) -> str:
 
 ### `_sha256`
 
-**Purpose:** Implements `sha256` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Streams the compressed file in `VALIDATION_CHUNK_SIZE` chunks and hashes those exact archive bytes, not decompressed GeoJSON or metadata. Local file errors propagate to the acquiring/cache caller.
 
 **Exact signature**
 
@@ -577,7 +577,7 @@ def _sha256(path: Path) -> str:
 
 ### `_is_valid_gzip`
 
-**Purpose:** Implements `is valid gzip` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Requires a non-empty regular file, reads the gzip stream completely in bounded chunks and returns false for filesystem, gzip or truncated-stream errors. This checks decompression integrity only, not JSON, FeatureCollection structure or parcel geometry.
 
 **Exact signature**
 
@@ -663,7 +663,7 @@ def _is_valid_gzip(path: Path) -> bool:
 
 ### `_load_cached_download`
 
-**Purpose:** Implements `load cached download` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Requires both non-link regular files, strictly decodes the sidecar into frozen schema-1 metadata, independently recomputes archive size/SHA and checks canonical commune/URL/filename, lowercase digest syntax, complete gzip validity and a trimmed timezone-aware UTC timestamp with nonnegative age no greater than the configured limit. A malformed, stale or inconsistent candidate returns `None` for refresh rather than becoming a cache hit. Success returns a frozen download envelope referencing the verified local path and performs no HTTP request.
 
 **Exact signature**
 
@@ -811,7 +811,7 @@ def _load_cached_download(
 
 ### `_replace_file`
 
-**Purpose:** Implements `replace file` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Delegates one filesystem replacement to `Path.replace`. Pair-level backup, rollback and error handling belong to `_publish_cache_pair`, not this single-operation seam used by fault-injection tests.
 
 **Exact signature**
 
@@ -873,7 +873,7 @@ def _replace_file(source: Path, target: Path) -> None:
 
 ### `_is_link_or_junction`
 
-**Purpose:** Implements `is link or junction` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Inspects filesystem symlink/junction status and conservatively returns true when that inspection raises `OSError`. It does not follow a link for use or remove it.
 
 **Exact signature**
 
@@ -922,7 +922,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | `path.is_symlink()` and `path.is_junction()` inspect filesystem metadata. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -946,7 +946,7 @@ def _is_link_or_junction(path: Path) -> bool:
 
 ### `_cache_recovery_paths`
 
-**Purpose:** Implements `cache recovery paths` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Constructs the sibling archive and metadata `.bak` paths by extending each existing suffix; it neither inspects nor creates recovery files.
 
 **Exact signature**
 
@@ -1021,7 +1021,7 @@ def _cache_recovery_paths(
 
 ### `_require_no_cache_recovery_material`
 
-**Purpose:** Implements `require no cache recovery material` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Rejects any existing or link/junction recovery path before cache reuse, download or publication. It leaves recovery bytes untouched and requires manual recovery rather than guessing which member of a pair is authoritative.
 
 **Exact signature**
 
@@ -1102,7 +1102,7 @@ def _require_no_cache_recovery_material(
 
 ### `_require_safe_cache_primary_paths`
 
-**Purpose:** Implements `require safe cache primary paths` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Inspects both archive/metadata targets, rejects links/junctions and existing non-regular files, and wraps inspection failures as `CadastreDownloadError`. Missing regular targets are allowed for first acquisition.
 
 **Exact signature**
 
@@ -1192,7 +1192,7 @@ def _require_safe_cache_primary_paths(
 
 ### `_prepare_temporary_cache_file`
 
-**Purpose:** Implements `prepare temporary cache file` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Rejects link/junction temporary paths and existing non-regular objects; removes only an ordinary stale temporary file. Preparation failures become `CadastreDownloadError` before the subsequent network request and exclusive-create write.
 
 **Exact signature**
 
@@ -1214,7 +1214,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 - No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
 - Explicit raise paths:
   - `CadastreDownloadError(<br>                "Cadastre cache temporary path is a link or junction"<br>            )` under lexical guard `_is_link_or_junction(path)`.
-  - `CadastreDownloadError(<br>                    "Cadastre cache temporary path is not a regular file"<br>                )` under lexical guard `path.exists()`.
+  - `CadastreDownloadError(<br>                    "Cadastre cache temporary path is not a regular file"<br>                )` under lexical guard `path.exists()` followed by `not path.is_file()`.
   - `re-raise`.
   - `CadastreDownloadError(<br>            "Cadastre cache temporary path cannot be prepared safely"<br>        )`.
 
@@ -1277,7 +1277,7 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 ### `_cleanup_temporary_cache_files`
 
-**Purpose:** Implements `cleanup temporary cache files` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Attempts to unlink every temporary file, retaining the first cleanup error. It raises a controlled cleanup error only when there is no primary failure, so failed publication/rollback evidence is not masked.
 
 **Exact signature**
 
@@ -1356,7 +1356,7 @@ def _cleanup_temporary_cache_files(
 
 ### `_publish_cache_pair`
 
-**Purpose:** Implements `publish cache pair` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** First refuses pre-existing recovery material, copies any old archive and sidecar to their `.bak` siblings, then replaces archive followed by metadata. A publication failure restores each old member or removes a newly introduced member when no predecessor existed; failure of rollback preserves backups and raises the explicit double-failure error. Successful publication/rollback removes recovery backups. Individual replacements are atomic, but the pair is protected by this recovery protocol, not one indivisible filesystem transaction.
 
 **Exact signature**
 
@@ -1483,7 +1483,7 @@ def _publish_cache_pair(
 
 ### `download_cadastre_parcelles`
 
-**Purpose:** Implements `download cadastre parcelles` within the file role: Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks.
+**Purpose:** Validates finite positive timeout and finite nonnegative cache age, constructs canonical source identity, rejects unsafe primary/recovery paths and tries a fully verified local cache before network. On a miss it prepares only safe temporary targets, streams safe-HTTPS bytes into an exclusive-created archive part, validates the entire gzip, records compressed size/SHA/current UTC time and writes strict schema-1 JSON metadata to its own exclusive-created part. It publishes the pair through backup/rollback and finally cleans only temporary paths without masking a primary error. It does not parse GeoJSON, acquire a fixed publication edition or normalize parcels.
 
 **Exact signature**
 

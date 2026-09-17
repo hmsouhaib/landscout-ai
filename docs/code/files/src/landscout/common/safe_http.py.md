@@ -200,7 +200,7 @@ class SafeHttpsError(OSError):
 
 ### `_ResolvedAddress`
 
-**Source purpose:** Defines `_ResolvedAddress`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen endpoint value: family selects the IPv4/IPv6 socket API, address is the validated immutable ipaddress value, and port is the exact validated destination port. It contains no caller-owned mutable DNS record.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -243,7 +243,7 @@ class _ResolvedAddress:
 
 ### `_ResolvedDestination`
 
-**Source purpose:** Defines `_ResolvedDestination`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen per-hop resolution snapshot: url is the canonical loop/history identity; hostname remains the HTTP/TLS server identity; port and request_target identify the exchange; addresses is the ordered immutable set of every validated public endpoint. It is not a certificate or downloaded-byte hash.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -426,7 +426,7 @@ class SafeHttpsResponse:
 
 ### `_ResolvedAddress.socket_address`
 
-**Purpose:** Implements `socket address` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Returns the numeric connect tuple: `(IP, port)` for IPv4, `(IP, port, 0, 0)` for IPv6. It performs no DNS query and does not retain a DNS canonical-name or caller-owned socket tuple.
 
 **Exact signature**
 
@@ -490,7 +490,7 @@ def socket_address(self) -> tuple[object, ...]:
 
 ### `_is_globally_routable_address`
 
-**Purpose:** Implements `is globally routable address` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Rejects any address lacking global status or carrying private, loopback, link-local, unspecified, multicast or reserved status. An IPv4-mapped IPv6 address additionally passes the same predicate on its mapped IPv4 value; only then return true.
 
 **Exact signature**
 
@@ -576,7 +576,7 @@ def _is_globally_routable_address(
 
 ### `_strict_literal_address`
 
-**Purpose:** Implements `strict literal address` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Tries `ipaddress.ip_address`, then the local `socket.inet_aton` numeric parser, then decimal/0x integer IPv4 conversion. A numeric-looking malformed value fails closed instead of reaching DNS. Ordinary hostnames return None. This parser performs no DNS or network exchange; global routing is checked separately.
 
 **Exact signature**
 
@@ -635,7 +635,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 
 | Category | Exact evidence |
 |---|---|
-| Network I/O | `socket.inet_aton` |
+| Network I/O | None; `socket.inet_aton` only parses numeric address text locally. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
@@ -687,7 +687,7 @@ def _strict_literal_address(
 
 ### `_resolve_public_addresses`
 
-**Purpose:** Implements `resolve public addresses` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Resolve the ordinary hostname and selected port once with SOCK_STREAM. Validate every returned five-field record, IPv4/IPv6 family, TCP-compatible protocol, exact socket-address shape and port, IP parseability and matching family. Reject any nonpublic address or zero usable results. Deduplicate by IP version/integer address, sort deterministically, and return frozen address records; specified DNS/shape/conversion failures become SafeHttpsError before sockets are opened.
 
 **Exact signature**
 
@@ -714,7 +714,7 @@ def _resolve_public_addresses(
   - `tuple(addresses[key] for key in sorted(addresses))`
 - Explicit raise paths:
   - `TypeError("DNS result must be a five-item tuple")` under lexical guard `type(record) is not tuple or len(record) != 5`.
-  - `ValueError("DNS result uses an unsupported address family")` under lexical guard `family == socket.AF_INET`.
+  - `ValueError("DNS result uses an unsupported address family")` when family is neither AF_INET nor AF_INET6.
   - `ValueError("DNS result is not a stream address")` under lexical guard `socket_type != socket.SOCK_STREAM`.
   - `ValueError("DNS result is not a TCP-compatible address")` under lexical guard `type(protocol) is not int or protocol not in {<br>                0,<br>                socket.IPPROTO_TCP,<br>            }`.
   - `TypeError("DNS canonical name must be a string")` under lexical guard `type(canonical_name) is not str`.
@@ -846,7 +846,7 @@ def _resolve_public_addresses(
 
 ### `_canonical_hostname`
 
-**Purpose:** Implements `canonical hostname` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Require a hostname, convert IDNA to ASCII, case-fold and remove trailing dots, then reject an empty result and localhost or any .localhost suffix. Encoding/parsing failures become SafeHttpsError; this function itself performs no DNS lookup.
 
 **Exact signature**
 
@@ -927,7 +927,7 @@ def _canonical_hostname(hostname: str) -> str:
 
 ### `_canonical_url`
 
-**Purpose:** Implements `canonical url` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Build the HTTPS URL from an already validated parsed URL, canonical hostname and port. Bracket IPv6, omit default port 443, use `/` for an absent path, retain the query and omit the fragment. It neither issues a request nor chooses a different source identity.
 
 **Exact signature**
 
@@ -997,7 +997,7 @@ def _canonical_url(parsed: SplitResult, hostname: str, port: int) -> str:
 
 ### `_resolve_destination`
 
-**Purpose:** Implements `resolve destination` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Require an exact nonempty string without controls; parse HTTPS, hostname, credentials, fragment and port. Canonicalize the hostname. Validate public literal addresses without DNS, otherwise validate all DNS answers. Return canonical URL, TLS/Host hostname, destination port, path-plus-query request target and immutable address tuple. Malformed identity/conversion failures are chained into SafeHttpsError.
 
 **Exact signature**
 
@@ -1025,7 +1025,7 @@ def _resolve_destination(value: str) -> _ResolvedDestination:
   - `ValueError("Remote URL credentials are forbidden")` under lexical guard `parsed.username is not None or parsed.password is not None`.
   - `ValueError("Remote URL fragments are forbidden")` under lexical guard `parsed.fragment`.
   - `ValueError("HTTPS URL port is invalid")` under lexical guard `not 1 <= port <= 65535`.
-  - `ValueError("Non-public IP HTTPS destinations are forbidden")` under lexical guard `literal is None`.
+  - `ValueError("Non-public IP HTTPS destinations are forbidden")` when a parsed literal fails `_is_globally_routable_address` (ordinary DNS hostnames follow the other branch).
   - `re-raise`.
   - `SafeHttpsError(f"Unsafe HTTPS URL: {value}")`.
 
@@ -1126,7 +1126,7 @@ def _resolve_destination(value: str) -> _ResolvedDestination:
 
 ### `_BoundHTTPSConnection.__init__`
 
-**Purpose:** Implements `init` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Initialize the HTTPSConnection with the DNS hostname for HTTP Host/TLS identity, port, timeout and verified TLS context, retaining separately the one validated numeric endpoint. Construction does not connect.
 
 **Exact signature**
 
@@ -1210,7 +1210,7 @@ def __init__(
 
 ### `_BoundHTTPSConnection.connect`
 
-**Purpose:** Implements `connect` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Forbid proxy tunnelling, create a stream socket of the validated family, set timeout and connect to the numeric address without a second resolver call. Parse getpeername and require its IP to equal the validated IP before wrapping TLS with the original hostname as SNI/certificate identity. Close the raw socket on failure.
 
 **Exact signature**
 
@@ -1307,7 +1307,7 @@ def connect(self) -> None:
 
 ### `SafeHttpsResponse.__init__`
 
-**Purpose:** Implements `init` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Retain the live HTTP response and connection for streaming ownership; expose canonical final URL, immutable redirect-URL history, status and the response's header object. Initialize the local closed flag. This streaming wrapper is mutable, not an immutable integrity manifest.
 
 **Exact signature**
 
@@ -1389,7 +1389,7 @@ def __init__(
 
 ### `SafeHttpsResponse.read`
 
-**Purpose:** Implements `read` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Read the requested amount from the retained HTTPResponse, advancing its live stream. Chain any read exception into SafeHttpsError; successful return is bytes from the transport, not validated source-format content.
 
 **Exact signature**
 
@@ -1456,7 +1456,7 @@ def read(self, amount: int | None = None) -> bytes:
 
 ### `SafeHttpsResponse.close`
 
-**Purpose:** Implements `close` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** If already closed, return immediately. Otherwise mark closed, close the response, and close its connection in finally even if response.close raises. It owns transport cleanup and does not delete a cache file.
 
 **Exact signature**
 
@@ -1524,7 +1524,7 @@ def close(self) -> None:
 
 ### `SafeHttpsResponse.__enter__`
 
-**Purpose:** Implements `enter` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Return this wrapper for a with statement; do not reopen a response or perform a new request.
 
 **Exact signature**
 
@@ -1583,7 +1583,7 @@ def __enter__(self) -> Self:
 
 ### `SafeHttpsResponse.__exit__`
 
-**Purpose:** Implements `exit` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Delegate to close regardless of the with-body exception. Returning None does not suppress that exception; a close failure may itself propagate.
 
 **Exact signature**
 
@@ -1656,7 +1656,7 @@ def __exit__(
 
 ### `_validated_timeout`
 
-**Purpose:** Implements `validated timeout` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Reject booleans and non-Real values, convert the number to float with controlled conversion/overflow failures, then require a finite strictly positive value. Validation is completed before DNS or HTTP.
 
 **Exact signature**
 
@@ -1734,7 +1734,7 @@ def _validated_timeout(value: object) -> float:
 
 ### `_request_parts`
 
-**Purpose:** Implements `request parts` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Accept a GET-only, bodyless urllib Request or an exact URL string. Copy Request and explicit headers into a temporary list, reject a nonmapping explicit header input, exact-string violations, invalid token names, case-insensitive duplicates, forbidden credential/hop headers and controls. Return a new header dictionary with transport-owned Connection: close; do not mutate caller headers.
 
 **Exact signature**
 
@@ -1760,9 +1760,9 @@ def _request_parts(
 - Exact observed return expressions:
   - `url, output`
 - Explicit raise paths:
-  - `SafeHttpsError("Safe HTTPS source transport supports GET only")` under lexical guard `isinstance(value, Request)`.
-  - `SafeHttpsError("HTTPS request must be an exact URL string or Request")` under lexical guard `isinstance(value, Request)`.
-  - `SafeHttpsError("HTTPS request headers must be a mapping")` under lexical guard `supplied_headers is not None`.
+  - `SafeHttpsError("Safe HTTPS source transport supports GET only")` when a Request has a non-GET method or a non-None body.
+  - `SafeHttpsError("HTTPS request must be an exact URL string or Request")` when the input is neither a Request nor an exact str.
+  - `SafeHttpsError("HTTPS request headers must be a mapping")` when supplied_headers is non-None and is not a Mapping.
   - `SafeHttpsError("HTTPS header names and values must be exact strings")` under lexical guard `type(name) is not str or type(header_value) is not str`.
   - `SafeHttpsError("HTTPS header name is invalid")` under lexical guard `_HEADER_NAME_PATTERN.fullmatch(name) is None`.
   - `SafeHttpsError(<br>                "HTTPS header names must not be duplicate or ambiguous"<br>            )` under lexical guard `normalized_name in seen_names`.
@@ -1861,7 +1861,7 @@ def _request_parts(
 
 ### `_open_destination`
 
-**Purpose:** Implements `open destination` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Create a default validating SSL context. For each validated numeric endpoint, construct a bound connection and issue GET for the original path/query with copied approved headers. Return the first response/connection pair. Close failed connections; TLS verification and safety failures stop immediately, while ordinary OS/HTTP failures may try the next validated address. If all fail, raise SafeHttpsError.
 
 **Exact signature**
 
@@ -1970,7 +1970,7 @@ def _open_destination(
 
 ### `_redirect_location`
 
-**Purpose:** Implements `redirect location` within the file role: Implements the shared HTTPS trust boundary, including numeric DNS-to-TLS binding, caller-header ownership, and manual redirects.
+**Purpose:** Read all Location headers from the HTTPResponse and require exactly one exact nonempty string. Return that string unchanged; relative resolution and destination validation are the caller's next steps.
 
 **Exact signature**
 
@@ -2039,7 +2039,7 @@ def _redirect_location(response: http.client.HTTPResponse) -> str:
 
 ### `open_safe_https`
 
-**Purpose:** Open one source GET with validated redirects and a bound TLS socket.
+**Purpose:** Validate timeout, exact nonnegative redirect limit, GET and headers before DNS. For each hop resolve/validate the destination and reject canonical-URL loops, then issue a bound HTTPS GET. A recognized redirect requires remaining budget and exactly one Location; append the current URL, resolve relative location and close the old exchange. Only a final 2xx returns an owned streaming wrapper. All nonreturned exchanges are closed. There is no ambient proxy handling, automatic redirect following or TLS downgrade.
 
 **Exact signature**
 
@@ -2072,7 +2072,7 @@ def open_safe_https(
 - Explicit raise paths:
   - `SafeHttpsError("max_redirects must be a non-negative integer")` under lexical guard `type(max_redirects) is not int or max_redirects < 0`.
   - `SafeHttpsError("HTTPS redirect loop detected")` under lexical guard `destination.url in seen`.
-  - `SafeHttpsError("HTTPS redirect limit exceeded")` under lexical guard `status in _REDIRECT_STATUSES`.
+  - `SafeHttpsError("HTTPS redirect limit exceeded")` for a recognized redirect when `len(history) >= max_redirects`.
   - `SafeHttpsError(f"HTTPS source returned status {status}")` under lexical guard `not 200 <= status < 300`.
   - `re-raise`.
   - `SafeHttpsError("Safe HTTPS exchange failed")`.

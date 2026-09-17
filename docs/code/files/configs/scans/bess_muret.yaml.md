@@ -29,14 +29,18 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 | `scan.country` | `"FR"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is France/FR | Configures `country` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
 | `scan.technology` | `"BESS"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; must agree across scan and referenced profile; current configured identity is BESS | Configures `technology` under the exact parent path `scan`. | `landscout.config.load_scan_config` |
 | `aoi.commune_codes[0]` | `"31395"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; non-empty ordered collection of unique canonical commune codes | Ordered configured member of `aoi.commune_codes`; order and uniqueness are validated/consumed where required. | `landscout.config.load_scan_config` |
-| `profile.path` | `"configs/profiles/bess_default_fr.yaml"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `path` under the exact parent path `profile`. | `landscout.config.load_scan_config` |
-| `output.directory` | `"outputs"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `directory` under the exact parent path `output`. | `landscout.config.load_scan_config` |
+| `profile.path` | `"configs/profiles/bess_default_fr.yaml"` | `Path` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `path` under the exact parent path `profile`. | `landscout.config.load_scan_config` |
+| `output.directory` | `"outputs"` | `Path` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `directory` under the exact parent path `output`. | `landscout.config.load_scan_config` |
 
 ## STEP 7F.1A.4 dependent-model refresh
 
 - The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.config.load_scan_config`; section 5 now embeds the exact current owning model sources and qualified consumers.
 - Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
 - No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+
+## Runtime interpretation reviewed for DOCS.CONTINUITY.1
+
+`aoi.commune_codes` becomes the ordered immutable tuple `('31395',)` after validation. `profile.path` and `output.directory` become Path values; only the profile file is resolved/read here. Loading does not create `outputs`, run a scan, fetch communes, or prove a commune exists.
 
 ## 5. Classes / models / dataclasses
 
@@ -47,7 +51,7 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 ### `_ConfigModel`
 
-**Source purpose:** Defines `_ConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Shared Pydantic base: reject undeclared fields and ordinary attribute reassignment. Deep immutability additionally comes from nested frozen models and the AOI tuple, not from `frozen=True` alone.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -73,7 +77,7 @@ class _ConfigModel(BaseModel):
 
 ### `ScanMetadata`
 
-**Source purpose:** Defines `ScanMetadata`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nonempty trimmed `name`, `country`, and `technology` labels. A name identifies the scan; the remaining labels must match the selected profile when a `LoadedScanConfig` is built. No scheduling or scan execution is implemented here.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -103,7 +107,7 @@ class ScanMetadata(_ConfigModel):
 
 ### `AoiConfig`
 
-**Source purpose:** Defines `AoiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Nonempty, duplicate-free ordered tuple of strictly string-valued commune codes matching the declared French identifier pattern. YAML sequences become tuples without sorting or stripping individual codes, so no mutable input-list alias remains.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -135,7 +139,7 @@ class AoiConfig(_ConfigModel):
 
 ### `ProfileReference`
 
-**Source purpose:** Defines `ProfileReference`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required filesystem `Path` reference to the profile. Pydantic accepts path-like input; the loader, not this model, resolves relative paths and checks file existence.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -161,7 +165,7 @@ class ProfileReference(_ConfigModel):
 
 ### `OutputConfig`
 
-**Source purpose:** Defines `OutputConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required output-directory `Path` declaration. Loading does not resolve it, create the directory, check writability, or export any artifact.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -187,7 +191,7 @@ class OutputConfig(_ConfigModel):
 
 ### `ScanConfig`
 
-**Source purpose:** Defines `ScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Required nested `scan`, `aoi`, `profile`, and `output` declarations. The envelope is configuration, not an orchestrated pipeline or proof that all referenced communes have been downloaded.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -219,7 +223,7 @@ class ScanConfig(_ConfigModel):
 
 ### `LoadedScanConfig`
 
-**Source purpose:** Defines `LoadedScanConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Retains the validated `scan_config`, loaded `profile`, and selected `profile_path`; rejects mismatched country or technology. No source-config object or deterministic configuration hash is created by this loader.
 
 - Exact decorators: none.
 - Exact bases: `_ConfigModel`.
@@ -266,11 +270,11 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `landscout.config.load_scan_config`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime consumers: `landscout.config.load_scan_config`. Scan loading resolves `ProfileReference.path` relative to the assumed repository root three ancestors above the scan file. This file does not call the road policy loader.
 
 ## 9. Error handling
 
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
+The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; this loader propagates filesystem errors, strict YAML errors and Pydantic ValidationError without a single source-adapter wrapper.
 
 ## 10. Side effects
 

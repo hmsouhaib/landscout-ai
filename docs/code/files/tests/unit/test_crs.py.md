@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `crs` contracts exercised in this file.
+- Responsibility: Checks exported EPSG identities, one unmocked WGS84-to-Lambert-93 centroid round trip and four malformed-CRS controlled errors; it does not establish exhaustive projection accuracy.
 - Source SHA256: `c6b7a69a038e545413e3a5db8d6a636a5d2e51f411110dadfef8410e4a5860f4`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `crs` contracts exercised in this file.
+Checks exported EPSG identities, one unmocked WGS84-to-Lambert-93 centroid round trip and four malformed-CRS controlled errors; it does not establish exhaustive projection accuracy.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -54,7 +54,7 @@ No top-level class/model/dataclass is declared.
 
 ### `test_crs_constants`
 
-**Purpose:** Regression invariant: crs constants. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Assert that the public WGS84 and LAMBERT93 CRS objects resolve to EPSG 4326 and 2154. This is a constant/export identity check, not a geometry calculation.
 
 **Exact signature**
 
@@ -98,7 +98,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `WGS84.to_epsg`, `LAMBERT93.to_epsg` inspect CRS authority identities. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -117,7 +117,7 @@ def test_crs_constants() -> None:
 
 ### `test_reproject_to_lambert93_and_back_to_latlon`
 
-**Purpose:** Regression invariant: reproject to lambert93 and back to latlon. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Build one geographic rectangle, project it with the real helper and convert its projected centroid to latitude/longitude. Assert 48.005 and 2.005 with absolute tolerance 0.001 degrees; no transform is mocked and no general numerical-accuracy bound is proved.
 
 **Exact signature**
 
@@ -163,7 +163,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `Polygon` construction and real reprojection/centroid conversion via the documented helpers. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -187,7 +187,7 @@ def test_reproject_to_lambert93_and_back_to_latlon() -> None:
 
 ### `test_reprojection_rejects_malformed_crs_with_controlled_error`
 
-**Purpose:** Regression invariant: reprojection rejects malformed crs with controlled error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** For None, a fresh object, an empty list and invalid-crs text, pass the same valid polygon to the public reprojection helper and require MetricCrsError. Four cases cover the listed malformed inputs, not every possible CRS spelling.
 
 **Exact signature**
 
@@ -237,7 +237,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `Polygon` construction; delegated malformed-CRS validation, with no successful reprojection. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -268,9 +268,9 @@ def test_reprojection_rejects_malformed_crs_with_controlled_error(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_crs_constants` | none | none | 2 | Proves crs constants using the exact source reproduced in section 7. |
-| `test_reproject_to_lambert93_and_back_to_latlon` | none | none | 2 | Proves reproject to lambert93 and back to latlon using the exact source reproduced in section 7. |
-| `test_reprojection_rejects_malformed_crs_with_controlled_error` | pytest.mark.parametrize("crs", [None, object(), [], "invalid-crs"]) | pytest.raises(MetricCrsError) | 0 | Proves reprojection rejects malformed crs with controlled error using the exact source reproduced in section 7. |
+| `test_crs_constants` | none | none | 2 | Assert that the public WGS84 and LAMBERT93 CRS objects resolve to EPSG 4326 and 2154. This is a constant/export identity check, not a geometry calculation. |
+| `test_reproject_to_lambert93_and_back_to_latlon` | none | none | 2 | Build one geographic rectangle, project it with the real helper and convert its projected centroid to latitude/longitude. Assert 48.005 and 2.005 with absolute tolerance 0.001 degrees; no transform is mocked and no general numerical-accuracy bound is proved. |
+| `test_reprojection_rejects_malformed_crs_with_controlled_error` | pytest.mark.parametrize("crs", [None, object(), [], "invalid-crs"]) | pytest.raises(MetricCrsError) | 0 | For None, a fresh object, an empty list and invalid-crs text, pass the same valid polygon to the public reprojection helper and require MetricCrsError. Four cases cover the listed malformed inputs, not every possible CRS spelling. |
 
 ## 8. Public exports and package ownership
 

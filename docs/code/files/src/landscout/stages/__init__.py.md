@@ -299,7 +299,7 @@ __all__ = [
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Public-surface tests inspect `landscout.stages.__all__` through the imported `stages` module: grid proximity/coverage, road normalization/application/proximity/coverage, planning zoning/features/index/interpretation, and CNIG policy/application/aggregation suites. Examples include `tests/unit/test_enrich_grid_proximity.py:483`, `tests/unit/test_apply_road_vehicle_proxy_policy.py:151`, and `tests/unit/test_bess_planning_feature_policy.py:922`. The earlier no-consumer statement missed these module-qualified attribute references.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `BessPlanningFeatureApplicationArtifactManifest`
   - `BessPlanningFeatureApplicationError`
@@ -541,9 +541,9 @@ Exact `__all__` members and local origins:
 
 ## 9. Trust, provenance, side effects, and business boundary
 
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
-- Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+This file is a **package initializer**, not an executed pipeline stage. It imports the listed modules and binds their existing objects, then assigns an ordinary mutable `__all__` list. It defines no callable or validated trust object. Importing dependencies may fail at import time; no acquisition, normalization, intersection, policy application or artifact writer is invoked here.
+
+The table identifies the implementation owner of each re-export. Public high-level operations, envelope validators and their private helpers retain different authority at those owners. Merely exposing them from the same package does not make their trust contracts interchangeable. There is no autonomous orchestrator, CLI or HTTP service in this initializer; no score, owner/contact workflow or legal approval is produced by importing it.
 
 ## 10. Change impact
 

@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
-- Responsibility: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+- Responsibility: Calculates factual parcel/zoning intersections from a loaded GPU bundle and separately source-completely validates them against a fresh physical zoning read.
 - Source SHA256: `2a4d6b9669fc091cb394b3d17f0f94effdd6a6aa74543c06ce77c2c99dabf4ec`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+Calculates factual parcel/zoning intersections from a loaded GPU bundle and separately source-completely validates them against a fresh physical zoning read.
 
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -74,8 +74,9 @@ __all__ = [
 ]
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: The four names define the module public surface and are re-exported by `landscout.stages`; the unit export test checks their identity.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `ParcelZoningResult`
   - `PlanningZoningError`
@@ -91,8 +92,9 @@ __all__ = [
 CALCULATION_CRS = "EPSG:2154"
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_project_geometries`, `_normalize_zones`, `_metric_parcels` and `_candidate_intersections` use EPSG:2154 for planar XY calculation copies. `_validate_result` independently checks normalized-zone CRS equivalence.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 ### `GPU_ZONING_SOURCE_FIELDS`
 
@@ -112,8 +114,9 @@ GPU_ZONING_SOURCE_FIELDS = {
 }
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_validate_planning_document` uses the source identifier/document-reference mappings; `_normalize_zones` copies all eight mapping entries into the new catalog. Mapping values are physical source-column names, not interpreted zoning categories.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 - Exact mapping keys:
   - `source_zone_id`
   - `zone_label_raw`
@@ -135,8 +138,9 @@ GPU_ZONING_REQUIRED_COLUMNS = frozenset(
 )
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_validate_planning_document` requires every mapped physical field plus literal `geometry` before normalization, including fields with nullable raw values.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 ### `PARCEL_REQUIRED_COLUMNS`
 
@@ -147,8 +151,9 @@ GPU_ZONING_REQUIRED_COLUMNS = frozenset(
 PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_validate_parcels` requires `parcel_id` and `geometry`; no other caller-supplied area/score column is required or trusted for metric calculations.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 ### `POLYGON_GEOMETRY_TYPES`
 
@@ -159,8 +164,9 @@ PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 POLYGON_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_validate_polygon_geometries` rejects every observed type outside Polygon/MultiPolygon; dimensional ordinates are removed later from metric copies.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 ### `RELATION_TYPES`
 
@@ -171,8 +177,9 @@ POLYGON_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
 RELATION_TYPES = frozenset({"AREA_OVERLAP", "TOUCH_ONLY"})
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_candidate_intersections` constructs these two area-based relation values and `_validate_result` rejects unknown output values.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 ### `PARCEL_ZONING_OUTPUT_COLUMNS`
 
@@ -207,7 +214,8 @@ PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
 )
 ```
 
-- Qualified consumers:
+- Verified local consumers and meaning: `_validate_parcels` rejects collisions; `validate_normalized_planning_zoning_inputs` requires the complete 21-column set and removes those columns only from a new reconstruction input. The unit missing-summary regressions enumerate the entire set.
+- Qualified external-reference inventory:
   - import: `tests.unit.test_enrich_planning_zoning::<module>` via `from landscout.stages.enrich_planning_zoning import (
     PARCEL_ZONING_OUTPUT_COLUMNS,
     ParcelZoningResult,
@@ -246,8 +254,9 @@ INTERSECTION_COLUMNS = (
 )
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: `_empty_intersections` establishes the ordered 17-column empty schema, the public calculator selects the same ordered columns for populated results, and `_validate_result` checks required membership.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `parcel_id`
   - `planning_zone_id`
@@ -284,8 +293,9 @@ _INTERSECTION_FLOAT_COLUMNS = frozenset(
 )
 ```
 
-- Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+- Verified local consumers and meaning: The five numeric relation columns receive float64 in `_empty_intersections` and non-null finite/nonnegative checks in `_validate_result`.
+- Qualified external-reference inventory:
+  - No external direct consumer was listed by the conservative inventory; local consumers are stated above.
 
 
 ### Executable module-import-time statements
@@ -392,20 +402,20 @@ class PlanningZoningError(ValueError):
 
 ### `ParcelZoningResult`
 
-**Source purpose:** Normalized zones, parcel facts, and long-form parcel/zone relations.
+**Source purpose:** Frozen outer record returned by the factual calculator. Its three required frames remain mutable objects; dataclass freezing does not validate construction or make frame contents immutable. Public source-complete validation accepts the constituent frames, not this record as self-authenticating evidence.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `parcels` | `gpd.GeoDataFrame` | `required` | `parcels: gpd.GeoDataFrame` |
-| `zones` | `gpd.GeoDataFrame` | `required` | `zones: gpd.GeoDataFrame` |
-| `intersections` | `pd.DataFrame` | `required` | `intersections: pd.DataFrame` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Verified meaning |
+|---|---|---|---|---|
+| `parcels` | `gpd.GeoDataFrame` | `required` | `parcels: gpd.GeoDataFrame` | Copied original parcel frame with all 21 factual summary/lineage columns; original order/index/storage CRS/geometry retained. |
+| `zones` | `gpd.GeoDataFrame` | `required` | `zones: gpd.GeoDataFrame` | New normalized catalog: one row per source zone in source order, generated ID, eight raw facts, ten lineage values, EPSG:2154 XY geometry and full `zone_area_m2`. |
+| `intersections` | `pd.DataFrame` | `required` | `intersections: pd.DataFrame` | New ordinary DataFrame of every intersecting parcel/zone pair, including zero-area touches, with the exact ordered 17-column schema and no geometry. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+Field meanings above describe this record's actual construction and consumers; a frozen record is not a physical-source validation receipt.
 
 **Qualified consumers**
 
@@ -448,27 +458,27 @@ class ParcelZoningResult:
 
 ### `_PlanningContext`
 
-**Source purpose:** Defines `_PlanningContext`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Private frozen record of validated in-memory document/layer lineage copied into normalized zones and parcel summaries. All ten fields are required; only `standard_model` may be None. Constructed by `_validate_planning_document`, it neither owns geometry nor proves the physical archive by itself.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
 
 **Fields and model attributes**
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `provider` | `str` | `required` | `provider: str` |
-| `portal` | `str` | `required` | `portal: str` |
-| `commune_code` | `str` | `required` | `commune_code: str` |
-| `document_id` | `str` | `required` | `document_id: str` |
-| `document_type` | `str` | `required` | `document_type: str` |
-| `archive_name` | `str` | `required` | `archive_name: str` |
-| `archive_sha256` | `str` | `required` | `archive_sha256: str` |
-| `source_layer` | `str` | `required` | `source_layer: str` |
-| `standard_model` | `str \| None` | `required` | `standard_model: str \| None` |
-| `source_crs` | `str` | `required` | `source_crs: str` |
+| Field | Annotation/kind | Default or assignment | Exact declaration | Verified meaning |
+|---|---|---|---|---|
+| `provider` | `str` | `required` | `provider: str` | Document metadata provider, copied to normalized `source_provider`; a retained string, not independent official-source proof. |
+| `portal` | `str` | `required` | `portal: str` | Document metadata portal, copied to normalized `source_portal`. |
+| `commune_code` | `str` | `required` | `commune_code: str` | Loaded document commune string, copied to `source_commune_code`; this helper does not prove it from parcel geometry. |
+| `document_id` | `str` | `required` | `document_id: str` | GPU API document identifier, used in generated zone IDs and copied into zone/relation/parcel lineage. |
+| `document_type` | `str` | `required` | `document_type: str` | Loaded document type, copied into normalized-zone and parcel planning lineage; no zoning interpretation follows from it. |
+| `archive_name` | `str` | `required` | `archive_name: str` | Loaded archive name, copied as lineage and used (minus a final case-insensitive `.zip`) to check every raw `IDURBA`. |
+| `archive_sha256` | `str` | `required` | `archive_sha256: str` | Retained 64-hex-character archive hash string, accepted in either case by this local helper and copied unchanged; no bytes hashed here. |
+| `source_layer` | `str` | `required` | `source_layer: str` | Selected zoning physical-layer name, required to equal its retained summary and copied as source lineage. |
+| `standard_model` | `str \| None` | `required` | `standard_model: str \| None` | Sole exact non-empty value across document and XML model declarations, or None if none exist; distinct values fail, and no edition is inferred. |
+| `source_crs` | `str` | `required` | `source_crs: str` | Readable input-zone CRS converted with `CRS.to_string()`; records original zone CRS even though output calculation geometry is EPSG:2154. |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+Field meanings above describe this record's actual construction and consumers; a frozen record is not a physical-source validation receipt.
 
 **Qualified consumers**
 
@@ -498,7 +508,7 @@ class _PlanningContext:
 
 ### `_strict_nonempty_string`
 
-**Purpose:** Implements `strict nonempty string` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Return `value` unchanged only when it is a non-empty `str` with no leading or trailing whitespace; the check is `isinstance`, so string subclasses are not excluded. `label` supplies the controlled `PlanningZoningError` message. This scalar check neither trims/coerces a value nor proves source identity, and has no I/O or mutation.
 
 **Exact signature**
 
@@ -540,20 +550,7 @@ Outbound call expressions and conservative ownership:
 | `value.strip` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -564,13 +561,10 @@ def _strict_nonempty_string(value: object, label: str) -> str:
     return value
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_exact_string_ids`
 
-**Purpose:** Implements `validate exact string ids` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Validate every value of the supplied Series: any pandas-null value fails, then `_strict_nonempty_string` rejects nonstrings, blanks and surrounding whitespace. The required keyword `require_unique` enables an additional exact duplicate check; it is true for parcel/source/generated zone IDs and false for repeated document references. Completion returns `None` without changing the Series; this does not establish physical provenance.
 
 **Exact signature**
 
@@ -596,7 +590,7 @@ def _validate_exact_string_ids(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(f"{label} values must not be null")` under lexical guard `values.isna().any()`.
   - `PlanningZoningError(f"{label} values must be unique")` under lexical guard `require_unique and values.duplicated().any()`.
@@ -622,20 +616,7 @@ Outbound call expressions and conservative ownership:
 | `values.duplicated().any` | `unresolved local/third-party receiver; no ownership inferred` |
 | `values.duplicated` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -654,13 +635,10 @@ def _validate_exact_string_ids(
         raise PlanningZoningError(f"{label} values must be unique")
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_readable_crs`
 
-**Purpose:** Implements `readable crs` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Require a non-None CRS description, parse it using `pyproj.CRS.from_user_input`, and return the parsed CRS. Any parser exception is chained into a label-specific `PlanningZoningError`. Parsing alone neither transforms geometry nor imposes EPSG:2154, and does not modify the caller's object.
 
 **Exact signature**
 
@@ -702,20 +680,7 @@ Outbound call expressions and conservative ownership:
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 | `CRS.from_user_input` | `pyproj.CRS.from_user_input` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -729,13 +694,10 @@ def _readable_crs(value: object, label: str) -> CRS:
         raise PlanningZoningError(f"{label} CRS is unreadable") from error
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_active_geometry`
 
-**Purpose:** Implements `active geometry` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Require a literal `geometry` column and require `frame.active_geometry_name` to equal `geometry`; an absent active-geometry property is translated from `AttributeError` into `PlanningZoningError`. This checks GeoDataFrame metadata only, without setting an active column, reading files, or calculating geometry.
 
 **Exact signature**
 
@@ -755,7 +717,7 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(f"{label} geometry column is required")` under lexical guard `"geometry" not in frame.columns`.
   - `PlanningZoningError(f"{label} geometry column must be active")`.
@@ -774,20 +736,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -803,13 +752,10 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
         raise PlanningZoningError(f"{label} geometry column must be active")
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_polygon_geometries`
 
-**Purpose:** Implements `validate polygon geometries` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Reject any null, empty or invalid geometry, then require all observed geometry types to be Polygon or MultiPolygon. Diagnostics sort the unexpected type names. The helper performs in-memory geometry-quality predicates; it does not repair geometry or reject Z/M ordinates here. An empty frame passes these row-wise checks; the GPU caller separately rejects an empty zoning layer.
 
 **Exact signature**
 
@@ -829,7 +775,7 @@ def _validate_polygon_geometries(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(f"{label} geometry must not be null")` under lexical guard `geometry.isna().any()`.
   - `PlanningZoningError(f"{label} geometry must not be empty")` under lexical guard `geometry.is_empty.any()`.
@@ -856,20 +802,7 @@ Outbound call expressions and conservative ownership:
 | `set` | `unresolved local/third-party receiver; no ownership inferred` |
 | `", ".join` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `geometry.isna().any`<br>`geometry.isna`<br>`geometry.is_empty.any`<br>`geometry.is_valid.all` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -890,13 +823,10 @@ def _validate_polygon_geometries(frame: gpd.GeoDataFrame, label: str) -> None:
         )
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_parcels`
 
-**Purpose:** Implements `validate parcels` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Require a GeoDataFrame containing `parcel_id` and literal active `geometry`; reject collision with any of the 21 generated parcel-zoning columns before calculations. Validate a readable storage CRS, unique exact non-empty parcel IDs and non-null/non-empty valid polygonal geometry, returning the parsed CRS. Extra upstream columns and an empty parcel frame are allowed. This validates the supplied frame rather than Cadastre source authority, does not mutate it, and delegates the in-memory CRS/geometry checks.
 
 **Exact signature**
 
@@ -910,7 +840,7 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
 **Inputs**
 
 | Name | Kind | Annotation | Default |
-|---|---|---|---|
+|---|---|---|---|---|
 | `parcels` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
 **Return and exception contract**
@@ -941,20 +871,7 @@ Outbound call expressions and conservative ownership:
 | `_validate_exact_string_ids` | `landscout.stages.enrich_planning_zoning._validate_exact_string_ids` |
 | `_validate_polygon_geometries` | `landscout.stages.enrich_planning_zoning._validate_polygon_geometries` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_active_geometry` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -979,13 +896,10 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
     return crs
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_standard_model`
 
-**Purpose:** Implements `standard model` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Collect a non-None document `standard_model` and all retained XML standard-model strings, validating each as a non-empty already-trimmed string and deduplicating exact values in encounter order. Return `None` if no value exists, the sole value if unambiguous, or raise `PlanningZoningError` when distinct values remain. Only a local list is appended to; this helper does not reread XML, infer a CNIG edition, or modify the planning document.
 
 **Exact signature**
 
@@ -1024,20 +938,7 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `values.append(_strict_nonempty_string(document_value, "GPU standard model"))`<br>`values.append(validated)` |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1058,13 +959,10 @@ def _standard_model(planning_document: GpuPlanningDocument) -> str | None:
     return values[0]
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_planning_document`
 
-**Purpose:** Implements `validate planning document` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Perform loaded-object consistency checks, not a physical reread: require a `GpuPlanningDocument` instance, validate non-empty metadata strings and a 64-character hexadecimal archive hash, require its `zoning` role and a nonempty polygonal GeoDataFrame with every configured raw zoning column and readable CRS. Source zone IDs must be unique strings; every `IDURBA` must equal the archive name with a final case-insensitive `.zip` suffix removed. The retained layer summary must match document ID, archive hash, layer and row count. Return a new `_PlanningContext` plus the original source frame. The helper neither reconstructs the source config nor verifies archive/extraction bytes; those are duties of the separate source-complete public validator.
 
 **Exact signature**
 
@@ -1129,20 +1027,7 @@ Outbound call expressions and conservative ownership:
 | `_standard_model` | `landscout.stages.enrich_planning_zoning._standard_model` |
 | `source_crs.to_string` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_active_geometry` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1230,13 +1115,10 @@ def _validate_planning_document(
     return context, source
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_project_geometries`
 
-**Purpose:** Implements `project geometries` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Read the frame's CRS and compare it with EPSG:2154. Copy its geometry if equivalent; otherwise call GeoSeries `to_crs` to transform coordinates. Always apply Shapely `force_2d` to the resulting geometries and return a new EPSG:2154 GeoSeries with the original index. Transform/construction failures become chained `PlanningZoningError`. Z/M are removed only from the calculation copy; the stored parcel/source frame is not changed and no geometry repair is attempted.
 
 **Exact signature**
 
@@ -1284,20 +1166,7 @@ Outbound call expressions and conservative ownership:
 | `force_2d` | `shapely.force_2d` |
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `frame.geometry.copy`<br>`frame.geometry.to_crs` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1323,13 +1192,10 @@ def _project_geometries(
     return projected
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_normalize_zones`
 
-**Purpose:** Implements `normalize zones` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Create a new EPSG:2154 XY zoning catalog in source row order using `_project_geometries`. Form each unique `planning_zone_id` as `GPU:<document_id>:ZONE:<source_zone_id>`; copy all eight mapped raw columns without semantic normalization; append the ten context lineage columns. Calculate full normalized zone areas in square metres, require them finite and strictly positive, append `zone_area_m2` and reset to a zero-based index. The final `set_crs(..., allow_override=True)` labels the already-projected result, not an untransformed source. Local arrays/dictionary/frame are populated; the source is not modified and no byte hash is computed.
 
 **Exact signature**
 
@@ -1390,20 +1256,7 @@ Outbound call expressions and conservative ownership:
 | `zones.reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
 | `zones.set_crs` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `projected_geometry.to_numpy`<br>`zones.geometry.area.to_numpy`<br>`zones.set_crs` |
-| External process/environment | None directly present. |
-| In-memory mutation | `data[normalized_name] = source[source_name].to_numpy(copy=True)`<br>`data.update(<br>        {<br>            "source_provider": np.repeat(context.provider, count),<br>            "source_portal": np.repeat(context.portal, count),<br>            "source_commune_code": np.repeat(context.commune_code, count),<br>            "source_document_id": np.repeat(context.document_id, count),<br>            "source_document_type": np.repeat(context.document_type, count),<br>            "source_archive_name": np.repeat(context.archive_name, count),<br>            "source_archive_sha256": np.repeat(context.archive_sha256, count),<br>            "source_layer": np.repeat(context.source_layer, count),<br>            "source_standard_model": np.full(<br>                count, context.standard_model, dtype="object"<br>            ),<br>            "source_crs": np.repeat(context.source_crs, count),<br>        }<br>    )`<br>`zones["zone_area_m2"] = zone_areas`<br>`zones.set_crs(CALCULATION_CRS, allow_override=True)` |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1459,13 +1312,10 @@ def _normalize_zones(
     return zones
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_metric_parcels`
 
-**Purpose:** Implements `metric parcels` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Build an internal, new EPSG:2154 XY GeoDataFrame with positional `_parcel_position` values `0..n-1` (`int64`), copied parcel IDs and projected geometry. Compute the full calculation-geometry area as `_parcel_area_m2` (`float64`), rejecting non-finite or non-positive values. These areas deliberately ignore any caller-supplied area attribute. This temporary calculation frame is not the parcel output and does not alter its original index, attributes, geometry or CRS.
 
 **Exact signature**
 
@@ -1479,7 +1329,7 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 **Inputs**
 
 | Name | Kind | Annotation | Default |
-|---|---|---|---|
+|---|---|---|---|---|
 | `parcels` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 
 **Return and exception contract**
@@ -1510,20 +1360,7 @@ Outbound call expressions and conservative ownership:
 | `(areas <= 0).any` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `geometry.to_numpy`<br>`metric.geometry.area.to_numpy` |
-| External process/environment | None directly present. |
-| In-memory mutation | `metric["_parcel_area_m2"] = areas` |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1545,13 +1382,10 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return metric
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_empty_intersections`
 
-**Purpose:** Implements `empty intersections` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Return a new empty ordinary DataFrame in the exact 17-column `INTERSECTION_COLUMNS` order. The five area/share columns use `float64`; the remaining identity, raw-text, relation and lineage columns use `object`. The empty result has no geometry column, produces no relation, and requires no I/O or caller mutation.
 
 **Exact signature**
 
@@ -1584,20 +1418,7 @@ Outbound call expressions and conservative ownership:
 | `pd.DataFrame` | `pandas.DataFrame` |
 | `pd.Series` | `pandas.Series` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1613,13 +1434,10 @@ def _empty_intersections() -> pd.DataFrame:
     )
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_candidate_intersections`
 
-**Purpose:** Implements `candidate intersections` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Use `gpd.sjoin(..., how="inner", predicate="intersects")` on copied metric parcel/zone views to obtain candidate positional pairs. For each pair compute the full Shapely intersection and its finite nonnegative area; strictly positive area becomes `AREA_OVERLAP`, exactly zero becomes `TOUCH_ONLY` with no business threshold. Attach full parcel/zone areas, `100 * intersection / full area` shares, raw zone facts and textual lineage; preserve temporary intersection geometries solely for union calculations. Return a new work table sorted stably by parcel input position then generated zone ID. No candidates yields an empty three-column internal table. Spatial-index and overlay failures are separately controlled. Copying the archive-hash string is not hashing or physical source verification.
 
 **Exact signature**
 
@@ -1694,20 +1512,7 @@ Outbound call expressions and conservative ownership:
 | `work.sort_values(<br>        ["_parcel_position", "planning_zone_id"], kind="stable"<br>    ).reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
 | `work.sort_values` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `selected_zones["source_archive_sha256"].to_numpy` |
-| CRS/geometry/spatial calculation | `metric_parcels.geometry.to_numpy`<br>`zones.geometry.to_numpy`<br>`gpd.sjoin` |
-| External process/environment | None directly present. |
-| In-memory mutation | `geometry_values[:] = intersection_geometry` |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1806,13 +1611,10 @@ def _candidate_intersections(
     return work
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_technical_area_tolerance`
 
-**Purpose:** Implements `technical area tolerance` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Delegate the parcel reference area to `technical_overlay_tolerance`, imported through the stage compatibility module but implemented in `landscout.common.planning_overlay`. It returns `max(1e-6, parcel_area_m2 * 1e-12)` after the shared finite/nonnegative reference check. Units are square metres in this caller; this is a numerical comparison guard, not a minimum overlap threshold or zoning policy.
 
 **Exact signature**
 
@@ -1844,22 +1646,9 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `technical_overlay_tolerance` | `landscout.stages.planning_overlay.technical_overlay_tolerance` |
+| `technical_overlay_tolerance` | `landscout.common.planning_overlay.technical_overlay_tolerance`, imported through the `landscout.stages.planning_overlay` compatibility re-export |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `technical_overlay_tolerance` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1868,13 +1657,10 @@ def _technical_area_tolerance(parcel_area_m2: float) -> float:
     return technical_overlay_tolerance(parcel_area_m2)
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_stabilize_area_relationships`
 
-**Purpose:** Implements `stabilize area relationships` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Compare covered-union area first with parcel area, then with the raw sum of positive pairwise intersections, using the shared parcel-area tolerance. An excess above tolerance raises; a smaller excess is clamped downward to the corresponding bound. Return `(adjusted_union, parcel_area - adjusted_union, raw_sum - adjusted_union)` and reject negative resulting gap/excess. The private helper relies on upstream finite/positive metrics rather than independently validating every scalar; only local numeric variables change. It does not round positive overlaps to zero.
 
 **Exact signature**
 
@@ -1902,8 +1688,8 @@ def _stabilize_area_relationships(
 - Exact observed return expressions:
   - `covered_union, gap, overlap_excess`
 - Explicit raise paths:
-  - `PlanningZoningError(<br>                "Zoning covered-union area materially exceeds parcel area"<br>            )` under lexical guard `covered_union > parcel_area`.
-  - `PlanningZoningError(<br>                "Zoning covered-union area materially exceeds raw intersection sum"<br>            )` under lexical guard `covered_union > raw_sum`.
+  - `PlanningZoningError(<br>                "Zoning covered-union area materially exceeds parcel area"<br>            )` when `covered_union > parcel_area` and `covered_union - parcel_area > tolerance`.
+  - `PlanningZoningError(<br>                "Zoning covered-union area materially exceeds raw intersection sum"<br>            )` when `covered_union > raw_sum` and `covered_union - raw_sum > tolerance`.
   - `PlanningZoningError("Zoning area differences must not be negative")` under lexical guard `gap < 0 or overlap_excess < 0`.
 
 **Qualified relationships**
@@ -1928,20 +1714,7 @@ Outbound call expressions and conservative ownership:
 | `_technical_area_tolerance` | `landscout.stages.enrich_planning_zoning._technical_area_tolerance` |
 | `PlanningZoningError` | `landscout.stages.enrich_planning_zoning.PlanningZoningError` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -1971,13 +1744,10 @@ def _stabilize_area_relationships(
     return covered_union, gap, overlap_excess
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_parcel_summary`
 
-**Purpose:** Implements `parcel summary` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Start one summary row per input parcel: counts/sum/union/excess zero, gap equal to full metric parcel area, and dominant fields null. Count zero-area touches separately. For positive relations sum pairwise areas, compute the area of Shapely `union_all` of intersection geometries, and stabilize union/gap/excess with the shared tolerance. The dominant zone is the exact maximum positive intersection area; exact ties are counted and resolved by lexically smallest generated zone ID, not raw type or a fuzzy tolerance. Populate a deep DataFrame copy of parcels with the 21 summary/lineage columns; use 100 percent exactly when gap is zero, otherwise `100 * union / parcel_area`. Counts use `int64`, dominant tie count nullable `Int64`, absent dominant areas/shares are NaN and absent dominant text is None. The `zones` parameter is currently unused. Temporary arrays and the new output are mutated; input storage geometry, CRS, index and prior columns remain untouched.
 
 **Exact signature**
 
@@ -1997,7 +1767,7 @@ def _parcel_summary(
 **Inputs**
 
 | Name | Kind | Annotation | Default |
-|---|---|---|---|
+|---|---|---|---|---|
 | `parcels` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 | `metric_parcels` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 | `zones` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
@@ -2009,7 +1779,7 @@ def _parcel_summary(
 - Exact observed return expressions:
   - `output`
 - Explicit raise paths:
-  - `PlanningZoningError(<br>                    "GPU zoning covered-union calculation failed"<br>                )` under lexical guard `not work.empty`.
+  - `PlanningZoningError(<br>                    "GPU zoning covered-union calculation failed"<br>                )` inside the positive-relation loop when Shapely union/area calculation raises an exception.
   - `PlanningZoningError(<br>                    "GPU zoning covered-union area must be finite and non-negative"<br>                )` under lexical guard `not work.empty`.
 
 **Qualified relationships**
@@ -2044,20 +1814,7 @@ Outbound call expressions and conservative ownership:
 | `parcels.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `np.where` | `numpy.where` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `group["_intersection_geometry"].to_numpy` |
-| External process/environment | None directly present. |
-| In-memory mutation | `touch_count[int(position)] = len(group)`<br>`area_match_count[position] = len(group)`<br>`raw_sum[position] = raw_area`<br>`covered_union[position] = union_area`<br>`gap[position] = parcel_gap`<br>`overlap_excess[position] = excess`<br>`dominant_planning[position] = selected["planning_zone_id"]`<br>`dominant_source[position] = selected["source_zone_id"]`<br>`dominant_type[position] = selected["zone_type_raw"]`<br>`dominant_label[position] = selected["zone_label_raw"]`<br>`dominant_long_label[position] = selected["zone_long_label_raw"]`<br>`dominant_area[position] = maximum`<br>`dominant_share[position] = 100.0 * maximum / parcel_areas[position]`<br>`dominant_ties[position] = len(tied)`<br>`output["zoning_area_match_count"] = area_match_count`<br>`output["zoning_touch_only_count"] = touch_count`<br>`output["zoning_intersection_area_sum_m2"] = raw_sum`<br>`output["zoning_covered_union_area_m2"] = covered_union`<br>`output["zoning_coverage_pct"] = np.where(<br>        gap == 0.0,<br>        100.0,<br>        100.0 * covered_union / parcel_areas,<br>    )`<br>`output["zoning_gap_area_m2"] = gap`<br>`output["zoning_overlap_excess_area_m2"] = overlap_excess`<br>`output["dominant_planning_zone_id"] = dominant_planning`<br>`output["dominant_source_zone_id"] = dominant_source`<br>`output["dominant_zone_type_raw"] = dominant_type`<br>`output["dominant_zone_label_raw"] = dominant_label`<br>`output["dominant_zone_long_label_raw"] = dominant_long_label`<br>`output["dominant_zone_intersection_area_m2"] = dominant_area`<br>`output["dominant_zone_share_pct"] = dominant_share`<br>`output["dominant_zone_tie_count"] = dominant_ties`<br>`output["planning_document_id"] = context.document_id`<br>`output["planning_document_type"] = context.document_type`<br>`output["planning_archive_name"] = context.archive_name`<br>`output["planning_archive_sha256"] = context.archive_sha256`<br>`output["planning_source_layer"] = context.source_layer`<br>`output["planning_standard_model"] = context.standard_model` |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2161,13 +1918,10 @@ def _parcel_summary(
     return output
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_numeric_columns`
 
-**Purpose:** Implements `validate numeric columns` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** For each requested column require its presence, then inspect values without coercing the frame: pandas-null values pass only if `allow_null` is true; other values must be non-Boolean `numbers.Real` instances, convertible to a finite nonnegative float. Conversion failures are controlled. All current `_validate_result` call sites use `allow_null=False`. This does not enforce integer counts, strict positivity or column dtypes, and accepts zero; it is a scalar guard, not a geometry or provenance validator.
 
 **Exact signature**
 
@@ -2195,10 +1949,10 @@ def _validate_numeric_columns(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(f"{label} is missing numeric column: {column}")` under lexical guard `column not in frame.columns`.
-  - `PlanningZoningError(f"{label} {column} must not be null")` under lexical guard `pd.isna(value)`.
+  - `PlanningZoningError(f"{label} {column} must not be null")` when `pd.isna(value)` is true and `allow_null` is false.
   - `PlanningZoningError(f"{label} {column} must be numeric")` under lexical guard `isinstance(value, bool) or not isinstance(value, Real)`.
   - `PlanningZoningError(f"{label} {column} must be finite")`.
   - `PlanningZoningError(<br>                    f"{label} {column} must be finite and non-negative"<br>                )` under lexical guard `not isfinite(numeric) or numeric < 0`.
@@ -2219,20 +1973,7 @@ Outbound call expressions and conservative ownership:
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
 | `isfinite` | `math.isfinite` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2264,13 +2005,10 @@ def _validate_numeric_columns(
                 )
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_validate_result`
 
-**Purpose:** Implements `validate result` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Check the freshly built result against the input parcels: equal row count, parcel ID order, index and CRS, plus exact ordered geometry WKB. Require normalized zones equivalent to EPSG:2154, unique non-empty generated IDs and non-null nonnegative zone areas. Require every intersection column, unique parcel/zone pairs, known referenced IDs, allowed relation types, and nonnegative finite numeric metrics. Validate the seven non-null numeric parcel summaries and coverage at most 100 percent. This is a construction postcondition, not the independent source-complete proof: it does not reread GPU files, recompute every formula, enforce every dtype, or compare every original pass-through attribute. It reads in-memory frames and serializes WKB without modifying them.
 
 **Exact signature**
 
@@ -2293,7 +2031,7 @@ def _validate_result(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError("Parcel zoning output count changed")` under lexical guard `len(output) != len(input_parcels)`.
   - `PlanningZoningError("Parcel zoning output IDs or order changed")` under lexical guard `output["parcel_id"].tolist() != input_parcels["parcel_id"].tolist()`.
@@ -2341,20 +2079,7 @@ Outbound call expressions and conservative ownership:
 | `output["zoning_coverage_pct"].to_numpy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `(coverage > 100.0).any` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `output.geometry.to_wkb`<br>`input_parcels.geometry.to_wkb` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2426,13 +2151,10 @@ def _validate_result(
         raise PlanningZoningError("Parcel zoning coverage must not exceed 100 percent")
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `_compare_exact_frame`
 
-**Purpose:** Implements `compare exact frame` within the file role: Intersects parcels with verified GPU zoning and source-completely reconstructs every required factual parcel-summary column.
+**Purpose and verified behavior:** Compare supplied and reconstructed frames without mutation: exact Python frame type and deterministic schema signature first, then for a GeoDataFrame pandas equality of all nongeometry attributes and exact ordered geometry WKB; for a plain DataFrame use full pandas equality. The schema signature binds ordered columns/dtypes, index metadata and CRS, while equality also checks values and row/index alignment. Raise label-specific `PlanningZoningError` for each mismatch and wrap unexpected comparison errors. No file is read, geometry repaired or content SHA computed here.
 
 **Exact signature**
 
@@ -2457,13 +2179,13 @@ def _compare_exact_frame(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(f"{label} frame type differs from reconstruction")` under lexical guard `type(supplied) is not type(expected)`.
   - `PlanningZoningError(f"{label} schema differs from reconstruction")` under lexical guard `deterministic_frame_schema_signature(<br>            supplied<br>        ) != deterministic_frame_schema_signature(expected)`.
-  - `PlanningZoningError(<br>                    f"{label} values or row order differ from reconstruction"<br>                )` under lexical guard `isinstance(expected, gpd.GeoDataFrame)`.
-  - `PlanningZoningError(<br>                    f"{label} geometry or row order differs from reconstruction"<br>                )` under lexical guard `isinstance(expected, gpd.GeoDataFrame)`.
-  - `PlanningZoningError(<br>                f"{label} values or row order differ from reconstruction"<br>            )` under lexical guard `isinstance(expected, gpd.GeoDataFrame)`.
+  - `PlanningZoningError(<br>                    f"{label} values or row order differ from reconstruction"<br>                )` for a GeoDataFrame when its nongeometry attribute frames are not equal.
+  - `PlanningZoningError(<br>                    f"{label} geometry or row order differs from reconstruction"<br>                )` for a GeoDataFrame when its ordered geometry WKB lists differ.
+  - `PlanningZoningError(<br>                f"{label} values or row order differ from reconstruction"<br>            )` when `expected` is not a GeoDataFrame and `supplied.equals(expected)` is false.
   - `re-raise`.
   - `PlanningZoningError(<br>            f"{label} cannot be compared safely with its reconstruction"<br>        )`.
 
@@ -2487,20 +2209,7 @@ Outbound call expressions and conservative ownership:
 | `expected.geometry.to_wkb` | `unresolved local/third-party receiver; no ownership inferred` |
 | `supplied.equals` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `supplied.geometry.to_wkb().tolist`<br>`supplied.geometry.to_wkb`<br>`expected.geometry.to_wkb().tolist`<br>`expected.geometry.to_wkb` |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2545,13 +2254,10 @@ def _compare_exact_frame(
         ) from error
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `validate_normalized_planning_zoning_inputs`
 
-**Purpose:** Prove normalized zoning facts against a freshly read physical GPU layer.
+**Purpose and verified behavior:** This is the physical source-complete zoning trust boundary. Require the exact `GpuPlanningDocument` class, GeoDataFrame parcel/zone inputs, a non-geospatial DataFrame of intersections and every one of the 21 required parcel summary columns. Call `landscout.sources.gpu_fr.revalidate_gpu_spatial_layer_sources` once for the zoning layer; it checks retained config/source integrity and returns fresh physical rows. Require exactly that role, replace only the local document/layer records with the fresh data, and rebuild using the supplied parcel frame after dropping its summary columns into a new copy. Exact-compare the full normalized zone catalog and relation table, then every summary Series including dtype and index. Unrelated upstream parcel columns remain allowed. Physical source errors and unexpected failures are translated to controlled `PlanningZoningError`. This operation delegates filesystem reads/byte checks and XY overlay, but performs no network/download, publication or input mutation: `drop` is not in-place. It does not prove the supplied parcels against Cadastre bytes.
 
 **Exact signature**
 
@@ -2578,7 +2284,7 @@ def validate_normalized_planning_zoning_inputs(
 
 **Return and exception contract**
 
-- No explicit return expression; normal completion therefore returns `None` unless a framework consumes the callable specially.
+- Normal completion returns `None`.
 - Explicit raise paths:
   - `PlanningZoningError(<br>                "planning_document must be exactly a GpuPlanningDocument"<br>            )` under lexical guard `type(planning_document) is not GpuPlanningDocument`.
   - `PlanningZoningError("Zoning parcels must be a GeoDataFrame")` under lexical guard `not isinstance(parcels, gpd.GeoDataFrame)`.
@@ -2651,20 +2357,7 @@ Outbound call expressions and conservative ownership:
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
 | `supplied.equals` | `unresolved local/third-party receiver; no ownership inferred` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | `parcels.drop(columns=list(summary_columns))` |
-| Direct parameter mutation | `parcels.drop(columns=list(summary_columns))` |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2756,16 +2449,10 @@ def validate_normalized_planning_zoning_inputs(
         ) from error
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 ### `intersect_parcels_with_gpu_zoning`
 
-**Purpose:** Return factual parcel/zoning intersections without policy interpretation.
-
-    Parcel storage geometry and CRS are preserved.  Zoning normalization,
-    overlay, area, and union calculations use planar XY geometry in EPSG:2154.
+**Purpose and verified behavior:** Build factual zoning results from the supplied loaded bundle: validate parcel and in-memory GPU facts, make separate EPSG:2154 XY calculation copies, calculate candidate intersections, union/coverage/gap/overlap-excess/dominance summaries, retain the canonical long relation table, and apply construction postconditions before returning `ParcelZoningResult`. Every input parcel is preserved, including no-match/touch-only cases; original storage CRS/geometry/index/prior columns stay on the copied parcel output. This public calculator does not itself call a physical source revalidator or establish new archive/config authority. Before trusting these facts for written-zoning policy or validating persisted facts, use `validate_normalized_planning_zoning_inputs`, which performs the independent fresh physical reconstruction. No files or network are accessed directly, and no legal/BESS permission, policy classification, score or rejection is inferred.
 
 **Exact signature**
 
@@ -2782,7 +2469,7 @@ def intersect_parcels_with_gpu_zoning(
 **Inputs**
 
 | Name | Kind | Annotation | Default |
-|---|---|---|---|
+|---|---|---|---|---|
 | `parcels` | positional-or-keyword | `gpd.GeoDataFrame` | `required` |
 | `planning_document` | positional-or-keyword | `GpuPlanningDocument` | `required` |
 
@@ -2851,20 +2538,7 @@ Outbound call expressions and conservative ownership:
 | `ParcelZoningResult` | `landscout.stages.enrich_planning_zoning.ParcelZoningResult` |
 | `_validate_result` | `landscout.stages.enrich_planning_zoning._validate_result` |
 
-**Source-observed side-effect matrix**
-
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
-
-| Category | Exact evidence |
-|---|---|
-| Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
-| Direct parameter mutation | None directly present. |
+**Effects and limits:** The per-callable behavior above distinguishes direct operations from delegated source/geometry work and identifies every caller-visible mutation boundary.
 
 **Complete source-ordered implementation**
 
@@ -2899,15 +2573,66 @@ def intersect_parcels_with_gpu_zoning(
     return result
 ```
 
-**Business boundary**
-
-- The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
 
 ## 7. Validation and data-contract summary
 
-- Canonical schema/mapping declarations inventoried above: `GPU_ZONING_SOURCE_FIELDS`, `GPU_ZONING_REQUIRED_COLUMNS`, `PARCEL_REQUIRED_COLUMNS`, `PARCEL_ZONING_OUTPUT_COLUMNS`, `INTERSECTION_COLUMNS`, `_INTERSECTION_FLOAT_COLUMNS`.
-- Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
+The public calculator and public validator are different trust levels. The calculator uses the loaded in-memory frame; the validator physically revalidates it and independently rebuilds all results. This split is recorded by the historical GLOBAL HARDENING §D entry in [DEV_LOG](../../../../../DEV_LOG.md) (the source-complete boundary for written zoning), and STEP 7F.1A.4 requires all parcel summary columns at that boundary. No source authority is inferred merely because a calculator result contains a SHA string.
+
+All metric areas below use planar EPSG:2154 XY geometry. Raw source values are copied without trimming, category mapping or legal interpretation, except source identity strings must satisfy the strict checks described above.
+
+| Catalog/relationship field | Meaning and null/default behavior |
+|---|---|
+| `planning_zone_id` | Generated exact `GPU:<document_id>:ZONE:<LIB_IDZONE>` key; unique catalog identity and relation foreign key. |
+| `source_zone_id` | Raw `LIB_IDZONE`, non-null unique non-empty already-trimmed source ID. |
+| `zone_label_raw` | Raw `LIBELLE`, copied as-is, including null if supplied. |
+| `zone_long_label_raw` | Raw `LIBELONG`, copied as-is. |
+| `zone_type_raw` | Raw `TYPEZONE`, not interpreted as an authorization or BESS status. |
+| `regulation_filename_raw` | Raw `NOMFIC`; copied into catalog and relation, not opened here. |
+| `regulation_url_raw` | Raw `URLFIC`; catalog-only value, not fetched or safety-validated here. |
+| `source_document_reference_raw` | Raw `IDURBA`; non-null exact string equal to the archive identity without its final ZIP suffix. |
+| `source_validity_date_raw` | Raw `DATVALID`, copied into catalog and relation without date parsing. |
+| `source_provider`, `source_portal`, `source_commune_code` | Repeated context metadata, with meanings defined in `_PlanningContext`. |
+| `source_document_id`, `source_document_type`, `source_archive_name` | Repeated document lineage; document ID is also retained on relations. |
+| `source_archive_sha256`, `source_layer` | Repeated archive-hash text and physical-layer name, also retained on relations; copying is not byte verification. |
+| `source_standard_model` | Sole retained standard-model declaration or None; no model is inferred. |
+| `source_crs` | Original zone CRS string, not the normalized geometry CRS. |
+| `geometry` | Normalized-zone EPSG:2154 XY geometry only; the ordinary relation output has no geometry column. |
+| `zone_area_m2` | Full normalized source-zone area, finite and positive; repeated for each relation, not merely its parcel clip. |
+| `parcel_id` | Exact input parcel ID; relationship foreign key. |
+| `relation_type` | `AREA_OVERLAP` iff measured intersection area > 0; otherwise an actual zero-area intersection is `TOUCH_ONLY`. No relationship is emitted for disjoint geometry. |
+| `parcel_metric_area_m2` | Full projected XY parcel area recalculated from geometry; not an existing parcel area attribute. |
+| `intersection_area_m2` | Area of the full polygon intersection, including exactly zero for a touch. |
+| `parcel_share_pct` | `100 * intersection_area_m2 / parcel_metric_area_m2`. |
+| `zone_share_pct` | `100 * intersection_area_m2 / zone_area_m2`. |
+
+Every parcel receives all 21 output columns, including parcels with no intersection:
+
+| Parcel output field | Formula, selection or absent-match value |
+|---|---|
+| `zoning_area_match_count` | Number of positive-area relations; int64, default 0. |
+| `zoning_touch_only_count` | Number of zero-area intersecting relations; int64, default 0. |
+| `zoning_intersection_area_sum_m2` | Sum of positive pairwise intersection areas; default 0, may exceed parcel area when zones overlap. |
+| `zoning_covered_union_area_m2` | Area covered by the union of positive intersections, with only technical upper-bound stabilization; default 0. |
+| `zoning_coverage_pct` | Exactly 100 if stabilized gap is zero, otherwise 100 × union/full parcel area; default 0 for a no-match parcel. |
+| `zoning_gap_area_m2` | Full parcel area minus stabilized covered union; defaults to full parcel area. |
+| `zoning_overlap_excess_area_m2` | Pairwise sum minus stabilized covered union; default 0, not a zone count or policy score. |
+| `dominant_planning_zone_id` | Generated ID of the greatest positive-area zone, with lexical generated-ID tie break; None without positive overlap. |
+| `dominant_source_zone_id` | Raw source ID of that same selected zone; None without positive overlap. |
+| `dominant_zone_type_raw` | Uninterpreted type of selected zone; None without positive overlap. |
+| `dominant_zone_label_raw` | Unchanged label of selected zone; None without positive overlap, or the selected raw null. |
+| `dominant_zone_long_label_raw` | Unchanged long label of selected zone; same null rule. |
+| `dominant_zone_intersection_area_m2` | Exact largest positive measured intersection area; float64 NaN if absent. |
+| `dominant_zone_share_pct` | 100 × that maximum/full parcel area; float64 NaN if absent. |
+| `dominant_zone_tie_count` | Number exactly tied at that maximum; nullable Int64, pd.NA if no positive relation. |
+| `planning_document_id` | Repeated context document ID even for no-match parcels. |
+| `planning_document_type` | Repeated context document type, not interpreted compatibility. |
+| `planning_archive_name` | Repeated context archive name. |
+| `planning_archive_sha256` | Repeated context archive-hash string. |
+| `planning_source_layer` | Repeated context zoning physical-layer name. |
+| `planning_standard_model` | Repeated unambiguous model declaration or None. |
+
+These are copied/new mutable pandas/GeoPandas frames, not deeply immutable configuration objects. No output cache or artifact is written by this module. The independent validator detects in-memory or persisted tampering by reconstruction; the calculator's frozen outer dataclass alone cannot do so.
 
 ## 8. Public exports and package ownership
 
@@ -2924,7 +2649,7 @@ Exact `__all__` members and local origins:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 - Configured identity, textual lineage, byte identity, physical source reconstruction, local envelope validation, and source-complete validation remain distinct trust levels. This companion attributes only the levels implemented in the exact source.
-- Filesystem, network, hashing, CRS/geometry, process, mutation, and expected-exception evidence is listed per callable; an empty category is not silently promoted to an effect.
+- Per-callable behavior distinguishes in-memory calculation from delegated physical GPU verification. The original parcel/source frames are not mutated. Physical validation is required before treating supplied zoning facts as source-complete evidence; no Cadastre source validation occurs here.
 
 ## 10. Change impact
 

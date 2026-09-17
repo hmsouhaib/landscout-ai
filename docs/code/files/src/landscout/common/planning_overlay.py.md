@@ -84,6 +84,12 @@ def technical_overlay_tolerance(reference_value: float) -> float:
 
 Return the shared floating-point overlay tolerance for a metric value.
 
+**Ordered algorithm and units**
+
+The reference must be finite and non-negative; zero is valid. The result is the larger of the absolute floor `1e-6` and `reference_value * 1e-12`. The floor therefore applies through a reference of `1e6`; larger references use the relative term. The returned tolerance has the reference metric's units (area or length at the caller), not a universal percentage unit. This is a floating-point consistency allowance, not a minimum overlap, spatial buffer, distance threshold, or policy cutoff.
+
+The annotation does not enforce an exact float at runtime: `math.isfinite` and arithmetic govern compatible inputs, and their errors are not translated. Negative values, NaN and infinity take the explicit `ValueError` branch. Callers remain responsible for validating the source metric's domain and units.
+
 **Return contract**
 
 - Declared return annotation: `float`.

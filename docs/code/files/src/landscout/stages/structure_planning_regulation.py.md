@@ -12,7 +12,7 @@
 ## 1. STEP 7F.1A.4.1 contract delta
 
 - Declares structure aliases/topics as Mapping values, retains recursive freezing, and serializes them to the same established Python/JSON shapes so the structure hash and schema stay unchanged.
-- Runtime trust objects are deeply immutable without removing any public reconstruction/revalidation boundary or changing business semantics.
+- Loaded Pydantic structure configurations are deeply immutable, with copied mappings and ordered tuples. The frozen result dataclass still contains mutable pandas frames, and private _SectionBuild contains a mutable local row dictionary; full reconstruction/revalidation is therefore retained.
 
 ## 2. Purpose and architectural position
 
@@ -45,9 +45,11 @@ The file belongs to the **pipeline stage** layer and **factual transformation, e
     BaseModel,
     ConfigDict,
     Field,
+    SerializationInfo,
     StrictBool,
     StrictInt,
     StrictStr,
+    field_serializer,
     model_validator,
 )`
 
@@ -80,7 +82,7 @@ _normalize_search_text = normalize_planning_search_text
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - This local alias calls `landscout.common.planning_text.normalize_planning_search_text`; its actual consumers are the grammar/heading/section/topic validators and builders listed in the callable sections below. It is not an unused declaration or a separate implementation.
 
 ### `_normalize_search_text_with_mapping`
 
@@ -92,7 +94,7 @@ _normalize_search_text_with_mapping = normalize_planning_search_text_with_mappin
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - This local alias calls `landscout.common.planning_text.normalize_planning_search_text_with_mapping`; its actual consumers are the grammar/heading/section/topic validators and builders listed in the callable sections below. It is not an unused declaration or a separate implementation.
 
 ### `_raw_context`
 
@@ -104,7 +106,7 @@ _raw_context = raw_context_from_spans
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - This local alias calls `landscout.common.planning_text.raw_context_from_spans`; its actual consumers are the grammar/heading/section/topic validators and builders listed in the callable sections below. It is not an unused declaration or a separate implementation.
 
 ### `__all__`
 
@@ -200,7 +202,7 @@ _SUPPORTED_CONFIG_SCHEMA_VERSION = 2
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Value 2 is consumed by the config after-validator.
 
 ### `_SECTION_TYPES`
 
@@ -212,7 +214,7 @@ _SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Closed section vocabulary enforced by _validate_sections.
 
 ### `_MAPPING_STATUSES`
 
@@ -224,7 +226,7 @@ _MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"}
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Closed mapping status vocabulary enforced by _validate_zone_mapping.
 
 ### `_MAPPING_METHODS`
 
@@ -236,7 +238,7 @@ _MAPPING_METHODS = frozenset({"EXACT_HEADING", "CONFIG_ALIAS", "NONE", "AMBIGUOU
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Closed mapping method vocabulary enforced with exact status/method pairing by _validate_zone_mapping.
 
 ### `_EVIDENCE_SCOPES`
 
@@ -248,7 +250,7 @@ _EVIDENCE_SCOPES = frozenset({"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - Closed evidence-location vocabulary enforced by _validate_topic_evidence.
 
 ### `_ZONE_INPUT_COLUMNS`
 
@@ -266,7 +268,7 @@ _ZONE_INPUT_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The five ordered catalog fact columns are required/hashed in _validated_zoning_inputs, _build_structure_result and _validate_result_self; geometry and extra columns are not in this identity.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `planning_zone_id`
   - `source_zone_id`
@@ -293,7 +295,7 @@ _REQUIRED_INTERSECTION_INPUT_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The eight ordered required relation facts drive validation and _intersection_hash_columns.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `parcel_id`
   - `planning_zone_id`
@@ -317,7 +319,7 @@ _OPTIONAL_INTERSECTION_INPUT_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The two optional upper-area metrics are validated when present and appended in declaration order to _intersection_hash_columns.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `parcel_metric_area_m2`
   - `zone_area_m2`
@@ -357,7 +359,7 @@ SECTION_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The 24-column schema drives section building, section validation, row/component hashing and rebuilt comparison.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `section_id`
   - `parent_section_id`
@@ -409,7 +411,7 @@ ZONE_MAPPING_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The 14-column schema drives mapping building, mapping validation, component hashing and rebuilt comparison.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `source_zone_label_raw`
   - `resolved_zone_chapter_label`
@@ -458,7 +460,7 @@ TOPIC_EVIDENCE_COLUMNS = (
 ```
 
 - Qualified consumers:
-  - No conservative direct import/call/value reference was found outside the declaration.
+  - The 21-column schema drives topic building, topic validation, component hashing and rebuilt comparison.
 - Exact ordered/literal string members (these are not classified as DataFrame columns unless the declaration category above says schema):
   - `topic`
   - `search_term`
@@ -487,11 +489,44 @@ TOPIC_EVIDENCE_COLUMNS = (
 
 No executable module-import-time statement is declared outside imports, assignments, and definitions.
 
+### Verified stage contract and frame fields
+
+This stage consumes a validated, locked in-memory regulation index plus supplied zoning catalog/relation facts. It rebuilds their complete derived structure; it does not independently reacquire/reopen the PDF, archive or GPU geometry, and does not prove the supplied relation geometry. Config paths may be read locally. All other work is in memory; there is no network, artifact publication or spatial overlay here. The later written-zoning interpretation boundary separately validates physical zoning evidence.
+
+The config is deeply immutable; results are frozen envelopes around mutable DataFrames. Complete rebuilt comparison is required after any caller-supplied result. Canonical hash equality normalizes pandas/NumPy/null/container scalar representations and excludes pandas index/dtype identity; it is not a byte-exact frame serialization.
+
+The following are actual DataFrame fields, unlike the module aliases and version constants above. Five lineage columns recur in each output: document_id/archive_sha256/pdf_sha256/index_content_sha256 come from the index; structure_profile comes from the validated config.
+
+| Owning frame | Fields | Exact meaning |
+|---|---|---|
+| sections | section_id; parent_section_id; section_type | Sequential SECTION-0001-style ID; nullable earlier zone-chapter parent for ARTICLE only; GENERAL/ZONE_CHAPTER/ARTICLE/OTHER category. |
+| sections | heading_raw; heading_normalized | Retained factual heading (OTHER uses its first nonblank line); shared normalized heading. Only forced TOC OTHER may be blank-only. |
+| sections | zone_chapter_label; article_number_raw; article_title_raw | Chapter label for ZONE_CHAPTER/ARTICLE; captured number/title for GENERAL/ARTICLE; other inapplicable values null. |
+| sections | start_record_id; end_record_id; source_record_count; source_records_sha256 | Inclusive endpoint record IDs and positive size/digest of the exact contiguous retained-record segment; all sections together exhaust the records without overlap. |
+| sections | start_page; end_page; page_numbers | First/last one-based source page and the ordered unique tuple of pages actually represented by the segment, not an assumed continuous range. |
+| sections | raw_text; normalized_text; character_count | Retained record lines joined with newline; shared normalized text; Python character length of raw text. |
+| sections | section_content_sha256 | Schema-3 digest of all other canonical section columns. |
+| zone_mapping | source_zone_label_raw; resolved_zone_chapter_label; matched_section_id | Sorted unique raw catalog label; nullable resolved chapter spelling and matching unique chapter ID. Ambiguous aliases may retain their resolved target without a section ID. |
+| zone_mapping | mapping_status; mapping_method | EXACT/EXACT_HEADING, CONFIG_ALIAS/CONFIG_ALIAS, UNMAPPED/NONE or AMBIGUOUS/AMBIGUOUS; no fuzzy matching. |
+| zone_mapping | zone_polygon_count | Count of catalog rows with that label; strictly positive for an emitted row. |
+| zone_mapping | candidate_parcel_count; candidate_intersection_count | Unique related parcels and all related parcel-zone rows for that label, including touches. |
+| zone_mapping | dominant_candidate_count | Count of positive-area per-parcel winners with that label; cannot exceed unique related parcels. Unresolved dominant labels stop processing. |
+| topic_evidence | topic; search_term; normalized_search_term; match_policy | Configured topic, original term, shared-normalized term and token_longest_match identifier. |
+| topic_evidence | section_id; evidence_scope; zone_chapter_label; article_number_raw | Source section and location-derived GENERAL_RULE/ZONE_SPECIFIC_RULE/OTHER_TEXT; exact nullable chapter/number facts copied from the section. No legal applicability is asserted. |
+| topic_evidence | page_number; occurrence_count | One-based page within that section and count of selected occurrences of the term on that fragment. |
+| topic_evidence | first_match_normalized_start; first_match_normalized_end | Zero-based half-open first-match interval in normalized section/page fragment, not the whole PDF/page or UTF-8 bytes. |
+| topic_evidence | first_match_raw_start; first_match_raw_end | Corresponding zero-based half-open interval in the retained raw section/page fragment, reconstructed through shared character spans. |
+| topic_evidence | raw_context; normalized_context | Exact context around the first match with the configured normalized-character margin; raw context is mapped back to the retained fragment. |
+| returned section/page fragments | section_id; page_number; raw_text; section_page_fragment_sha256 | Unique section/page key, retained raw fragment and SHA256 of that raw UTF-8 text alone. |
+| returned section/page fragments | document_id; archive_sha256; pdf_sha256; index_content_sha256; structure_profile; structure_result_content_sha256 | The same five lineage fields plus the fully validated complete structure-result digest. |
+
+The builder emits int64 for section start_page/end_page/source_record_count/character_count, the four mapping counts, and topic page_number/occurrence_count/four offsets. Empty topic evidence preserves those six int64 columns and object dtype for the other columns. Validators compare canonical values rather than making identical pandas dtypes/indexes a persisted structure contract.
+
 ## 5. Classes, models, dataclasses, and fields
 
 ### `PlanningRegulationStructureError`
 
-**Source purpose:** Raised when factual regulation structure integrity cannot be proven.
+**Source purpose:** Controlled ValueError subtype for config, index-lock, structural grammar, factual-table and rebuilt-evidence failures.
 
 - Exact decorators: none.
 - Exact bases: `ValueError`.
@@ -633,7 +668,7 @@ class PlanningRegulationStructureError(ValueError):
 
 ### `_StrictConfigModel`
 
-**Source purpose:** Defines `_StrictConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Base for this module's Pydantic configs: extra fields are forbidden and attribute assignment is frozen. Individual fields use strict scalar types; nested aliases/topics are copied into immutable mappings by the parent validator.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -659,7 +694,7 @@ class _StrictConfigModel(BaseModel):
 
 ### `DocumentLockConfig`
 
-**Source purpose:** Defines `DocumentLockConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Five required expected index identities. Scalar format validation is local; the containing structure config checks trimmed document/profile values and `_validate_document_lock` compares all five against the supplied validated index.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -674,7 +709,15 @@ class _StrictConfigModel(BaseModel):
 | `index_content_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
 | `normalization_profile` | `StrictStr` | `Field(min_length=1)` | `normalization_profile: StrictStr = Field(min_length=1)` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `document_id` | Expected GPU document identifier, compared exactly to index.document_id; nonempty and trimmed at parent validation. |
+| `pdf_sha256` | Expected selected regulation PDF digest; 64 lowercase hex, compared to index.pdf_sha256. |
+| `pages_content_sha256` | Expected indexed-page canonical digest, compared to index.pages_content_sha256. |
+| `index_content_sha256` | Expected complete index-envelope digest, compared to index.index_content_sha256. |
+| `normalization_profile` | Expected index normalization profile identifier; nonempty trimmed and compared exactly. |
 
 **Qualified consumers**
 
@@ -693,7 +736,7 @@ class DocumentLockConfig(_StrictConfigModel):
 
 ### `DocumentLayoutConfig`
 
-**Source purpose:** Defines `DocumentLayoutConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Immutable document-layout controls: one-based body start, ordered immutable TOC page numbers, bounded same-page heading continuation count and exact boolean evidence-inclusion flag.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -707,7 +750,14 @@ class DocumentLockConfig(_StrictConfigModel):
 | `max_heading_continuation_lines` | `StrictInt` | `Field(ge=0, le=10)` | `max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)` |
 | `include_table_of_contents_in_topic_evidence` | `StrictBool` | `False` | `include_table_of_contents_in_topic_evidence: StrictBool = False` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `body_start_page` | Required StrictInt >=1; first page eligible for structural headings and body ERROR enforcement; must exist in the index. |
+| `table_of_contents_pages` | Tuple of StrictInt page numbers, default empty, positive/unique/ascending and later checked for actual index membership. |
+| `max_heading_continuation_lines` | Required StrictInt from 0 through 10; maximum following continuation lines for non-zone headings on the same page. |
+| `include_table_of_contents_in_topic_evidence` | Required StrictBool: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification. |
 
 **Qualified consumers**
 
@@ -734,7 +784,7 @@ class DocumentLayoutConfig(_StrictConfigModel):
 
 ### `HeadingPatternsConfig`
 
-**Source purpose:** Defines `HeadingPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Ordered immutable regex tuples for three structural categories and optional continuation lines. Parent validation enforces compilability, required named captures and duplicate restrictions.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -748,7 +798,14 @@ class DocumentLayoutConfig(_StrictConfigModel):
 | `general_section` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `general_section: tuple[StrictStr, ...] = Field(min_length=1)` |
 | `continuation` | `tuple[StrictStr, ...]` | `()` | `continuation: tuple[StrictStr, ...] = ()` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `zone_chapter` | Required nonempty ordered tuple of regexes with a named label capture. |
+| `article` | Required nonempty ordered tuple of regexes with named zone, number and title captures. |
+| `general_section` | Required nonempty ordered tuple of regexes with named number and title captures. |
+| `continuation` | Ordered optional fullmatch regexes for heading-continuation lines; default empty. |
 
 **Qualified consumers**
 
@@ -766,7 +823,7 @@ class HeadingPatternsConfig(_StrictConfigModel):
 
 ### `IgnoredPatternsConfig`
 
-**Source purpose:** Defines `IgnoredPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Ordered immutable regex tuples for positional page header/footer filtering. Empty tuples disable that side; these are not global text-deletion patterns.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -778,7 +835,12 @@ class HeadingPatternsConfig(_StrictConfigModel):
 | `page_headers` | `tuple[StrictStr, ...]` | `()` | `page_headers: tuple[StrictStr, ...] = ()` |
 | `page_footers` | `tuple[StrictStr, ...]` | `()` | `page_footers: tuple[StrictStr, ...] = ()` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `page_headers` | Ordered optional fullmatch regexes used only at the leading header position; default empty. |
+| `page_footers` | Ordered optional fullmatch regexes used only at the trailing footer position; default empty. |
 
 **Qualified consumers**
 
@@ -794,7 +856,7 @@ class IgnoredPatternsConfig(_StrictConfigModel):
 
 ### `TopicMatchPolicyConfig`
 
-**Source purpose:** Defines `TopicMatchPolicyConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Closed token-boundary/longest-match declaration; its property emits the deterministic policy identifier used in evidence rows.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -806,7 +868,12 @@ class IgnoredPatternsConfig(_StrictConfigModel):
 | `boundary_mode` | `Literal['token']` | `required` | `boundary_mode: Literal["token"]` |
 | `overlap_resolution` | `Literal['longest_match']` | `required` | `overlap_resolution: Literal["longest_match"]` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `boundary_mode` | Only literal token is accepted; matching checks neighboring alphanumeric/underscore characters. |
+| `overlap_resolution` | Only literal longest_match is accepted; configured term order resolves equal-length candidate priority. |
 
 **Qualified consumers**
 
@@ -826,7 +893,7 @@ class TopicMatchPolicyConfig(_StrictConfigModel):
 
 ### `PlanningRegulationStructureConfig`
 
-**Source purpose:** Strict, document-locked grammar for one factual regulation structure.
+**Source purpose:** Deeply immutable schema-2 structure configuration retaining copied aliases and topic-term tuples, ordered grammar declarations, document locks and context width. Public consumers reconstruct and revalidate supplied model instances; JSON serializers preserve the established canonical hash representation.
 
 - Exact decorators: none.
 - Exact bases: `_StrictConfigModel`.
@@ -841,12 +908,25 @@ class TopicMatchPolicyConfig(_StrictConfigModel):
 | `document_layout` | `DocumentLayoutConfig` | `required` | `document_layout: DocumentLayoutConfig` |
 | `heading_patterns` | `HeadingPatternsConfig` | `required` | `heading_patterns: HeadingPatternsConfig` |
 | `ignored_patterns` | `IgnoredPatternsConfig` | `required` | `ignored_patterns: IgnoredPatternsConfig` |
-| `zone_aliases` | `dict[StrictStr, StrictStr]` | `required` | `zone_aliases: dict[StrictStr, StrictStr]` |
-| `topics` | `dict[StrictStr, tuple[StrictStr, ...]]` | `required` | `topics: dict[StrictStr, tuple[StrictStr, ...]]` |
+| `zone_aliases` | `Mapping[StrictStr, StrictStr]` | `required` | `zone_aliases: Mapping[StrictStr, StrictStr]` |
+| `topics` | `Mapping[StrictStr, tuple[StrictStr, ...]]` | `required` | `topics: Mapping[StrictStr, tuple[StrictStr, ...]]` |
 | `topic_match_policy` | `TopicMatchPolicyConfig` | `required` | `topic_match_policy: TopicMatchPolicyConfig` |
 | `topic_context_characters` | `StrictInt` | `Field(ge=0)` | `topic_context_characters: StrictInt = Field(ge=0)` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `schema_version` | Required strict positive version; parent supports exactly 2. |
+| `structure_profile` | Required trimmed nonempty identity for this grammar; copied into evidence and bound by config/result hashes. |
+| `document_lock` | Required immutable five-identity lock model; does not itself reopen the source. |
+| `document_layout` | Required immutable body/TOC/continuation/evidence controls. |
+| `heading_patterns` | Required ordered structural/continuation grammar tuples. |
+| `ignored_patterns` | Required header/footer pattern model; its tuples may be empty. |
+| `zone_aliases` | Required Mapping[StrictStr, StrictStr], copied/frozen after acyclic trimmed exact-key/target validation; mapping keys are not fuzzy or casefolded. |
+| `topics` | Required Mapping[StrictStr, tuple[StrictStr, ...]], copied/frozen; at least one topic and term per topic, with normalized duplicates rejected within a topic. Topic names sort for output while term order is preserved. |
+| `topic_match_policy` | Required closed token/longest-match model; no alternative matcher is inferred. |
+| `topic_context_characters` | Required StrictInt >=0 giving the normalized-character margin around the first retained match, not raw bytes or a match limit. |
 
 **Qualified consumers**
 
@@ -1055,7 +1135,7 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
 
 ### `PlanningRegulationStructureResult`
 
-**Source purpose:** Immutable lineage envelope for regulation sections and factual evidence.
+**Source purpose:** Frozen dataclass lineage envelope with 19 required fields. The three pandas DataFrames remain mutable, so immediate assignment freezing is not deep frame immutability; validators rebuild and compare their contents and hashes.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1084,7 +1164,29 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
 | `zone_mapping` | `pd.DataFrame` | `required` | `zone_mapping: pd.DataFrame` |
 | `topic_evidence` | `pd.DataFrame` | `required` | `topic_evidence: pd.DataFrame` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `document_id` | Supplied index document identifier. |
+| `archive_sha256` | Supplied index archive digest; comparison is lineage, not a fresh archive read. |
+| `pdf_sha256` | Supplied index selected-PDF digest. |
+| `index_content_sha256` | Supplied complete index-envelope digest. |
+| `structure_profile` | Validated config profile identifier. |
+| `structure_config_schema_version` | Validated structure config version (2). |
+| `structure_config_sha256` | Canonical JSON-mode semantic config digest, not YAML byte SHA. |
+| `zones_content_sha256` | Ordered canonical values and column list for the five selected zoning inputs; excludes geometry/index/dtypes/extras. |
+| `zoning_intersection_hash_columns` | Exact ordered tuple of eight required input columns plus present approved optional metrics. |
+| `zoning_intersections_content_sha256` | Ordered canonical relation rows and selected column-list digest. |
+| `source_records_sha256` | Digest of the complete retained line-record sequence, including source page/line positions and raw text. |
+| `section_hash_schema_version` | Supported section/component hash version 3. |
+| `sections_content_sha256` | Domain-separated section-frame digest including shared input/config lineage. |
+| `zone_map_content_sha256` | Domain-separated zone-mapping frame digest including shared input/config lineage. |
+| `topic_evidence_content_sha256` | Domain-separated topic-evidence frame digest including shared input/config lineage. |
+| `structure_result_content_sha256` | Outer envelope digest binding all other scalar/tuple identities and the three component hashes. |
+| `sections` | Mutable 24-column ordered factual section DataFrame; raw text is reconstructed from complete retained-record partitions. |
+| `zone_mapping` | Mutable 14-column sorted raw-label mapping/count DataFrame; not a zoning suitability decision. |
+| `topic_evidence` | Mutable 21-column literal-match DataFrame, with exact fragment-local offsets and contexts; empty evidence is allowed. |
 
 **Qualified consumers**
 
@@ -1171,7 +1273,7 @@ class PlanningRegulationStructureResult:
 
 ### `_LineRecord`
 
-**Source purpose:** Defines `_LineRecord`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen retained-line record preserving source page and original page-line identity after positional filtering.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1185,7 +1287,14 @@ class PlanningRegulationStructureResult:
 | `page_line_number` | `int` | `required` | `page_line_number: int` |
 | `raw` | `str` | `required` | `raw: str` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `record_id` | Sequential global RECORD-000001-style identity after filtering. |
+| `page_number` | One-based source index page number. |
+| `page_line_number` | One-based original splitlines position on that page, including gaps caused by filtering. |
+| `raw` | Unnormalized retained source line without splitlines separator. |
 
 **Qualified consumers**
 
@@ -1214,7 +1323,7 @@ class _LineRecord:
 
 ### `_HeadingEvent`
 
-**Source purpose:** Defines `_HeadingEvent`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen recognized heading at a retained-record position, including raw/normalized heading, optional captured chapter and article facts.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1231,7 +1340,17 @@ class _LineRecord:
 | `article_number_raw` | `str \| None` | `required` | `article_number_raw: str \| None` |
 | `article_title_raw` | `str \| None` | `required` | `article_title_raw: str \| None` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `record_position` | Zero-based position of the actual heading record in the retained sequence, before blank-prefix boundary shifts. |
+| `section_type` | Recognized GENERAL, ZONE_CHAPTER or ARTICLE category. |
+| `heading_raw` | Raw heading lines joined with newline, including accepted continuations. |
+| `heading_normalized` | Shared normalization of the complete raw heading. |
+| `zone_chapter_label` | Whitespace-compacted captured zone label, or None for a general heading. |
+| `article_number_raw` | Captured source number for ARTICLE/GENERAL, otherwise None. |
+| `article_title_raw` | Captured title joined with stripped continuation text, otherwise None. |
 
 **Qualified consumers**
 
@@ -1254,7 +1373,7 @@ class _HeadingEvent:
 
 ### `_StructuralHeadingMatch`
 
-**Source purpose:** Defines `_StructuralHeadingMatch`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen diagnostic result for one fullmatching structural regex and its named captures; multiple such matches are rejected before becoming a heading event.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1267,7 +1386,13 @@ class _HeadingEvent:
 | `pattern_index` | `int` | `required` | `pattern_index: int` |
 | `named_captures` | `tuple[tuple[str, str \| None], ...]` | `required` | `named_captures: tuple[tuple[str, str \| None], ...]` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `section_type` | The fullmatching pattern group's structural category. |
+| `pattern_index` | Zero-based pattern index within that group, used in ambiguity diagnostics. |
+| `named_captures` | Immutable ordered tuple of groupdict key/value pairs; values can be None. |
 
 **Qualified consumers**
 
@@ -1285,7 +1410,7 @@ class _StructuralHeadingMatch:
 
 ### `_SectionBoundary`
 
-**Source purpose:** Defines `_SectionBoundary`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen start marker for partitioning retained records, with optional heading event and explicit TOC-boundary flag.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1298,7 +1423,13 @@ class _StructuralHeadingMatch:
 | `event` | `_HeadingEvent \| None` | `required` | `event: _HeadingEvent \| None` |
 | `forced_table_of_contents` | `bool` | `required` | `forced_table_of_contents: bool` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `record_position` | Zero-based retained-record start, potentially moved back over ordinary blanks. |
+| `event` | Recognized heading event for a factual section, or None for an OTHER boundary. |
+| `forced_table_of_contents` | True only for explicit TOC starts; preserves TOC OTHER boundaries even for blank text. |
 
 **Qualified consumers**
 
@@ -1316,7 +1447,7 @@ class _SectionBoundary:
 
 ### `_SectionBuild`
 
-**Source purpose:** Defines `_SectionBuild`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen private holder for a mutable local section-row dictionary and an immutable ordered tuple of per-page raw fragments. It is not a public deeply immutable trust model.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1328,7 +1459,12 @@ class _SectionBoundary:
 | `row` | `dict[str, object]` | `required` | `row: dict[str, object]` |
 | `page_fragments` | `tuple[tuple[int, str], ...]` | `required` | `page_fragments: tuple[tuple[int, str], ...]` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `row` | Mutable local dictionary with one section's factual 24-column values; filled/hash-bound during construction. |
+| `page_fragments` | Ordered immutable (one-based page number, raw fragment text) tuple for that section. |
 
 **Qualified consumers**
 
@@ -1350,7 +1486,7 @@ class _SectionBuild:
 
 ### `_TopicMatch`
 
-**Source purpose:** Defines `_TopicMatch`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen selected/candidate match record for one configured term, with zero-based half-open normalized-fragment offsets.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1365,7 +1501,15 @@ class _SectionBuild:
 | `normalized_start` | `int` | `required` | `normalized_start: int` |
 | `normalized_end` | `int` | `required` | `normalized_end: int` |
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+**Verified field meanings**
+
+| Field | Meaning and constraints |
+|---|---|
+| `term_index` | Zero-based configured term position within one topic; controls equal-length priority. |
+| `search_term` | Original configured term string. |
+| `normalized_term` | Shared-normalized configured term used for literal matching. |
+| `normalized_start` | Zero-based inclusive start in the normalized section/page fragment. |
+| `normalized_end` | Zero-based exclusive end in the same normalized fragment. |
 
 **Qualified consumers**
 
@@ -1389,7 +1533,7 @@ class _TopicMatch:
 
 ### `DocumentLayoutConfig._validate_pages`
 
-**Purpose:** Implements `validate pages` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Rejects non-positive, duplicate or non-ascending configured TOC page numbers and returns the same validated model. Actual page existence is checked later against the index; an empty tuple is allowed.
 
 **Exact signature**
 
@@ -1461,7 +1605,7 @@ def _validate_pages(self) -> DocumentLayoutConfig:
 
 ### `TopicMatchPolicyConfig.identifier`
 
-**Purpose:** Implements `identifier` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Joins the two validated literal policy fields as `token_longest_match`, the evidence-row identifier. It does not perform matching.
 
 **Exact signature**
 
@@ -1520,7 +1664,7 @@ def identifier(self) -> str:
 
 ### `PlanningRegulationStructureConfig._validate_grammar`
 
-**Purpose:** Implements `validate grammar` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Validates schema 2, trimmed profile/lock strings, nonempty trimmed unique compilable regexes, required named captures, cross-group duplicate structural regex rejection, acyclic exact aliases, and nonempty topics with distinct normalized terms within each topic. Then `freeze_mapping` copies and freezes aliases/topics. It does not test whether different regexes overlap on actual source lines; `_classify_structural_heading` handles that ambiguity.
 
 **Exact signature**
 
@@ -1567,9 +1711,9 @@ Outbound call expressions and conservative ownership:
 | `structural_pattern_owners.get` | `unresolved local/third-party receiver; no ownership inferred` |
 | `required.difference` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
-| `self.zone_aliases.items` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.zone_aliases.items` |
+| `self.zone_aliases.items` | `collections.abc.Mapping.items` on the zone_aliases field; not a module-owned function |
 | `_validate_alias_cycles` | `landscout.stages.structure_planning_regulation._validate_alias_cycles` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `normalized.add` | `unresolved local/third-party receiver; no ownership inferred` |
 | `object.__setattr__` | `unresolved local/third-party receiver; no ownership inferred` |
 | `freeze_mapping` | `landscout.common.immutable_mapping.freeze_mapping` |
@@ -1588,7 +1732,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | `structural_pattern_owners[pattern] = category`<br>`normalized.add(normalized_term)` |
-| Direct parameter mutation | None directly present. |
+| Direct parameter mutation | During validated-model construction, `object.__setattr__` replaces self.zone_aliases/self.topics with copied immutable mappings; it does not mutate the caller's input mapping. |
 
 **Complete source-ordered implementation**
 
@@ -1688,7 +1832,7 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
 
 ### `_exact_config_string`
 
-**Purpose:** Implements `exact config string` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Rejects empty or untrimmed strings after StrictStr field validation. This helper itself does not perform an exact-runtime-type check.
 
 **Exact signature**
 
@@ -1755,7 +1899,7 @@ def _exact_config_string(value: str, label: str) -> str:
 
 ### `_validate_alias_cycles`
 
-**Purpose:** Implements `validate alias cycles` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Walks every exact, case-sensitive alias chain and raises on a visited key; terminal targets need not be alias keys. The visited sets are local and the input mapping is not mutated.
 
 **Exact signature**
 
@@ -1826,7 +1970,7 @@ def _validate_alias_cycles(aliases: Mapping[str, str]) -> None:
 
 ### `load_planning_regulation_structure_config`
 
-**Purpose:** Load and strictly validate a document-specific structure grammar.
+**Purpose:** Reads the supplied local YAML path, uses duplicate-safe strict YAML loading, requires a mapping root and validates a fresh deeply immutable structure config. YAML/parser/model/file failures become PlanningRegulationStructureError; no source document is read and no config hash is calculated here.
 
 **Exact signature**
 
@@ -1948,7 +2092,7 @@ def load_planning_regulation_structure_config(
 
 ### `_strict_string`
 
-**Purpose:** Implements `strict string` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Requires a nonempty trimmed string value and returns it unchanged; isinstance accepts string subclasses. Errors use the caller's label.
 
 **Exact signature**
 
@@ -2032,7 +2176,7 @@ def _strict_string(value: object, label: str) -> str:
 
 ### `_strict_nonnegative_integer`
 
-**Purpose:** Implements `strict nonnegative integer` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Rejects bool and non-Integral values, converts accepted integral scalars including NumPy integers to built-in int, and rejects negative values.
 
 **Exact signature**
 
@@ -2110,7 +2254,7 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 ### `_strict_positive_integer`
 
-**Purpose:** Implements `strict positive integer` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Reuses the nonnegative integer guard and additionally rejects zero; it is used for page numbers, counts and versions.
 
 **Exact signature**
 
@@ -2188,7 +2332,7 @@ def _strict_positive_integer(value: object, label: str) -> int:
 
 ### `_validated_sha256`
 
-**Purpose:** Implements `validated sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Requires a trimmed lower-case 64-hex SHA256 string. This is lexical validation, not recomputation of bytes or source authority.
 
 **Exact signature**
 
@@ -2261,7 +2405,7 @@ def _validated_sha256(value: object, label: str) -> str:
 
 ### `_canonical_value`
 
-**Purpose:** Implements `canonical value` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Builds temporary JSON-compatible containers: None/pd.NA/float NaN become null; NumPy scalars recurse through item(); tuples/lists/arrays become lists; mapping keys are stringified and values recurse. Strings/ints/floats/bools remain values, unsupported objects fail. This is not the immutable config freezer; infinities fail at JSON serialization.
 
 **Exact signature**
 
@@ -2353,7 +2497,7 @@ def _canonical_value(value: object) -> object:
 
 ### `_canonical_sha256`
 
-**Purpose:** Implements `canonical sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes UTF-8 canonical JSON with Unicode retained, sorted mapping keys, compact separators and allow_nan=False after `_canonical_value`. Serialization errors are controlled; no Python repr or filesystem data enters this function.
 
 **Exact signature**
 
@@ -2446,7 +2590,7 @@ def _canonical_sha256(value: object) -> str:
 
 ### `_config_sha256`
 
-**Purpose:** Implements `config sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes the config model's JSON-mode plain representation under the structure-config domain. Topic mapping keys are sorted but configured term order remains meaningful; raw YAML formatting and key insertion order are not the identity.
 
 **Exact signature**
 
@@ -2480,7 +2624,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
+| `config.model_dump` | Pydantic serialization of PlanningRegulationStructureConfig, including both local field serializers. |
 | `list` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_canonical_sha256` | `landscout.stages.structure_planning_regulation._canonical_sha256` |
@@ -2522,7 +2666,7 @@ def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
 
 ### `_validate_document_lock`
 
-**Purpose:** Implements `validate document lock` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Intrinsically validates the supplied index, compares its document/PDF/pages/index/normalization identities to the five configured locks, checks body-start and TOC page existence, and rejects ERROR extraction on non-TOC body pages. EMPTY pages and ERROR pages outside that applicable body are not rejected by this guard. It does not reopen the PDF or GPU source.
 
 **Exact signature**
 
@@ -2659,7 +2803,7 @@ def _validate_document_lock(
 
 ### `_compiled`
 
-**Purpose:** Implements `compiled` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Compiles regexes in configured order into a tuple. Public callers supply patterns already checked by config validation.
 
 **Exact signature**
 
@@ -2724,7 +2868,7 @@ def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
 
 ### `_matches_any`
 
-**Purpose:** Implements `matches any` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Checks full-string regex matches, not substring search, against a sequence of compiled patterns; returns false for an empty sequence.
 
 **Exact signature**
 
@@ -2790,7 +2934,7 @@ def _matches_any(value: str, patterns: Sequence[re.Pattern[str]]) -> bool:
 
 ### `_retained_page_lines`
 
-**Purpose:** Implements `retained page lines` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Enumerates raw splitlines with original one-based line numbers. It removes configured matching header/blank prefixes only when the first nonblank line is a header, and matching footer/blank suffixes only when the last nonblank line is a footer. Matching interior lines and remaining raw text are preserved.
 
 **Exact signature**
 
@@ -2910,7 +3054,7 @@ def _retained_page_lines(
 
 ### `_line_records`
 
-**Purpose:** Implements `line records` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Builds sequential RECORD-000001-style records from every indexed page after positional header/footer filtering, preserving page and original page-line numbers. It checks raw text strings and rejects no retained records; body/TOC selection is a later heading concern.
 
 **Exact signature**
 
@@ -3041,7 +3185,7 @@ def _line_records(
 
 ### `_source_record_payload`
 
-**Purpose:** Implements `source record payload` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Creates the four-key hash payload record_id/page_number/page_line_number/raw_text from a retained _LineRecord; raw is renamed raw_text without text normalization.
 
 **Exact signature**
 
@@ -3106,7 +3250,7 @@ def _source_record_payload(record: _LineRecord) -> dict[str, object]:
 
 ### `_source_records_sha256`
 
-**Purpose:** Implements `source records sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes the ordered complete or section-local retained record payload sequence under the source-records domain and section schema 3. Sequence order and original page-line positions are included.
 
 **Exact signature**
 
@@ -3179,7 +3323,7 @@ def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
 
 ### `_canonical_chapter_label`
 
-**Purpose:** Implements `canonical chapter label` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Removes every regex whitespace character from a captured heading label, then requires a nonempty trimmed result. It does not casefold the label or apply config aliases.
 
 **Exact signature**
 
@@ -3243,7 +3387,7 @@ def _canonical_chapter_label(value: str) -> str:
 
 ### `_classify_structural_heading`
 
-**Purpose:** Implements `classify structural heading` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Fullmatches a line against every pattern in every structural category and retains named captures with zero-based within-group pattern indexes. Any two matches, including within one category, raise an ambiguity error naming record/page/line and matches; zero matches return None.
 
 **Exact signature**
 
@@ -3357,7 +3501,7 @@ def _classify_structural_heading(
 
 ### `_heading_events`
 
-**Purpose:** Implements `heading events` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Scans retained body records outside configured TOC pages. It classifies structural headings and may extend non-zone headings over up to the configured same-page continuation lines, stopping at blanks, structural headings or nonmatching continuation lines. It canonicalizes chapter labels, preserves raw heading lines and normalizes heading text; no matched body heading is a controlled failure.
 
 **Exact signature**
 
@@ -3429,7 +3573,7 @@ Outbound call expressions and conservative ownership:
 | `title.strip` | `unresolved local/third-party receiver; no ownership inferred` |
 | `events.append` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_HeadingEvent` | `landscout.stages.structure_planning_regulation._HeadingEvent` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
 
 **Source-observed side-effect matrix**
@@ -3553,7 +3697,7 @@ def _heading_events(
 
 ### `_page_fragments`
 
-**Purpose:** Implements `page fragments` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Groups consecutive section records by source page, joining their raw lines with newline into ordered immutable (page, text) pairs; empty input returns an empty tuple.
 
 **Exact signature**
 
@@ -3629,7 +3773,7 @@ def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ..
 
 ### `_contiguous_page_blocks`
 
-**Purpose:** Implements `contiguous page blocks` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Groups an already validated ascending page sequence into maximal adjacent-number tuples. It neither sorts nor validates page numbers itself.
 
 **Exact signature**
 
@@ -3702,7 +3846,7 @@ def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]
 
 ### `_section_starts`
 
-**Purpose:** Implements `section starts` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Combines heading boundaries with forced OTHER boundaries for every contiguous configured TOC block. It shifts real headings backward over preceding blank records, preserves a nonblank preamble as OTHER, absorbs ordinary blank-only gaps into adjacent factual sections and preserves forced blank TOC sections. It returns ordered local boundaries and rejects a missing boundary.
 
 **Exact signature**
 
@@ -3904,7 +4048,7 @@ def _section_starts(
 
 ### `_section_content_sha256`
 
-**Purpose:** Implements `section content sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes all canonical SECTION_COLUMNS except the row's own section_content_sha256, under the section domain and schema 3. It does not mutate the supplied mapping.
 
 **Exact signature**
 
@@ -3996,7 +4140,7 @@ def _section_content_sha256(row: Mapping[str, object]) -> str:
 
 ### `_build_sections`
 
-**Purpose:** Implements `build sections` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Partitions every retained record exactly once, assigns sequential section IDs, preserves ordered page fragments/raw text and computes record/section hashes. Articles require a preceding active zone chapter and a casefold-equal captured zone; GENERAL resets that active chapter whereas OTHER does not. It returns the 24-column frame, local builds and retained records, using int64 for four counters/page endpoints.
 
 **Exact signature**
 
@@ -4022,8 +4166,8 @@ def _build_sections(
 - Exact observed return expressions:
   - `frame, tuple(builds), tuple(records)`
 - Explicit raise paths:
-  - `PlanningRegulationStructureError(<br>                        "Zone article has no preceding zone chapter"<br>                    )` under lexical guard `event is None`.
-  - `PlanningRegulationStructureError(<br>                        "Zone article label differs from its active chapter"<br>                    )` under lexical guard `event is None`.
+  - `PlanningRegulationStructureError(<br>                        "Zone article has no preceding zone chapter"<br>                    )` when an ARTICLE event has no active chapter.
+  - `PlanningRegulationStructureError(<br>                        "Zone article label differs from its active chapter"<br>                    )` when an ARTICLE event has a missing captured zone or a casefold-different active chapter.
 
 **Qualified relationships**
 
@@ -4041,7 +4185,7 @@ Outbound call expressions and conservative ownership:
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `next` | `unresolved local/third-party receiver; no ownership inferred` |
 | `record.raw.strip` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
 | `event.zone_chapter_label.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
 | `current_chapter_label.casefold` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -4185,7 +4329,7 @@ def _build_sections(
 
 ### `_validate_source_label_values`
 
-**Purpose:** Implements `validate source label values` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Checks every supplied Series value with the trimmed nonempty string guard. Empty series pass; this helper does not normalize or map labels.
 
 **Exact signature**
 
@@ -4249,7 +4393,7 @@ def _validate_source_label_values(series: pd.Series, label: str) -> None:
 
 ### `_validated_zoning_inputs`
 
-**Purpose:** Implements `validated zoning inputs` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Copies the supplied zoning and relation DataFrames after checking required columns, unique zone/source IDs and parcel-zone pairs, exact source/label lineage and known references. Intersection areas must be finite nonnegative non-bool Real values and are copied as float64, with positive AREA_OVERLAP versus zero TOUCH_ONLY parity; present parcel/zone upper metrics are finite nonnegative and use the shared technical tolerance. This validates supplied factual values, not physical geometry, CRS, complete parcel coverage or fresh GPU bytes.
 
 **Exact signature**
 
@@ -4358,7 +4502,7 @@ Outbound call expressions and conservative ownership:
 | `relation_copy.loc[~positive, "relation_type"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
 | `zip` | `unresolved local/third-party receiver; no ownership inferred` |
 | `relation_copy[upper_column].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
-| `technical_overlay_tolerance` | `landscout.stages.planning_overlay.technical_overlay_tolerance` |
+| `technical_overlay_tolerance` | `landscout.common.planning_overlay.technical_overlay_tolerance` via the stages.planning_overlay re-export |
 
 **Source-observed side-effect matrix**
 
@@ -4370,7 +4514,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | `zone_copy["source_archive_sha256"].eq(index.archive_sha256).all`<br>`zone_copy["source_archive_sha256"].eq`<br>`relation_copy["source_archive_sha256"].eq(index.archive_sha256).all`<br>`relation_copy["source_archive_sha256"].eq` |
-| CRS/geometry/spatial calculation | `technical_overlay_tolerance` |
+| CRS/geometry/spatial calculation | Numerical upper-area consistency only via `technical_overlay_tolerance`; no geometry read, overlay or CRS operation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `metrics.append(numeric)`<br>`relation_copy["intersection_area_m2"] = pd.Series(<br>        metrics, index=relation_copy.index, dtype="float64"<br>    )` |
 | Direct parameter mutation | None directly present. |
@@ -4534,7 +4678,7 @@ def _validated_zoning_inputs(
 
 ### `_input_frame_sha256`
 
-**Purpose:** Implements `input frame sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes a caller domain, explicit ordered selected column names and ordered canonical row values. Extra columns, frame index and pandas dtypes are not bound by this payload.
 
 **Exact signature**
 
@@ -4616,7 +4760,7 @@ def _input_frame_sha256(
 
 ### `_intersection_hash_columns`
 
-**Purpose:** Implements `intersection hash columns` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Returns the eight required relation columns followed by whichever of the two approved optional upper-area columns are present, in fixed declaration order. Unrelated extras do not join the hash.
 
 **Exact signature**
 
@@ -4684,7 +4828,7 @@ def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
 
 ### `_resolved_alias`
 
-**Purpose:** Implements `resolved alias` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Returns None for a label without a configured alias, otherwise follows exact case-sensitive links to the terminal target, rejecting a cycle defensively. It never mutates the mapping.
 
 **Exact signature**
 
@@ -4762,7 +4906,7 @@ def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
 
 ### `_dominant_counts`
 
-**Purpose:** Implements `dominant counts` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Selects one positive-area relation per parcel after stable ordering by parcel ID, descending area, then lexical planning_zone_id; counts selected raw zone labels. Touch-only rows do not create a dominant label; this is factual selection, not scoring.
 
 **Exact signature**
 
@@ -4842,7 +4986,7 @@ def _dominant_counts(intersections: pd.DataFrame) -> Counter[str]:
 
 ### `_build_zone_mapping`
 
-**Purpose:** Implements `build zone mapping` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Produces one sorted row per catalog raw label, preferring a unique exact chapter, then a unique terminal configured alias; duplicate matched chapters are AMBIGUOUS and no match is UNMAPPED. Counts catalog polygons, all relation rows/unique parcels (including touches), and positive-area dominant parcels. Any unresolved dominant label fails; unresolved non-dominant labels remain evidence.
 
 **Exact signature**
 
@@ -5026,7 +5170,7 @@ def _build_zone_mapping(
 
 ### `_is_token_character`
 
-**Purpose:** Implements `is token character` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Treats Unicode alphanumeric characters and underscore as token characters for matching boundaries; it is called on individual neighboring normalized characters.
 
 **Exact signature**
 
@@ -5088,7 +5232,7 @@ def _is_token_character(value: str) -> bool:
 
 ### `_literal_topic_matches`
 
-**Purpose:** Implements `literal topic matches` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Enumerates token-bounded literal normalized matches for one topic's ordered terms, including overlapping candidates. Greedy selection prefers longer spans, then configured term index, then start offset, rejecting overlaps with already selected spans; output sorts by start and term index. This competition is within one topic/fragment, not across topics.
 
 **Exact signature**
 
@@ -5146,7 +5290,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `normalized_text.find` | `unresolved local/third-party receiver; no ownership inferred` |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_is_token_character` | `landscout.stages.structure_planning_regulation._is_token_character` |
@@ -5233,7 +5377,7 @@ def _literal_topic_matches(
 
 ### `_evidence_scope`
 
-**Purpose:** Implements `evidence scope` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Maps GENERAL to GENERAL_RULE, ZONE_CHAPTER/ARTICLE to ZONE_SPECIFIC_RULE and OTHER to OTHER_TEXT, rejecting unsupported types. These names describe text location rather than legal applicability.
 
 **Exact signature**
 
@@ -5308,7 +5452,7 @@ def _evidence_scope(section_type: str) -> str:
 
 ### `_build_topic_evidence`
 
-**Purpose:** Implements `build topic evidence` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Iterates sorted topic names, section builds, page fragments and configured term order; excludes TOC fragments unless enabled. It emits one row per retained topic/term/section/page with occurrence count, first normalized/raw half-open offsets and bounded context reconstructed through the normalization mapping. Empty evidence keeps the 21-column schema with six int64 columns.
 
 **Exact signature**
 
@@ -5349,7 +5493,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `set` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sorted` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text_with_mapping` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text_with_mapping` | `landscout.common.planning_text.normalize_planning_search_text_with_mapping` (local alias) |
 | `_literal_topic_matches` | `landscout.stages.structure_planning_regulation._literal_topic_matches` |
 | `by_term.setdefault(match.term_index, []).append` | `unresolved local/third-party receiver; no ownership inferred` |
 | `by_term.setdefault` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5361,7 +5505,7 @@ Outbound call expressions and conservative ownership:
 | `rows.append` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_evidence_scope` | `landscout.stages.structure_planning_regulation._evidence_scope` |
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_raw_context` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_raw_context` | `landscout.common.planning_text.raw_context_from_spans` (local alias) |
 | `pd.DataFrame` | `pandas.DataFrame` |
 | `pd.Series` | `pandas.Series` |
 | `frame[column].astype` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5489,7 +5633,7 @@ def _build_topic_evidence(
 
 ### `_frame_hash`
 
-**Purpose:** Implements `frame hash` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes selected ordered component rows with document/index/config/input/source-record lineage and schema 3. Unlike `_input_frame_sha256`, it does not include a separate column-name list; indexes and dtypes are not part of the payload.
 
 **Exact signature**
 
@@ -5587,7 +5731,7 @@ def _frame_hash(
 
 ### `_structure_result_content_sha256`
 
-**Purpose:** Implements `structure result content sha256` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Hashes the domain-separated outer lineage/config/input/schema and three component digests. It excludes its own digest and does not serialize frames directly.
 
 **Exact signature**
 
@@ -5677,7 +5821,7 @@ def _structure_result_content_sha256(
 
 ### `_result_with_hashes`
 
-**Purpose:** Implements `result with hashes` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Uses dataclasses.replace to create a result with recomputed section, zone-map and topic digests, then recomputes the outer digest. Frame references are retained, not deep-frozen or copied; a consistent rehash alone is not source validation.
 
 **Exact signature**
 
@@ -5799,7 +5943,7 @@ def _result_with_hashes(
 
 ### `_page_tuple`
 
-**Purpose:** Implements `page tuple` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Accepts only tuple/list/NumPy-array containers, normalizes each positive integral page number to built-in int, and returns a tuple. Ascending uniqueness and exact source coverage are checked by callers, not here.
 
 **Exact signature**
 
@@ -5873,7 +6017,7 @@ def _page_tuple(value: object) -> tuple[int, ...]:
 
 ### `_validate_sections`
 
-**Purpose:** Implements `validate sections` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Checks the exact section schema, sequential IDs, text normalization, counts, row hashes, lineage, page ranges and a complete contiguous nonoverlapping retained-record partition. It validates type-specific nulls/article fields and earlier zone-chapter parents with equal labels; comparison with rebuilt sections additionally enforces the exact grammar-derived result.
 
 **Exact signature**
 
@@ -5922,13 +6066,13 @@ def _validate_sections(
   - `PlanningRegulationStructureError(<br>                "Section page range is invalid or unordered"<br>            )` under lexical guard `start != pages[0] or end != pages[-1] or end < start`.
   - `PlanningRegulationStructureError("Section lineage differs")` under lexical guard `row[column] != actual`.
   - `PlanningRegulationStructureError("Section content hash differs")` under lexical guard `_validated_sha256(row["section_content_sha256"], "section content SHA256")<br>            != expected_hash`.
-  - `PlanningRegulationStructureError("Article zone label is missing")` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError("Article parent is missing")` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError(<br>                    "General section cannot have a zone label or parent"<br>                )` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError(<br>                    "Zone chapter or OTHER section cannot have a parent"<br>                )` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError(<br>                        "Zone chapter label is missing"<br>                    )` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError(<br>                    "OTHER section cannot have a zone label"<br>                )` under lexical guard `section_type == "ARTICLE"`.
-  - `PlanningRegulationStructureError(<br>                        f"{section_type} {label} must be null"<br>                    )` under lexical guard `section_type == "ARTICLE"`.
+  - `PlanningRegulationStructureError("Article zone label is missing")` when ARTICLE with a missing zone label.
+  - `PlanningRegulationStructureError("Article parent is missing")` when ARTICLE with no retained parent.
+  - `PlanningRegulationStructureError(<br>                    "General section cannot have a zone label or parent"<br>                )` when GENERAL with a non-null zone label or parent.
+  - `PlanningRegulationStructureError(<br>                    "Zone chapter or OTHER section cannot have a parent"<br>                )` when ZONE_CHAPTER or OTHER with a parent.
+  - `PlanningRegulationStructureError(<br>                        "Zone chapter label is missing"<br>                    )` when ZONE_CHAPTER with no zone label.
+  - `PlanningRegulationStructureError(<br>                    "OTHER section cannot have a zone label"<br>                )` when OTHER with a non-null zone label.
+  - `PlanningRegulationStructureError(<br>                        f"{section_type} {label} must be null"<br>                    )` when ZONE_CHAPTER or OTHER with a non-null article number/title.
   - `PlanningRegulationStructureError(<br>            "Retained source records are omitted from the section partition"<br>        )` under lexical guard `expected_record_start != len(records)`.
   - `PlanningRegulationStructureError("Section IDs must be unique")` under lexical guard `len(set(ids)) != len(ids)`.
   - `PlanningRegulationStructureError("Article parent section is invalid")` under lexical guard `parent not in type_by_id or type_by_id[parent] != "ZONE_CHAPTER"`.
@@ -5955,7 +6099,7 @@ Outbound call expressions and conservative ownership:
 | `frame.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
 | `ids.append` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `row["raw_text"].strip` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6202,7 +6346,7 @@ def _validate_sections(
 
 ### `_validate_zone_mapping`
 
-**Purpose:** Implements `validate zone mapping` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Checks the exact schema, sorted unique labels, status/method pairs, nonnegative counts with positive polygon count, resolved chapter/alias consistency, unresolved null fields, dominant resolution and count inequalities. Exact factual counts and row completeness are established by comparison with the rebuilt mapping.
 
 **Exact signature**
 
@@ -6231,13 +6375,13 @@ def _validate_zone_mapping(
   - `PlanningRegulationStructureError(<br>                "Zone mapping status or method is invalid"<br>            )` under lexical guard `status not in _MAPPING_STATUSES or method not in _MAPPING_METHODS`.
   - `PlanningRegulationStructureError(<br>                "Zone mapping status/method combination is invalid"<br>            )` under lexical guard `exact_methods[status] != method`.
   - `PlanningRegulationStructureError(<br>                    "Zone polygon count must be positive"<br>                )` under lexical guard `column == "zone_polygon_count" and count == 0`.
-  - `PlanningRegulationStructureError(<br>                    "Zone mapping section is unknown"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                    "Resolved zone mapping must reference a zone chapter"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                    "Resolved zone label differs from its matched chapter"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                    "Exact zone mapping must preserve the source label"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                    "Configured zone mapping differs from its final alias target"<br>                )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                "Unresolved zone mapping has a section ID"<br>            )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
-  - `PlanningRegulationStructureError(<br>                "Unmapped zone must not claim a resolved chapter label"<br>            )` under lexical guard `status in {"EXACT", "CONFIG_ALIAS"}`.
+  - `PlanningRegulationStructureError(<br>                    "Zone mapping section is unknown"<br>                )` when a resolved mapping's matched section ID is absent.
+  - `PlanningRegulationStructureError(<br>                    "Resolved zone mapping must reference a zone chapter"<br>                )` when a resolved mapping references a non-ZONE_CHAPTER section.
+  - `PlanningRegulationStructureError(<br>                    "Resolved zone label differs from its matched chapter"<br>                )` when a resolved mapping's label differs from its section label.
+  - `PlanningRegulationStructureError(<br>                    "Exact zone mapping must preserve the source label"<br>                )` when EXACT resolves to a label different from the raw source label.
+  - `PlanningRegulationStructureError(<br>                    "Configured zone mapping differs from its final alias target"<br>                )` when CONFIG_ALIAS resolves differently from the complete alias chain.
+  - `PlanningRegulationStructureError(<br>                "Unresolved zone mapping has a section ID"<br>            )` when an unresolved status has a non-null matched section ID.
+  - `PlanningRegulationStructureError(<br>                "Unmapped zone must not claim a resolved chapter label"<br>            )` when UNMAPPED has a non-null resolved label.
   - `PlanningRegulationStructureError(<br>                "Dominant candidate zone is unresolved"<br>            )` under lexical guard `row["dominant_candidate_count"] > 0 and status not in {<br>            "EXACT",<br>            "CONFIG_ALIAS",<br>        }`.
   - `PlanningRegulationStructureError(<br>                "Zone candidate coverage counts are mathematically inconsistent"<br>            )` under lexical guard `not (<br>            counts["dominant_candidate_count"]<br>            <= counts["candidate_parcel_count"]<br>            <= counts["candidate_intersection_count"]<br>        )`.
   - `PlanningRegulationStructureError("Zone mapping lineage differs")` under lexical guard `row[column] != actual`.
@@ -6408,7 +6552,7 @@ def _validate_zone_mapping(
 
 ### `_validate_topic_evidence`
 
-**Purpose:** Implements `validate topic evidence` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Checks schema and configured topic/term/section/page references, location-derived scope, section labels, policy identity, unique row keys and lineage. It reruns each topic's matching against rebuilt fragments to compare first offsets, count and exact raw/normalized contexts; the full rebuilt-frame comparison detects omitted evidence rows.
 
 **Exact signature**
 
@@ -6475,20 +6619,20 @@ Outbound call expressions and conservative ownership:
 | `index.pages["page_number"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
 | `frame.to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_strict_string` | `landscout.stages.structure_planning_regulation._strict_string` |
-| `_normalize_search_text` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` (local alias) |
 | `_strict_positive_integer` | `landscout.stages.structure_planning_regulation._strict_positive_integer` |
 | `_page_tuple` | `landscout.stages.structure_planning_regulation._page_tuple` |
 | `_evidence_scope` | `landscout.stages.structure_planning_regulation._evidence_scope` |
 | `bool` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pd.isna` | `pandas.isna` |
-| `_normalize_search_text_with_mapping` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_normalize_search_text_with_mapping` | `landscout.common.planning_text.normalize_planning_search_text_with_mapping` (local alias) |
 | `_literal_topic_matches` | `landscout.stages.structure_planning_regulation._literal_topic_matches` |
 | `expected_positions.items` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_strict_nonnegative_integer` | `landscout.stages.structure_planning_regulation._strict_nonnegative_integer` |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `max` | `unresolved local/third-party receiver; no ownership inferred` |
 | `min` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_raw_context` | `unresolved local/third-party receiver; no ownership inferred` |
+| `_raw_context` | `landscout.common.planning_text.raw_context_from_spans` (local alias) |
 | `keys.add` | `unresolved local/third-party receiver; no ownership inferred` |
 
 **Source-observed side-effect matrix**
@@ -6661,7 +6805,7 @@ def _validate_topic_evidence(
 
 ### `_build_structure_result`
 
-**Purpose:** Implements `build structure result` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Builds sections, mapping and topic frames, computes config/input/retained-record digests and fills the frozen result envelope's component/outer hashes. It returns auxiliary builds and records for validation without writing artifacts.
 
 **Exact signature**
 
@@ -6793,7 +6937,7 @@ def _build_structure_result(
 
 ### `_validate_result_self`
 
-**Purpose:** Implements `validate result self` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Intrinsically validates the index and result type, compares all lineage/config/input identities and supported versions, requires the exact ordered tuple of intersection hash columns, runs all three frame validators and recomputes component/outer hashes. It is one part of the public rebuilt-result validation, not a fresh PDF/GPU read.
 
 **Exact signature**
 
@@ -7001,7 +7145,7 @@ def _validate_result_self(
 
 ### `_resolved_config`
 
-**Purpose:** Implements `resolved config` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** For a supplied model instance, serializes Python-mode values and reconstructs/revalidates a fresh PlanningRegulationStructureConfig even when the original is frozen; otherwise loads the supplied path. isinstance, not exact type identity, selects the model branch. Failures are controlled.
 
 **Exact signature**
 
@@ -7052,7 +7196,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | None directly present. |
+| Filesystem/archive read or metadata access | No direct read; the path branch delegates to load_planning_regulation_structure_config, which reads the YAML bytes. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
@@ -7084,7 +7228,7 @@ def _resolved_config(
 
 ### `_canonical_frame_rows`
 
-**Purpose:** Implements `canonical frame rows` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Returns canonical selected ordered row records for result comparison. Null/NumPy/container representations are normalized; frame indexes and pandas dtypes are not compared here.
 
 **Exact signature**
 
@@ -7148,7 +7292,7 @@ def _canonical_frame_rows(frame: pd.DataFrame, columns: Sequence[str]) -> object
 
 ### `_compare_expected_result`
 
-**Purpose:** Implements `compare expected result` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Compares all 16 scalar/tuple result attributes plus exact column order and canonical ordered rows for the three frames against a rebuilt result. It does not require identical pandas index/dtype representations.
 
 **Exact signature**
 
@@ -7261,7 +7405,7 @@ def _compare_expected_result(
 
 ### `_section_page_fragments`
 
-**Purpose:** Implements `section page fragments` within the file role: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
+**Purpose:** Creates a new ten-column section/page frame from rebuilt retained fragments, binding each raw UTF-8 fragment SHA and the complete structure-result digest. Page numbers become int64 and duplicate section/page keys fail.
 
 **Exact signature**
 
@@ -7376,7 +7520,7 @@ def _section_page_fragments(
 
 ### `validate_planning_regulation_structure_with_fragments`
 
-**Purpose:** Validate the complete structure and return its retained page fragments.
+**Purpose:** Reconstructs config, validates index/document locks and supplied zoning facts, rebuilds expected evidence once, validates the provided envelope/frames and compares the complete expected result, then returns new retained fragments. Source-complete here means all supplied locked index/zoning inputs are used; it does not reopen physical PDF/GPU or recalculate overlay geometry. Unexpected errors are wrapped.
 
 **Exact signature**
 
@@ -7530,7 +7674,7 @@ def validate_planning_regulation_structure_with_fragments(
 
 ### `validate_planning_regulation_structure`
 
-**Purpose:** Rebuild and validate the complete structure from all factual inputs.
+**Purpose:** Delegates to the same complete reconstruction/comparison boundary and discards the constructed fragment frame, returning None. It does not weaken any checks performed by the fragment-returning API.
 
 **Exact signature**
 
@@ -7670,7 +7814,7 @@ def validate_planning_regulation_structure(
 
 ### `planning_regulation_section_page_fragments`
 
-**Purpose:** Return validated retained raw text for every section and source page.
+**Purpose:** Returns fragments only after the public complete structure-validation path; it is not an accessor that trusts stored section text. Controlled structure errors propagate and unexpected exceptions are wrapped.
 
 **Exact signature**
 
@@ -7787,7 +7931,7 @@ def planning_regulation_section_page_fragments(
 
 ### `structure_planning_regulation`
 
-**Purpose:** Build source-locked sections, exact zone mappings, and literal topic evidence.
+**Purpose:** Reconstructs config, checks the index/document lock and copied zoning facts, builds the result and invokes its public validator, which rebuilds expected evidence again before return. It creates factual sections/mappings/literal topic evidence, not BESS interpretation, legal permission, scoring or new spatial calculations.
 
 **Exact signature**
 
@@ -7990,8 +8134,8 @@ def structure_planning_regulation(
 
 - Exact signature: `def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:`
 - Exact decorators: `@field_serializer("zone_aliases")`
-- Purpose: The exact implementation below defines the callable contract.
-- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+- Purpose: Returns a new plain dictionary of aliases during Pydantic serialization. The copied mapping does not expose the retained immutable backing object.
+- Retained state: the serializer constructs a new plain output mapping; validated aliases/topics stay immutable and canonical JSON remains unchanged.
 
 **Complete source-ordered implementation**
 
@@ -8004,8 +8148,8 @@ def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
 
 - Exact signature: `def _serialize_topics( self, value: Mapping[str, tuple[str, ...]], info: SerializationInfo, ) -> dict[str, tuple[str, ...] | list[str]]:`
 - Exact decorators: `@field_serializer("topics")`
-- Purpose: The exact implementation below defines the callable contract.
-- Deep-immutability effect: this callable either serializes an immutable retained value without changing its canonical plain shape, verifies physical evidence through the same immutable representation, or permanently tests immediate mutation/alias rejection.
+- Purpose: Uses `SerializationInfo.mode` to emit a new topic dictionary with lists in JSON mode, or a new dictionary retaining immutable term tuples in Python mode. Ordered terms and the established canonical JSON shape are preserved without a mutable alias to the validated model.
+- Retained state: the serializer constructs a new plain output mapping; validated aliases/topics stay immutable and canonical JSON remains unchanged.
 
 **Complete source-ordered implementation**
 
@@ -8022,7 +8166,7 @@ def _serialize_topics(
 
 ## 7. Validation and data-contract summary
 
-- Canonical schema/mapping declarations inventoried above: `_normalize_search_text_with_mapping`, `SECTION_HASH_SCHEMA_VERSION`, `STRUCTURE_MANIFEST_SCHEMA_VERSION`, `_SUPPORTED_CONFIG_SCHEMA_VERSION`, `_MAPPING_STATUSES`, `_MAPPING_METHODS`, `_ZONE_INPUT_COLUMNS`, `_REQUIRED_INTERSECTION_INPUT_COLUMNS`, `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`, `SECTION_COLUMNS`, `ZONE_MAPPING_COLUMNS`, `TOPIC_EVIDENCE_COLUMNS`.
+- Canonical schema/mapping declarations inventoried above: `SECTION_HASH_SCHEMA_VERSION`, `STRUCTURE_MANIFEST_SCHEMA_VERSION`, `_SUPPORTED_CONFIG_SCHEMA_VERSION`, `_MAPPING_STATUSES`, `_MAPPING_METHODS`, `_ZONE_INPUT_COLUMNS`, `_REQUIRED_INTERSECTION_INPUT_COLUMNS`, `_OPTIONAL_INTERSECTION_INPUT_COLUMNS`, `SECTION_COLUMNS`, `ZONE_MAPPING_COLUMNS`, `TOPIC_EVIDENCE_COLUMNS`.
 - Exact value/null/index/CRS/geometry/hash behavior is claimed only where the reproduced validators and operations enforce it.
 
 ## 8. Public exports and package ownership

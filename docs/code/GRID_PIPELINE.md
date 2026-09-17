@@ -28,17 +28,19 @@ An IGN transformation post is an IGN mapped feature. It is not an RTE connection
 
 `normalize_ign_electricity(source, config)` validates exact public types and calls a config-aware physical revalidator. Fresh configured line/post frames and summaries are exact-compared with the supplied source, so a coherent object for another physical layer cannot pass. Context, lineage, summaries, and normalized rows are derived from the returned fresh object only; a later mutation of the supplied object cannot reach output.
 
-Normalization creates stable identities and factual lineage while preserving row order, geometry, CRS, Z coordinates, null/empty/invalid rows, and source attributes. Output includes separate electric-line and transformation-post GeoDataFrames with deterministic column order and RangeIndex.
+Normalization creates stable identities and factual lineage while preserving row order, geometry, CRS, Z coordinates, and null/empty/invalid rows. It maps the declared source attributes into a fixed output schema rather than retaining every arbitrary source column. Output includes separate electric-line and polygonal transformation-post GeoDataFrames with deterministic column order and RangeIndex.
 
 ### Voltage parsing
 
 `parse_ign_voltage` interprets only the coded source voltage representation required by the normalizer:
 
-- exact finite numeric voltage evidence becomes exact kilovolts/status;
-- bounded/range evidence remains non-exact;
+- positive finite text matching `number kV` becomes exact kilovolts/status; decimal points or commas are supported;
+- text matching `< number kV` becomes an exclusive upper-bound value with `BELOW` status, not an exact voltage;
 - de-energized/unknown/unexpected/malformed values receive explicit statuses;
 - source asset status is not overwritten;
-- nonfinite values never become numeric voltage output.
+- nonfinite values never become numeric voltage output; bare numeric scalars, arbitrary ranges, malformed and unsupported scalar/list-like values are not inferred into exact voltage evidence.
+
+Transformation posts always receive `voltage_status=UNKNOWN` and null voltage; the source schema does not supply a post voltage for this normalizer.
 
 The parser is a factual vocabulary normalizer, not a capacity or compatibility model.
 
@@ -50,8 +52,8 @@ For each parcel it computes:
 
 - nearest electric-line proxy distance and representative/tie identity;
 - nearest transformation-post proxy distance and representative/tie identity;
-- source provider/product/department/edition/archive/layer lineage for selected features;
-- exact-voltage line/post views for every exact voltage level found in the normalized source;
+- department, edition, and archive-SHA lineage for selected features (the richer normalized catalog owns provider/product/layer lineage);
+- one global nearest exact-voltage line and line-only views for every exact voltage level found among valid normalized lines;
 - `VoltageLevelCoverage` counts indicating what source evidence was available.
 
 ## Nearest-feature algorithm
@@ -63,9 +65,11 @@ For each parcel it computes:
 5. Use `query_nearest(..., all_matches=True)` so equal nearest features are retained.
 6. Calculate finite nonnegative Shapely distances in metres.
 7. Sort deterministically by parcel, distance, and lexical feature ID.
-8. Retain representative feature fields plus exact tie count/canonical tie-ID evidence.
+8. Retain representative feature fields plus the number of nearest ties. This grid result does not expose a JSON list of all tied feature IDs.
 9. Validate that broad and exact-voltage views represent consistent source features.
-10. Return an exact parcel copy and deterministic proximity tables.
+10. Return copied parcel columns/geometry with a reset RangeIndex and deterministic proximity tables.
+
+At least one valid line and one valid transformation-post polygon must exist. No exact-voltage line is a supported case: the global exact-line fields remain null and the voltage table/coverage tuple are empty. Parcel input uses a valid polygonal spatial envelope and unique IDs; this API does not require the canonical 12-column cadastral schema.
 
 ## Coverage boundary
 

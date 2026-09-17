@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
+- Responsibility: Exercises real shape enrichment on synthetic canonical-looking WGS84 parcel frames, metric/centroid parity and geometry/ID retention, row-level invalid-geometry isolation, and explicit CRS/ID/area/status rejection; fixtures do not validate physical Cadastre bytes.
 - Source SHA256: `4803e1c4fce5eb152b1005842702fb77b5e13de2be61a882e7d8128d0fb28901`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
+Exercises real shape enrichment on synthetic canonical-looking WGS84 parcel frames, metric/centroid parity and geometry/ID retention, row-level invalid-geometry isolation, and explicit CRS/ID/area/status rejection; fixtures do not validate physical Cadastre bytes.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -61,7 +61,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_candidate_frame`
 
-**Purpose:** Implements `candidate frame` within the file role: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
+**Assertion scope:** Build a synthetic canonical-looking twelve-column parcel frame from metric fixture geometries: transform Lambert-93 to WGS84, assign deterministic parcel identities/raw-null facts, mark valid polygonal nonempty geometry VALID and other fixtures INVALID, and recompute usable area from the WGS84 round trip. This bypasses physical Cadastre acquisition/normalization; it is a local shape-stage fixture, not source-authority evidence.
 
 **Exact signature**
 
@@ -199,7 +199,7 @@ def _candidate_frame(geometries: list[BaseGeometry]) -> gpd.GeoDataFrame:
 
 ### `square`
 
-**Purpose:** Implements `square` within the file role: Provides complete unit and regression coverage for the `enrich_shape` contracts exercised in this file.
+**Assertion scope:** Return one 10 m square near (600000, 6200000) for pytest injection into the metric-to-WGS84 fixture builder; the Shapely polygon has no attached CRS.
 
 **Exact signature**
 
@@ -252,7 +252,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Real Shapely Polygon construction. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -272,7 +272,7 @@ def square() -> Polygon:
 
 ### `test_square_metrics`
 
-**Purpose:** Regression invariant: square metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich the synthetic square and assert VALID shape status, length/width about 10 m, ratio about 1 and compactness about π/4; geometry reprojection and metric functions are real.
 
 **Exact signature**
 
@@ -322,7 +322,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -347,7 +347,7 @@ def test_square_metrics(square: Polygon) -> None:
 
 ### `test_rectangle_metrics`
 
-**Purpose:** Regression invariant: rectangle metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich a 20-by-10 rectangle and assert its dimensions within 0.01 m and ratio within 0.001.
 
 **Exact signature**
 
@@ -394,7 +394,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -419,7 +419,7 @@ def test_rectangle_metrics() -> None:
 
 ### `test_rotated_rectangle_metrics`
 
-**Purpose:** Regression invariant: rotated rectangle metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich the rotated 30-by-10 rectangle and assert rotation-independent 30/10 m dimensions and ratio 3 under the declared tolerances.
 
 **Exact signature**
 
@@ -467,7 +467,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -493,7 +493,7 @@ def test_rotated_rectangle_metrics() -> None:
 
 ### `test_elongated_parcel`
 
-**Purpose:** Regression invariant: elongated parcel. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich the 100-by-2 rectangle and assert ratio 50 (0.01 tolerance), length≥width and compactness between 0 and 1 inclusive. No parcel filter is applied.
 
 **Exact signature**
 
@@ -540,7 +540,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -565,7 +565,7 @@ def test_elongated_parcel() -> None:
 
 ### `test_centroid_coordinates`
 
-**Purpose:** Regression invariant: centroid coordinates. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Independently transform the original metric square's centroid with GeoPandas and compare enrichment latitude to y and longitude to x; this catches coordinate ordering mistakes.
 
 **Exact signature**
 
@@ -639,7 +639,7 @@ def test_centroid_coordinates(square: Polygon) -> None:
 
 ### `test_output_geometry_remains_wgs84`
 
-**Purpose:** Regression invariant: output geometry remains wgs84. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Require EPSG 4326 on output and zero-tolerance equals_exact against the input's first geometry. This compares coordinates for the fixture, not serialized WKB or arbitrary additional dimensions.
 
 **Exact signature**
 
@@ -712,7 +712,7 @@ def test_output_geometry_remains_wgs84(square: Polygon) -> None:
 
 ### `test_missing_crs_fails`
 
-**Purpose:** Regression invariant: missing crs fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Remove CRS metadata from the synthetic frame with allow_override=True and require ShapeEnrichmentError matching CRS before enrichment.
 
 **Exact signature**
 
@@ -780,7 +780,7 @@ def test_missing_crs_fails(square: Polygon) -> None:
 
 ### `test_missing_parcel_id_fails`
 
-**Purpose:** Regression invariant: missing parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Drop the parcel_id column from a temporary fixture frame and require ShapeEnrichmentError mentioning parcel_id.
 
 **Exact signature**
 
@@ -827,7 +827,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | `_candidate_frame([square]).drop(columns=["parcel_id"])` |
 | Direct parameter mutation | None directly present. |
@@ -848,7 +848,7 @@ def test_missing_parcel_id_fails(square: Polygon) -> None:
 
 ### `test_null_parcel_id_fails`
 
-**Purpose:** Regression invariant: null parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Assign None to the local frame's parcel_id and require ShapeEnrichmentError matching null.
 
 **Exact signature**
 
@@ -894,7 +894,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | `source.loc[0, "parcel_id"] = None` |
 | Direct parameter mutation | None directly present. |
@@ -916,7 +916,7 @@ def test_null_parcel_id_fails(square: Polygon) -> None:
 
 ### `test_duplicate_parcel_id_fails`
 
-**Purpose:** Regression invariant: duplicate parcel id fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Copy the first parcel ID onto the second row of a two-square frame and require a uniqueness error.
 
 **Exact signature**
 
@@ -962,7 +962,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | `source.loc[1, "parcel_id"] = source.loc[0, "parcel_id"]` |
 | Direct parameter mutation | None directly present. |
@@ -984,7 +984,7 @@ def test_duplicate_parcel_id_fails(square: Polygon) -> None:
 
 ### `test_enrichment_requires_exact_non_empty_parcel_ids`
 
-**Purpose:** Regression invariant: enrichment requires exact non empty parcel ids. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Force parcel_id to object dtype, inject integer 1, empty string, leading-space text or trailing-space text, and require the exact-nonempty-string error. Four cases reject rather than trim/coerce.
 
 **Exact signature**
 
@@ -1036,7 +1036,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | `source["parcel_id"] = source["parcel_id"].astype(object)`<br>`source.loc[0, "parcel_id"] = parcel_id` |
 | Direct parameter mutation | None directly present. |
@@ -1062,7 +1062,7 @@ def test_enrichment_requires_exact_non_empty_parcel_ids(
 
 ### `test_valid_candidate_area_requires_strict_positive_finite_number`
 
-**Purpose:** Regression invariant: valid candidate area requires strict positive finite number. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Force area_m2 to object dtype and inject -1, 0, inf, NaN, numeric text or True; all six must fail the strict-positive-finite numeric gate, not be recomputed silently.
 
 **Exact signature**
 
@@ -1115,7 +1115,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | `source["area_m2"] = source["area_m2"].astype(object)`<br>`source.loc[0, "area_m2"] = area` |
 | Direct parameter mutation | None directly present. |
@@ -1141,7 +1141,7 @@ def test_valid_candidate_area_requires_strict_positive_finite_number(
 
 ### `test_failed_geometry_does_not_remove_other_rows`
 
-**Purpose:** Regression invariant: failed geometry does not remove other rows. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich one valid square alongside an invalid polygon and assert ordered statuses VALID/ERROR plus all six derived fields null on the error row. This tests row-level geometry failure isolation, not exception injection into a mocked metric implementation.
 
 **Exact signature**
 
@@ -1191,7 +1191,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1214,7 +1214,7 @@ def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
 
 ### `test_exact_parcel_ids_are_preserved`
 
-**Purpose:** Regression invariant: exact parcel ids are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Enrich two geometries and compare output/input row counts and sets of parcel IDs. This assertion checks identity membership, not source order or full-row equality.
 
 **Exact signature**
 
@@ -1263,7 +1263,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates real fixture reprojection and shape-stage geometry/CRS validation; successful cases compute metrics. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1286,7 +1286,7 @@ def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
 
 ### `test_enrichment_matches_centralized_shape_metrics`
 
-**Purpose:** Regression invariant: enrichment matches centralized shape metrics. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Reproject the canonical fixture into Lambert-93, compute expected centralized ShapeMetrics and compare all four enriched shape fields; the test proves delegation consistency, not an independent alternative shape algorithm.
 
 **Exact signature**
 
@@ -1364,7 +1364,7 @@ def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
 
 ### `test_shape_enrichment_rejects_noncanonical_geometry_status`
 
-**Purpose:** Regression invariant: shape enrichment rejects noncanonical geometry status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+**Assertion scope:** Use object dtype and inject nine noncanonical statuses (None, UNKNOWN, ERROR, BANANA, lowercase valid, 0, 1, True, False); require ShapeEnrichmentError mentioning geometry_status.
 
 **Exact signature**
 
@@ -1419,7 +1419,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `invalid["geometry_status"].astype` |
+| CRS/geometry/spatial calculation | Delegated fixture reprojection and enrichment validation; status `astype` is a scalar-column dtype change, not a geometry algorithm. |
 | External process/environment | None directly present. |
 | In-memory mutation | `invalid["geometry_status"] = invalid["geometry_status"].astype(object)`<br>`invalid.loc[0, "geometry_status"] = geometry_status` |
 | Direct parameter mutation | None directly present. |
@@ -1446,7 +1446,7 @@ def test_shape_enrichment_rejects_noncanonical_geometry_status(
 
 ## 7. Test-specific regression contract
 
-- Test functions: **16**.
+- Test function definitions: **16**; static parametrization arithmetic gives **32** cases (16 + 3 + 5 + 8). Collection was not rerun during this file-content audit.
 - Pytest fixtures (decorator-proven): **1**.
 
 ### Fixtures
@@ -1457,22 +1457,22 @@ def test_shape_enrichment_rejects_noncanonical_geometry_status(
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_square_metrics` | none | none | 5 | Proves square metrics using the exact source reproduced in section 7. |
-| `test_rectangle_metrics` | none | none | 3 | Proves rectangle metrics using the exact source reproduced in section 7. |
-| `test_rotated_rectangle_metrics` | none | none | 3 | Proves rotated rectangle metrics using the exact source reproduced in section 7. |
-| `test_elongated_parcel` | none | none | 3 | Proves elongated parcel using the exact source reproduced in section 7. |
-| `test_centroid_coordinates` | none | none | 2 | Proves centroid coordinates using the exact source reproduced in section 7. |
-| `test_output_geometry_remains_wgs84` | none | none | 3 | Proves output geometry remains wgs84 using the exact source reproduced in section 7. |
-| `test_missing_crs_fails` | none | pytest.raises(ShapeEnrichmentError, match="CRS") | 0 | Proves missing crs fails using the exact source reproduced in section 7. |
-| `test_missing_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="parcel_id") | 0 | Proves missing parcel id fails using the exact source reproduced in section 7. |
-| `test_null_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="null") | 0 | Proves null parcel id fails using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="unique") | 0 | Proves duplicate parcel id fails using the exact source reproduced in section 7. |
-| `test_enrichment_requires_exact_non_empty_parcel_ids` | pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "]) | pytest.raises(ShapeEnrichmentError, match="exact non-empty strings") | 0 | Proves enrichment requires exact non empty parcel ids using the exact source reproduced in section 7. |
-| `test_valid_candidate_area_requires_strict_positive_finite_number` | pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True]) | pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric") | 0 | Proves valid candidate area requires strict positive finite number using the exact source reproduced in section 7. |
-| `test_failed_geometry_does_not_remove_other_rows` | none | none | 2 | Proves failed geometry does not remove other rows using the exact source reproduced in section 7. |
-| `test_exact_parcel_ids_are_preserved` | none | none | 2 | Proves exact parcel ids are preserved using the exact source reproduced in section 7. |
-| `test_enrichment_matches_centralized_shape_metrics` | none | none | 4 | Proves enrichment matches centralized shape metrics using the exact source reproduced in section 7. |
-| `test_shape_enrichment_rejects_noncanonical_geometry_status` | pytest.mark.parametrize(<br>    "geometry_status",<br>    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],<br>) | pytest.raises(ShapeEnrichmentError, match="geometry_status") | 0 | Proves shape enrichment rejects noncanonical geometry status using the exact source reproduced in section 7. |
+| `test_square_metrics` | none | none | 5 | Enrich the synthetic square and assert VALID shape status, length/width about 10 m, ratio about 1 and compactness about π/4; geometry reprojection and metric functions are real. |
+| `test_rectangle_metrics` | none | none | 3 | Enrich a 20-by-10 rectangle and assert its dimensions within 0.01 m and ratio within 0.001. |
+| `test_rotated_rectangle_metrics` | none | none | 3 | Enrich the rotated 30-by-10 rectangle and assert rotation-independent 30/10 m dimensions and ratio 3 under the declared tolerances. |
+| `test_elongated_parcel` | none | none | 3 | Enrich the 100-by-2 rectangle and assert ratio 50 (0.01 tolerance), length≥width and compactness between 0 and 1 inclusive. No parcel filter is applied. |
+| `test_centroid_coordinates` | none | none | 2 | Independently transform the original metric square's centroid with GeoPandas and compare enrichment latitude to y and longitude to x; this catches coordinate ordering mistakes. |
+| `test_output_geometry_remains_wgs84` | none | none | 3 | Require EPSG 4326 on output and zero-tolerance equals_exact against the input's first geometry. This compares coordinates for the fixture, not serialized WKB or arbitrary additional dimensions. |
+| `test_missing_crs_fails` | none | pytest.raises(ShapeEnrichmentError, match="CRS") | 0 | Remove CRS metadata from the synthetic frame with allow_override=True and require ShapeEnrichmentError matching CRS before enrichment. |
+| `test_missing_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="parcel_id") | 0 | Drop the parcel_id column from a temporary fixture frame and require ShapeEnrichmentError mentioning parcel_id. |
+| `test_null_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="null") | 0 | Assign None to the local frame's parcel_id and require ShapeEnrichmentError matching null. |
+| `test_duplicate_parcel_id_fails` | none | pytest.raises(ShapeEnrichmentError, match="unique") | 0 | Copy the first parcel ID onto the second row of a two-square frame and require a uniqueness error. |
+| `test_enrichment_requires_exact_non_empty_parcel_ids` | pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "]) | pytest.raises(ShapeEnrichmentError, match="exact non-empty strings") | 0 | Force parcel_id to object dtype, inject integer 1, empty string, leading-space text or trailing-space text, and require the exact-nonempty-string error. Four cases reject rather than trim/coerce. |
+| `test_valid_candidate_area_requires_strict_positive_finite_number` | pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True]) | pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric") | 0 | Force area_m2 to object dtype and inject -1, 0, inf, NaN, numeric text or True; all six must fail the strict-positive-finite numeric gate, not be recomputed silently. |
+| `test_failed_geometry_does_not_remove_other_rows` | none | none | 2 | Enrich one valid square alongside an invalid polygon and assert ordered statuses VALID/ERROR plus all six derived fields null on the error row. This tests row-level geometry failure isolation, not exception injection into a mocked metric implementation. |
+| `test_exact_parcel_ids_are_preserved` | none | none | 2 | Enrich two geometries and compare output/input row counts and sets of parcel IDs. This assertion checks identity membership, not source order or full-row equality. |
+| `test_enrichment_matches_centralized_shape_metrics` | none | none | 4 | Reproject the canonical fixture into Lambert-93, compute expected centralized ShapeMetrics and compare all four enriched shape fields; the test proves delegation consistency, not an independent alternative shape algorithm. |
+| `test_shape_enrichment_rejects_noncanonical_geometry_status` | pytest.mark.parametrize(<br>    "geometry_status",<br>    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],<br>) | pytest.raises(ShapeEnrichmentError, match="geometry_status") | 0 | Use object dtype and inject nine noncanonical statuses (None, UNKNOWN, ERROR, BANANA, lowercase valid, 0, 1, True, False); require ShapeEnrichmentError mentioning geometry_status. |
 
 ## 8. Public exports and package ownership
 

@@ -18,6 +18,14 @@
 
 Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
 
+### Audited public boundary, algorithm and results
+
+The public API takes parcels, an exact `IgnBdTopoRoadData`, an exact source config and optional Path, not a caller-produced application result. It validates parcel geometry and identifiers, reloads the policy, calls the source-complete application once, and verifies that returned road classes/lineage match the independently loaded policy before constructing any spatial index. This transitive call performs physical source revalidation; this module itself has no archive/network reader or publication operation. Existing `RoadProximityError` is preserved and other ordinary exceptions are chained into that controlled type.
+
+All original parcel columns, dtypes, index metadata, CRS and geometry WKB are preserved in a separate copy. Calculation copies alone are reprojected from EPSG:4326 to EPSG:2154 and forced to XY. For each of five eligible classes, one STRtree over all of that class's lines queries full parcel polygons with all exact nearest ties. A stable sort by parcel position, distance and lexical road ID selects one representative and records the number of tied matches; there is no centroid, search threshold or tolerance tie band. NOT_DISTANCE_PROXY is excluded from indexes and distance rows but remains counted in six-class coverage.
+
+The result's required `parcels` field is the preserved copy; `class_proximity` is a plain DataFrame with 27 ordered columns and five rows per parcel in parcel/policy-class order; `class_coverage` is an ordered tuple of six frozen records, each containing class, nonnegative built-in integer source count and Boolean distance eligibility. Empty eligible classes still produce rows with all selected evidence null. Distance uses float64, ties nullable Int64 and toll evidence nullable Boolean. The dataclasses prevent field reassignment but do not freeze the two frames. Final validation verifies copying, counts, order, finite distances, strict tie counts, policy lineage and selected evidence against source rows; it does not independently repeat nearest-neighbour geometry calculations.
+
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
@@ -587,7 +595,7 @@ class ParcelRoadProximityResult:
 
 ### `_validated_crs`
 
-**Purpose:** Implements `validated crs` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Reject missing CRS, parse a supplied CRS with PyProj and translate parsing failures into RoadProximityError; return the parsed CRS without transformation.
 
 **Exact signature**
 
@@ -637,7 +645,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | CRS.from_user_input parses CRS metadata; no coordinate transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -660,7 +668,7 @@ def _validated_crs(value: object, label: str) -> CRS:
 
 ### `_require_crs`
 
-**Purpose:** Implements `require crs` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Parse the actual CRS and require equality to the requested EPSG definition; no coordinates are modified.
 
 **Exact signature**
 
@@ -711,7 +719,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates CRS parsing then compares CRS equality; no coordinate transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -732,7 +740,7 @@ def _require_crs(value: object, expected_epsg: int, label: str) -> None:
 
 ### `_validate_exact_ids`
 
-**Purpose:** Implements `validate exact ids` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Require non-null nonblank string IDs without edge whitespace, optionally requiring uniqueness; parcel and generated road IDs are unique, while source_feature_id need not be unique here.
 
 **Exact signature**
 
@@ -830,7 +838,7 @@ def _validate_exact_ids(
 
 ### `_validate_parcels`
 
-**Purpose:** Implements `validate parcels` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Require a GeoDataFrame with distinct columns, parcel_id, active geometry, EPSG:4326, unique exact IDs and non-null/nonempty valid Polygon or MultiPolygon geometries; return the unchanged frame for later copying.
 
 **Exact signature**
 
@@ -941,7 +949,7 @@ def _validate_parcels(parcels: object) -> gpd.GeoDataFrame:
 
 ### `_policy_classes`
 
-**Purpose:** Implements `policy classes` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Obtain the six distinct classes in compiled policy order and derive five distance-eligible classes by excluding only the policy's not-distance class; reject malformed class domains.
 
 **Exact signature**
 
@@ -1025,7 +1033,7 @@ def _policy_classes(
 
 ### `_require_row_lineage`
 
-**Purpose:** Implements `require row lineage` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Compare every returned road row's policy ID, schema, byte SHA, scope and heavy-vehicle evidence with the independently loaded policy; null or unequal lineage fails.
 
 **Exact signature**
 
@@ -1110,7 +1118,7 @@ def _require_row_lineage(
 
 ### `_validate_application_roads`
 
-**Purpose:** Implements `validate application roads` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Validate exact result type, GeoDataFrame schema, EPSG:2154, IDs, known class/status domains and policy lineage, then require actual non-null/nonempty valid line geometry for every distance-eligible road. Excluded NOT_DISTANCE_PROXY geometry is not indexed or repaired.
 
 **Exact signature**
 
@@ -1197,7 +1205,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `statuses.isin(_ROAD_GEOMETRY_STATUSES).all`<br>`eligible_geometry.isna().any`<br>`eligible_geometry.isna`<br>`eligible_geometry.is_empty.any`<br>`eligible_geometry.is_valid.all`<br>`eligible_geometry.geom_type.dropna` |
+| CRS/geometry/spatial calculation | Checks road CRS and eligible geometry missingness, emptiness, validity and line type. statuses.isin is string membership, not geometry. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1269,7 +1277,7 @@ def _validate_application_roads(
 
 ### `_calculation_geometries`
 
-**Purpose:** Implements `calculation geometries` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Produce an object array of XY-only Shapely calculation geometries using force_2d; do not replace the source frame's geometries.
 
 **Exact signature**
 
@@ -1316,7 +1324,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | GeoSeries.to_crs creates EPSG:2154 calculation geometry; shapely.force_2d creates XY values without changing stored geometry. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1335,7 +1343,7 @@ def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
 
 ### `_empty_nearest_rows`
 
-**Purpose:** Implements `empty nearest rows` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Allocate one null selected-road record per parcel, preserving explicit float64 distance, nullable Int64 tie count, nullable Boolean toll and object evidence dtypes for an absent class.
 
 **Exact signature**
 
@@ -1407,7 +1415,7 @@ def _empty_nearest_rows(parcel_count: int) -> pd.DataFrame:
 
 ### `_nearest_class_rows`
 
-**Purpose:** Implements `nearest class rows` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Return null rows for an empty class; otherwise query one XY road STRtree for all nearest matches, stable-sort distance/ID ties, count ties, require every parcel covered and copy the deterministic selected source row with distance and tie count.
 
 **Exact signature**
 
@@ -1480,7 +1488,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `selected["distance_m"].to_numpy` |
+| CRS/geometry/spatial calculation | `STRtree`, `_calculation_geometries`, `tree.query_nearest`; the distance Series conversion itself is not a geometry calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `matches["road_feature_id"] = roads.iloc[matches["road_position"].to_numpy()][<br>        "road_feature_id"<br>    ].to_numpy()`<br>`output.insert(<br>        0,<br>        "tie_count",<br>        pd.Series(ties.reindex(range(parcel_count)).to_numpy(), dtype="Int64"),<br>    )`<br>`output.insert(<br>        0,<br>        "distance_m",<br>        selected["distance_m"].to_numpy(dtype="float64"),<br>    )` |
 | Direct parameter mutation | None directly present. |
@@ -1544,7 +1552,7 @@ def _nearest_class_rows(
 
 ### `_coverage`
 
-**Purpose:** Implements `coverage` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Count source rows per all six policy classes, including zeros and the excluded distance class, and create ordered frozen coverage records with explicit eligibility.
 
 **Exact signature**
 
@@ -1627,7 +1635,7 @@ def _coverage(
 
 ### `_class_proximity_table`
 
-**Purpose:** Implements `class proximity table` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** For each eligible class obtain and validate nearest rows, map selected source evidence into output columns, append policy lineage, concatenate and stable-sort parcel/class positions, then impose exact schema and distance/tie/toll dtypes.
 
 **Exact signature**
 
@@ -1700,7 +1708,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_validate_distance_and_ties`<br>`output[<br>        "nearest_road_proxy_distance_m"<br>    ].astype` |
+| CRS/geometry/spatial calculation | Delegates each eligible class to real STRtree nearest calculation; astype and distance/tie scalar validation are not spatial operations. |
 | External process/environment | None directly present. |
 | In-memory mutation | `nearest.rename(<br>                columns={<br>                    "distance_m": "nearest_road_proxy_distance_m",<br>                    "tie_count": "nearest_road_tie_count",<br>                }<br>            )`<br>`table[output_column] = nearest[source_column].reset_index(drop=True)`<br>`table["road_proxy_policy_id"] = policy.policy_id`<br>`table["road_proxy_policy_schema_version"] = policy.schema_version`<br>`table["road_proxy_policy_config_sha256"] = policy.config_sha256`<br>`table["road_proxy_heavy_vehicle_access"] = policy.heavy_vehicle_access`<br>`table["proximity_scope"] = _PROXIMITY_SCOPE`<br>`tables.append(table)`<br>`output.drop(columns=["_parcel_position", "_class_position"])`<br>`output["nearest_road_proxy_distance_m"] = output[<br>        "nearest_road_proxy_distance_m"<br>    ].astype("float64")`<br>`output["nearest_road_tie_count"] = output["nearest_road_tie_count"].astype("Int64")`<br>`output["nearest_road_toll_evidence"] = output["nearest_road_toll_evidence"].astype(<br>        "boolean"<br>    )` |
 | Direct parameter mutation | None directly present. |
@@ -1768,7 +1776,7 @@ def _class_proximity_table(
 
 ### `_is_missing_scalar`
 
-**Purpose:** Implements `is missing scalar` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Treat None and scalar Pandas missing values as absent; return false if a nonscalar/unusable value raises TypeError or ValueError during missingness conversion.
 
 **Exact signature**
 
@@ -1838,7 +1846,7 @@ def _is_missing_scalar(value: object) -> bool:
 
 ### `_validate_distance_and_ties`
 
-**Purpose:** Implements `validate distance and ties` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Require matches exactly when the source class is nonempty; matched distances must have non-Boolean numeric dtype and finite nonnegative values. Require missing ties for unmatched rows and non-Boolean Integral ties at least one for matches. This checks scalar evidence, not geometry.
 
 **Exact signature**
 
@@ -1909,7 +1917,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `distances.notna`<br>`distances.loc[matched].to_numpy` |
+| CRS/geometry/spatial calculation | None; validates scalar distances/ties, nullable values and dtypes without measuring geometry. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -1961,7 +1969,7 @@ def _validate_distance_and_ties(
 
 ### `_null_safe_equal`
 
-**Purpose:** Implements `null safe equal` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Reset indexes for positional comparison, reject length mismatch, treat paired nulls as equal and otherwise compare values; unusable equality operations return false.
 
 **Exact signature**
 
@@ -2042,7 +2050,7 @@ def _null_safe_equal(actual: pd.Series, expected: pd.Series) -> bool:
 
 ### `_validate_selected_evidence`
 
-**Purpose:** Implements `validate selected evidence` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Resolve each selected road ID back to the validated source, require its class to match, and null-safely compare every mapped factual/evidence field except computed distance and tie count. No nearest search is rerun.
 
 **Exact signature**
 
@@ -2148,7 +2156,7 @@ def _validate_selected_evidence(
 
 ### `_validate_coverage`
 
-**Purpose:** Implements `validate coverage` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Require the exact six-entry tuple, exact coverage records, policy order, built-in nonnegative integer counts and Boolean eligibility; compare each count and total against the current roads, then return eligible class order.
 
 **Exact signature**
 
@@ -2257,7 +2265,7 @@ def _validate_coverage(
 
 ### `_validate_parcel_preservation`
 
-**Purpose:** Implements `validate parcel preservation` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Compare parcel count, ordered columns/dtypes, exact index type/names/dtype/values, CRS, geometry WKB and nongeometry facts. DataFrame.drop returns temporary comparison frames; it does not mutate either parameter.
 
 **Exact signature**
 
@@ -2325,10 +2333,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `output.geometry.to_wkb().equals`<br>`output.geometry.to_wkb`<br>`source.geometry.to_wkb`<br>`output.drop(columns=geometry_column).equals` |
+| CRS/geometry/spatial calculation | Compares equivalent CRS and exact geometry WKB. Non-geometry DataFrame.drop(...).equals is ordinary value comparison. |
 | External process/environment | None directly present. |
-| In-memory mutation | `output.drop(columns=geometry_column)`<br>`source.drop(columns=geometry_column)` |
-| Direct parameter mutation | `output.drop(columns=geometry_column)`<br>`source.drop(columns=geometry_column)` |
+| In-memory mutation | None; non-inplace drop creates separate comparison frames and does not modify either caller frame. |
+| Direct parameter mutation | None; both DataFrame.drop calls omit inplace=True and return separate comparison frames. |
 
 **Complete source-ordered implementation**
 
@@ -2369,7 +2377,7 @@ def _validate_parcel_preservation(
 
 ### `_validate_result`
 
-**Purpose:** Implements `validate result` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Validate result/frame types, preserved parcels, exact coverage, table schema/count/order/unique pairs, required-or-null matches, policy lineage and source-selected evidence. Exclude NOT_DISTANCE_PROXY rows; this is structural/evidence validation, not independent distance reconstruction.
 
 **Exact signature**
 
@@ -2460,7 +2468,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `_validate_distance_and_ties` |
+| CRS/geometry/spatial calculation | Delegates parcel validation and geometry/WKB preservation; scalar distance/tie and selected-evidence checks do not rerun nearest search. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2549,7 +2557,7 @@ def _validate_result(
 
 ### `_enrich_parcel_road_proximity`
 
-**Purpose:** Implements `enrich parcel road proximity` within the file role: Computes per-class parcel-to-road proxy proximity using source-bound policy application results.
+**Purpose:** Validate parcels, load policy, call source-complete application once, validate its roads, create independent stored and metric XY parcel copies, compute the class table and coverage, then enforce final result postconditions before return.
 
 **Exact signature**
 

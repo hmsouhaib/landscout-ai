@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+- Responsibility: Exercises metric class-specific proximity and output contracts with synthetic geometry and a mocked road application boundary.
 - Source SHA256: `153e2611e0d1ddc8ae4f28389e5311cca7b4c14668efbb809cc88f2645831367`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,15 @@
 
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+Exercises metric class-specific proximity and output contracts with synthetic geometry and a mocked road application boundary.
+
+### Audited fixture and assertion scope
+
+Fifty test definitions use eight top-level helpers and one nested corruption callback; no local Pytest fixtures are defined. The checked-in source config is loaded at import and policy files are read by fixture helpers and the real public proximity function. `_metric_parcels` creates simple Lambert-93 polygons; `_parcels` transforms those fixtures to the required stored EPSG:4326. `_road_row` fabricates class/rule/lineage and a line at a chosen X coordinate; `_roads` creates the frame. These facts are not reclassified: `_enrich` replaces `apply_ign_road_vehicle_proxy_policy` with an application result, while `_source` deliberately lacks an extraction and summary. No physical IGN source is read in this suite.
+
+Actual PyProj transforms and Shapely STRtree calculations remain active for distance assertions: ten-metre full-polygon distance (rather than fifteen-metre centroid distance), zero on intersection/touching, five independent class distances, exact two-road ties, lexical tie winner independent of source order, and nearer distance winning over lexical order. Absolute 1e-5 numeric assertion tolerance accommodates coordinate round-trip; it is not the production tie definition. The “never indexed” test checks coverage eligibility and absence of output rows, not a spy on the tree's geometry contents. Separate SHA/failure tests do explicitly assert no tree construction.
+
+Output tests cover null rows for an absent class, fixed schema/order/dtypes, selected source evidence, exact parcel copying and frozen field reassignment. A separate test successfully mutates the result parcel frame and asserts that its input remains unchanged: the frame is mutable but independent. `_corrupt_nearest_output` runs the real nearest helper before injecting bad output and expecting controlled rejection. Its distance injections also force the distance column to object dtype, so those cases can fail the dtype gate before reaching the particular negative/infinite scalar check. No suite-wide source authority, zero-parcel case, or exhaustive geometric/numeric domain proof is inferred from these representative tests.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -207,7 +215,7 @@ No top-level class/model/dataclass is declared.
 
 ### `_metric_parcels`
 
-**Purpose:** Implements `metric parcels` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Construct synthetic EPSG:2154 polygons with deterministic parcel IDs, source values and optional index; falsey empty sequence inputs select the default fixture rather than an empty frame.
 
 **Exact signature**
 
@@ -296,7 +304,7 @@ def _metric_parcels(
 
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Transform the metric parcel fixture to stored EPSG:4326 using the real GeoPandas/PyProj path, preserving simple known-distance geometry for round-trip tests.
 
 **Exact signature**
 
@@ -419,7 +427,7 @@ def _parcels(
 
 ### `_road_row`
 
-**Purpose:** Implements `road row` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Load actual policy lineage but fabricate one class/rule/raw-evidence record and a configured vertical line; this helper is not policy application or source validation.
 
 **Exact signature**
 
@@ -541,7 +549,7 @@ def _road_row(
 
 ### `_roads`
 
-**Purpose:** Implements `roads` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Wrap supplied synthetic records, or the default six one-per-class records, in an active EPSG:2154 GeoDataFrame.
 
 **Exact signature**
 
@@ -652,7 +660,7 @@ def _roads(
 
 ### `_source`
 
-**Purpose:** Implements `source` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Fabricate an exact road-source dataclass with a road frame but absent extraction/summary, used only because application is patched in computational tests.
 
 **Exact signature**
 
@@ -734,7 +742,7 @@ def _source() -> IgnBdTopoRoadData:
 
 ### `_enrich`
 
-**Purpose:** Implements `enrich` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Patch the imported application function to return the chosen fixture frame and invoke real public proximity with optional parcels/policy path; the patch is scoped to the context manager.
 
 **Exact signature**
 
@@ -901,7 +909,7 @@ def _enrich(
 
 ### `_row`
 
-**Purpose:** Implements `row` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Select the first output row for the requested class for one-parcel numeric/evidence assertions; it does not validate the whole result.
 
 **Exact signature**
 
@@ -3918,7 +3926,7 @@ def test_parcels_and_road_application_are_not_mutated() -> None:
 
 ### `_corrupt_nearest_output`
 
-**Purpose:** Implements `corrupt nearest output` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Wrap the real nearest-row helper with a scoped corrupting callback, invoke the mocked-application enrichment fixture, and require RoadProximityError at an output postcondition.
 
 **Exact signature**
 
@@ -4001,7 +4009,7 @@ def _corrupt_nearest_output(column: str, value: object) -> None:
 
 ### `_corrupt_nearest_output.corrupted`
 
-**Purpose:** Implements `corrupted` within the file role: Provides complete unit and regression coverage for the `enrich_road_proximity` contracts exercised in this file.
+**Purpose:** Call the saved real nearest helper, cast the requested column to object and overwrite its first matched row with the injected value; return that malformed output to production validation.
 
 **Exact signature**
 
@@ -4048,7 +4056,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `output["distance_m"].notna().any`<br>`output["distance_m"].notna` |
+| CRS/geometry/spatial calculation | The saved `original` nearest helper computes geometry transitively; distance missingness itself is only a scalar Series check. |
 | External process/environment | None directly present. |
 | In-memory mutation | `output[column] = output[column].astype("object")`<br>`output.at[0, column] = value` |
 | Direct parameter mutation | None directly present. |
@@ -4252,7 +4260,7 @@ def test_result_dataclasses_are_frozen() -> None:
     with pytest.raises(FrozenInstanceError):
         result.parcels = _parcels()  # type: ignore[misc]
     with pytest.raises(FrozenInstanceError):
-        coverage.feature_count = 99
+        coverage.feature_count = 99  # type: ignore[misc]
 ```
 
 **Business boundary**
@@ -4308,7 +4316,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | `Path("src/landscout/stages/enrich_road_proximity.py").read_text` |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `forbidden.isdisjoint` |
+| CRS/geometry/spatial calculation | None; `forbidden.isdisjoint` compares a set of output column-name strings. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -4765,56 +4773,56 @@ def test_parcel_preservation_uses_exact_non_geometry_values() -> None:
 
 | Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_public_api_exports_only_stable_symbols` | none | none | 4 | Proves public api exports only stable symbols using the exact source reproduced in section 7. |
-| `test_wrong_parcel_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | Proves wrong parcel type has controlled error using the exact source reproduced in section 7. |
-| `test_wrong_road_source_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | Proves wrong road source type has controlled error using the exact source reproduced in section 7. |
-| `test_wrong_source_config_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | Proves wrong source config type has controlled error using the exact source reproduced in section 7. |
-| `test_wrong_policy_path_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | Proves wrong policy path type has controlled error using the exact source reproduced in section 7. |
-| `test_application_stage_is_invoked_exactly_once` | none | none | 0 | Proves application stage is invoked exactly once using the exact source reproduced in section 7. |
-| `test_application_failure_stops_proximity` | none | pytest.raises(RoadProximityError) | 0 | Proves application failure stops proximity using the exact source reproduced in section 7. |
-| `test_malformed_policy_stops_before_application` | none | pytest.raises(RoadProximityError) | 0 | Proves malformed policy stops before application using the exact source reproduced in section 7. |
-| `test_independent_policy_sha_mismatch_is_rejected` | none | pytest.raises(RoadProximityError, match="policy\|SHA\|lineage") | 0 | Proves independent policy sha mismatch is rejected using the exact source reproduced in section 7. |
-| `test_invalid_parcel_identity_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "message"),<br>    [<br>        (lambda frame: frame.drop(columns="parcel_id"), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=None), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=123), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=""), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=" BAD "), "parcel_id"),<br>    ],<br>) | pytest.raises(RoadProximityError, match=message) | 0 | Proves invalid parcel identity is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(RoadProximityError, match="unique") | 0 | Proves duplicate parcel id is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_columns_are_rejected` | none | pytest.raises(RoadProximityError, match="duplicate") | 0 | Proves duplicate parcel columns are rejected using the exact source reproduced in section 7. |
-| `test_missing_or_inactive_geometry_is_rejected` | none | pytest.raises(RoadProximityError, match="geometry"); pytest.raises(RoadProximityError, match="active") | 0 | Proves missing or inactive geometry is rejected using the exact source reproduced in section 7. |
-| `test_missing_or_wrong_storage_crs_is_rejected` | none | pytest.raises(RoadProximityError, match="CRS"); pytest.raises(RoadProximityError, match="4326") | 0 | Proves missing or wrong storage crs is rejected using the exact source reproduced in section 7. |
-| `test_wrong_parcel_geometry_kind_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(0, 0), LineString([(0, 0), (10, 10)])],<br>) | pytest.raises(RoadProximityError, match="Polygon\|MultiPolygon") | 0 | Proves wrong parcel geometry kind is rejected using the exact source reproduced in section 7. |
-| `test_bad_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "message"),<br>    [<br>        (None, "null"),<br>        (Polygon(), "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(RoadProximityError, match=message) | 0 | Proves bad parcel geometry is rejected using the exact source reproduced in section 7. |
-| `test_polygon_and_multipolygon_are_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),<br>    ],<br>) | none | 1 | Proves polygon and multipolygon are accepted using the exact source reproduced in section 7. |
-| `test_wrong_application_result_type_is_rejected` | none | pytest.raises(RoadProximityError) | 0 | Proves wrong application result type is rejected using the exact source reproduced in section 7. |
-| `test_application_roads_must_be_geodataframe` | none | pytest.raises(RoadProximityError) | 0 | Proves application roads must be geodataframe using the exact source reproduced in section 7. |
-| `test_duplicate_road_feature_id_is_rejected` | none | pytest.raises(RoadProximityError, match="unique") | 0 | Proves duplicate road feature id is rejected using the exact source reproduced in section 7. |
-| `test_unknown_road_proxy_class_is_rejected` | none | pytest.raises(RoadProximityError, match="class") | 0 | Proves unknown road proxy class is rejected using the exact source reproduced in section 7. |
-| `test_missing_road_policy_lineage_is_rejected` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "road_proxy_policy_id",<br>        "road_proxy_policy_schema_version",<br>        "road_proxy_policy_config_sha256",<br>        "road_proxy_heavy_vehicle_access",<br>    ],<br>) | pytest.raises(RoadProximityError, match="column\|lineage") | 0 | Proves missing road policy lineage is rejected using the exact source reproduced in section 7. |
-| `test_eligible_class_requires_valid_geometry_status` | pytest.mark.parametrize("status", ["NULL", "EMPTY", "INVALID"]) | pytest.raises(RoadProximityError, match="VALID") | 0 | Proves eligible class requires valid geometry status using the exact source reproduced in section 7. |
-| `test_eligible_class_rejects_unsupported_geometry` | none | pytest.raises(RoadProximityError, match="LineString\|geometry") | 0 | Proves eligible class rejects unsupported geometry using the exact source reproduced in section 7. |
-| `test_not_distance_road_is_counted_but_never_indexed` | none | none | 3 | Proves not distance road is counted but never indexed using the exact source reproduced in section 7. |
-| `test_known_polygon_to_line_distance_is_ten_metres` | none | none | 1 | Proves known polygon to line distance is ten metres using the exact source reproduced in section 7. |
-| `test_intersecting_or_touching_road_has_zero_distance` | pytest.mark.parametrize("x", [5.0, 10.0]) | none | 1 | Proves intersecting or touching road has zero distance using the exact source reproduced in section 7. |
-| `test_distance_uses_full_polygon_not_centroid` | none | none | 2 | Proves distance uses full polygon not centroid using the exact source reproduced in section 7. |
-| `test_storage_geometry_stays_epsg4326_while_distance_is_metric` | none | none | 3 | Proves storage geometry stays epsg4326 while distance is metric using the exact source reproduced in section 7. |
-| `test_each_eligible_class_has_independent_distance` | none | none | 1 | Proves each eligible class has independent distance using the exact source reproduced in section 7. |
-| `test_near_not_distance_road_cannot_change_general_distance` | none | none | 2 | Proves near not distance road cannot change general distance using the exact source reproduced in section 7. |
-| `test_single_nearest_road_has_tie_count_one` | none | none | 1 | Proves single nearest road has tie count one using the exact source reproduced in section 7. |
-| `test_exact_tie_counts_two_and_lexical_id_wins` | none | none | 3 | Proves exact tie counts two and lexical id wins using the exact source reproduced in section 7. |
-| `test_tie_winner_is_independent_of_source_order` | none | none | 3 | Proves tie winner is independent of source order using the exact source reproduced in section 7. |
-| `test_unequal_distance_wins_regardless_of_identifier` | none | none | 1 | Proves unequal distance wins regardless of identifier using the exact source reproduced in section 7. |
-| `test_empty_eligible_class_emits_null_row_per_parcel` | none | none | 3 | Proves empty eligible class emits null row per parcel using the exact source reproduced in section 7. |
-| `test_output_shape_columns_and_order_are_deterministic` | none | none | 4 | Proves output shape columns and order are deterministic using the exact source reproduced in section 7. |
-| `test_class_coverage_is_complete_and_strict` | none | none | 3 | Proves class coverage is complete and strict using the exact source reproduced in section 7. |
-| `test_selected_road_evidence_and_lineage_are_exact` | none | none | 12 | Proves selected road evidence and lineage are exact using the exact source reproduced in section 7. |
-| `test_parcels_and_road_application_are_not_mutated` | none | none | 4 | Proves parcels and road application are not mutated using the exact source reproduced in section 7. |
-| `test_malformed_produced_distance_is_rejected` | pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")]) | none | 0 | Proves malformed produced distance is rejected using the exact source reproduced in section 7. |
-| `test_malformed_produced_tie_count_is_rejected` | pytest.mark.parametrize("value", [0, -1, True, 1.5]) | none | 0 | Proves malformed produced tie count is rejected using the exact source reproduced in section 7. |
-| `test_result_dataclasses_are_frozen` | none | pytest.raises(FrozenInstanceError); pytest.raises(FrozenInstanceError) | 0 | Proves result dataclasses are frozen using the exact source reproduced in section 7. |
-| `test_no_business_decision_columns_or_implementation_exist` | none | none | 3 | Proves no business decision columns or implementation exist using the exact source reproduced in section 7. |
-| `test_result_parcel_frame_is_an_independent_copy` | none | none | 1 | Proves result parcel frame is an independent copy using the exact source reproduced in section 7. |
-| `test_class_proximity_is_plain_dataframe` | none | none | 2 | Proves class proximity is plain dataframe using the exact source reproduced in section 7. |
-| `test_selected_rows_belong_to_requested_class` | none | none | 1 | Proves selected rows belong to requested class using the exact source reproduced in section 7. |
-| `test_policy_sha_mismatch_does_not_construct_spatial_index` | none | pytest.raises(RoadProximityError) | 0 | Proves policy sha mismatch does not construct spatial index using the exact source reproduced in section 7. |
-| `test_matched_output_dtypes_are_stable` | none | none | 3 | Proves matched output dtypes are stable using the exact source reproduced in section 7. |
-| `test_parcel_preservation_uses_exact_non_geometry_values` | none | none | 0 | Proves parcel preservation uses exact non geometry values using the exact source reproduced in section 7. |
+| `test_public_api_exports_only_stable_symbols` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_parcel_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_road_source_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_source_config_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_policy_path_type_has_controlled_error` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_application_stage_is_invoked_exactly_once` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_application_failure_stops_proximity` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_policy_stops_before_application` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_independent_policy_sha_mismatch_is_rejected` | none | pytest.raises(RoadProximityError, match="policy\|SHA\|lineage") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_invalid_parcel_identity_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "message"),<br>    [<br>        (lambda frame: frame.drop(columns="parcel_id"), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=None), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=123), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=""), "parcel_id"),<br>        (lambda frame: frame.assign(parcel_id=" BAD "), "parcel_id"),<br>    ],<br>) | pytest.raises(RoadProximityError, match=message) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(RoadProximityError, match="unique") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_parcel_columns_are_rejected` | none | pytest.raises(RoadProximityError, match="duplicate") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_or_inactive_geometry_is_rejected` | none | pytest.raises(RoadProximityError, match="geometry"); pytest.raises(RoadProximityError, match="active") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_or_wrong_storage_crs_is_rejected` | none | pytest.raises(RoadProximityError, match="CRS"); pytest.raises(RoadProximityError, match="4326") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_parcel_geometry_kind_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [Point(0, 0), LineString([(0, 0), (10, 10)])],<br>) | pytest.raises(RoadProximityError, match="Polygon\|MultiPolygon") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_bad_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "message"),<br>    [<br>        (None, "null"),<br>        (Polygon(), "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(RoadProximityError, match=message) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_polygon_and_multipolygon_are_accepted` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),<br>    ],<br>) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_wrong_application_result_type_is_rejected` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_application_roads_must_be_geodataframe` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_duplicate_road_feature_id_is_rejected` | none | pytest.raises(RoadProximityError, match="unique") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unknown_road_proxy_class_is_rejected` | none | pytest.raises(RoadProximityError, match="class") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_missing_road_policy_lineage_is_rejected` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "road_proxy_policy_id",<br>        "road_proxy_policy_schema_version",<br>        "road_proxy_policy_config_sha256",<br>        "road_proxy_heavy_vehicle_access",<br>    ],<br>) | pytest.raises(RoadProximityError, match="column\|lineage") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_eligible_class_requires_valid_geometry_status` | pytest.mark.parametrize("status", ["NULL", "EMPTY", "INVALID"]) | pytest.raises(RoadProximityError, match="VALID") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_eligible_class_rejects_unsupported_geometry` | none | pytest.raises(RoadProximityError, match="LineString\|geometry") | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_not_distance_road_is_counted_but_never_indexed` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_known_polygon_to_line_distance_is_ten_metres` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_intersecting_or_touching_road_has_zero_distance` | pytest.mark.parametrize("x", [5.0, 10.0]) | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_distance_uses_full_polygon_not_centroid` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_storage_geometry_stays_epsg4326_while_distance_is_metric` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_each_eligible_class_has_independent_distance` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_near_not_distance_road_cannot_change_general_distance` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_single_nearest_road_has_tie_count_one` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_exact_tie_counts_two_and_lexical_id_wins` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_tie_winner_is_independent_of_source_order` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_unequal_distance_wins_regardless_of_identifier` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_empty_eligible_class_emits_null_row_per_parcel` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_output_shape_columns_and_order_are_deterministic` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_class_coverage_is_complete_and_strict` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_selected_road_evidence_and_lineage_are_exact` | none | none | 12 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_parcels_and_road_application_are_not_mutated` | none | none | 4 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_produced_distance_is_rejected` | pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")]) | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_malformed_produced_tie_count_is_rejected` | pytest.mark.parametrize("value", [0, -1, True, 1.5]) | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_result_dataclasses_are_frozen` | none | pytest.raises(FrozenInstanceError); pytest.raises(FrozenInstanceError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_no_business_decision_columns_or_implementation_exist` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_result_parcel_frame_is_an_independent_copy` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_class_proximity_is_plain_dataframe` | none | none | 2 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_selected_rows_belong_to_requested_class` | none | none | 1 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_policy_sha_mismatch_does_not_construct_spatial_index` | none | pytest.raises(RoadProximityError) | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_matched_output_dtypes_are_stable` | none | none | 3 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
+| `test_parcel_preservation_uses_exact_non_geometry_values` | none | none | 0 | See the callable's section 6 setup/assertions and audited test-scope notes; section 11 retains the complete source. |
 
 ## 8. Public exports and package ownership
 

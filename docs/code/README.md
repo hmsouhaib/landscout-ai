@@ -2,13 +2,15 @@
 
 ## How an AI agent should use this documentation
 
+For cross-chat entry, first read [AGENTS.md](../../AGENTS.md), [working rules](../project/WORKING_RULES.md), [current state](../project/CURRENT_STATE.md) and the [resume route](../project/RESUME.md). This technical index does not supersede the active ticket, review gate or interruption ledger.
+
 1. Read [ARCHITECTURE.md](ARCHITECTURE.md) first.
 2. Read [DATA_FLOW.md](DATA_FLOW.md).
 3. Read the relevant pipeline document for Cadastre, grid, road, planning, or environment.
 4. Open the companion document under `files/` for every file that may be modified.
-5. Compare the source file's exact byte SHA256 with the companion's `Source SHA256`.
+5. Compare exact Git-content bytes with the companion's `Source SHA256` under its explicit binding basis; distinguish checkout EOL bytes from Git content and Git blob IDs.
 6. If the SHA differs, treat the companion as potentially stale.
-7. Source code always wins over this documentation and over `docs/DEV_LOG.md`.
+7. Source/tests establish observed behavior. If it contradicts user-approved intent or the source contract, record an application finding; do not rewrite the intended contract to legitimize a defect. DEV_LOG reports are historical evidence, not current behavior or independent approval.
 8. Inspect every named test and its source before changing an implementation.
 9. Never invent evidence to replace an `UNKNOWN`, null, missing source value, or unresolved applicability.
 10. Preserve source-complete trust boundaries and the distinction between factual data, proxy evidence, policy interpretation, diagnostics, and parcel prechecks.
@@ -30,6 +32,8 @@
 
 ## Authority and staleness
 
-The implementation hierarchy is source code, checked-in configuration, tests, physical/source contracts, and only then historical development evidence. A companion SHA is standard SHA256 of exact file bytes, not a Git blob ID. The reference intentionally exposes private functions and test helpers because future changes to those helpers can alter a public trust boundary even when the helper is not exported.
+Observed implementation, user-approved intent/source contracts, actual test execution and independent review are distinct kinds of authority. A companion SHA proves byte identity, not explanatory fidelity, comprehensive coverage or approval. The portable binding basis is SHA256 of exact Git-stored content, not Git's blob object ID or an implicitly normalized checkout. DOCS.CONTINUITY.1 tracks its migration and any EOL-only exception in the [audit ledger](audit/DOCUMENTATION_AUDIT.md); while that ledger remains partial, do not claim every header has been migrated.
+
+The reference intentionally exposes private functions and test helpers because their changes can affect a public trust boundary even when they are not exported. The [local checker](../../tools/audit_documentation.py) checks recorded mechanics offline; its passing status never grants independent semantic approval. [Project provenance](../project/CONTEXT_PROVENANCE.md) separates publication, historical reports, current executions and actual review scope.
 
 This tree documents the repository at the commit named in the surrounding Git history. It does not turn current proxy evidence into legal, engineering, capacity, ownership, environmental, ranking, or authorization conclusions.

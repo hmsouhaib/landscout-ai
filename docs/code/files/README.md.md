@@ -3,27 +3,26 @@
 ## File identity
 
 - Repository path: `README.md`
-- File type: Markdown
-- Responsibility: Introduces LandScout's current evidence-first BESS scope and links to the detailed technical reference.
-- Source SHA256: `356e0c4cc2a7c52bd798f4ce0d9b0d8230688d9a8298207eef3070e66a6d33bf`
+- Source SHA256: `63d2b67f7f4f467b3d8c5cea868faa63a9aef6171f10fb60fb8126a256b204d8`
+- Source SHA256 basis: `git-content`
 
-## 1. Purpose
+## Purpose and readers
 
-Introduces LandScout's current evidence-first BESS scope and links to the detailed technical reference.
+Human-facing introduction to the evidence-first BESS product, with Muret as a proving ground rather than permanent geography. It names implemented evidence families and distinguishes them from missing scoring, owner/contact, delivery and autonomous operation. It is not an executable entry point, configuration, release approval or source validator.
 
-## 2. Position in LandScout architecture
+## Navigation and authority
 
-This is human engineering documentation/history, consumed by engineers and repository documentation readers.
+The technical link opens the code-reference index. The new-session links explicitly route readers through root AGENTS, the repository-only resume procedure and CURRENT_STATE, where live publication, independent approval and pending work remain separate. Links inside the exact snapshot below are original root-relative Markdown content; shared navigation from this companion is [README](../../../README.md), [AGENTS](../../../AGENTS.md), [resume](../../project/RESUME.md) and [current state](../../project/CURRENT_STATE.md).
 
-## 3. Imports and dependencies
+## Effects, tests and change impact
 
-Not applicable: this is not Python source.
+No Python imports, data models, algorithms, runtime side effects, units, error class or direct business test belongs to this passive Markdown file. Its claims must be checked against actual code and current provenance; a successful package version test does not validate them. The local documentation checker verifies binding/snapshot and simple links, not product completeness or semantic approval.
 
-## 4. Contract taxonomy
+Preserve its concise entry-point role. Update this companion's exact snapshot and Git-content SHA after an authorized README change, and check the linked continuity/architecture pages for consistent scope. The raw SHA is not a Git blob object ID.
 
-Its exact content is reproduced below. No Python alias, frame column, model field, or runtime business semantic is inferred from passive text.
+## Complete exact source snapshot
 
-````text
+````markdown
 # LandScout AI
 
 LandScout AI is an evidence-first system for land origination and preliminary
@@ -49,56 +48,9 @@ yet complete.
 ## Technical documentation
 
 See [the living file-by-file technical reference](docs/code/README.md).
+
+For a new session, explicitly read [AGENTS.md](AGENTS.md), then follow the
+[repository-only resume procedure](docs/project/RESUME.md). Current publication,
+independent approval and pending work are separate records in
+[CURRENT_STATE.md](docs/project/CURRENT_STATE.md).
 ````
-
-## 5. Classes / models / dataclasses
-
-Not applicable.
-
-## 6. Functions and methods
-
-Not applicable.
-
-## 7. Data contracts
-
-Interpreted only as human engineering documentation/history by engineers and repository documentation readers; not a Pandas/GeoPandas schema.
-
-## 8. Interfaces
-
-Consumer: engineers and repository documentation readers.
-
-## 9. Error handling
-
-Not applicable to the passive file itself; its consumer reports malformed or unsupported content.
-
-## 10. Side effects
-
-The passive file performs no operation. Reads/resolution belong to its named consumer.
-
-## 11. Security / trust boundaries
-
-The companion SHA binds exact bytes. No source authority is inferred unless a runtime adapter validates it.
-
-## 12. GIS / CRS rules
-
-Not applicable unless an exact configuration field in the reproduced content is consumed by a GIS validator.
-
-## 13. Provenance rules
-
-The path and SHA identify this repository snapshot; passive prose/history is not implementation proof.
-
-## 14. Business meaning
-
-No business decision is executed by this passive file.
-
-## 15. Explicit non-goals
-
-- Does not independently run a source adapter, GIS calculation, policy, score, ranking, or legal decision.
-
-## 16. Tests
-
-Not applicable directly; repository/tool configuration may be exercised by the mandated validation commands.
-
-## 17. Change impact
-
-Review engineers and repository documentation readers, repository workflows, and this companion SHA after any byte change.

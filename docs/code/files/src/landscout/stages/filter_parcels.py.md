@@ -6,7 +6,7 @@
 - File type: Python source
 - Layer: pipeline stage
 - Domain: factual transformation, evidence, or policy boundary
-- Responsibility: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+- Responsibility: Partitions canonical parcels by configured inclusive area bounds or enabled width/ratio policy, retaining explicit reasons and policy evidence without ranking.
 - Source SHA256: `53487ea689f4b650c17a3e692d5b3bf0fb80b57aefaf0621b66883ed40e45713`
 
 ## 1. STEP 7F.1A.4 contract delta
@@ -16,7 +16,7 @@
 
 ## 2. Purpose and architectural position
 
-Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+Partitions canonical parcels by configured area bounds and, independently, shape screening. Area and shape are separate public calls; this module does not automatically chain them.
 
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -167,7 +167,7 @@ class ParcelFilterError(ValueError):
 
 ### `_validate_spatial_frame`
 
-**Purpose:** Implements `validate spatial frame` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Require a GeoDataFrame with unique columns, a usable active geometry accessor/name and a parseable non-null CRS. Return the same frame. This preliminary envelope check does not itself require WGS84, validate polygon topology or recompute area; the stronger common Cadastre validator follows in public workflows.
 
 **Exact signature**
 
@@ -258,7 +258,7 @@ def _validate_spatial_frame(parcels: object, label: str) -> gpd.GeoDataFrame:
 
 ### `_missing_columns`
 
-**Purpose:** Implements `missing columns` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Return the required-name frozenset difference against the frame's current columns. Missing attributes on the input become ParcelFilterError. It reports absent names but does not itself reject a nonempty difference; callers format that rejection.
 
 **Exact signature**
 
@@ -337,7 +337,7 @@ def _missing_columns(
 
 ### `_validate_exact_parcel_ids`
 
-**Purpose:** Implements `validate exact parcel ids` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Reject null, non-string, empty, whitespace-padded or duplicate parcel IDs without rewriting them. Its local isinstance check permits str subclasses; the subsequent shared canonical validator enforces exact built-in strings and cadastral cross-field identity.
 
 **Exact signature**
 
@@ -419,7 +419,7 @@ def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
 
 ### `_is_strict_finite_number`
 
-**Purpose:** Implements `is strict finite number` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Return whether the value is a Real, is not bool and converts to a finite float. It is used only for required VALID shape metrics; it does not accept numeric strings or prove positivity. Float conversion failures are not locally caught by this predicate.
 
 **Exact signature**
 
@@ -487,7 +487,7 @@ def _is_strict_finite_number(value: object) -> bool:
 
 ### `filter_parcels_by_area`
 
-**Purpose:** Implements `filter parcels by area` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** First require an exact ParcelConfig and reconstruct it from model_dump so forged fields cannot bypass validation. Reject a preexisting rejection_reason, require the spatial/schema/ID envelope and shared canonical geometry/area facts, then keep VALID rows whose measured area lies inclusively between configured minimum and maximum. Copy both partitions; rejected rows receive INVALID_GEOMETRY, AREA_BELOW_MIN or AREA_ABOVE_MAX. AREA_UNKNOWN is initialization only and is unreachable for fully validated ordinary inputs. Check row count, unique/disjoint IDs and exact union before returning `(candidates, rejected)`. Preserve geometry, CRS and partition-relative order; no rank or score is produced.
 
 **Exact signature**
 
@@ -697,7 +697,7 @@ def filter_parcels_by_area(
 
 ### `_validate_shape_filter_input`
 
-**Purpose:** Implements `validate shape filter input` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Require shape fields, spatial envelope and the full shared Cadastre contract. Accept only non-null VALID/ERROR shape statuses. Every VALID shape row requires complete finite nonboolean numeric width and ratio, width > 0 and ratio >= 1; ERROR rows' metric payloads are not inspected. These checks run even when screening is disabled. This does not recompute shape width/ratio, though the common validator recomputes area.
 
 **Exact signature**
 
@@ -821,7 +821,7 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
 
 ### `_validate_shape_partition`
 
-**Purpose:** Implements `validate shape partition` within the file role: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
+**Purpose:** Check that retained plus rejected counts equal input, each output has no duplicate parcel IDs, their ID sets are disjoint, and their union exactly equals input IDs. It does not recompute geometry, thresholds or compare every non-ID column.
 
 **Exact signature**
 
@@ -916,7 +916,7 @@ def _validate_shape_partition(
 
 ### `filter_parcels_by_shape`
 
-**Purpose:** Partition shape-enriched parcels using an explicit screening policy.
+**Purpose:** Require an exact ShapeScreeningConfig and reconstruct it, then validate the shape-enriched input. Disabled screening returns a copied complete input and empty copied rejection frame before the generated-column collision gate, with no policy columns added. Enabled screening rejects collisions and requires width, ratio and calibration; retain only VALID rows with width >= minimum and ratio <= maximum. Assign one rejection reason with precedence SHAPE_ERROR over WIDTH_BELOW_MIN over RATIO_ABOVE_MAX, append version/min-width/max-ratio policy evidence to both copied outputs, validate the partition and return it. The calibration retention percentages do not alter these fixed thresholds.
 
 **Exact signature**
 
@@ -1134,6 +1134,10 @@ def filter_parcels_by_shape(
 ## 8. Public exports and package ownership
 
 This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
+
+## Reconciliation notes
+
+Both public calls retain boundary revalidation despite frozen configuration models. Neither physically reloads Cadastre archive bytes; canonical frame validation establishes cross-field/local geometry consistency, not new acquisition provenance. The delegated common check creates EPSG:2154 measurement copies, so the direct-call effect matrix must not be read as a promise of no geometry calculation across the complete call graph.
 
 ## 9. Trust, provenance, side effects, and business boundary
 

@@ -18,6 +18,14 @@
 
 Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
 
+### Audited source boundary and factual output
+
+`normalize_ign_roads(source, config)` accepts exact public source/config types, calls the IGN adapter's `_revalidate_ign_bdtopo_road_data`, and uses the returned fresh road frame. It does not trust the caller's frame and matching summary as independent physical evidence. The adapter owns reconstruction of the configured physical layer; this stage then checks bundle identity, roles, layer inventory, frame schema, summary agreement and lineage before constructing the factual result. Ordinary delegated exceptions are chained into `IgnRoadNormalizationError`; an existing normalization error is preserved.
+
+The 44-column output is a projection of attributes, **not a CRS reprojection**. Rows retain source order but receive a new RangeIndex. The 29 mapped raw fields are copied without parsing, filling nulls or changing their factual meaning. `cleabs` must already be a non-null, unique, nonempty string without edge whitespace, colon or Unicode control characters; `road_feature_id` prefixes it with `IGN_BDTOPO:ROAD_SEGMENT:`. Geometry is copied without repair, densification or coordinate changes. CRS must already be equivalent to projected EPSG:2154. NULL, EMPTY and INVALID geometry rows remain present; only geometries whose derived status is VALID must be LineString or MultiLineString.
+
+`_IgnRoadSourceContext` is an internal frozen lineage record: physical source layer, department, edition, optional product version, aware download timestamp, lowercase archive SHA256 and source URL are repeated into output columns. Every field is required at construction, although product version alone permits `None`; its constructor is not an independent validation boundary. `NormalizedIgnRoadData` freezes reassignment of its single `road_segments` field, not mutation of the contained GeoDataFrame. The downstream application invokes this public normalizer once before loading its road policy. No road-access classification, distance, parcel join, scoring or legal/heavy-vehicle conclusion is made here.
+
 The file belongs to the **pipeline stage** layer and **factual transformation, evidence, or policy boundary** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
 ## 3. Imports and dependencies
@@ -552,7 +560,7 @@ class NormalizedIgnRoadData:
 
 ### `_validated_lambert93`
 
-**Purpose:** Implements `validated lambert93` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Reject a missing or unreadable CRS, parse with PyProj, and require both projected status and equivalence to EPSG:2154; return the parsed CRS without transforming coordinates.
 
 **Exact signature**
 
@@ -607,7 +615,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | `CRS.from_user_input`, `CRS.from_epsg`, `source_crs.is_projected`, `source_crs.equals`; parsing and comparison only, no transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -634,7 +642,7 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
 
 ### `_required_exact_string`
 
-**Purpose:** Implements `required exact string` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Require an existing nonempty string equal to its stripped form and return it unchanged; reject missing, blank, non-string or edge-whitespace values rather than normalizing them.
 
 **Exact signature**
 
@@ -709,7 +717,7 @@ def _required_exact_string(value: object, label: str) -> str:
 
 ### `_validate_source_context`
 
-**Purpose:** Implements `validate source context` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Validate source-layer and optional-version text, department and edition without rewrites, a real ISO calendar date, timezone-aware ISO download timestamp, lowercase 64-hex archive digest syntax and an HTTP(S) URL. This checks lineage structure; it neither hashes archive bytes nor requests the URL.
 
 **Exact signature**
 
@@ -767,7 +775,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `_SHA256_PATTERN.fullmatch` |
+| Hashing/byte identity | No byte hashing; `_SHA256_PATTERN.fullmatch` checks only supplied digest syntax. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
@@ -841,7 +849,7 @@ def _validate_source_context(context: _IgnRoadSourceContext) -> None:
 
 ### `_normalized_identity`
 
-**Purpose:** Implements `normalized identity` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Require nonblank string identity, casefold and NFKD-normalize it, remove combining accents, then join lowercase ASCII alphanumeric tokens with single spaces for provider/product compatibility checks.
 
 **Exact signature**
 
@@ -919,7 +927,7 @@ def _normalized_identity(value: object, label: str) -> str:
 
 ### `_geometry_summary`
 
-**Purpose:** Implements `geometry summary` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Derive disjoint null, non-null empty and non-null/nonempty invalid counts plus sorted distinct geometry type names from the current frame; return these facts for summary comparison without changing geometries.
 
 **Exact signature**
 
@@ -1006,7 +1014,7 @@ def _geometry_summary(
 
 ### `_validate_layer_summary`
 
-**Purpose:** Implements `validate layer summary` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Apply the adapter's strict summary structure contract, require the road logical name and inventoried physical layer, and compare exact row count, ordered columns/dtypes, active geometry name, EPSG:2154 CRS and recomputed geometry facts against the fresh frame.
 
 **Exact signature**
 
@@ -1140,7 +1148,7 @@ def _validate_layer_summary(
 
 ### `_validate_source_bundle`
 
-**Purpose:** Implements `validate source bundle` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Require exact extraction/archive/summary types, compatible IGN/BD TOPO identity, EPSG:2154 and PROXY_GEOMETRY roles; verify a unique nonempty layer inventory, present distinct electricity roles and a separate road layer; then validate the road frame and summary and construct its frozen lineage context.
 
 **Exact signature**
 
@@ -1205,7 +1213,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `product.replace` |
+| Filesystem/archive write or publication | None. `product.replace` removes spaces from an in-memory string; it is not a path replacement or filesystem write. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1300,7 +1308,7 @@ def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
 
 ### `_validate_identifiers`
 
-**Purpose:** Implements `validate identifiers` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Reject null, non-string, blank, edge-whitespace, colon-containing, control-character-containing or duplicated cleabs identifiers; never coerce or repair them.
 
 **Exact signature**
 
@@ -1400,7 +1408,7 @@ def _validate_identifiers(frame: gpd.GeoDataFrame) -> None:
 
 ### `_validate_source_frame`
 
-**Purpose:** Implements `validate source frame` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Reject duplicate or missing required source columns, require the active geometry column and projected EPSG:2154, then enforce the cleabs identifier contract before copying data.
 
 **Exact signature**
 
@@ -1488,7 +1496,7 @@ def _validate_source_frame(frame: gpd.GeoDataFrame) -> None:
 
 ### `_geometry_status`
 
-**Purpose:** Implements `geometry status` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Create an object Series initialized to VALID, then set disjoint null, non-null empty and remaining invalid positions to NULL, EMPTY and INVALID. Read validity/type properties only; do not repair the GeoSeries.
 
 **Exact signature**
 
@@ -1558,7 +1566,7 @@ def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 ### `_normalize_road_frame`
 
-**Purpose:** Implements `normalize road frame` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Validate context/frame; copy and reset its index; derive technical statuses and reject unsupported VALID types; build identifiers, lineage, mapped raw facts and copied geometry in the exact output order. Finally check unchanged row count, RangeIndex and unique non-null generated identifiers.
 
 **Exact signature**
 
@@ -1706,7 +1714,7 @@ def _normalize_road_frame(
 
 ### `_normalize_ign_roads`
 
-**Purpose:** Implements `normalize ign roads` within the file role: Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability.
+**Purpose:** Obtain a fresh source through adapter revalidation, validate that returned bundle, and normalize only its returned road frame into the frozen result wrapper; the supplied caller frame is not reused as authority.
 
 **Exact signature**
 
@@ -1782,7 +1790,7 @@ def _normalize_ign_roads(
 
 ### `normalize_ign_roads`
 
-**Purpose:** Validate and project one already-loaded IGN road source without interpretation.
+**Purpose:** Validate exact public input types and dispatch source-complete factual normalization with controlled error translation. “Project” here means select factual output columns, not reproject coordinates.
 
 **Exact signature**
 

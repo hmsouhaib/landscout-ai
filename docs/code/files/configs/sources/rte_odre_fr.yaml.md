@@ -27,20 +27,24 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 |---|---|---|---|---|---|
 | `provider` | `"RTE"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `portal` | `"ODRE"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `portal` under the exact parent path `<root>`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
-| `api.base_url` | `"https://odre.opendatasoft.com/api/explore/v2.1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the exact official HTTPS API origin/path used to build requests. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
+| `api.base_url` | `"https://odre.opendatasoft.com/api/explore/v2.1"` | `HttpUrl` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Pins the exact official HTTPS API origin/path used to build requests. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.sites.dataset_id` | `"postes-electriques-rte"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.sites.preferred_format` | `"geojson"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `preferred format` under the exact parent path `datasets.sites`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.overhead_lines.dataset_id` | `"lignes-aeriennes-rte-nv"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.overhead_lines.preferred_format` | `"geojson"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `preferred format` under the exact parent path `datasets.overhead_lines`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.underground_lines.dataset_id` | `"lignes-souterraines-rte-nv"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Selects the exact external dataset identity used in source URL/API/cache validation. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 | `datasets.underground_lines.preferred_format` | `"geojson"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `preferred format` under the exact parent path `datasets.underground_lines`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
-| `cache.max_age_hours` | `168` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `max age hours` under the exact parent path `cache`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
+| `cache.max_age_hours` | `168` | `float` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; strict finite nonnegative Real normalized to float; bool and numeric text rejected; unit hours | Configures `max age hours` under the exact parent path `cache`. | `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset` |
 
 ## STEP 7F.1A.4 dependent-model refresh
 
 - The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.sources.rte_odre_fr.load_rte_odre_source_config`; section 5 now embeds the exact current owning model sources and qualified consumers.
 - Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
 - No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+
+## Runtime interpretation reviewed for DOCS.CONTINUITY.1
+
+The three checked-in dataset IDs are acquisition identities, not evidence of a particular immutable publication snapshot. This configuration pins no archive SHA256, byte size, version or CRS. The downloader records observed export integrity and source metadata; missing metadata is not filled with invented values. No coordinate precision or grid capacity is inferred from a configured dataset name.
 
 ## 5. Classes / models / dataclasses
 
@@ -51,7 +55,7 @@ Every row below is a configuration field/list leaf. It is not a DataFrame column
 
 ### `RteDatasetConfig`
 
-**Source purpose:** Defines `RteDatasetConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen configuration for one logical dataset: dataset_id is a validated nonempty dataset identifier used in encoded API/cache paths, and preferred_format is the geojson-only export choice. The model validates an identifier domain, not a hardcoded equality to the three checked-in IDs.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -95,7 +99,7 @@ class RteDatasetConfig(BaseModel):
 
 ### `RteDatasetsConfig`
 
-**Source purpose:** Defines `RteDatasetsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Requires exactly the three logical dataset slots sites, overhead_lines and underground_lines, each a frozen RteDatasetConfig. These are logical acquisition roles, not geometry classifications or frame columns.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -128,7 +132,7 @@ class RteDatasetsConfig(BaseModel):
 
 ### `RteOdreApiConfig`
 
-**Source purpose:** Defines `RteOdreApiConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen base_url HttpUrl constrained to the official HTTPS host odre.opendatasoft.com, default/443 port and /api/explore/v2.1 path without credentials, query or fragment. It validates configuration only; per-request DNS/TLS validation belongs to safe_http.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -174,7 +178,7 @@ class RteOdreApiConfig(BaseModel):
 
 ### `RteOdreCacheConfig`
 
-**Source purpose:** Defines `RteOdreCacheConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen cache freshness configuration: max_age_hours is a strict finite nonnegative number, normalized to float; bool and numeric text are rejected. The current value 168 means a maximum age of seven days, not a scheduler.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -203,7 +207,7 @@ class RteOdreCacheConfig(BaseModel):
 
 ### `RteOdreSourceConfig`
 
-**Source purpose:** Defines `RteOdreSourceConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+**Source purpose:** Frozen RTE/ODRE identity plus nested API, three dataset and cache models, with extra keys forbidden. These runtime objects contain no mutable list/dict/set. Public acquisition boundaries reconstruct and revalidate even a supplied model.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -317,11 +321,11 @@ This file supplies configuration/policy/source identity. It does not itself crea
 
 ## 8. Interfaces
 
-Runtime consumers: `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+Runtime consumers: `fetch_rte_odre_dataset_metadata`, `download_rte_odre_dataset`. The RTE loader resolves its own default source-config path; it does not load a road policy or scan profile.
 
 ## 9. Error handling
 
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
+The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the configuration loader propagates file/YAML/Pydantic validation failures; acquisition boundaries separately wrap supplied-config reconstruction failures in RteOdreDownloadError.
 
 ## 10. Side effects
 

@@ -10,7 +10,15 @@
 
 ## 1. Isolation and fixture architecture
 
-All source fixtures are synthetic ZIP/GPKG bytes built under Pytest's unique temporary directory. `_spatial_frame` and `_gpkg_bytes` use geometry only to create valid fixture containers; production reads are intercepted as exact pandas DataFrames and are separately guarded against geometry-bearing results. `_source_from_package` replaces `source_module.open_safe_https` with an in-memory `_Response`, so tests perform no live DNS or HTTP. No real EP cache or archive is changed.
+Physical source fixtures are tiny ZIP/GPKG bytes built under Pytest's temporary directory. `_source_from_package` replaces only acquisition's `open_safe_https` with an in-memory response: real archive/extraction/catalog validation and real attribute reads remain unless a particular test replaces the reader. `_build_with_frame` supplies a fabricated DataFrame for scalar/FID/frame adversarial cases, retaining the upstream physical metadata checks. `_intrinsic_*` helpers form a separate no-I/O family with deliberately artificial source lineage and placeholder non-empty component hashes; they prove structure, not physical values. No real EP cache or live DNS/HTTP is used.
+
+### Audited evidence limits
+
+Scalar/FID mutations supplied through `_build_with_frame` are not actual database mutations. `test_field_order_change_changes_profile_hash` builds two differently named/schema-typed packages, so package/catalog identity changes too; it is not an isolated proof that only sequence order changed. `test_profile_models_are_frozen_factual_records` attempts reassignment only on one distinct-value record and checks forbidden field names across all four models; it does not individually attempt mutation of every model. Constructor-supplied malformed records are accepted as test setup and rejected by intrinsic/public validation.
+
+The exact-options regression checks byte equality, while the multi-package/layer regression separately uses object identity (`is`) to prove shared snapshots. The empty-layer regression directly checks the FID digest and count/extrema, not the row digest; separate empty-component corruption regressions cover FID, row and column hashes. The wrong-profile-type regression asserts a controlled error without a physical-read spy. The recursive output walker excludes DataFrame/GeoDataFrame/BaseException and any object exposing `geom_type`; it does not explicitly test `GeometryDtype` in that walker. Geometry-dtype rejection has its separate adversarial reader case.
+
+The cross-layer package-path parity test loops through eleven cases inside one pytest function; it is not eleven parametrized pytest cases. Intrinsic accepted paths need not exist physically. `fields or defaults` in `_intrinsic_layer` means an empty tuple selects its two default fields. Known-warning and unrelated-warning tests are separate observations; the first requires no RuntimeWarning under its known-warning fixture rather than injecting two warnings at once.
 
 ## 2. Every import
 
@@ -78,13 +86,13 @@ Standard-library imports build deterministic ZIP bytes, inspect immutable datacl
 | Helper | Exact signature | Role |
 |---|---|---|
 | `_response` | `def _response(payload: bytes) -> Any` | Wraps ZIP bytes in the minimal HTTP-like response object expected by the source adapter. |
-| `_spatial_frame` | `def _spatial_frame( values: tuple[str, ...] = (" alpha ", "béta"), *, field_names: tuple[str, str] = ("text", "number"), ) -> gpd.GeoDataFrame` | Creates a tiny projected GeoDataFrame solely for writing synthetic source fixtures; production profiling never receives it. |
+| `_spatial_frame` | `def _spatial_frame( values: tuple[str, ...] = (" alpha ", "béta"), *, field_names: tuple[str, str] = ("text", "number"), ) -> gpd.GeoDataFrame` | Creates a tiny projected GeoDataFrame for writing synthetic sources; the geometry-bearing reader-result negative also deliberately supplies it through a mocked attribute reader to require rejection. |
 | `_gpkg_bytes` | `def _gpkg_bytes( tmp_path: Path, frame: pd.DataFrame, *, filename: str = "build.gpkg", layer_name: str = "physical_layer", ) -> bytes` | Writes a temporary GPKG fixture with selected layers and returns exact file bytes. |
 | `_zip_bytes` | `def _zip_bytes(files: Mapping[str, bytes]) -> bytes` | Creates deterministic in-memory EP ZIP bytes from an ordered member mapping. |
 | `_config` | `def _config(tmp_path: Path, archive: bytes) -> InpnProtectedAreasSourceConfig` | Constructs a strict local source config pinned to the synthetic archive size/SHA. |
 | `_source_from_package` | `def _source_from_package( tmp_path: Path, monkeypatch: pytest.MonkeyPatch, package: bytes, *, relative_path: str = "EP/one.gpkg", ) -> tuple[ InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction, InpnProtectedAreasCatalog, ]` | Mocks safe HTTPS once, downloads/extracts the synthetic archive, and builds its physical catalog. |
 | `_source` | `def _source( tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, values: tuple[str, ...] = (" alpha ", "béta"), field_names: tuple[str, str] = ("text", "number"), ) -> tuple[ InpnProtectedAreasSourceConfig, InpnProtectedAreasExtraction, InpnProtectedAreasCatalog, ]` | Convenience builder for a one-package/one-layer verified extraction/config/catalog triple. |
-| `_frame_for` | `def _frame_for( catalog: InpnProtectedAreasCatalog, values: list[object], *, fids: list[object] | None = None, ) -> pd.DataFrame` | Creates the exact pandas attribute frame and named FID index expected for a catalog layer. |
+| `_frame_for` | `def _frame_for( catalog: InpnProtectedAreasCatalog, values: list[object], *, fids: list[object] | None = None, ) -> pd.DataFrame` | Creates a two-column synthetic pandas frame with explicit object/integer dtype and an unnamed integer or caller-supplied object FID index. |
 | `_build_with_frame` | `def _build_with_frame( monkeypatch: pytest.MonkeyPatch, config: InpnProtectedAreasSourceConfig, extraction: InpnProtectedAreasExtraction, catalog: InpnProtectedAreasCatalog, frame: pd.DataFrame, ) -> InpnProtectedAreasAttributeProfile` | Monkeypatches only `attributes.pyogrio.read_dataframe` and invokes the public profile builder. |
 | `_profile_with_hash` | `def _profile_with_hash( profile: InpnProtectedAreasAttributeProfile, ) -> InpnProtectedAreasAttributeProfile` | Recomputes the private canonical complete hash after a deliberate immutable-record replacement for adversarial tests. |
 | `_catalog_with_hash` | `def _catalog_with_hash(catalog: InpnProtectedAreasCatalog) -> InpnProtectedAreasCatalog` | Recomputes the canonical catalog hash after a deliberate package-path replacement so cross-layer parity reaches intrinsic grammar validation. |
@@ -107,7 +115,7 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 
 | Test function | Parametrization/decorators | Protected regression |
 |---|---|---|
-| `test_valid_source_complete_attribute_profile_and_validation` | none | Builds and independently validates a complete two-field profile and asserts source lineage, aggregates, exact domain/frequency evidence, and hashes. |
+| `test_valid_source_complete_attribute_profile_and_validation` | none | Builds and independently validates a complete two-field profile, asserting source lineage, aggregate counts and digest length. Separate scalar/domain and independent encoding tests assert exact values/frequencies/component digests. |
 | `test_wrong_public_input_types_are_controlled` | `pytest.mark.parametrize(<br>    ("argument", "value"),<br>    [("extraction", object()), ("config", object()), ("catalog", object())],<br>)` | Parametrically substitutes wrong extraction, config, and catalog objects and requires the controlled application error. |
 | `test_catalog_from_another_source_or_config_is_rejected` | none | Proves a catalog bound to other verified bytes/config cannot authorize profiling. |
 | `test_schema_one_catalog_is_rejected_before_attribute_read` | none | Downgrades catalog schema and proves rejection occurs before Pyogrio can materialize attributes. |
@@ -125,7 +133,7 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_invalid_fids_are_rejected` | `pytest.mark.parametrize(<br>    ("fids", "message"),<br>    [<br>        ([1, 1], "duplicate"),<br>        ([1, None], "non-integral&#124;null"),<br>        ([1, True], "Boolean"),<br>        ([1, 2.5], "non-integral"),<br>    ],<br>)` | Parametrically covers Boolean, float, null, duplicate, and otherwise non-integral FID index values. |
 | `test_multiindex_is_rejected` | none | Proves a multi-level index cannot masquerade as the required physical FID sequence. |
 | `test_noncontiguous_unsorted_fids_are_canonicalized_without_renumbering` | none | Proves valid sparse/unsorted identifiers are sorted for hashing but retain their exact numeric identities. |
-| `test_empty_layer_has_empty_deterministic_fid_evidence` | none | Proves an empty physical layer yields null extrema and stable empty FID/row hashes. |
+| `test_empty_layer_has_empty_deterministic_fid_evidence` | none | Checks empty physical-layer counts, null extrema, exact empty FID hash and zero field null/non-null counts; row/column hashes are covered separately. |
 | `test_supported_values_have_exact_canonical_domains` | `pytest.mark.parametrize(<br>    ("values", "kind", "canonical"),<br>    [<br>        (["  text  ", ""], "TEXT", ["", "  text  "]),<br>        (["école", "ÉCOLE"], "TEXT", ["ÉCOLE", "école"]),<br>        ([True, np.bool_(False)], "BOOLEAN", ["false", "true"]),<br>        ([1, np.int64(-2)], "INTEGER", ["-2", "1"]),<br>        ([1.5, np.float64(-0.0)], "FLOAT_HEX", ["-0x0.0p+0", "0x1.8000000000000p+0"]),<br>        ([b"\x00\xff", b""], "BINARY_BASE64", ["", "AP8="]),<br>    ],<br>)` | Parametrically proves canonical TEXT, BOOLEAN, INTEGER, FLOAT_HEX, and BINARY_BASE64 values and exact frequencies. |
 | `test_numpy_string_scalar_is_normalized_to_exact_text` | none | Proves NumPy string scalars normalize to portable built-in TEXT without retaining the NumPy object. |
 | `test_source_and_runtime_dtypes_are_recorded_separately` | none | Proves physical catalog dtype and actual DataFrame dtype are retained as distinct factual fields. |
@@ -138,7 +146,7 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_repeated_build_and_portable_cache_roots_are_deterministic` | none | Proves identical bytes under different absolute cache roots produce equal portable evidence and hashes. |
 | `test_cache_hit_state_does_not_affect_profile_hash` | none | Proves cache-hit flags are operational metadata excluded from portable profile identity. |
 | `test_content_mutations_change_component_and_profile_hashes` | `pytest.mark.parametrize("mutation", ["text", "fid", "frequency", "null"])` | Parametrically changes text, FID, frequency, or null content and proves the relevant component plus complete hashes change. |
-| `test_field_order_change_changes_profile_hash` | none | Proves ordered schema position is hash-significant. |
+| `test_field_order_change_changes_profile_hash` | none | Different physical field names/order and package/catalog bytes produce different complete profile hashes; multiple hash inputs change together. |
 | `test_coordinated_profile_and_hash_mutation_fails_independent_rebuild` | none | Recalculates a forged complete profile hash and proves public validation rejects it after physical rebuild. |
 | `test_intrinsic_validator_rejects_malformed_profile` | `pytest.mark.parametrize(<br>    "mutation", ["aggregate", "nested-list", "bad-kind", "bad-hash"]<br>)` | Covers exactly aggregate-count mismatch, a mutable nested list, an unsupported value kind, and a malformed complete-profile hash. Package/layer lineage and ordering are covered by the dedicated regressions below. |
 | `test_intrinsic_validator_rejects_comparison_equal_string_subclass` | none | Proves a comparison-equal str subclass cannot cross exact canonical runtime-type validation. |
@@ -169,11 +177,11 @@ Synthetic GPKGs deliberately cover one and multiple packages/layers, ordered fie
 | `test_public_validator_rejects_wrong_profile_type_before_physical_rebuild` | none | Proves exact profile type is checked before physical work. |
 | `test_temporary_package_path_swap_cannot_inject_other_attributes` | none | Swaps live package path content during inspection and proves immutable already-verified bytes prevent attribute injection. |
 | `test_persistent_package_mutation_fails_final_source_revalidation` | none | Mutates package storage after the read and proves the final extraction postcondition rejects the result. |
-| `test_profile_contains_no_frame_or_geometry_object` | none | Recursively audits returned evidence and proves it retains no DataFrame, GeoDataFrame, GeometryDtype, or geometry instance. |
+| `test_profile_contains_no_frame_or_geometry_object` | none | Recursively rejects DataFrame/GeoDataFrame/BaseException and objects exposing geom_type in the returned dataclass/tuple tree. |
 | `test_public_api_exports_only_profile_boundary` | none | Asserts the package and module expose only the approved records, controlled error, builder, and validator rather than internal byte/frame helpers. |
-| `test_profile_models_are_frozen_factual_records` | none | Proves all four public profile records are frozen dataclasses and reject field reassignment. |
+| `test_profile_models_are_frozen_factual_records` | none | One distinct-value count assignment raises FrozenInstanceError; the field-name audit spans all four public model classes. |
 
-The decorators above are the exact source declarations, including every parameter value and generated case. The file collects 130 cases; no existing INPN test is replaced.
+The table records explicit decorators where reproduced and clearly labelled summaries elsewhere; the source snapshot below contains the exact declarations. The recorded 130-case total is prior validation evidence, not a test run performed by this documentation audit. No existing test is replaced.
 
 ## 7. Boundary and change impact
 

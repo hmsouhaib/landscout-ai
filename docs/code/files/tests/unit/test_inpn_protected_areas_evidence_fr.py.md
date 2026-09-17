@@ -57,21 +57,21 @@ from pathlib import Path
 
 from typing import Any, ClassVar
 
-import geopandas as gpd
+import geopandas as gpd  # type: ignore[import-untyped]
 
 import numpy as np
 
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 
-import pyogrio
+import pyogrio  # type: ignore[import-untyped]
 
 import pytest
 
-import shapely
+import shapely  # type: ignore[import-untyped]
 
 import yaml
 
-from shapely.geometry import Point
+from shapely.geometry import Point  # type: ignore[import-untyped]
 
 from landscout import sources
 
@@ -122,7 +122,7 @@ from landscout.sources.inpn_protected_areas_geometry_fr import (
 
 ## 3. Constants, classes, and fixture fields
 
-`CONFIG_PATH` identifies the unchanged checked-in YAML; `_source` overrides only the isolated fixture cache and actual synthetic archive size/SHA. `EXPECTED_EXPORTS` independently lists the five approved new public names. `ALIGNMENT_FIELDS` fixes the exact ten-field order used by independent expected payloads and dataclass contract assertions. `SOURCE_MUTATIONS` is the exact thirteen-row source/archive/catalog adversarial corpus, each applied separately to both profile owners. These mutable test-only setup collections do not become returned trust data.
+`CONFIG_PATH` identifies the unchanged checked-in YAML; `_source` overrides only the isolated fixture cache and actual synthetic archive size/SHA. `EXPECTED_EXPORTS` is a test-only mutable set of the five approved public names. `ALIGNMENT_FIELDS` is an immutable tuple fixing the ten-field order used by independent expected payloads and dataclass contract assertions. `SOURCE_MUTATIONS` is an immutable thirteen-row tuple of source/archive/catalog adversaries, each applied separately to both profile owners. None becomes returned trust data.
 
 ```python
 CONFIG_PATH = Path("configs/sources/inpn_protected_areas_fr.yaml")
@@ -444,7 +444,7 @@ def test_builder_requires_exact_public_input_types(
 ) -> None:
 ```
 
-The five builder arguments are each replaced by an unrelated object and a real subclass (ten cases). Every call must immediately return a controlled evidence error rather than accept structural duck typing.
+The five builder arguments are each replaced by an unrelated object and a real subclass (ten cases). Every call must raise a controlled evidence error rather than accept structural duck typing. There is no read-count sentinel in this test; rejection-before-physical-validation for a forged same-class config is isolated separately.
 
 Expected exception/warning/fatal-check expressions:
 
