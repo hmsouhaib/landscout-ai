@@ -1,0 +1,333 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R3
+
+Close the interrupted planning-feature documentation handoff against unchanged code and tests
+
+Repository: C:\souhaib\landscout-ai
+Remote: hmsouhaib/landscout-ai
+Working branch: recovery/docs-continuity-1-partial
+Required starting recovery HEAD: fd4d87b973be9e6842a6b1934077b61ad6c70f93
+Required unchanged main: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. One objective — return to the actual documentation audit
+
+R1 preserved the partial work. R2 repaired the local checker. R2.1 stabilized its subprocess tests. The reviewer now accepts R2.1 in its bounded tests/tooling scope. Do not create another checker or restart those repairs.
+
+Resume the first preserved semantic-documentation handoff: finish the explanations of the existing planning-feature module and its tests. Compare the existing edited companions with the real code; do not regenerate them blindly.
+
+The review unit is exactly FOUR existing inventory rows:
+
+src/landscout/stages/enrich_planning_features.py
+
+tests/unit/test_enrich_planning_features.py
+
+docs/code/files/src/landscout/stages/enrich_planning_features.py.md
+
+docs/code/files/tests/unit/test_enrich_planning_features.py.md
+
+Only the TWO companions may change as implementation documentation. The two Python files must stay byte-identical. Supporting audit/provenance/state updates are narrowly authorized below.
+
+Do not attempt the other 174 original open file rows in this ticket. The original pending set has 178 rows including these four; verify that identity before reporting arithmetic. Finding another relevant dependency is permission to READ it, not to expand the write scope.
+
+1. Scoped independent review receipt supplied with this ticket
+
+This section is a supplied reviewer statement, not a fresh Codex execution and not an invented full chat transcript.
+
+Reviewer: ChatGPT, read-only independent reviewer/ticket author.
+Reviewed publication: fd4d87b973be9e6842a6b1934077b61ad6c70f93.
+Parent: 64787a28bd5801dcc88f8e2107cd230fe263d476.
+Verdict: APPROVED for DOCS.CONTINUITY.1.R2.1 subprocess-test stabilization.
+
+Scope checked: actual six-path commit scope; complete published test file and unchanged auditor; changed subprocess-test companion sections; R2.1 receipt and current-state boundaries. No global prose or application correctness approval is granted.
+
+Independent executable evidence:
+
+Container copies were reconstructed from GitHub connector text and checked against published Git blob IDs and raw SHA256 before execution. Neither file was patched for these runs.
+
+Auditor blob: fe552a4c4eeadb0da10acaa00b2329693ff34a59.
+
+Auditor SHA256: 5b5aae765c6c32225496d7830e17e83a9bfac89e007949b032b75b13eda3029f.
+
+Test blob: 65b4bf358ce474f375c60058e1422bcb91776d94.
+
+Test SHA256: 0c6ce4167f33c56ad09c3ea7cbe8ebeb039cda7ed013c38022a29d5cc98b0665.
+
+Environment: Linux, Python 3.13.5, Git 2.47.3, pytest 9.0.2.
+
+Exact targeted expression: git_nonzero_exit or git_timeout_after_ready or git_cancellation or subprocess_fixture.
+
+Targeted execution: 8 passed, 128 deselected in 2.36s, process exit 0.
+
+Whole auditor test file: 136 passed in 6.79s, process exit 0; no warnings/skips/xfails reported.
+
+The tests use real child processes, actual output pipes, finite readiness guards and termination assertions before fixture fallback cleanup.
+
+No full LandScout application suite, real EP cache, 280-file Windows candidate or fresh-context exercise was rerun by this review.
+
+R2's principal auditor corrections remain approved only within their previously recorded scope. R2.1 does not make the global documentation complete. Preserve all historical receipts and their earlier unsuccessful runs.
+
+Archive this supplied ticket exactly. The short source-bound receipt above may be referenced by CURRENT_STATE and the R3 report; do not claim an unavailable separate signed review or original full transcript.
+
+2. Readiness and preservation
+
+Read AGENTS.md and WORKING_RULES first. Inspect local status before switching branches, fetching or writing.
+
+Use the verified repository-owning context. If the same exact ownership error occurs, the previously authorized command-scoped -c safe.directory=C:/souhaib/landscout-ai exception is permitted for this directory only. No persistent trust, wildcard, ACL, Windows security, dependency, hook or TLS changes.
+
+Inspect:
+
+git status --short --untracked-files=all
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git rev-parse origin/main
+git ls-files -u
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+
+Require clean recovery branch, local/actual remote recovery at the required SHA and actual remote main unchanged. A failed fetch is not a successful fetch; report observed refs separately.
+
+If this same R3 session was interrupted, preserve and inspect its partial changes and matching audit notes before continuing. Do not reset/restore/stash/clean/rebase/amend or discard work to satisfy the original clean-tree condition. Unrelated changes or contradictory refs require a preserved-state report, not automatic reconciliation.
+
+3. Resume the existing evidence, not a new inventory
+
+Read:
+
+docs/project/CURRENT_STATE.md
+
+docs/project/BACKLOG_AND_GAPS.md
+
+docs/code/audit/DOCUMENTATION_AUDIT.md
+
+docs/code/audit/RECOVERY_STATUS_2026-09-17.md
+
+docs/code/audit/R2_DIAGNOSTICS.md and R2_1_DIAGNOSTICS.md
+
+docs/code/audit/recovery_file_matrix_2026-09-17.json — targeted four records and aggregate basis
+
+docs/code/audit/reviews/inpn_roads_extension.json — current owner of these four records
+
+relevant previous planning fragment evidence, without claiming transferred ownership implies review completion
+
+The four transferred rows currently remain NOT_READ. A draft companion or an earlier unrecorded statement of reading does not constitute closure.
+
+Preserved ORIGINAL inventory: 245 files / 4,769 symbols; reported 67 files / 1,388 symbols closed. The current Git candidate has added continuity/tooling documents; do not confuse these denominators. Global coverage.json remains the original unmerged inventory. Global audit stays PARTIAL.
+
+4. Complete reading of this bounded unit
+
+Read the ENTIRE unchanged source and ENTIRE unchanged test file. Read all unique explanatory prose, signatures, field tables and test descriptions in both existing companions, comparing exact repeated snapshots with source bytes already read.
+
+Use the existing checker/AST inventory to enumerate omissions, not to manufacture algorithm descriptions. Do not replace a semantic explanation with an AST name or a source dump.
+
+Read the relevant definitions and caller portions in the existing dependencies as needed, including the imports actually present in the module:
+
+common planning-feature contract/schema and overlay tolerance;
+
+frame-schema signatures;
+
+GPU source models and spatial-source revalidation;
+
+public stage re-exports and downstream consumers discovered through actual references.
+
+Do not write or re-audit entire dependency domains just because they are imported. Record exactly which dependency symbols/caller ranges were checked.
+
+5. Source companion — concrete explanation of every symbol
+
+For every public/private function, class/field and meaningful constant, verify:
+
+qualified owner, signature, defaults and actual return type;
+
+purpose in factual GPU prescription/information processing;
+
+ordered algorithm and important branches, including empty inputs;
+
+input/source identity, accepted geometry kinds, actual dimensional handling;
+
+CRS/storage/calculation distinctions, units and tolerance ownership;
+
+schema, dtype, nullable field and identity rules;
+
+actual source revalidation versus purely intrinsic checks;
+
+mutation/copy/aliasing behavior, including mutable DataFrames inside envelopes;
+
+exception class and translation point;
+
+actual filesystem/network effects, not invented effects from names;
+
+outputs, canonical serialization/hash contents where actually computed;
+
+caller/callee ownership and which tests really reach each contract;
+
+limitations and known discrepancies.
+
+The source's current public surface is the verification starting point, not a command to redesign it:
+ParcelPlanningFeaturesResult, PlanningFeatureInputValidation, PlanningFeaturesError, intersect_parcels_with_gpu_planning_features, validate_normalized_planning_feature_inputs.
+
+Trace how PRESCRIPTION/INFORMATION and SURFACE/LINE/POINT cases differ; how source IDs versus archive-scoped OGR FIDs are handled; how raw optional text enters results; and which relation measurements are actually emitted. Derive exact algorithms and units from code. Do not invent a route, tolerance, authorization or public service API.
+
+Show at least one compact end-to-end call/data-flow example using ACTUAL signatures and returned fields, with synthetic values clearly labelled. A documentation example must not falsely claim that a source builder closes every validator contract when A-003 shows otherwise.
+
+6. Test companion — explain assertions, not attractive test names
+
+Inventory every fixture, helper, parametrized case group and test definition from the real test file. For each:
+
+explain constructed data, geometry/CRS/schema and source-envelope provenance;
+
+identify real versus monkeypatched physical reading/revalidation;
+
+state the exact mutation or attack point;
+
+identify the branch reached and assertions actually executed;
+
+state any earlier failure that prevents a purported downstream behavior being exercised;
+
+distinguish an intrinsic test from physical end-to-end evidence;
+
+distinguish test definitions, collected cases, deselections and skips.
+
+Do not fix existing tests, change their fixture dtypes or add new application tests in R3. If a named behavior is not proved, correct the companion's claim and retain a separate test-evidence finding. Do not treat lack of a test as proof of an application defect.
+
+Retain source snapshots as aids, but explain algorithms independently. Avoid boilerplate such as “validates input” for every helper.
+
+7. Known application discrepancy A-003 must remain visible
+
+Existing reported reproduction:
+physical optional LIBELLE = " Label "
+→ public builder preserves label_raw = " Label "
+→ the public result validator rejects it through a strict catalogue-text rule.
+
+Read the archived reproduction and the actual affected code paths. Clearly distinguish:
+
+intended raw-text preservation;
+
+current constructor behavior;
+
+current validator restriction;
+
+the documented disagreement and its bounded synthetic evidence.
+
+Do NOT strip the label, redefine the intended contract to match the defect, change production or claim official-data prevalence. No real GPU/EP data operation is needed.
+
+A small repeat of the EXISTING synthetic reproduction is permitted only when necessary to resolve a documentation ambiguity: use fresh scratch files outside Git, existing approved fixture helpers, zero network and no production/test edits. Record its limitations; do not present local envelopes as complete official acquisition.
+
+Keep A-001/A-002/A-003 open until separate authorized corrective tickets and independent reviews. Document any new finding with exact symbols and proof in the bounded R3 report, not an unrequested implementation.
+
+8. Coverage and status updates — exact four-row scope
+
+Update reviews/inpn_roads_extension.json only for these four records and justified aggregate/owner notes. Preserve all unrelated rows and previous evidence.
+
+For the source/test record, bind each symbol to exact current Git-content SHA, signature/range, companion anchor, behavioral review notes and real test references. Missing direct regression remains an explicit limitation.
+
+A file may be documentation-CHECKED/CORRECTED even while its application discrepancy is documented OPEN. Documentation fidelity is not application correctness or independent approval. Do not mislabel the application defect as fixed to close the prose audit.
+
+Only promote a record after this ticket actually completes its semantic explanation review. If interrupted, leave unfinished records READ/NOT_READ with the exact next symbol and preserve corrections.
+
+Keep the original 2026-09-17 recovery reports/matrix as historical snapshots. In one concise new R3 receipt, calculate the new original-scope closure totals by applying this four-row delta to the existing reconciliation, avoiding double counting. Do not regenerate the 50k-line global coverage.json or all fragments. Reference the old matrix plus the updated owner fragment and explicit four-row delta.
+
+If all four previously open records close, explain the resulting arithmetic; do not force a target count or increase totals for newly created receipts/ticket text. Mark R3 independent review pending until a real verdict is supplied.
+
+9. Documentation format and navigation
+
+Use the established exact SHA256_OF_EXACT_GIT_CONTENT_BYTES basis. Do not rewrite source/config/test line endings to make a companion match. Validate source snapshot bytes, symbol anchors, relative links and fences for the two companions.
+
+Keep explicit repository-relative navigation. Preserve raw strings and units accurately. Make code blocks readable and check tables for delimiter/fence problems.
+
+If a usable LOCAL renderer is already available, inspect representative changed sections and record what was actually rendered. Do not install dependencies, upload private docs to an external renderer or label static checks a visual pass. Missing visual rendering does not authorize a global rendering claim; keep that acceptance item pending.
+
+10. Exact write scope
+
+Authorized:
+
+the two planning companions;
+
+targeted four-record updates in docs/code/audit/reviews/inpn_roads_extension.json;
+
+one concise docs/code/audit/R3_PLANNING_FEATURES.md receipt;
+
+minimal docs/code/audit/DOCUMENTATION_AUDIT.md and docs/project/CURRENT_STATE.md updates;
+
+exact archived copy of this ticket under docs/project/tickets/DOCS.CONTINUITY.1.R3.txt;
+
+a narrowly scoped addition to BACKLOG_AND_GAPS only if needed for a genuinely new finding (otherwise leave it unchanged).
+
+No other executable or broad documentation edits. Leave the auditor, auditor tests/companions, old fragments outside the target rows, historical archives, global coverage, configurations and semantic-reference pair unchanged. No CI/PR, full DEV_LOG finalization or new feature.
+
+Current-state notes should record the supplied R2.1 approval in its exact scope and R3 implementation/review separately. Last approved FUNCTIONAL boundary remains 7F.1B.4; 7F.1C.1 remains research with exhaustive semantic review pending. Cold-start acceptance and the five previous test-evidence limitations stay pending.
+
+11. Bounded validation
+
+Verify the 106 original protected file identities from the existing manifest against base/main, current index and recorded checkout basis. All pre-existing Python/test/config/dependency files must be unchanged.
+
+Run the UNCHANGED relevant test file once with a fresh short unique basetemp under %LOCALAPPDATA%\LandScout\pytest-runs:
+
+uv run pytest -q tests/unit/test_enrich_planning_features.py --basetemp <new-short-path>
+
+Inspect fixture network isolation first. Require native exit 0 including cleanup; report exact collected/passed cases and every warning/skip/xfail. Do not invent a expected count. If it fails, preserve documentation, report the failure and do not change assertions or publish completion.
+
+Run/check:
+
+exact source/test Git-byte fingerprints and companion snapshots;
+
+per-symbol scope/anchors/signatures and targeted fragment JSON structure;
+
+changed Markdown links/fences;
+
+unchanged auditor SHA256 5b5aae765c6c32225496d7830e17e83a9bfac89e007949b032b75b13eda3029f;
+
+new-delta git diff --check and git diff --cached --check.
+
+After explicit staging, run the existing full INDEX checker once with progress. Exit 1 with honest partial/stale findings is expected; exit 2 or interruption is not successful integration. Record exact candidate manifest and distinguish later receipt additions. Do not hide old findings, change checker semantics, create blanket exceptions or require an unchanged finding count.
+
+No full application suite, EP/GPU source download or expensive real-source rebuild is required for this documentation-only batch. Full application validation remains required at final global-audit closure. Do not call arithmetic test totals fresh results.
+
+Keep the 13 inherited cumulative whitespace observations separately identified; do not rewrite original ticket/cold-start archives. New R3 delta must be clean.
+
+12. Publication, interruption and stop
+
+Stage explicit reviewed paths only. No git add ., git add -A, force staging or commit-all. No cache, real GPKG/ZIP, temporary probe or report dump in Git.
+
+When this bounded batch is complete and its required checks succeed:
+
+git commit -m "docs: complete planning feature companion review"
+git push origin recovery/docs-continuity-1-partial
+
+Verify clean worktree, local/remote recovery equality and unchanged actual main. Do not amend/squash/merge/push main/delete branches/create PRs.
+
+If a session interrupts before bounded closure, preserve work and precise per-symbol progress. Do not restart the entire audit or falsely label unfinished work complete. Report partial state for appropriate recovery authorization when needed.
+
+After the bounded publication, STOP for independent review. Do not continue the next audit batch or an application correction yourself.
+
+13. Required report
+
+Return DOCS.CONTINUITY.1.R3 completed — global audit PARTIAL; review pending only when this bounded batch is actually complete. Otherwise PARTIAL/BLOCKED with the exact next unfinished symbol.
+
+Report:
+
+starting/final recovery SHA, actual main SHA, branch and clean state;
+
+exact changed files and protected-byte comparisons;
+
+four before/after row statuses and per-symbol counts, without automatic promotions;
+
+concrete prose contradictions corrected and their source/test evidence;
+
+exact public/dependency/API/algorithm contracts checked;
+
+true test evidence versus synthetic/mocked/early-rejection limitations;
+
+A-003 explanation and remaining application/test findings;
+
+companion SHA/snapshot/anchor/navigation outcomes and real rendering scope;
+
+actual focused test count, warnings and exit;
+
+actual index-check result, manifest and later-receipt boundary;
+
+new delta versus inherited whitespace findings;
+
+reconciled original-scope closure totals and unchanged unrelated rows;
+
+short next unread item in the preserved queue, with NO implementation of it;
+
+retained global pending semantic/cold-start/visual/final-application review states.
+
+The purpose is a genuinely understood and source-faithful planning reference, not another automatic inventory or a false global completion.

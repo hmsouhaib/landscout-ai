@@ -3,43 +3,1622 @@
 ## File identity
 
 - Repository path: `src/landscout/stages/enrich_planning_features.py`
-- File type: Python source
-- Layer: spatial proxy enrichment stage
-- Domain: planning
-- Responsibility: Normalizes GPU planning feature catalogs and constructs validated factual parcel-feature relations.
 - Source SHA256: `01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148`
+- Source SHA256 basis: `git-content`
+- Binding convention: `SHA256_OF_EXACT_GIT_CONTENT_BYTES`; the complete UTF-8 snapshot below matches those bytes, not an EOL-normalized surrogate.
+- R3 review: 84 existing class/field/function records checked against unchanged source; documentation fidelity only, independent review pending. A-003 remains OPEN.
+- Navigation: [source](../../../../../../src/landscout/stages/enrich_planning_features.py), [test companion](../../../tests/unit/test_enrich_planning_features.py.md), [technical index](../../../../README.md), [R3 receipt](../../../../audit/R3_PLANNING_FEATURES.md).
 
-## 1. Purpose
+## Purpose and two distinct public paths
 
-Normalizes GPU planning feature catalogs and constructs validated factual parcel-feature relations.
+This is factual GPU prescription/information normalization and full-parcel overlay.
+It is not zoning normalization, CNIG meaning resolution, a BESS policy, a score,
+a legal authorization or an acquisition API. Public names are exactly
+`ParcelPlanningFeaturesResult`, `PlanningFeatureInputValidation`,
+`PlanningFeaturesError`, `intersect_parcels_with_gpu_planning_features` and
+`validate_normalized_planning_feature_inputs`; [stages](__init__.py.md) reexports all five.
 
-## 2. Position in LandScout architecture
+The builder validates parcels, revalidates physical related GPU sources, normalizes
+three catalogs, projects a private parcel copy, intersects and summarizes, then
+checks its result with `source_inputs_already_rebuilt=True`. That private flag
+skips the independent catalog/relation validator; it does not skip physical source
+revalidation. The public normalized-input validator separately rebuilds physical
+catalogs, checks supplied intrinsic schemas/identities, compares rebuilt catalogs,
+reconstructs complete relations and, when present, all parcel output summaries.
+It returns scalar integrity evidence, not repaired frames.
 
-This file belongs to the **spatial proxy enrichment stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
+The five-frame result is a frozen dataclass envelope, not deeply immutable data.
+Every field is required and direct dataclass construction performs no validation.
+Caller-held DataFrames can change afterward; consumers must revalidate them.
+The source configuration's immutable Pydantic models do not make these frames immutable.
 
-## 3. Imports and dependencies
+## Ownership and dependency boundary actually checked
 
-### Python 3.12 standard library
+| Owner | Responsibility used here |
+|---|---|
+| [common planning-feature schema](../common/planning_feature_schema.py.md) | Exact ordered columns/dtypes, data-dependent all-null optional types and canonical index/geometry/CRS checks. Imported constants are owned there, not new policy here. |
+| [common planning-feature contract](../common/planning_feature_contract.py.md) | Intrinsic relation kind, null, non-negative/positive metric, percentage and point-member coherence. Cannot prove source identity or missing geometric relations. |
+| [common planning overlay](../common/planning_overlay.py.md) | `technical_overlay_tolerance`: `max(1e-6, reference * 1e-12)`. Numerical allowance, not a buffer/business threshold. |
+| [common frame integrity](../common/frame_integrity.py.md) | Ordered frame columns/dtypes and index class/names/dtypes; GeoDataFrame active-geometry and CRS metadata in schema signatures. |
+| [GPU source](../sources/gpu_fr.py.md) | Document/config/extraction and physical source revalidation; GpuPlanningDocument, GpuInspectedLayer, GpuValidatedSpatialLayerSource and GpuSpatialInspectionError are dependency-owned. |
+| [CNIG resolver](resolve_planning_feature_codes.py.md) | Its `_build_result` calls the public validator first and copies both source/expected-relation digests into its own result; `resolve_planning_feature_codes` is the downstream public caller. It is not implemented or audited in full here. |
 
-- `from __future__ import annotations`
-- `import json`
-- `from dataclasses import dataclass, replace`
-- `from datetime import date, datetime`
-- `from hashlib import sha256`
-- `from math import isfinite`
-- `from numbers import Integral, Real`
-- `from typing import Literal, NamedTuple`
+Relevant actual definitions/ranges read are recorded in the R3 receipt. The
+resolver test helper `_integration_inputs` also calls this builder and passes
+its returned catalog/relation fields onward; its suite was not executed by R3.
 
-### Third-party packages
+GeoPandas owns GeoDataFrame, reprojection and spatial join; pandas/NumPy own
+tabular copies, dtype construction, positional arrays and reductions. PyProj
+parses/compares CRS. Shapely owns force_2d, coordinate dimension, parts,
+contains/covers, intersection/union and planar area/length. These imports are
+local calculations, not network clients. Standard-library dataclasses/NamedTuple
+supply envelopes, Integral/Real/isfinite supply strict numeric guards, date types
+supply ISO serialization and json/hashlib supply deterministic integrity hashes.
 
-- `import geopandas as gpd`
-- `import numpy as np`
-- `import pandas as pd`
-- `from pyproj import CRS`
-- `from shapely import (  # type: ignore[import-untyped]
+### What physical revalidation means here
+
+`_normalized_catalogs` makes one batch call for selected related roles in
+LAYER_SPECS order. GPU reconstructs/revalidates the source config and hash,
+checks document identity, rehashes extraction files against schema-2 manifest
+and supplied inventory, rediscovers physical layers and verifies configured
+logical-role completeness. Even absent related layers retain those document checks.
+
+For each selected related dataset, GPU verifies extraction containment and
+link/junction constraints, GPKG layer identity/no journal sidecars or exact
+Shapefile family/core members. It verifies sizes/hashes, reads the actual path
+with Pyogrio `fid_as_index=True`, requires unique non-negative Integral-not-bool
+FIDs, compares ordered attributes/dtypes/attrs/WKB/CRS and inspected summary,
+then verifies physical family/sizes/hashes again. Source data returned by this
+fresh read replace the loaded frame for normalization.
+
+This is path-based before/read/after verification, not an immutable byte snapshot.
+The archive ZIP is not freshly downloaded or opened in these stage paths; its SHA
+is retained lineage. Zoning's reference and extraction files are checked, but
+zoning is not among the related layers selected for geometric rereading here.
+The module writes no files and performs no HTTP. Public wrappers do delegate
+filesystem reads and hashing; “no direct open()” is not “no filesystem effect”.
+
+## Meaningful constants and ordered contracts
+
+`CALCULATION_CRS = "EPSG:2154"` is canonical catalog storage and planar measurement
+CRS. Original parcel CRS/WKB remain unchanged. Input source CRS is retained as
+`source_crs` text from the inspected summary, distinct from normalized geometry CRS.
+`PARCEL_REQUIRED_COLUMNS` requires parcel_id and geometry. `SURFACE_TYPES`,
+`LINE_TYPES`, `POINT_TYPES` and `_CATALOG_GEOMETRY_TYPES` define these exact families:
+
+| LAYER_SPECS order | Family / kind | CNIG ID / type / subtype | Shapely types |
+|---|---|---|---|
+| prescription_surface | PRESCRIPTION / SURFACE | LIB_IDPSC / TYPEPSC / STYPEPSC | Polygon, MultiPolygon |
+| prescription_line | PRESCRIPTION / LINE | LIB_IDPSC / TYPEPSC / STYPEPSC | LineString, MultiLineString |
+| prescription_point | PRESCRIPTION / POINT | LIB_IDPSC / TYPEPSC / STYPEPSC | Point, MultiPoint |
+| information_surface | INFORMATION / SURFACE | LIB_IDINFO / TYPEINF / STYPEINF | Polygon, MultiPolygon |
+| information_line | INFORMATION / LINE | LIB_IDINFO / TYPEINF / STYPEINF | LineString, MultiLineString |
+| information_point | INFORMATION / POINT | LIB_IDINFO / TYPEINF / STYPEINF | Point, MultiPoint |
+
+`FeatureFamily`, `GeometryKind` and `SourceIdentityKind` are Literal annotations,
+not standalone runtime validators. `SOURCE_IDENTITY_KINDS` is the two-value
+CNIG_ATTRIBUTE/ARCHIVE_SCOPED_OGR_FID validation set. Only an absent
+prescription-surface identity column permits FID fallback, never a present bad ID.
+Planning IDs are `GPU:{document_id}:{logical_layer}:{source_feature_id}`.
+The source ID can repeat in different logical roles, not within one role.
+
+`COMMON_SOURCE_FIELDS` maps LIBELLE→label_raw, TXT→text_raw,
+NOMFIC→regulation_filename_raw, URLFIC→regulation_url_raw,
+IDURBA→source_document_reference_raw and DATVALID→source_validity_date_raw.
+`OPTIONAL_SOURCE_FIELDS` declares the five names other than IDURBA but has no
+runtime consumer in this module. Required raw codes and IDURBA must be non-null
+non-empty unpadded strings; codes are not interpreted. IDURBA must equal archive
+name after removing at most one terminal case-insensitive .zip.
+
+`_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` contains the 19 identity/code/document/
+source fields listed in the exact declaration below. The six
+`_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS` are label_raw, text_raw,
+regulation_filename_raw, regulation_url_raw, source_validity_date_raw and
+source_standard_model. Optional values may be null; the supplied-catalog
+validator nonetheless requires every non-null value to be unpadded non-empty
+text. This latter restriction conflicts with raw preservation (A-003).
+
+`LAYER_SPECS`, `COMMON_SOURCE_FIELDS` and `_CATALOG_GEOMETRY_TYPES` are ordinary
+module dictionaries, not loaded trust-bearing immutable policy objects.
+`PARCEL_OUTPUT_COLUMNS` and `PARCEL_COUNT_COLUMNS` are frozensets of membership
+constraints; their set order is not a semantic output sort. The snapshot preserves
+all exact declarations, including `__all__`.
+
+## Frame schemas, units and nulls
+
+A normalized catalog has 25 common columns, then geometry and one kind metric:
+
+```text
+planning_feature_id, source_feature_id, source_identity_kind, source_identity_field,
+logical_layer, feature_family, geometry_kind, type_code_raw, subtype_code_raw,
+label_raw, text_raw, regulation_filename_raw, regulation_url_raw,
+source_document_reference_raw, source_validity_date_raw, source_provider,
+source_portal, source_commune_code, source_document_id, source_document_type,
+source_archive_name, source_archive_sha256, source_layer, source_standard_model,
+source_crs, geometry, [feature_area_m2 | feature_length_m | point_member_count]
+```
+
+Geometry is valid, non-null, non-empty, kind-conforming XY EPSG:2154.
+Area/length are full-feature positive finite float64 m2/m, not clipped metrics.
+Point member count is positive int64. Other columns are str except
+text_raw/regulation_filename_raw/regulation_url_raw: in a nonempty catalog each
+is object iff entirely null, otherwise str. Empty base SURFACE uses str/str/object
+for those three; LINE/POINT use object/object/object. Label/date/standard model
+stay str even if null. Index is unnamed exact zero-based RangeIndex, int64.
+Original source Z is dropped by force_2d; supplied canonical catalogs must have
+coordinate dimension exactly 2. Original parcels are not subject to that same
+2D guard: their stored geometry is preserved while calculations force XY.
+No repair, snap, buffer, simplification or null-geometry exclusion is performed.
+
+Relations are a plain DataFrame, with exact order:
+
+```text
+parcel_id, planning_feature_id, source_feature_id, source_identity_kind,
+source_identity_field, logical_layer, feature_family, geometry_kind,
+type_code_raw, subtype_code_raw, label_raw, text_raw, relation_type,
+parcel_metric_area_m2, feature_area_m2, source_line_length_m,
+intersection_area_m2, intersection_length_m, parcel_share_pct, feature_share_pct,
+point_member_count, point_members_inside_count, point_members_boundary_count,
+source_document_id, source_archive_sha256, source_layer,
+source_validity_date_raw, regulation_filename_raw
+```
+
+The seven area/length/percentage fields are float64; three point counts are
+nullable Int64; other fields are str. Whole parcel_metric_area_m2 is present
+for all kinds. Irrelevant float/count metrics are NaN/NA, not zero. No relation
+geometry, regulation URL, provider or full source context is added beyond this
+schema. `_RELATION_CATALOG_FIELDS` names the 15 copied source facts checked
+null-safely; full source area/length/member metric is checked separately.
+Catalog line feature_length_m maps to relation source_line_length_m.
+
+| Kind | Pair rule and emitted measurements |
+|---|---|
+| SURFACE | Inner intersects join on full polygons, then exact intersection. Area >0 means AREA_OVERLAP, otherwise TOUCH_ONLY. Shares are 100 × clipped area / whole parcel or full feature area. Private clipped geometries feed unions. |
+| LINE | Same intersects join; clipped length >0 means LENGTH_OVERLAP, otherwise TOUCH_ONLY. Full source length is separate; no line union and no area share. |
+| POINT | Each Point/MultiPoint part is tested against parcel: contains = inside, covers minus contains = boundary. Any inside means INSIDE, otherwise BOUNDARY_TOUCH. Full member count includes outside members; only intersecting features produce rows. |
+
+Relations sort stably by original parcel position then planning_feature_id, not
+parcel_id lexical order. Catalogs include source features without a relation.
+Empty related kinds return canonical empty catalogs; no matches yield empty
+relations and zero numeric parcel summaries, with document/SHA still present.
+The helpers handle empty pair tables; this file's tests do not establish every
+public zero-parcel case.
+
+### The 21 appended parcel columns
+
+Original parcel columns, index, order, CRS and WKB remain. Counts are int64;
+floating summaries float64; document/SHA lineage are strings.
+
+| Columns | Exact meaning |
+|---|---|
+| planning_surface_relation_count; planning_surface_area_overlap_count; planning_surface_touch_count | All surface pairs, positive-area pairs, zero-area touching pairs. |
+| prescription_surface_relation_count; information_surface_relation_count | Surface relation rows per source family, including touches. |
+| planning_line_relation_count; planning_line_length_overlap_count; planning_line_touch_count | All line pairs, positive clipped-length pairs, zero-length contacts. |
+| planning_point_relation_count | Point feature/parcel pairs, not member count. |
+| planning_point_inside_count; planning_point_boundary_count | Sum of inside/boundary source point members. |
+| planning_surface_intersection_area_sum_m2 | Sum of positive clipped areas; overlapping features can double count. |
+| planning_surface_covered_union_area_m2; planning_surface_covered_pct | Union of all positive clipped surfaces and 100 × union / full parcel area. |
+| prescription_surface_covered_union_area_m2; prescription_surface_covered_pct | Separate prescription union and share. |
+| information_surface_covered_union_area_m2; information_surface_covered_pct | Separate information union and share. Family unions may overlap each other. |
+| planning_line_intersection_length_sum_m | Sum of clipped line lengths, not union length. |
+| planning_feature_document_id; planning_feature_archive_sha256 | Document/declared archive lineage copied even when there are no related features. |
+
+Union overshoot beyond tolerance raises; tiny overshoot clamps to parcel area.
+Exact union==area yields exactly 100%. `_require_close` uses tolerance of the
+larger absolute actual/expected value; summary percentage checks additionally
+scale area tolerance by 100/parcel_area. Units follow the metric under comparison.
+
+## Integrity serialization and error limits
+
+Source evidence domain `landscout.planning_features.verified_gpu_sources.v1`
+includes archive SHA and layers sorted by logical name. Each layer includes driver,
+physical layer, relative dataset path, feature count, source CRS, ordered OGR FIDs
+and files sorted by relative path with type/size/SHA/category. It excludes absolute
+root paths; no Python repr or address enters it.
+
+Expected relation domain `landscout.planning_features.expected_relations.v2`
+includes deterministic frame schema signature, canonical ordered index values
+and ordered row cells. Dates become ISO, numpy scalars recurse through item(),
+missing scalars become JSON null, bool/int/finite real/string retain scalar
+meaning; unsupported leaves fail. Canonical JSON is sorted-key compact UTF-8
+with ensure_ascii=False and allow_nan=False. Returned digest hashes the expected
+rebuild, not any near-equal supplied floats. No schema/hash change occurs in R3.
+
+Specific schema/intrinsic TypeError/ValueError and physical GPU errors are
+translated to PlanningFeaturesError at their owning helper boundaries. GIS
+operations have local chained error guards. The public normalized-input wrapper
+also catches unexpected Exception; the public builder does not have that
+catch-all. A direct private helper call or bare result construction is not the
+public trust contract.
+
+## A-003: raw preservation and validator disagreement (OPEN)
+
+Archived [synthetic physical reproduction](../../../../audit/RECOVERY_STATUS_2026-09-17.md#application-findings):
+LIBELLE = `" Label "` in a real local synthetic GPKG is copied by
+_optional_values/_normalize_layer to label_raw unchanged. The builder's optimized
+_validate_result path does not invoke _validate_catalog_identity. The public
+validator first physically rebuilds expected catalogs, then validates the supplied
+catalog; _validate_optional_exact_strings calls _strict_string and raises
+`Feature catalog label raw must be a non-empty exact string` before catalog
+equality/relation reconstruction/hash return. It is not a failure before all
+physical revalidation.
+
+Preserving raw text remains the intended contract. R3 does not strip it, endorse
+the stricter rule, repair production or add a regression. The archived reproduction
+uses a fabricated archive envelope and synthetic local files, not official GPU
+acquisition or evidence of official-data prevalence. A-001/A-002/A-003 stay open.
+
+## Compact synthetic call/data-flow example
+
+Assume `planning_document: GpuPlanningDocument` has already been assembled with
+valid local physical-source evidence, and `parcels: gpd.GeoDataFrame` contains
+one 100 m2 XY2154 polygon P-1. Suppose one prescription surface PSC-1 exactly
+matches it, with clean label `"Label 0"`, valid raw codes and matching IDURBA.
+This describes a synthetic example, not a way to bypass source construction.
+
+```python
+result = intersect_parcels_with_gpu_planning_features(parcels, planning_document)
+# result.parcels: original geometry + count 1, union 100 m2, covered 100%
+# result.surface_features: full PSC-1 geometry, feature_area_m2 100
+# result.line_features / result.point_features: canonical empty catalogs
+# result.relations: one AREA_OVERLAP row, intersection_area_m2 100
+evidence = validate_normalized_planning_feature_inputs(
+    planning_document,
+    parcels,
+    result.surface_features,
+    result.line_features,
+    result.point_features,
+    result.relations,
+)
+# evidence.expected_relation_count == 1; two source/rebuild hashes + layer/file counts
+```
+
+The actual builder and validator signatures are reproduced per symbol below.
+Replacing the example label with `" Label "` changes the outcome to A-003:
+builder returns raw text, second call raises. Success on clean fixture values
+is not proof that every builder output satisfies the separate validator.
+
+## Symbol-by-symbol review
+
+Every heading below binds the qualified owner
+`landscout.stages.enrich_planning_features` plus the displayed name, exact
+signature/defaults/annotation and source line range. Methods nested in a function
+retain that qualified owner. Record fields have no defaults. Notes state concrete
+behavior; test links are related evidence with the limits explained in the test
+companion, not assertions of exhaustive/direct coverage. An empty test-reference
+list is explicitly a missing dedicated regression, not an application defect.
+
+<a id="r3-layerspec"></a>
+
+### `_LayerSpec`
+
+class; source lines 79–86. Signature SHA256: `c6c4259139fb7b0be8775ab83f74a11983f956b19f251eaf828d5bd3b009e136`.
+
+```python
+class _LayerSpec(NamedTuple):
+```
+
+Immutable seven-item NamedTuple selected from LAYER_SPECS, not a validated source object. Every argument is required. _normalize_layer consumes its CNIG fields/geometry family; _validate_catalog_identity checks their resulting identity. It neither reads files nor validates values on construction.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage), [test_wrong_geometry_kind_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-wrong-geometry-kind-is-rejected).
+
+<a id="r3-layerspec-logical-layer"></a>
+
+### `_LayerSpec.logical_layer`
+
+field; source lines 80–80. Signature SHA256: `cb3ad333bab898721e9e7bd2fbf01868676bccf860cf3a64946c849ab0d3de4f`.
+
+```python
+logical_layer: str
+```
+
+Configured logical role (one of the six LAYER_SPECS keys), not the physical dataset/layer name. Used in deterministic feature IDs and ordering.
+
+Related evidence (limits in linked test explanation): [test_same_source_id_is_allowed_in_distinct_logical_layers](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-same-source-id-is-allowed-in-distinct-logical-layers).
+
+<a id="r3-layerspec-feature-family"></a>
+
+### `_LayerSpec.feature_family`
+
+field; source lines 81–81. Signature SHA256: `d57d5bf4caaa3ba564b0ce20c0947ea07ae2b0346a426f298a9b1c4adbd5f894`.
+
+```python
+feature_family: FeatureFamily
+```
+
+PRESCRIPTION or INFORMATION; distinguishes the two source families and family-specific surface summaries without interpreting the raw CNIG code.
+
+Related evidence (limits in linked test explanation): [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted).
+
+<a id="r3-layerspec-geometry-kind"></a>
+
+### `_LayerSpec.geometry_kind`
+
+field; source lines 82–82. Signature SHA256: `b965b9a4cf30b971f9ef741ddfbf250bf2337fd78e52b1e286896dcd933d75b2`.
+
+```python
+geometry_kind: GeometryKind
+```
+
+SURFACE, LINE or POINT chooses normalization metrics, accepted Shapely types and the relation algorithm. Literal annotations alone are not runtime validation.
+
+Related evidence (limits in linked test explanation): [test_wrong_geometry_kind_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-wrong-geometry-kind-is-rejected).
+
+<a id="r3-layerspec-identity-field"></a>
+
+### `_LayerSpec.identity_field`
+
+field; source lines 83–83. Signature SHA256: `f8175f2de29e251967dad741dfbf41e55101427da338f050269b02703385fb27`.
+
+```python
+identity_field: str
+```
+
+LIB_IDPSC for prescriptions; LIB_IDINFO for information. Only a missing prescription-surface field permits archive-scoped OGR_FID fallback; present bad values are errors.
+
+Related evidence (limits in linked test explanation): [test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-prescription-surface-uses-validated-source-ogr-fid-when-cnig-id-absent), [test_missing_required_source_fields_fail](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-required-source-fields-fail).
+
+<a id="r3-layerspec-type-field"></a>
+
+### `_LayerSpec.type_field`
+
+field; source lines 84–84. Signature SHA256: `ab3907405b78854bf1af7af375596b32bd22b15f911936e29b27b80964b01031`.
+
+```python
+type_field: str
+```
+
+Required raw TYPEPSC or TYPEINF string column. Values remain exact source strings, not decoded meanings.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage).
+
+<a id="r3-layerspec-subtype-field"></a>
+
+### `_LayerSpec.subtype_field`
+
+field; source lines 85–85. Signature SHA256: `62688bc9fe72c68481cb9a09dbd75240e291cd5d3d00129f7a5690e8a72e430e`.
+
+```python
+subtype_field: str
+```
+
+Required raw STYPEPSC or STYPEINF string column; no numeric coercion or meaning lookup. Leading zeros such as 04 survive.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage).
+
+<a id="r3-layerspec-allowed-geometry-types"></a>
+
+### `_LayerSpec.allowed_geometry_types`
+
+field; source lines 86–86. Signature SHA256: `d0f926c294105d8bc3b0f886772fe8ad621bbc90a9b33d87671d948e1251d2c4`.
+
+```python
+allowed_geometry_types: frozenset[str]
+```
+
+frozenset of Polygon/MultiPolygon, LineString/MultiLineString or Point/MultiPoint as selected by kind; consumed by _validate_geometries, not a geometry-repair policy.
+
+Related evidence (limits in linked test explanation): [test_polygon_and_multipolygon_surfaces](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-polygon-and-multipolygon-surfaces), [test_linestring_and_multilinestring](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-linestring-and-multilinestring), [test_wrong_geometry_kind_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-wrong-geometry-kind-is-rejected).
+
+<a id="r3-planningfeatureserror"></a>
+
+### `PlanningFeaturesError`
+
+class; source lines 242–243. Signature SHA256: `ecad671780eb7f1ed69369729809e0324c0436c1e07a5aa0f9645aaad67934e5`.
+
+```python
+class PlanningFeaturesError(ValueError):
+```
+
+Public ValueError subclass for planning factual-contract failures. It adds no methods or fields. Specific GIS/schema/source boundaries translate errors with causes; only the public normalized-input validator supplies a catch-all Exception wrapper. The builder has no universal wrapper.
+
+Related evidence (limits in linked test explanation): [test_geospatial_operation_failure_is_controlled_and_chained](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-geospatial-operation-failure-is-controlled-and-chained), [test_public_normalized_input_contract_wraps_malformed_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-wraps-malformed-document-context).
+
+<a id="r3-parcelplanningfeaturesresult"></a>
+
+### `ParcelPlanningFeaturesResult`
+
+class; source lines 247–254. Signature SHA256: `bd81d79b2e9f91eeaea2d4582969814c7d6b1fe07d85789300763431d45fd347`.
+
+```python
+class ParcelPlanningFeaturesResult:
+```
+
+Frozen dataclass with five required frame fields and no constructor validation. Attribute reassignment fails, but contained pandas/GeoPandas frames remain mutable. The builder constructs independent output frames; this envelope alone proves neither physical provenance nor deep immutability.
+
+Related evidence (limits in linked test explanation): [test_result_is_frozen](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-result-is-frozen), [test_inputs_and_all_existing_parcel_fields_are_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-inputs-and-all-existing-parcel-fields-are-preserved), [test_result_frames_are_independent_from_mutable_inputs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-result-frames-are-independent-from-mutable-inputs).
+
+<a id="r3-parcelplanningfeaturesresult-parcels"></a>
+
+### `ParcelPlanningFeaturesResult.parcels`
+
+field; source lines 250–250. Signature SHA256: `3ba865416777c701681539c5022c23763600601dd993d74f273c69c3553e329a`.
+
+```python
+parcels: gpd.GeoDataFrame
+```
+
+Original parcel rows, order, index, CRS, WKB and existing columns copied, with 21 factual summary/lineage columns appended. Geometry is not replaced by the metric projection. DataFrame deep copy is not a recursive freeze of arbitrary object-valued cells.
+
+Related evidence (limits in linked test explanation): [test_inputs_and_all_existing_parcel_fields_are_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-inputs-and-all-existing-parcel-fields-are-preserved), [test_epsg4326_parcels_are_measured_in_lambert93_but_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-epsg4326-parcels-are-measured-in-lambert93-but-preserved).
+
+<a id="r3-parcelplanningfeaturesresult-surface-features"></a>
+
+### `ParcelPlanningFeaturesResult.surface_features`
+
+field; source lines 251–251. Signature SHA256: `98b1bf6020fb918d730d9ef04bcadc3b81c34ac142a757e8bf92742fd7253196`.
+
+```python
+surface_features: gpd.GeoDataFrame
+```
+
+Complete normalized PRESCRIPTION/INFORMATION surface catalog, including features with no parcel relation; XY EPSG:2154, 27 columns, full feature_area_m2. Not parcel-clipped geometry.
+
+Related evidence (limits in linked test explanation): [test_surface_partial_and_touch_relations](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-partial-and-touch-relations), [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted).
+
+<a id="r3-parcelplanningfeaturesresult-line-features"></a>
+
+### `ParcelPlanningFeaturesResult.line_features`
+
+field; source lines 252–252. Signature SHA256: `0d3690554c2195254ddcd7c1d1efde2e7c8b991352d319ee8d012da6cb521776`.
+
+```python
+line_features: gpd.GeoDataFrame
+```
+
+Complete normalized XY EPSG:2154 line catalog with full feature_length_m; relation intersection_length_m is a separate clipped measurement.
+
+Related evidence (limits in linked test explanation): [test_line_crossing_and_partly_inside](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-line-crossing-and-partly-inside).
+
+<a id="r3-parcelplanningfeaturesresult-point-features"></a>
+
+### `ParcelPlanningFeaturesResult.point_features`
+
+field; source lines 253–253. Signature SHA256: `8ddf4b6fefb5c18c8f5df075b7b8795f7c60e3e0b7d356cfb0db126285beb5e9`.
+
+```python
+point_features: gpd.GeoDataFrame
+```
+
+Complete normalized XY EPSG:2154 point catalog; point_member_count counts all parts of each Point/MultiPoint, including parts outside a given parcel.
+
+Related evidence (limits in linked test explanation): [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint).
+
+<a id="r3-parcelplanningfeaturesresult-relations"></a>
+
+### `ParcelPlanningFeaturesResult.relations`
+
+field; source lines 254–254. Signature SHA256: `58fbae92e1f38605ac945bcdf5d1fb239d8601781a10d4f4e3e9549540ffad7f`.
+
+```python
+relations: pd.DataFrame
+```
+
+Plain 28-column DataFrame without geometry, canonical RangeIndex, one row per intersecting parcel/feature pair. Stable parcel input position then planning_feature_id order; no non-intersecting pairs.
+
+Related evidence (limits in linked test explanation): [test_relations_are_unique_deterministic_and_summaries_agree](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-relations-are-unique-deterministic-and-summaries-agree).
+
+<a id="r3-planningfeatureinputvalidation"></a>
+
+### `PlanningFeatureInputValidation`
+
+class; source lines 258–265. Signature SHA256: `a73340f41fc4f35ee2b7c6aef979fcc8a36afeb49a8cde07718f16b1d2309c67`.
+
+```python
+class PlanningFeatureInputValidation:
+```
+
+Frozen scalar evidence record returned only after the public validator reconstructs sources, catalogs and expected relations. Five required fields, no constructor validator: manually instantiating this dataclass does not confer source authority.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_validates_step_7d_3_1_result](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-validates-step-7d-3-1-result), [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-planningfeatureinputvalidation-gpu-related-source-files-sha256"></a>
+
+### `PlanningFeatureInputValidation.gpu_related_source_files_sha256`
+
+field; source lines 261–261. Signature SHA256: `b8ee395981fbc67c786d21d46b08cc6377528acc43cbc69f112b401a78b77ec9`.
+
+```python
+gpu_related_source_files_sha256: str
+```
+
+Hex SHA256 of verified related-layer evidence under verified_gpu_sources.v1: archive SHA, logical/physical identifiers, relative files and ordered FIDs. Absolute cache-root paths are excluded. Not a fresh hash of the archive ZIP bytes.
+
+Related evidence (limits in linked test explanation): [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-planningfeatureinputvalidation-expected-relations-content-sha256"></a>
+
+### `PlanningFeatureInputValidation.expected_relations_content_sha256`
+
+field; source lines 262–262. Signature SHA256: `872594b40015b5719782af04d1bc1a7ee28c448c1ec1d97bb1b72ade431a656b`.
+
+```python
+expected_relations_content_sha256: str
+```
+
+Hex SHA256 of reconstructed expected relations under expected_relations.v2, including frame schema/index metadata and canonical ordered index/row values. It hashes the rebuild, not tolerance-accepted caller floats.
+
+Related evidence (limits in linked test explanation): [test_expected_relation_hash_binds_dtype_and_index_metadata](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-expected-relation-hash-binds-dtype-and-index-metadata), [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-planningfeatureinputvalidation-related-source-layer-count"></a>
+
+### `PlanningFeatureInputValidation.related_source_layer_count`
+
+field; source lines 263–263. Signature SHA256: `6db4c19fb9b43ae9b3e09d0b0133bf74cc8556e03e7b3772671079359f8dd5a5`.
+
+```python
+related_source_layer_count: int
+```
+
+Number of revalidated selected related logical layers; zoning is not counted. Zero is possible when all related roles are absent. The dataclass itself does not enforce non-negative integers.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_validates_step_7d_3_1_result](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-validates-step-7d-3-1-result).
+
+<a id="r3-planningfeatureinputvalidation-related-source-file-count"></a>
+
+### `PlanningFeatureInputValidation.related_source_file_count`
+
+field; source lines 264–264. Signature SHA256: `18ddb08494d0ef1102da5a252fe61722475cc615c5ba233d55d647a81e2ad9f4`.
+
+```python
+related_source_file_count: int
+```
+
+Count of distinct relative file paths across validated related sources; several Shapefile sidecars contribute, a shared GPKG path contributes once. The three-GPKG fixture asserts 3; there is no direct shared-container count regression here.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_validates_step_7d_3_1_result](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-validates-step-7d-3-1-result).
+
+<a id="r3-planningfeatureinputvalidation-expected-relation-count"></a>
+
+### `PlanningFeatureInputValidation.expected_relation_count`
+
+field; source lines 265–265. Signature SHA256: `7bf7b134945bf0b0d3db06672d6ff93fbe7c6e1c81bb856e4027095aeef441a4`.
+
+```python
+expected_relation_count: int
+```
+
+Length of the independently rebuilt complete relation table, not simply the supplied row count. Returned after comparison.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_validates_step_7d_3_1_result](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-validates-step-7d-3-1-result), [test_source_complete_contract_rejects_extra_geometrically_false_relation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-extra-geometrically-false-relation).
+
+<a id="r3-planningcontext"></a>
+
+### `_PlanningContext`
+
+class; source lines 269–277. Signature SHA256: `5d83e29530e3f1094b6dade2fa7eaa3074ad3dab316456572a9471b1675ce272`.
+
+```python
+class _PlanningContext:
+```
+
+Private frozen dataclass of eight lineage scalars, all required at construction (standard_model permits None). _planning_context builds it from the supplied document; this local context check is not physical source revalidation.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-planningcontext-provider"></a>
+
+### `_PlanningContext.provider`
+
+field; source lines 270–270. Signature SHA256: `4667aee004a3c25155cc86e608930c2e6c99291a6b4d6dc408ea8da773d7237f`.
+
+```python
+provider: str
+```
+
+Archive-document provider, locally checked as exact non-empty string and copied to source_provider. Official configured identity is checked later by the GPU dependency.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-planningcontext-portal"></a>
+
+### `_PlanningContext.portal`
+
+field; source lines 271–271. Signature SHA256: `ce03170a7ff2cc0e4f952194e74d3213e46a372bba19714a466b354101e22163`.
+
+```python
+portal: str
+```
+
+Archive-document portal string copied to source_portal. This field does not trigger HTTP; GPU config/metadata revalidation owns source identity.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-planningcontext-commune-code"></a>
+
+### `_PlanningContext.commune_code`
+
+field; source lines 272–272. Signature SHA256: `9f1cccf4242aa43aea2cfed72fab73e8bcd3eefccff2de9b0b93913fd36480ca`.
+
+```python
+commune_code: str
+```
+
+Archive-document commune string copied to source_commune_code. Local exact-string validation is weaker than the upstream commune/config binding.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-planningcontext-document-id"></a>
+
+### `_PlanningContext.document_id`
+
+field; source lines 273–273. Signature SHA256: `91d7a6f0e3572072c6933a8641dc696623d6d3238c3b814bc43b3385d06bb66c`.
+
+```python
+document_id: str
+```
+
+Archive-document identifier used in planning_feature_id and parcel/relation lineage. It is not itself a source-file digest.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage).
+
+<a id="r3-planningcontext-document-type"></a>
+
+### `_PlanningContext.document_type`
+
+field; source lines 274–274. Signature SHA256: `baa770619480902bf35d5296c2c46c71b51eb4aa2518bb6261446731180ef92c`.
+
+```python
+document_type: str
+```
+
+Archive-document type copied to source_document_type. The local helper does not interpret PLU/CC semantics; physical/config comparison is separate.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-planningcontext-archive-name"></a>
+
+### `_PlanningContext.archive_name`
+
+field; source lines 275–275. Signature SHA256: `5439b291f5af885f975dc95e157d1b6074dca48360f8c844d9808f4df2951afd`.
+
+```python
+archive_name: str
+```
+
+Exact archive-document name used for source_archive_name and IDURBA comparison, with at most one case-insensitive terminal .zip removed for that comparison only. Local _strict_string is not a portable-filename validator.
+
+Related evidence (limits in linked test explanation): [test_source_document_reference_allows_one_archive_zip_suffix](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-document-reference-allows-one-archive-zip-suffix), [test_idurba_mismatch_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-idurba-mismatch-is-rejected).
+
+<a id="r3-planningcontext-archive-sha256"></a>
+
+### `_PlanningContext.archive_sha256`
+
+field; source lines 276–276. Signature SHA256: `0e7464db3547b287b4da67097f9d7cffe8345e9e344cb22bb54a487ee2e282cc`.
+
+```python
+archive_sha256: str
+```
+
+64-character hexadecimal archive SHA as supplied by the archive envelope. Case is not normalized here. Copied to catalogs, relations, parcel lineage and integrity payload; this helper does not read the ZIP.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage), [test_source_complete_contract_rejects_independent_gpu_lineage_mutation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-independent-gpu-lineage-mutation).
+
+<a id="r3-planningcontext-standard-model"></a>
+
+### `_PlanningContext.standard_model`
+
+field; source lines 277–277. Signature SHA256: `513a661807ee7b98035ef16597a56afbad704a827298380f2f1a8ed17ae3e719`.
+
+```python
+standard_model: str | None
+```
+
+Optional sole standard model after strict validation and ordered deduplication of archive singular standard_model and extraction.standard_models. None if absent; disagreement raises. Copied to source_standard_model. No isolated ambiguity regression in this file.
+
+Dedicated regression in this test file: none; reviewed against implementation and callers, not promoted to executable proof.
+
+<a id="r3-strict-string"></a>
+
+### `_strict_string`
+
+function; source lines 280–283. Signature SHA256: `d17a85b13a52009c058a875ca8f3e4130e23961af7c1593d298a227eb795fc3a`.
+
+```python
+def _strict_string(value: object, label: str) -> str:
+```
+
+Returns the same isinstance(str) value only when non-empty and equal to strip(); otherwise PlanningFeaturesError names the label. Never strips, coerces numbers or opens a path. Used by identity/context guards.
+
+Related evidence (limits in linked test explanation): [test_invalid_parcel_ids_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-invalid-parcel-ids-are-rejected).
+
+<a id="r3-strict-nonnegative-integer"></a>
+
+### `_strict_nonnegative_integer`
+
+function; source lines 286–291. Signature SHA256: `d21c292bca764a08354dd86ed2f4faedd810d78acad42f0a3b7f4784a7ae3284`.
+
+```python
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+```
+
+Rejects bool and non-Integral values, rejects negatives, then returns built-in int. Used for inspected-summary and integer metric/count validation; physical OGR FID type validation is owned by the GPU dependency, not this helper.
+
+Related evidence (limits in linked test explanation): [test_strict_parcel_summary_integer_counts_are_enforced](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-strict-parcel-summary-integer-counts-are-enforced).
+
+<a id="r3-validate-ids"></a>
+
+### `_validate_ids`
+
+function; source lines 294–297. Signature SHA256: `59f767a75604e6c526e51b8575dfc8609c858bf9d2b2863aa7aa6eff2cdc31c5`.
+
+```python
+def _validate_ids(values: pd.Series, label: str) -> None:
+```
+
+First calls _validate_exact_strings (including null/text checks), then rejects duplicate values. Used for parcel IDs, source IDs and normalized planning IDs; returns None without generating or modifying identifiers.
+
+Related evidence (limits in linked test explanation): [test_duplicate_parcel_ids_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-duplicate-parcel-ids-are-rejected), [test_duplicate_source_ids_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-duplicate-source-ids-are-rejected), [test_invalid_parcel_ids_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-invalid-parcel-ids-are-rejected).
+
+<a id="r3-validate-exact-strings"></a>
+
+### `_validate_exact_strings`
+
+function; source lines 300–304. Signature SHA256: `6fb14cfc7544f1f144e8d129946d259750607d4300d765aab1519ad737d4ba7c`.
+
+```python
+def _validate_exact_strings(values: pd.Series, label: str) -> None:
+```
+
+Rejects any null and then applies _strict_string to each value, returning None. Required raw codes and lineage cannot be missing or padded; repeated codes are allowed.
+
+Related evidence (limits in linked test explanation): [test_missing_required_source_fields_fail](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-required-source-fields-fail), [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage).
+
+<a id="r3-validate-optional-exact-strings"></a>
+
+### `_validate_optional_exact_strings`
+
+function; source lines 307–311. Signature SHA256: `3b880dbd208288bc1a92981293fc2f11b276797964a3132916051a11dd6700fa`.
+
+```python
+def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
+```
+
+Iterates the values, skips scalar pd.isna values and calls _strict_string otherwise; no actual column trimming or copying. Creates A-003 for padded optional raw labels preserved by builder. Archived synthetic reproduction, no permanent padded-label regression in this test file.
+
+Dedicated regression in this test file: none; reviewed against implementation and callers, not promoted to executable proof.
+
+<a id="r3-crs"></a>
+
+### `_crs`
+
+function; source lines 314–320. Signature SHA256: `986d6beb9e05ea7f098621f8a648267d64fe13e516e5246974db0f1d886f240c`.
+
+```python
+def _crs(value: object, label: str) -> CRS:
+```
+
+Requires a present CRS and parses it through pyproj.CRS.from_user_input, translating parse Exception to PlanningFeaturesError with cause. Returns a CRS object; arbitrary readable source/parcel CRS is accepted here, not necessarily EPSG:2154.
+
+Related evidence (limits in linked test explanation): [test_missing_crs_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-crs-is-rejected), [test_unusable_source_crs_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-unusable-source-crs-is-rejected).
+
+<a id="r3-active-geometry"></a>
+
+### `_active_geometry`
+
+function; source lines 323–331. Signature SHA256: `3bb89325512bae5e2675476c164d19af32c89f30e86193109e61323564170b84`.
+
+```python
+def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
+```
+
+Returns None after requiring literal geometry column and active_geometry_name == 'geometry'. Translates AttributeError from active-name access to PlanningFeaturesError. Does not return a GeoSeries, copy or modify geometry; no direct adversarial active-column regression in this file.
+
+Dedicated regression in this test file: none; reviewed against implementation and callers, not promoted to executable proof.
+
+<a id="r3-validate-geometries"></a>
+
+### `_validate_geometries`
+
+function; source lines 334–351. Signature SHA256: `f83e3779f88fc6d22bc2d8eb2385c3170d8c7f83683e0ae913075ca3978aec87`.
+
+```python
+def _validate_geometries(
+    frame: gpd.GeoDataFrame,
+    allowed: frozenset[str],
+    label: str,
+) -> None:
+```
+
+Reads frame.geometry, rejects null, empty, invalid and wrong-family members in that order; returns None. Active-column checks are performed by callers, not this helper. Empty series pass the universal checks. No repair, buffering or row dropping.
+
+Related evidence (limits in linked test explanation): [test_wrong_geometry_kind_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-wrong-geometry-kind-is-rejected), [test_invalid_surface_geometry_is_rejected_without_repair](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-invalid-surface-geometry-is-rejected-without-repair), [test_null_or_empty_source_geometry_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-null-or-empty-source-geometry-is-rejected).
+
+<a id="r3-validate-two-dimensional-geometry"></a>
+
+### `_validate_two_dimensional_geometry`
+
+function; source lines 354–369. Signature SHA256: `656fbc2b76715a518d133850093a2cd504531d5b7abf86270831171dcbaa5057`.
+
+```python
+def _validate_two_dimensional_geometry(
+    frame: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+```
+
+Computes Shapely coordinate dimensions as int64 and requires every dimension ==2, reraising PlanningFeaturesError and translating other Exception. Empty arrays pass the any() check (no separate early return). Applied to supplied normalized catalogs, not original parcels. Tests inject Z, not M/ZM.
+
+Related evidence (limits in linked test explanation): [test_three_dimensional_normalized_catalogs_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-three-dimensional-normalized-catalogs-are-rejected), [test_two_dimensional_normalized_catalogs_remain_valid](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-two-dimensional-normalized-catalogs-remain-valid).
+
+<a id="r3-validate-parcels"></a>
+
+### `_validate_parcels`
+
+function; source lines 372–396. Signature SHA256: `add12109a99f129ee2c3f9c55764c8bdf416fc05749059356470f9032dbf2d69`.
+
+```python
+def _validate_parcels(
+    parcels: gpd.GeoDataFrame,
+    *,
+    allow_output_columns: bool = False,
+) -> CRS:
+```
+
+Requires GeoDataFrame, unique columns, parcel_id/geometry and no reserved summary collisions unless allow_output_columns=True. Then checks active geometry, parses CRS, validates exact unique IDs and valid Polygon/MultiPolygon geometry; returns parsed source CRS. Does not force original geometry to 2D or rewrite it; metric area positivity is later.
+
+Related evidence (limits in linked test explanation): [test_invalid_parcel_ids_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-invalid-parcel-ids-are-rejected), [test_reserved_output_column_collision_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-reserved-output-column-collision-is-rejected), [test_source_complete_contract_rejects_invalid_parcel_geometry](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-invalid-parcel-geometry).
+
+<a id="r3-standard-model"></a>
+
+### `_standard_model`
+
+function; source lines 399–410. Signature SHA256: `12a0af9358946880268e2a0f9eebffd83fd2cd5546c9a9336c7bc319b737e67b`.
+
+```python
+def _standard_model(document: GpuPlanningDocument) -> str | None:
+```
+
+Reads the optional singular archive.document.standard_model first, then strict-validates each extraction.standard_models value and appends only unseen values to a local list. Returns None or the sole value; rejects multiple distinct models. No file IO or isolated conflicting-standard regression in this file.
+
+Dedicated regression in this test file: none; reviewed against implementation and callers, not promoted to executable proof.
+
+<a id="r3-planning-context"></a>
+
+### `_planning_context`
+
+function; source lines 413–430. Signature SHA256: `3c5faa1194069b3426f0964b35e505eb6e8f7f8eddb9fc1e98f435ee65c97c27`.
+
+```python
+def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
+```
+
+Requires isinstance(GpuPlanningDocument), strict-validates archive SHA then its 64 hexadecimal characters, six other metadata strings and reconciled standard model; returns _PlanningContext. No file acquisition or proof of config agreement in this local helper.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_gpu_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-gpu-document-context).
+
+<a id="r3-summary-geometry-types"></a>
+
+### `_summary_geometry_types`
+
+function; source lines 433–435. Signature SHA256: `80093165b6932684463b35a01652c47d4c7eca64a185f1f887268fd672aafae4`.
+
+```python
+def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], ...]:
+```
+
+Returns sorted (Shapely type name, integer count) tuples from a frame. Pure in-memory calculation used to compare inspected summary geometry counts; not physical validation.
+
+Related evidence (limits in linked test explanation): [test_mutated_source_summary_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-mutated-source-summary-is-rejected).
+
+<a id="r3-validate-layer-summary"></a>
+
+### `_validate_layer_summary`
+
+function; source lines 438–485. Signature SHA256: `5784db59a13931a4a430bb0b91af926eb8c5304ff0989330c46bf1d68b14a8c4`.
+
+```python
+def _validate_layer_summary(
+    layer: GpuInspectedLayer,
+    context: _PlanningContext,
+) -> None:
+```
+
+After raw geometry checks in _normalize_layer, validates readable equivalent frame/summary CRS; strict count types, exact document/SHA/layer/count/ordered columns/dtypes/null/type counts. Returns None without IO. GPU physical comparison precedes this: four bad-count cases fail there, but feature_count=True equals 1 under dataclass equality and reaches this stage's strict integer rejection.
+
+Related evidence (limits in linked test explanation): [test_mutated_source_summary_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-mutated-source-summary-is-rejected), [test_source_summary_counts_are_strict_integers](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-summary-counts-are-strict-integers).
+
+<a id="r3-project-geometry"></a>
+
+### `_project_geometry`
+
+function; source lines 488–501. Signature SHA256: `3631c701b1d1e7ddcd7967475c627a1586cc79d17b166423c23458b944d54fae`.
+
+```python
+def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
+```
+
+Copies geometry if source CRS equals EPSG:2154, otherwise uses frame.to_crs(target).geometry, then always force_2d into a fresh GeoSeries with default positional index. The original frame index is not carried to this series; callers deliberately use geometry arrays/positions. Wraps transformation failures; stored input geometry remains unchanged.
+
+Related evidence (limits in linked test explanation): [test_epsg4326_parcels_are_measured_in_lambert93_but_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-epsg4326-parcels-are-measured-in-lambert93-but-preserved), [test_unusable_source_crs_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-unusable-source-crs-is-rejected), [test_gpu_source_z_is_normalized_to_canonical_2d](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-gpu-source-z-is-normalized-to-canonical-2d).
+
+<a id="r3-source-feature-ids"></a>
+
+### `_source_feature_ids`
+
+function; source lines 504–532. Signature SHA256: `04c0feb9b754aa9b6a906c877fe013d4832c1a9651390f3bdb2e158bbf2319b4`.
+
+```python
+def _source_feature_ids(
+    layer: GpuInspectedLayer,
+    spec: _LayerSpec,
+    validated_source: GpuValidatedSpatialLayerSource,
+) -> tuple[pd.Series, SourceIdentityKind, str]:
+```
+
+If CNIG field exists, reset its index, copy and validate exact unique strings, returning CNIG_ATTRIBUTE and field name. Otherwise only prescription_surface is allowed: empty frame returns empty object Series, nonempty requires verified ogr_fids length alignment, formats OGR_FID:<n> and validates unique strings. GPU dependency already checked physical FIDs as non-negative Integral-not-bool; this helper does not repeat numeric checks.
+
+Related evidence (limits in linked test explanation): [test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-prescription-surface-uses-validated-source-ogr-fid-when-cnig-id-absent), [test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-geopackage-prescription-surface-uses-sealed-ogr-fid-fallback), [test_present_empty_optional_layer_is_valid](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-present-empty-optional-layer-is-valid).
+
+<a id="r3-optional-values"></a>
+
+### `_optional_values`
+
+function; source lines 535–538. Signature SHA256: `f16ffe38ae7f1f602f143a79f1bc51a215d66970589f0a27949e438ad5fcdbb2`.
+
+```python
+def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
+```
+
+Returns a copied numpy array when a raw field exists, otherwise a length-matched None object array. No trimming or optional-text validation. Called for COMMON_SOURCE_FIELDS during normalization; A-003 depends on this preservation.
+
+Related evidence (limits in linked test explanation): [test_optional_raw_source_fields_are_not_fabricated](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-optional-raw-source-fields-are-not-fabricated).
+
+<a id="r3-normalize-layer"></a>
+
+### `_normalize_layer`
+
+function; source lines 541–648. Signature SHA256: `470073ea665e88cf167e305493c40ece55e2bddc174bf45a4454c39df6c4312a`.
+
+```python
+def _normalize_layer(
+    layer: GpuInspectedLayer,
+    spec: _LayerSpec,
+    context: _PlanningContext,
+    validated_source: GpuValidatedSpatialLayerSource,
+) -> gpd.GeoDataFrame:
+```
+
+Requires GeoDataFrame/active geometry and code/subcode/IDURBA/geometry fields, validates required raw strings, valid allowed family, then inspected summary. Verifies IDURBA against archive basename, chooses CNIG/FID identity, projects XY2154 and constructs a fresh frame of identity/lineage/raw values with RangeIndex. Rechecks projected geometry, computes positive finite full area/length or part count and returns it. Canonical dtype conversion happens later in _combine_catalogs, not here; no separate duplicate-column guard here. Source rows are not filtered by parcel intersections.
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage), [test_idurba_mismatch_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-idurba-mismatch-is-rejected), [test_line_crossing_and_partly_inside](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-line-crossing-and-partly-inside), [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint).
+
+<a id="r3-canonical-catalog-dtypes"></a>
+
+### `_canonical_catalog_dtypes`
+
+function; source lines 651–666. Signature SHA256: `94a9f2324c49148cba2776d530fc0f144678e7dc74239272974d3a10a360aa82`.
+
+```python
+def _canonical_catalog_dtypes(
+    catalog: gpd.GeoDataFrame,
+    kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+```
+
+Mutates and returns the same newly constructed catalog argument: rebuilds each nongeometry column as a Series of the normalized_feature_dtypes(kind, frame) dtype on current index, then sets unnamed zero-based RangeIndex. No copy/freeze guarantee for direct private callers. Dynamic all-null optional dtypes belong to the common schema module.
+
+Related evidence (limits in linked test explanation): [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-empty-catalog"></a>
+
+### `_empty_catalog`
+
+function; source lines 669–682. Signature SHA256: `ef25d58404e7a8906c901ca142e733927f124e16b3605d3c70cb9192af0ffb9f`.
+
+```python
+def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
+```
+
+Creates all required columns with base dtypes, empty active geometry and EPSG:2154, then canonicalizes; returns a new GeoDataFrame for the specified kind. Base text/file dtypes depend on kind; not a universal object schema.
+
+Related evidence (limits in linked test explanation): [test_missing_optional_layer_families_return_stable_empty_catalogs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-optional-layer-families-return-stable-empty-catalogs), [test_empty_and_nonempty_catalogs_have_identical_kind_schemas](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-empty-and-nonempty-catalogs-have-identical-kind-schemas).
+
+<a id="r3-combine-catalogs"></a>
+
+### `_combine_catalogs`
+
+function; source lines 685–694. Signature SHA256: `5176e3ca975f1e66ccf2a3e70fa324dd47fe73d557949f0d7cb23c6c68917311`.
+
+```python
+def _combine_catalogs(
+    frames: list[gpd.GeoDataFrame], kind: GeometryKind
+) -> gpd.GeoDataFrame:
+```
+
+Returns _empty_catalog for no frames; otherwise concatenates in caller order with ignore_index, fixes CRS/geometry, validates planning IDs and canonicalizes dtypes/index. New frame, not a parcel filter. Ordering comes from fixed LAYER_SPECS selection.
+
+Related evidence (limits in linked test explanation): [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted), [test_same_source_id_is_allowed_in_distinct_logical_layers](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-same-source-id-is-allowed-in-distinct-logical-layers).
+
+<a id="r3-normalized-catalogs"></a>
+
+### `_normalized_catalogs`
+
+function; source lines 697–762. Signature SHA256: `f2aea9adea2929620bcc9b5c03bd0a7f6a159004eb1102acc8a10ba88309749a`.
+
+```python
+def _normalized_catalogs(
+    planning_document: GpuPlanningDocument,
+) -> tuple[
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    tuple[GpuValidatedSpatialLayerSource, ...],
+]:
+```
+
+Checks document context, every inspected zoning/related reference occurs exactly once in all_spatial_layers, and related logical roles are known and unique. Orders selected related layers by LAYER_SPECS; calls GPU batch physical revalidation once; translates GpuSpatialInspectionError. For each fresh source, replaces only the inspected frame with verified data, normalizes, then combines three kind catalogs; returns these plus validated sources. No selected related layers still triggers document/config/extraction/role validation; zoning is not selected for geometric reread here.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_binds_inspected_spatial_inventory](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-binds-inspected-spatial-inventory), [test_source_complete_contract_reloads_and_compares_source_catalog](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-reloads-and-compares-source-catalog), [test_missing_optional_layer_families_return_stable_empty_catalogs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-optional-layer-families-return-stable-empty-catalogs).
+
+<a id="r3-normalized-catalogs-combined"></a>
+
+### `_normalized_catalogs.combined`
+
+function; source lines 747–755. Signature SHA256: `61894940c07e0baa73abadca422c9261a0858f0d90bb37a56515768a147272be`.
+
+```python
+    def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
+```
+
+Closure over the newly built catalogs; gathers matching geometry-kind entries in LAYER_SPECS order and calls _combine_catalogs, yielding canonical empty output when none exist. No extra physical read.
+
+Related evidence (limits in linked test explanation): [test_missing_optional_layer_families_return_stable_empty_catalogs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-optional-layer-families-return-stable-empty-catalogs).
+
+<a id="r3-metric-parcels"></a>
+
+### `_metric_parcels`
+
+function; source lines 765–782. Signature SHA256: `ef600db2bdc98beee1f280906921baf5af47b12a8ffc4263f783531e1e3b2939`.
+
+```python
+def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+```
+
+Projects a private XY2154 copy, requires each whole-parcel area finite and >0, and returns only original row position, parcel_id, metric area and metric geometry on a positional index. Stored parcel geometry/index remain untouched.
+
+Related evidence (limits in linked test explanation): [test_epsg4326_parcels_are_measured_in_lambert93_but_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-epsg4326-parcels-are-measured-in-lambert93-but-preserved), [test_source_complete_contract_rejects_coherent_parcel_metric_mutation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-coherent-parcel-metric-mutation).
+
+<a id="r3-relation-base"></a>
+
+### `_relation_base`
+
+function; source lines 785–846. Signature SHA256: `e1a03e009c2a23bcc5a29f4e528a8f5adef52d278c2323fd6225ad9e3bccb3e3`.
+
+```python
+def _relation_base(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+```
+
+Returns empty DataFrame and two empty int64 arrays for empty parcels or features. Otherwise inner GeoPandas sjoin(predicate='intersects') against full projected polygons, translating join failures; records parcel/feature positions and copies relation identity/raw fields. This is the shared candidate-pair gate, not distance or centroid matching.
+
+Related evidence (limits in linked test explanation): [test_geospatial_operation_failure_is_controlled_and_chained](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-geospatial-operation-failure-is-controlled-and-chained), [test_surface_partial_and_touch_relations](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-partial-and-touch-relations), [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint).
+
+<a id="r3-surface-relations"></a>
+
+### `_surface_relations`
+
+function; source lines 849–879. Signature SHA256: `99bc72c0f56aefc94134c1cde48e74cd6e7251973aad02c275d37c40b9d76ef5`.
+
+```python
+def _surface_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+```
+
+Uses _relation_base, intersects matched full geometries, computes clipped area m2 and shares 100*area/whole parcel or full feature area. Positive area => AREA_OVERLAP; zero => TOUCH_ONLY. Retains private clipped geometry for union summaries; unrelated line floats are NaN and point counts are nullable NA. Empty candidates return immediately; intersection failures are controlled.
+
+Related evidence (limits in linked test explanation): [test_surface_partial_and_touch_relations](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-partial-and-touch-relations), [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted).
+
+<a id="r3-line-relations"></a>
+
+### `_line_relations`
+
+function; source lines 882–909. Signature SHA256: `cd3fdf523ed9fc0a3411e645bf36e3040fa07180249b71a02c570fd33a7fdd87`.
+
+```python
+def _line_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+```
+
+Intersects each matched line with parcel and measures length m; positive => LENGTH_OVERLAP, zero => TOUCH_ONLY. Copies full feature_length_m as source_line_length_m; no union across lines. Sets irrelevant metrics to null. Empty candidates return immediately; intersection failures are translated.
+
+Related evidence (limits in linked test explanation): [test_line_crossing_and_partly_inside](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-line-crossing-and-partly-inside), [test_line_boundary_touch_is_zero_length](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-line-boundary-touch-is-zero-length).
+
+<a id="r3-point-relations"></a>
+
+### `_point_relations`
+
+function; source lines 912–948. Signature SHA256: `4e94cf32a7cb6bfd0869ee1db6802f8a0b9f91977cfba485f7df8fe6bb844e4c`.
+
+```python
+def _point_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+```
+
+Explodes matched Point/MultiPoint parts, counts strict contains as inside and covers-minus-contains as boundary via position bincount. Keeps full-source part count, including outside parts; rejects a candidate with no covered part. Any inside => INSIDE, otherwise BOUNDARY_TOUCH. Unrelated floats are null. Empty candidates return immediately; part/containment operation failures are translated.
+
+Related evidence (limits in linked test explanation): [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint).
+
+<a id="r3-empty-relations"></a>
+
+### `_empty_relations`
+
+function; source lines 951–967. Signature SHA256: `4cddb8417d552f2888b592299ab752bb21b18d166480bd8b67e0e1d1e695b52c`.
+
+```python
+def _empty_relations() -> pd.DataFrame:
+```
+
+Creates a new plain DataFrame in RELATION_COLUMNS order: seven float64 metric columns, three nullable Int64 count columns and remaining str columns, canonical RangeIndex. No geometry or file IO.
+
+Related evidence (limits in linked test explanation): [test_missing_optional_layer_families_return_stable_empty_catalogs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-missing-optional-layer-families-return-stable-empty-catalogs).
+
+<a id="r3-build-relation-tables"></a>
+
+### `_build_relation_tables`
+
+function; source lines 970–994. Signature SHA256: `146c2db9caae53e1f6071cae93b3cde6c33d7e15fd9fb486706116ea2d08711e`.
+
+```python
+def _build_relation_tables(
+    metric: gpd.GeoDataFrame,
+    surfaces: gpd.GeoDataFrame,
+    lines: gpd.GeoDataFrame,
+    points: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+```
+
+Builds surface, line and point work tables in order; if all empty returns those plus _empty_relations. Otherwise concatenates, stable-sorts by original parcel position then planning_feature_id, selects 28 public columns, casts str/count dtypes and RangeIndex. Returns three work tables plus public plain relation table; private clipped geometry is not exposed there.
+
+Related evidence (limits in linked test explanation): [test_relations_are_unique_deterministic_and_summaries_agree](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-relations-are-unique-deterministic-and-summaries-agree), [test_source_complete_contract_rejects_reordered_relations](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-reordered-relations).
+
+<a id="r3-canonical-integrity-value"></a>
+
+### `_canonical_integrity_value`
+
+function; source lines 997–1025. Signature SHA256: `452b0f8e045c7e76d753a9892f0e2e8804151c3f02208fc81d285bd4b5e67501`.
+
+```python
+def _canonical_integrity_value(value: object) -> object:
+```
+
+Converts date/datetime/Timestamp to ISO first, numpy scalar recursively via item(), None/pd.NA/scalar-isna to null, then bool, Integral, finite Real and str. Unsupported objects or remaining nonfinite numbers raise PlanningFeaturesError. NaN is treated as missing before numeric finiteness. This scalar canonicalizer does not recursively accept arbitrary containers. No dedicated malformed-leaf regression in this test file.
+
+Related evidence (limits in linked test explanation): [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-canonical-integrity-sha256"></a>
+
+### `_canonical_integrity_sha256`
+
+function; source lines 1028–1041. Signature SHA256: `e74d3e776526e4f42c9244d197e171a2783b7295287828f63f82073ee71d1bf1`.
+
+```python
+def _canonical_integrity_sha256(payload: object) -> str:
+```
+
+JSON dumps with sorted keys, compact separators, ensure_ascii=False, allow_nan=False, encodes UTF-8 and returns lowercase SHA256. Serialization exceptions become chained PlanningFeaturesError. It expects an already prepared payload; no file IO or repr-based hash.
+
+Related evidence (limits in linked test explanation): [test_expected_relation_hash_binds_dtype_and_index_metadata](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-expected-relation-hash-binds-dtype-and-index-metadata).
+
+<a id="r3-gpu-related-source-files-sha256"></a>
+
+### `_gpu_related_source_files_sha256`
+
+function; source lines 1044–1077. Signature SHA256: `621fee78af957ddbb29d438eae550e3f91c9885be91df424d8fc38826d1e501c`.
+
+```python
+def _gpu_related_source_files_sha256(
+    planning_document: GpuPlanningDocument,
+    sources: tuple[GpuValidatedSpatialLayerSource, ...],
+) -> str:
+```
+
+Builds the verified_gpu_sources.v1 payload described in the hash section: sorts layers by logical name and files by relative path but preserves FID order. Consumes verified records, hashes no newly opened paths, excludes absolute cache root and includes archive SHA. Used by the source-complete validator only.
+
+Related evidence (limits in linked test explanation): [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-expected-relations-content-sha256"></a>
+
+### `_expected_relations_content_sha256`
+
+function; source lines 1080–1093. Signature SHA256: `324fe7e80f49a4b020453c1117a3f4221b4b64a7ea2cc0857f0a9f088a3a1d79`.
+
+```python
+def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
+```
+
+Builds expected_relations.v2 from deterministic_frame_schema_signature, canonical index values and ordered tuples of all cells; then SHA256 of canonical JSON. Private function can hash noncanonical frame schemas; the public validator calls it on its canonical rebuild. Four direct schema/index mutations prove digest sensitivity, not all possible leaf encodings.
+
+Related evidence (limits in linked test explanation): [test_expected_relation_hash_binds_dtype_and_index_metadata](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-expected-relation-hash-binds-dtype-and-index-metadata).
+
+<a id="r3-technical-tolerance"></a>
+
+### `_technical_tolerance`
+
+function; source lines 1096–1097. Signature SHA256: `3f0809e5fc62cef272ea41bb03599d05f658a243dae4b9c812eaf5dbed20a26c`.
+
+```python
+def _technical_tolerance(parcel_area: float) -> float:
+```
+
+Thin delegate returning common technical_overlay_tolerance(parcel_area): max(1e-6, parcel_area*1e-12). Used for tiny union overshoot in _surface_union_summary. Other comparisons call the common tolerance directly with their own reference magnitudes. Pure numerical allowance, not buffer distance or business threshold; no direct threshold-edge regression in this file.
+
+Dedicated regression in this test file: none; reviewed against implementation and callers, not promoted to executable proof.
+
+<a id="r3-surface-union-summary"></a>
+
+### `_surface_union_summary`
+
+function; source lines 1100–1128. Signature SHA256: `939bc17603fbff72abb14ddf9d48ae99bac035fc603bb2b8608f525da3400809`.
+
+```python
+def _surface_union_summary(
+    positive: pd.DataFrame,
+    parcel_areas: np.ndarray,
+    count: int,
+) -> np.ndarray:
+```
+
+Starts a zero float64 array of parcel count; groups positive clipped surfaces by parcel position, union_all then area. Rejects nonfinite/negative union and overshoot beyond common tolerance; clamps only tiny overshoot to whole parcel area. Empty input returns zeros. Caller runs all-family and separate-family unions. No direct tiny-overshoot regression here.
+
+Related evidence (limits in linked test explanation): [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted), [test_corrupted_surface_union_contract_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-corrupted-surface-union-contract-is-rejected).
+
+<a id="r3-attach-parcel-summaries"></a>
+
+### `_attach_parcel_summaries`
+
+function; source lines 1131–1242. Signature SHA256: `2938b56f1539437f24d7fb9326afd83db903c87779d21b9a7423b93e686deb1a`.
+
+```python
+def _attach_parcel_summaries(
+    parcels: gpd.GeoDataFrame,
+    metric: gpd.GeoDataFrame,
+    surface_work: pd.DataFrame,
+    line_work: pd.DataFrame,
+    point_work: pd.DataFrame,
+    context: _PlanningContext,
+) -> gpd.GeoDataFrame:
+```
+
+Deep-copies source parcels, appends 11 count, eight float and two lineage columns. Counts relation rows except point inside/boundary member sums; raw surface area and line length sums retain overlap double counting. Computes all-family and family-specific surface unions and percentages; exact 100 when union equals area, zero for no matches. Uses positional arrays to preserve arbitrary parcel index. No persistence or caller mutation.
+
+Related evidence (limits in linked test explanation): [test_inputs_and_all_existing_parcel_fields_are_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-inputs-and-all-existing-parcel-fields-are-preserved), [test_overlapping_surface_union_is_not_double_counted](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-overlapping-surface-union-is-not-double-counted), [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint).
+
+<a id="r3-attach-parcel-summaries-relation-counts"></a>
+
+### `_attach_parcel_summaries.relation_counts`
+
+function; source lines 1143–1153. Signature SHA256: `255ff1e7758d02c09f8641ab10e6e2e538efbd8614030a42d751fde02f91f1ea`.
+
+```python
+    def relation_counts(
+        frame: pd.DataFrame, mask: pd.Series | None = None
+    ) -> np.ndarray:
+```
+
+Closure over parcel count; returns zero int64 array for empty work, otherwise counts grouped rows by _parcel_position into that array. Used for surface/line/point and family relation counts, not point member counts.
+
+Related evidence (limits in linked test explanation): [test_relations_are_unique_deterministic_and_summaries_agree](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-relations-are-unique-deterministic-and-summaries-agree).
+
+<a id="r3-numeric-values"></a>
+
+### `_numeric_values`
+
+function; source lines 1245–1269. Signature SHA256: `f9088d0bfc3ea0c8b6aee2a6bb140fe915f78e9d3946ee4e91c4d09416c59fc4`.
+
+```python
+def _numeric_values(
+    frame: pd.DataFrame,
+    columns: set[str] | frozenset[str] | tuple[str, ...],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+```
+
+Returns None after iterating each named frame column and cell: missing is accepted only with allow_null=True, otherwise requires Real-not-bool, float conversion, finite and >=0. Conversion TypeError/ValueError/OverflowError are chained PlanningFeaturesError. No output array, positivity option, coercion of text or caller mutation; later kind-specific catalog guards require >0.
+
+Related evidence (limits in linked test explanation): [test_corrupted_surface_union_contract_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-corrupted-surface-union-contract-is-rejected).
+
+<a id="r3-integer-values"></a>
+
+### `_integer_values`
+
+function; source lines 1272–1285. Signature SHA256: `9a4941a6ce55bd7e8dc4c7795df23a753c1c6aac47058f8514f603c27a53cc6d`.
+
+```python
+def _integer_values(
+    frame: pd.DataFrame,
+    columns: set[str] | frozenset[str] | tuple[str, ...],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+```
+
+Returns None after iterating each named frame column and cell, accepting missing only when allow_null=True and applying _strict_nonnegative_integer otherwise. Does not convert the stored frame or return an array. Used for point metrics and parcel summary counts.
+
+Related evidence (limits in linked test explanation): [test_strict_parcel_summary_integer_counts_are_enforced](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-strict-parcel-summary-integer-counts-are-enforced).
+
+<a id="r3-null-safe-equal"></a>
+
+### `_null_safe_equal`
+
+function; source lines 1288–1305. Signature SHA256: `7a0dc2522de10ef547c8d5199a821d14b479f37cdb59560756092fc341a05611`.
+
+```python
+def _null_safe_equal(left: object, right: object) -> bool:
+```
+
+Computes pd.isna on both values and requires scalar bool/np.bool_ missing flags; two missing values compare equal, one missing unequal. Otherwise returns bool(left == right). TypeError/ValueError in missing/equality checks yield false. Used for copied relation facts and rebuild comparisons; not a tolerant numerical comparison.
+
+Related evidence (limits in linked test explanation): [test_relation_must_match_feature_catalog](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-relation-must-match-feature-catalog).
+
+<a id="r3-require-close"></a>
+
+### `_require_close`
+
+function; source lines 1308–1319. Signature SHA256: `4f980f1f04edbdb8d908981036ff8fca042b4b84f34d0f7f18b97a3d55af0d60`.
+
+```python
+def _require_close(actual: object, expected: float, label: str) -> None:
+```
+
+Requires a finite Real-not-bool actual, converting to float with controlled conversion errors. Compares abs(actual-expected) to common technical_overlay_tolerance(max(abs(actual), abs(expected))). Raises labeled PlanningFeaturesError on mismatch; never modifies supplied values. Used for recomputed metrics and union/formula comparisons.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_rejects_coherent_parcel_metric_mutation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-coherent-parcel-metric-mutation), [test_source_complete_contract_rejects_coherent_but_wrong_line_metric](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-coherent-but-wrong-line-metric).
+
+<a id="r3-validate-catalog-identity"></a>
+
+### `_validate_catalog_identity`
+
+function; source lines 1322–1368. Signature SHA256: `b329fec14b20f2cfaca65b162462c424600aef66e32999a762f84fa9355a44a3`.
+
+```python
+def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
+```
+
+Checks 19 required and six optional exact-string columns, unique planning IDs, each known logical role/family/kind, permitted identity kind/field and deterministic GPU:document:logical:source ID. Allows archive-scoped OGR_FID only for prescription surfaces with its required prefix/field. Intrinsic, not physical: public orchestration already rebuilt physical catalogs before this guard, then compares them afterward. Optional exact-string rejection is A-003.
+
+Related evidence (limits in linked test explanation): [test_feature_ids_are_globally_unique_across_catalogs](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-feature-ids-are-globally-unique-across-catalogs), [test_source_complete_contract_rejects_coherently_renamed_feature_identity](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-coherently-renamed-feature-identity).
+
+<a id="r3-validate-catalog-contract"></a>
+
+### `_validate_catalog_contract`
+
+function; source lines 1371–1452. Signature SHA256: `a816a627f75631453f7a5cfdc14d7e059bfa41ac8e72fdcae5616c6f6cbc0e57`.
+
+```python
+def _validate_catalog_contract(
+    catalog: object,
+    geometry_kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+```
+
+Requires GeoDataFrame and canonical kind-specific column order/dtypes/RangeIndex/active geometry/2154. Checks identities, valid allowed geometry, exactly 2D and positive full metrics; recomputes area/length within tolerance or part count exactly. Returns the same validated frame without mutation. Common schema TypeError/ValueError become PlanningFeaturesError.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_rejects_stripped_catalog](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-rejects-stripped-catalog), [test_three_dimensional_normalized_catalogs_are_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-three-dimensional-normalized-catalogs-are-rejected).
+
+<a id="r3-compare-normalized-catalog"></a>
+
+### `_compare_normalized_catalog`
+
+function; source lines 1455–1486. Signature SHA256: `ff151557866aa429f88a14d6ab29c30f75bc6c6aa69d3b36d6084c815c4d9ea1`.
+
+```python
+def _compare_normalized_catalog(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+```
+
+Requires equal deterministic schema signatures, equivalent CRS, exact ordered WKB and pandas equality of nongeometry data against the freshly normalized catalog. No tolerance for changed catalog WKB or attributes; no source-file reading in this comparison helper.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_rejects_independent_gpu_lineage_mutation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-independent-gpu-lineage-mutation).
+
+<a id="r3-validate-relation-catalog-consistency"></a>
+
+### `_validate_relation_catalog_consistency`
+
+function; source lines 1508–1551. Signature SHA256: `1a3dec07c51f20841fe39af3bba9044fb94f4c0b2bd090e93098b83e1c368ff9`.
+
+```python
+def _validate_relation_catalog_consistency(
+    relations: pd.DataFrame,
+    catalogs: tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame],
+) -> None:
+```
+
+Concatenates catalog nongeometry rows, rejects global duplicate IDs and unknown feature references, compares all 15 copied facts null-safely, then exact full feature metric (line source_line_length_m maps to feature_length_m). No GIS or IO. The global-ID test fails earlier at deterministic identity, so it is not a direct regression of this duplicate branch.
+
+Related evidence (limits in linked test explanation): [test_relation_must_match_feature_catalog](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-relation-must-match-feature-catalog).
+
+<a id="r3-validate-relation-semantics"></a>
+
+### `_validate_relation_semantics`
+
+function; source lines 1554–1558. Signature SHA256: `f1d6fbd1f5e361861075a7010ac0df9fc32af526d0138a6c66bac292f1ec4593`.
+
+```python
+def _validate_relation_semantics(relations: pd.DataFrame) -> None:
+```
+
+Delegates to common validate_intrinsic_planning_feature_relations and translates TypeError/ValueError to chained PlanningFeaturesError. This checks kind/relation/metric/null/count/formula coherence, not source provenance or geometric completeness.
+
+Related evidence (limits in linked test explanation): [test_point_member_relation_semantics_are_exact](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-point-member-relation-semantics-are-exact), [test_shared_intrinsic_relation_semantics_reject_every_invalid_case](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-shared-intrinsic-relation-semantics-reject-every-invalid-case).
+
+<a id="r3-compare-rebuilt-relations"></a>
+
+### `_compare_rebuilt_relations`
+
+function; source lines 1561–1599. Signature SHA256: `9f5d5f9b4a0ee03ce5f193711fb13c30fcf7efee323871a70f5ffdf1e8a63fbb`.
+
+```python
+def _compare_rebuilt_relations(
+    supplied: pd.DataFrame,
+    expected: pd.DataFrame,
+) -> None:
+```
+
+Requires exact schema, then equal index, then equal row count, before ordered cell comparisons. Thus extra-row cases with a reset RangeIndex fail the rebuilt-index comparison before the explicit count branch; the count guard follows an index equality that already constrains length. Float null patterns must match and finite values agree within tolerance; other cells compare null-safely. Missing-row test is stopped still earlier by canonical zero-based RangeIndex validation. No repair.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_rejects_extra_geometrically_false_relation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-extra-geometrically-false-relation), [test_source_complete_contract_rejects_same_area_wrong_parcel_relation](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-same-area-wrong-parcel-relation), [test_source_complete_contract_rejects_reordered_relations](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-reordered-relations), [test_source_complete_contract_rejects_coherent_but_wrong_line_metric](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-coherent-but-wrong-line-metric).
+
+<a id="r3-compare-rebuilt-parcel-output"></a>
+
+### `_compare_rebuilt_parcel_output`
+
+function; source lines 1602–1646. Signature SHA256: `427ceadb09cbf834d082605bd1405b203c4ae045b96a68564596ba0b114bece5`.
+
+```python
+def _compare_rebuilt_parcel_output(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+) -> None:
+```
+
+Compares full schema, exact index, equivalent CRS and ordered WKB with newly rebuilt parcel output. Planning floating summaries compare cellwise through _require_close; every other nongeometry column uses Series.equals (including dtype/order/null equality). Called only when public validator receives all 21 output fields; no physical read or mutation inside this comparison.
+
+Related evidence (limits in linked test explanation): [test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-noncanonical-parcel-summary-dtype), [test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-each-corrupted-parcel-summary-fact).
+
+<a id="r3-validate-normalized-planning-feature-inputs"></a>
+
+### `_validate_normalized_planning_feature_inputs`
+
+function; source lines 1649–1787. Signature SHA256: `14e9e05f7a84581924315d580f40be8e99d174a2cb58cd2248c811b609fdc088`.
+
+```python
+def _validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> PlanningFeatureInputValidation:
+```
+
+Ordered source-complete boundary: require none/all 21 parcel outputs, validate baseline parcels and metric copy; physically rebuild catalogs; intrinsically validate supplied catalogs then compare exact rebuilds; check canonical plain relations, IDs and actual parcel areas, intrinsic semantics and catalog consistency; reconstruct all relations and compare. If complete parcel outputs supplied, rebuild/compare/check summaries and lineage. Return hashes/counts of verified sources and rebuilt relations. Accepts no arbitrary precompiled trust substitute; no mutation or network.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_validates_step_7d_3_1_result](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-validates-step-7d-3-1-result), [test_source_complete_contract_rejects_partial_parcel_output_columns](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-partial-parcel-output-columns), [test_source_complete_contract_accepts_complete_parcel_output_summaries](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-accepts-complete-parcel-output-summaries).
+
+<a id="r3-validate-normalized-planning-feature-inputs"></a>
+
+### `validate_normalized_planning_feature_inputs`
+
+function; source lines 1790–1814. Signature SHA256: `4953e65f3ca9247ce04718697539810c6f5f0c1bc8e1c39e558887eb50f8ae15`.
+
+```python
+def validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> PlanningFeatureInputValidation:
+```
+
+Public six-argument wrapper returning PlanningFeatureInputValidation. Reraises PlanningFeaturesError unchanged; chains any other Exception into a generic safe PlanningFeaturesError. Does not return or repair supplied frames. Downstream CNIG resolver invokes this before applying meanings. A-003 demonstrates that a builder output is not unconditionally accepted.
+
+Related evidence (limits in linked test explanation): [test_public_normalized_input_contract_wraps_malformed_document_context](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-wraps-malformed-document-context), [test_public_normalized_input_contract_is_exported](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-normalized-input-contract-is-exported), [test_public_source_validation_hashes_survive_parquet_readback](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-public-source-validation-hashes-survive-parquet-readback).
+
+<a id="r3-validate-parcel-summaries"></a>
+
+### `_validate_parcel_summaries`
+
+function; source lines 1817–1936. Signature SHA256: `9754a50d3924d6db4f47e2eba4e58c0cdd05f3709e001bb73bb6a64b28358095`.
+
+```python
+def _validate_parcel_summaries(
+    source: gpd.GeoDataFrame,
+    output: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    surface_work: pd.DataFrame | None,
+) -> None:
+```
+
+Validates strict count fields against relation counts, finite non-negative sums against related metric totals, full parcel-area bounds and percentage formulas for union fields. If surface_work is provided, recomputes actual unions; otherwise only available intrinsic/cross-table checks apply. Rebuilds metric parcel geometry locally, no disk reads of its own. Does not establish provenance alone.
+
+Related evidence (limits in linked test explanation): [test_strict_parcel_summary_integer_counts_are_enforced](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-strict-parcel-summary-integer-counts-are-enforced), [test_corrupted_parcel_summary_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-corrupted-parcel-summary-is-rejected), [test_corrupted_surface_union_contract_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-corrupted-surface-union-contract-is-rejected).
+
+<a id="r3-validate-result"></a>
+
+### `_validate_result`
+
+function; source lines 1939–2020. Signature SHA256: `0b23f58a74aebffcddbbadfc0af1bc3c7f5c1844354854d322249183a0d5eaca`.
+
+```python
+def _validate_result(
+    source: gpd.GeoDataFrame,
+    result: ParcelPlanningFeaturesResult,
+    surface_work: pd.DataFrame | None = None,
+    *,
+    planning_document: GpuPlanningDocument,
+    source_inputs_already_rebuilt: bool = False,
+) -> None:
+```
+
+Checks preserved parcel row count/IDs/index/CRS/geometry and original columns, complete outputs and lineage. By default calls public source-complete input validation on source parcels plus result catalogs/relations. Builder passes source_inputs_already_rebuilt=True to skip that independent catalog/relation pass, then checks references and summaries with work geometry. This optimization is why A-003 can leave the builder unnoticed; the flag is private, not public authority.
+
+Related evidence (limits in linked test explanation): [test_inputs_and_all_existing_parcel_fields_are_preserved](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-inputs-and-all-existing-parcel-fields-are-preserved), [test_corrupted_parcel_summary_is_rejected](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-corrupted-parcel-summary-is-rejected).
+
+<a id="r3-intersect-parcels-with-gpu-planning-features"></a>
+
+### `intersect_parcels_with_gpu_planning_features`
+
+function; source lines 2023–2057. Signature SHA256: `5a76cdce6f2f1c255f3f6dffe485050987a86f4bf1b47643a0489ef53dc71a0d`.
+
+```python
+def intersect_parcels_with_gpu_planning_features(
+    parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
+) -> ParcelPlanningFeaturesResult:
+```
+
+Public builder: validate original parcels, build context, physically normalize related GPU sources once, make metric parcel copy, build all relation/work tables, attach summaries, wrap five frames, then _validate_result with source_inputs_already_rebuilt=True. Returns factual evidence only, no code interpretation or legal/BESS decision. Specific helpers translate expected errors; there is no catch-all around this whole function. Optional raw strings are preserved (A-003 remains open).
+
+Related evidence (limits in linked test explanation): [test_surface_full_overlap_normalizes_raw_values_and_lineage](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-surface-full-overlap-normalizes-raw-values-and-lineage), [test_line_crossing_and_partly_inside](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-line-crossing-and-partly-inside), [test_points_inside_boundary_outside_and_multipoint](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-points-inside-boundary-outside-and-multipoint), [test_only_high_level_api_is_exported](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-only-high-level-api-is-exported).
+
+## Change impact and exact source snapshot
+
+A source change requires review of this companion, its exact fingerprint/snapshot,
+qualified signatures, schemas, callers and assertion limits. R3 changes documentation
+only; no schema/hash migration, code/test edit or new authority is introduced.
+
+The following complete UTF-8 file is an aid to verification, not a substitute for
+the semantic explanations above. It reproduces exact Git content bytes inside the fence.
+
+```python
+"""Normalize and intersect factual GPU prescription/information features."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, replace
+from datetime import date, datetime
+from hashlib import sha256
+from math import isfinite
+from numbers import Integral, Real
+from typing import Literal, NamedTuple
+
+import geopandas as gpd  # type: ignore[import-untyped]
+import numpy as np
+import pandas as pd  # type: ignore[import-untyped]
+from pyproj import CRS
+from shapely import (  # type: ignore[import-untyped]
     area as shapely_area,
-)`
-- `from shapely import (
+)
+from shapely import (
     contains,
     covers,
     force_2d,
@@ -47,18 +1626,16 @@ This file belongs to the **spatial proxy enrichment stage** layer and the **plan
     get_parts,
     intersection,
     union_all,
-)`
-- `from shapely import (
+)
+from shapely import (
     length as shapely_length,
-)`
+)
 
-### Internal LandScout imports
-
-- `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
-- `from landscout.common.planning_feature_contract import (
+from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
-)`
-- `from landscout.common.planning_feature_schema import (
+)
+from landscout.common.planning_feature_schema import (
     NORMALIZED_FEATURE_COLUMNS,
     NORMALIZED_FEATURE_DTYPES,
     NORMALIZED_RELATION_DTYPES,
@@ -68,71 +1645,48 @@ This file belongs to the **spatial proxy enrichment stage** layer and the **plan
     RELATION_STRING_COLUMNS,
     normalized_feature_dtypes,
     validate_canonical_frame_schema,
-)`
-- `from landscout.common.planning_overlay import technical_overlay_tolerance`
-- `from landscout.sources.gpu_fr import (
+)
+from landscout.common.planning_overlay import technical_overlay_tolerance
+from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
     GpuSpatialInspectionError,
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
-)`
+)
 
-## 4. Contract taxonomy
+__all__ = [
+    "ParcelPlanningFeaturesResult",
+    "PlanningFeatureInputValidation",
+    "PlanningFeaturesError",
+    "intersect_parcels_with_gpu_planning_features",
+    "validate_normalized_planning_feature_inputs",
+]
 
-### A. Python constants
-
-#### `CALCULATION_CRS`
-
-```python
 CALCULATION_CRS = "EPSG:2154"
-```
-
-Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value reference).
-
-#### `PARCEL_REQUIRED_COLUMNS`
-
-```python
 PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
-```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference).
+FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
+GeometryKind = Literal["SURFACE", "LINE", "POINT"]
+SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
 
-#### `SOURCE_IDENTITY_KINDS`
-
-```python
 SOURCE_IDENTITY_KINDS = frozenset({"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"})
-```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
-
-#### `SURFACE_TYPES`
-
-```python
 SURFACE_TYPES = frozenset({"Polygon", "MultiPolygon"})
-```
-
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference).
-
-#### `LINE_TYPES`
-
-```python
 LINE_TYPES = frozenset({"LineString", "MultiLineString"})
-```
-
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference).
-
-#### `POINT_TYPES`
-
-```python
 POINT_TYPES = frozenset({"Point", "MultiPoint"})
-```
 
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value reference).
 
-#### `LAYER_SPECS`
+class _LayerSpec(NamedTuple):
+    logical_layer: str
+    feature_family: FeatureFamily
+    geometry_kind: GeometryKind
+    identity_field: str
+    type_field: str
+    subtype_field: str
+    allowed_geometry_types: frozenset[str]
 
-```python
+
 LAYER_SPECS = {
     "prescription_surface": _LayerSpec(
         "prescription_surface",
@@ -189,13 +1743,7 @@ LAYER_SPECS = {
         POINT_TYPES,
     ),
 }
-```
 
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` (value reference), `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
-
-#### `COMMON_SOURCE_FIELDS`
-
-```python
 COMMON_SOURCE_FIELDS = {
     "label_raw": "LIBELLE",
     "text_raw": "TXT",
@@ -204,13 +1752,6 @@ COMMON_SOURCE_FIELDS = {
     "source_document_reference_raw": "IDURBA",
     "source_validity_date_raw": "DATVALID",
 }
-```
-
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value reference).
-
-#### `OPTIONAL_SOURCE_FIELDS`
-
-```python
 OPTIONAL_SOURCE_FIELDS = frozenset(
     {
         "LIBELLE",
@@ -220,25 +1761,12 @@ OPTIONAL_SOURCE_FIELDS = frozenset(
         "DATVALID",
     }
 )
-```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
-
-#### `_CATALOG_GEOMETRY_TYPES`
-
-```python
 _CATALOG_GEOMETRY_TYPES = {
     "SURFACE": SURFACE_TYPES,
     "LINE": LINE_TYPES,
     "POINT": POINT_TYPES,
 }
-```
-
-Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` (value reference).
-
-#### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS`
-
-```python
 _CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
     "planning_feature_id",
     "source_feature_id",
@@ -260,13 +1788,6 @@ _CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
     "source_layer",
     "source_crs",
 )
-```
-
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
-
-#### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS`
-
-```python
 _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
     "label_raw",
     "text_raw",
@@ -275,13 +1796,7 @@ _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
     "source_validity_date_raw",
     "source_standard_model",
 )
-```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` (value reference).
-
-#### `PARCEL_OUTPUT_COLUMNS`
-
-```python
 PARCEL_OUTPUT_COLUMNS = frozenset(
     {
         "planning_surface_relation_count",
@@ -307,13 +1822,7 @@ PARCEL_OUTPUT_COLUMNS = frozenset(
         "planning_feature_archive_sha256",
     }
 )
-```
 
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value reference), `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_result` (value reference).
-
-#### `PARCEL_COUNT_COLUMNS`
-
-```python
 PARCEL_COUNT_COLUMNS = frozenset(
     {
         "planning_surface_relation_count",
@@ -329,290 +1838,13 @@ PARCEL_COUNT_COLUMNS = frozenset(
         "planning_point_boundary_count",
     }
 )
-```
-
-Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` (value reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value reference).
-
-#### `_RELATION_CATALOG_FIELDS`
-
-```python
-_RELATION_CATALOG_FIELDS = (
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "label_raw",
-    "text_raw",
-    "source_document_id",
-    "source_archive_sha256",
-    "source_layer",
-    "source_validity_date_raw",
-    "regulation_filename_raw",
-)
-```
-
-Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` (value reference).
 
 
-### B. Type aliases and closed domains
-
-#### `FeatureFamily`
-
-```python
-FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
-```
-
-Official planning-feature family domain: PRESCRIPTION or INFORMATION. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_LayerSpec` (type annotation).
-
-#### `GeometryKind`
-
-```python
-GeometryKind = Literal["SURFACE", "LINE", "POINT"]
-```
-
-Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_LayerSpec` (type annotation), `src/landscout/stages/enrich_planning_features.py::_canonical_catalog_dtypes` (type annotation), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (type annotation), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (type annotation), `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` (type annotation), `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` (type annotation).
-
-#### `SourceIdentityKind`
-
-```python
-SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
-```
-
-Closed Literal value domain shown exactly above; members are values, not frame columns. Enforced/consumed by `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` (type annotation).
-
-
-### C. Meaningful dunder contracts
-
-- `__all__` — explicit public export allow-list.
-```python
-__all__ = [
-    "ParcelPlanningFeaturesResult",
-    "PlanningFeatureInputValidation",
-    "PlanningFeaturesError",
-    "intersect_parcels_with_gpu_planning_features",
-    "validate_normalized_planning_feature_inputs",
-]
-```
-
-
-### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
-
-Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
-
-
-## 5. Classes / models / dataclasses
-
-### `_LayerSpec`
-
-**Purpose:** Immutable named tuple defining one GPU planning-feature logical layer's family, geometry kind, source fields, identity field, and allowed geometry types.
-
-**Kind:** immutable named tuple.
-
-**Inheritance:** `NamedTuple`.
-
-**Exact decorators:** none.
-
-**Fields**
-
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `logical_layer` | `logical_layer: str` | LandScout logical GPU feature-layer name represented by this normalization specification. |
-| `feature_family` | `feature_family: FeatureFamily` | `_LayerSpec.feature_family` represents the `feature_family` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `geometry_kind` | `geometry_kind: GeometryKind` | `_LayerSpec.geometry_kind` represents the `geometry_kind` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `identity_field` | `identity_field: str` | Source attribute selected as the stable feature identity for this layer specification. |
-| `type_field` | `type_field: str` | `_LayerSpec.type_field` represents the `type_field` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `subtype_field` | `subtype_field: str` | `_LayerSpec.subtype_field` represents the `subtype_field` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `allowed_geometry_types` | `allowed_geometry_types: frozenset[str]` | `_LayerSpec.allowed_geometry_types` represents the `allowed_geometry_types` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-
-**Interface consumers**
-
-- constructor call: `src/landscout/stages/enrich_planning_features.py::<module>` via `_LayerSpec`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_LayerSpec`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_LayerSpec`.
-
-**Exact class source**
-
-```python
-class _LayerSpec(NamedTuple):
-    logical_layer: str
-    feature_family: FeatureFamily
-    geometry_kind: GeometryKind
-    identity_field: str
-    type_field: str
-    subtype_field: str
-    allowed_geometry_types: frozenset[str]
-```
-
-### `PlanningFeaturesError`
-
-**Purpose:** Raised when factual GPU feature measurement cannot be completed safely.
-
-**Kind:** controlled exception.
-
-**Inheritance:** `ValueError`.
-
-**Exact decorators:** none.
-
-**Fields:** none declared directly on this class.
-
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_strict_string` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_strict_nonnegative_integer` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_crs` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_active_geometry` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_geometries` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_two_dimensional_geometry` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_relation_base` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_value` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_sha256` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_numeric_values` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_require_close` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `PlanningFeaturesError`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `PlanningFeaturesError`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='parcel_id')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `pytest.raises(PlanningFeaturesError, match='IDURBA')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `pytest.raises(PlanningFeaturesError, match=missing)`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `pytest.raises(PlanningFeaturesError, match='valid')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS|physical revalidation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='summary|physical revalidation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|summary|physical revalidation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `pytest.raises(PlanningFeaturesError, match='output columns')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `pytest.raises(PlanningFeaturesError)`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `pytest.raises(PlanningFeaturesError, match='inventory|reference')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `pytest.raises(PlanningFeaturesError, match='schema|label_raw')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|dtype|schema')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `pytest.raises(PlanningFeaturesError)`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `pytest.raises(PlanningFeaturesError, match='relation type')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `pytest.raises(PlanningFeaturesError, match='catalog|geometry kind|LINE relation|unrelated metric')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeaturesError, match='globally unique|deterministic')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='inconsistent with relations')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `pytest.raises(PlanningFeaturesError, match='union')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `pytest.raises(PlanningFeaturesError, match='spatial join')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `pytest.raises(PlanningFeaturesError, match='parcel|source')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `pytest.raises(PlanningFeaturesError, match='parcel|metric|source')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `pytest.raises(PlanningFeaturesError, match='relation|parcel|rebuilt|source')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `pytest.raises(PlanningFeaturesError, match='relation|order|rebuilt')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `pytest.raises(PlanningFeaturesError, match='schema|dtype|relation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `pytest.raises(PlanningFeaturesError, match='relation|metric|rebuilt')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `pytest.raises(PlanningFeaturesError, match='[Pp]arcel|output|summary|columns')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `pytest.raises(PlanningFeaturesError, match='parcel|schema|dtype|summary')`.
-- expected exception type: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation|lineage|document|archive|union|percentage')`.
-
-**Exact class source**
-
-```python
 class PlanningFeaturesError(ValueError):
     """Raised when factual GPU feature measurement cannot be completed safely."""
-```
 
-### `ParcelPlanningFeaturesResult`
 
-**Purpose:** Normalized feature catalogs, parcel enrichment, and factual relations.
-
-**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
-
-**Inheritance:** plain object.
-
-**Exact decorators:** `dataclass(frozen=True)`.
-
-**Fields**
-
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-| `surface_features` | `surface_features: gpd.GeoDataFrame` | Canonical surface planning-feature catalog in this result envelope. |
-| `line_features` | `line_features: gpd.GeoDataFrame` | Canonical line planning-feature catalog in this result envelope. |
-| `point_features` | `point_features: gpd.GeoDataFrame` | Canonical point planning-feature catalog in this result envelope. |
-| `relations` | `relations: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
-
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `ParcelPlanningFeaturesResult`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_run` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_contract_result` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `ParcelPlanningFeaturesResult`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `ParcelPlanningFeaturesResult`.
-
-**Exact class source**
-
-```python
+@dataclass(frozen=True)
 class ParcelPlanningFeaturesResult:
     """Normalized feature catalogs, parcel enrichment, and factual relations."""
 
@@ -621,58 +1853,9 @@ class ParcelPlanningFeaturesResult:
     line_features: gpd.GeoDataFrame
     point_features: gpd.GeoDataFrame
     relations: pd.DataFrame
-```
 
-### `PlanningFeatureInputValidation`
 
-**Purpose:** Immutable source-completeness evidence for normalized planning facts.
-
-**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
-
-**Inheritance:** plain object.
-
-**Exact decorators:** `dataclass(frozen=True)`.
-
-**Fields**
-
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `gpu_related_source_files_sha256` | `gpu_related_source_files_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
-| `expected_relations_content_sha256` | `expected_relations_content_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
-| `related_source_layer_count` | `related_source_layer_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
-| `related_source_file_count` | `related_source_file_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
-| `expected_relation_count` | `expected_relation_count: int` | Count derived by the public validation builder; this frozen dataclass has no constructor-time field validation. |
-
-**Interface consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    PlanningFeatureInputValidation,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
-- type annotation: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `PlanningFeatureInputValidation`.
-- type annotation: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `PlanningFeatureInputValidation`.
-
-**Exact class source**
-
-```python
+@dataclass(frozen=True)
 class PlanningFeatureInputValidation:
     """Immutable source-completeness evidence for normalized planning facts."""
 
@@ -681,42 +1864,9 @@ class PlanningFeatureInputValidation:
     related_source_layer_count: int
     related_source_file_count: int
     expected_relation_count: int
-```
 
-### `_PlanningContext`
 
-**Purpose:** Immutable result/value envelope carrying `provider`, `portal`, `commune_code`, `document_id`, `document_type`, `archive_name`, `archive_sha256`, `standard_model`.
-
-**Kind:** frozen dataclass envelope. Reassignment fails; frame-valued fields remain mutable and are not trust proof without the public revalidation boundary. Scalar-only records have immutable builder-produced leaves.
-
-**Inheritance:** plain object.
-
-**Exact decorators:** `dataclass(frozen=True)`.
-
-**Fields**
-
-| Field | Exact declaration | Meaning |
-|---|---|---|
-| `provider` | `provider: str` | Source-provider identity carried by this configuration/result and checked against its owning source contract. |
-| `portal` | `portal: str` | Source-portal identity carried by this configuration/result; it is provenance rather than physical proof by itself. |
-| `commune_code` | `commune_code: str` | Source commune declaration copied after nonempty unpadded-string validation here; upstream GPU validation owns any source-specific format constraint. |
-| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
-| `document_type` | `document_type: str` | `_PlanningContext.document_type` represents the `document_type` classification consumed by the exact validators/branches reproduced below; a closed vocabulary is claimed only where those validators enforce one. |
-| `archive_name` | `archive_name: str` | Portable physical source-archive basename retained in lineage. |
-| `archive_sha256` | `archive_sha256: str` | SHA256 lineage or canonical digest named by the prefix; context accepts hexadecimal either case locally, while computed hashes are lowercase. Direct dataclass construction does not validate field values. |
-| `standard_model` | `standard_model: str \| None` | Optional unique CNIG standard-model declaration reconciled from archive/extraction metadata; this helper does not load a policy or enforce a version vocabulary. |
-
-**Interface consumers**
-
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
-- constructor call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_PlanningContext`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_PlanningContext`.
-- type annotation: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_PlanningContext`.
-
-**Exact class source**
-
-```python
+@dataclass(frozen=True)
 class _PlanningContext:
     provider: str
     portal: str
@@ -726,331 +1876,42 @@ class _PlanningContext:
     archive_name: str
     archive_sha256: str
     standard_model: str | None
-```
 
 
-## 6. Functions and methods
-
-### `_strict_string`
-
-**Exact signature**
-
-```python
-def _strict_string(value: object, label: str) -> str:
-```
-
-**Purpose**
-
-Requires a nonempty string without leading/trailing whitespace; uses isinstance(str), not exact built-in-type equality, and returns the original value without trimming.
-
-**Return contract**
-
-- Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-value
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} must be a non-empty exact string')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
-
-**Complete source-ordered implementation**
-
-```python
 def _strict_string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
         raise PlanningFeaturesError(f"{label} must be a non-empty exact string")
     return value
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_strict_nonnegative_integer`
-
-**Exact signature**
-
-```python
-def _strict_nonnegative_integer(value: object, label: str) -> int:
-```
-
-**Purpose**
-
-Rejects bool, non-Integral and negative counts; accepted Python/NumPy integral values are returned as a built-in int.
-
-**Return contract**
-
-- Declared return annotation: `int`.
-- Every observed return expression is reproduced without truncation:
-```python
-int(value)
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Integral)`.
-- Guard with a raise path: `value < 0`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} must be an integer count')`, `PlanningFeaturesError(f'{label} must be non-negative')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
-
-**Complete source-ordered implementation**
-
-```python
 def _strict_nonnegative_integer(value: object, label: str) -> int:
     if isinstance(value, bool) or not isinstance(value, Integral):
         raise PlanningFeaturesError(f"{label} must be an integer count")
     if value < 0:
         raise PlanningFeaturesError(f"{label} must be non-negative")
     return int(value)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_ids`
-
-**Exact signature**
-
-```python
-def _validate_ids(values: pd.Series, label: str) -> None:
-```
-
-**Purpose**
-
-Applies non-null, nonempty, unpadded string checks and rejects duplicate identifiers without changing the Series.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `values.duplicated().any()`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} values must be unique')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_ids`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_validate_ids`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_validate_ids`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_ids`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_ids(values: pd.Series, label: str) -> None:
     _validate_exact_strings(values, label)
     if values.duplicated().any():
         raise PlanningFeaturesError(f"{label} values must be unique")
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_exact_strings`
-
-**Exact signature**
-
-```python
-def _validate_exact_strings(values: pd.Series, label: str) -> None:
-```
-
-**Purpose**
-
-Rejects any null then applies _strict_string to every value; exact spelling is required, but str subclasses are not rejected by this helper.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `values.isna().any()`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} values must not be null')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_exact_strings(values: pd.Series, label: str) -> None:
     if values.isna().any():
         raise PlanningFeaturesError(f"{label} values must not be null")
     for value in values.tolist():
         _strict_string(value, label)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_optional_exact_strings`
-
-**Exact signature**
-
-```python
-def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
-```
-
-**Purpose**
-
-Allows scalar pandas-null values; every other value must be a nonempty unpadded string. This validates supplied catalogs, not optional raw values during initial normalization.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_optional_exact_strings`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
     for value in values.tolist():
         if pd.isna(value):
             continue
         _strict_string(value, label)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_crs`
-
-**Exact signature**
-
-```python
-def _crs(value: object, label: str) -> CRS:
-```
-
-**Purpose**
-
-Requires CRS metadata and parses it with PyProj; unreadable inputs become a chained PlanningFeaturesError. This helper alone does not require Lambert-93.
-
-**Return contract**
-
-- Declared return annotation: `CRS`.
-- Every observed return expression is reproduced without truncation:
-```python
-CRS.from_user_input(value)
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `value is None`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} CRS is required')`, `PlanningFeaturesError(f'{label} CRS is unreadable')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: CRS metadata parsing only; no reprojection.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_crs`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_crs`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `_crs`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `_crs`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_crs`.
-
-**Complete source-ordered implementation**
-
-```python
 def _crs(value: object, label: str) -> CRS:
     if value is None:
         raise PlanningFeaturesError(f"{label} CRS is required")
@@ -1058,55 +1919,8 @@ def _crs(value: object, label: str) -> CRS:
         return CRS.from_user_input(value)
     except Exception as error:
         raise PlanningFeaturesError(f"{label} CRS is unreadable") from error
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_active_geometry`
-
-**Exact signature**
-
-```python
-def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
-```
-
-**Purpose**
-
-Requires a column literally named geometry and requires it to be the active GeoPandas geometry; does not change the frame.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `'geometry' not in frame.columns`.
-- Guard with a raise path: `active != 'geometry'`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry column is required')`, `PlanningFeaturesError(f'{label} geometry must be active')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
-
-**Complete source-ordered implementation**
-
-```python
 def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
     if "geometry" not in frame.columns:
         raise PlanningFeaturesError(f"{label} geometry column is required")
@@ -1116,61 +1930,8 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
         raise PlanningFeaturesError(f"{label} geometry must be active") from error
     if active != "geometry":
         raise PlanningFeaturesError(f"{label} geometry must be active")
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_geometries`
-
-**Exact signature**
-
-```python
-def _validate_geometries(
-    frame: gpd.GeoDataFrame,
-    allowed: frozenset[str],
-    label: str,
-) -> None:
-```
-
-**Purpose**
-
-Rejects null, empty, invalid or out-of-family geometries without repair; allowed types are passed explicitly by the caller.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `geometry.isna().any()`.
-- Guard with a raise path: `geometry.is_empty.any()`.
-- Guard with a raise path: `not geometry.is_valid.all()`.
-- Guard with a raise path: `not found.issubset(allowed)`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry must be valid')`, `PlanningFeaturesError(f'{label} geometry must not be empty')`, `PlanningFeaturesError(f'{label} geometry must not be null')`, `PlanningFeaturesError(f'{label} has unsupported geometry types: ' + ', '.join(sorted(found - allowed)))`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_geometries`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_geometries`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_geometries`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_geometries(
     frame: gpd.GeoDataFrame,
     allowed: frozenset[str],
@@ -1189,55 +1950,8 @@ def _validate_geometries(
             f"{label} has unsupported geometry types: "
             + ", ".join(sorted(found - allowed))
         )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_two_dimensional_geometry`
-
-**Exact signature**
-
-```python
-def _validate_two_dimensional_geometry(
-    frame: gpd.GeoDataFrame,
-    label: str,
-) -> None:
-```
-
-**Purpose**
-
-Requires Shapely coordinate dimension exactly two for every supplied normalized feature geometry; wraps dimensionality failures.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `(dimensions != 2).any()`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry dimensionality cannot be validated')`, `PlanningFeaturesError(f'{label} geometry must be canonical 2D')`, `re-raise`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: Shapely get_coordinate_dimension, no geometry change.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_two_dimensional_geometry`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_two_dimensional_geometry(
     frame: gpd.GeoDataFrame,
     label: str,
@@ -1254,63 +1968,8 @@ def _validate_two_dimensional_geometry(
         raise PlanningFeaturesError(
             f"{label} geometry dimensionality cannot be validated"
         ) from error
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_parcels`
-
-**Exact signature**
-
-```python
-def _validate_parcels(
-    parcels: gpd.GeoDataFrame,
-    *,
-    allow_output_columns: bool = False,
-) -> CRS:
-```
-
-**Purpose**
-
-Accepts a GeoDataFrame with unique nonempty unpadded parcel IDs, active valid nonempty Polygon/MultiPolygon geometry and readable CRS; rejects duplicate columns and reserved output collisions unless explicitly allowed. Input storage need not be EPSG:4326.
-
-**Return contract**
-
-- Declared return annotation: `CRS`.
-- Every observed return expression is reproduced without truncation:
-```python
-source_crs
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
-- Guard with a raise path: `parcels.columns.duplicated().any()`.
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `collisions and (not allow_output_columns)`.
-- Explicit raise expressions: `PlanningFeaturesError('Parcels already contain planning-feature output columns: ' + ', '.join(collisions))`, `PlanningFeaturesError('Parcels are missing required columns: ' + ', '.join(missing))`, `PlanningFeaturesError('Parcels contain duplicate columns')`, `PlanningFeaturesError('Parcels must be a GeoDataFrame')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_active_geometry`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_parcels(
     parcels: gpd.GeoDataFrame,
     *,
@@ -1336,55 +1995,8 @@ def _validate_parcels(
     _validate_ids(parcels["parcel_id"], "parcel_id")
     _validate_geometries(parcels, SURFACE_TYPES, "Parcel")
     return source_crs
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_standard_model`
-
-**Exact signature**
-
-```python
-def _standard_model(document: GpuPlanningDocument) -> str | None:
-```
-
-**Purpose**
-
-Collects optional standard-model declarations from archive metadata and extraction, preserving first occurrence; returns None or the single exact declaration and rejects conflicting declarations. No policy file is loaded.
-
-**Return contract**
-
-- Declared return annotation: `str | None`.
-- Every observed return expression is reproduced without truncation:
-```python
-values[0] if values else None
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `len(values) > 1`.
-- Explicit raise expressions: `PlanningFeaturesError('GPU standard-model lineage is ambiguous')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `values`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
-
-**Complete source-ordered implementation**
-
-```python
 def _standard_model(document: GpuPlanningDocument) -> str | None:
     values: list[str] = []
     model = document.extraction.archive.document.standard_model
@@ -1397,58 +2009,8 @@ def _standard_model(document: GpuPlanningDocument) -> str | None:
     if len(values) > 1:
         raise PlanningFeaturesError("GPU standard-model lineage is ambiguous")
     return values[0] if values else None
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_planning_context`
-
-**Exact signature**
-
-```python
-def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
-```
-
-**Purpose**
-
-Reads document/archive provenance into a frozen scalar context, checking nonempty unpadded strings and a 64-character hexadecimal SHA (either case accepted locally). Physical authority is established later by GPU source revalidation.
-
-**Return contract**
-
-- Declared return annotation: `_PlanningContext`.
-- Every observed return expression is reproduced without truncation:
-```python
-_PlanningContext(provider=_strict_string(metadata.provider, 'GPU provider'), portal=_strict_string(metadata.portal, 'GPU portal'), commune_code=_strict_string(metadata.commune_code, 'GPU commune code'), document_id=_strict_string(metadata.document_id, 'GPU document ID'), document_type=_strict_string(metadata.document_type, 'GPU document type'), archive_name=_strict_string(metadata.archive_name, 'GPU archive name'), archive_sha256=sha, standard_model=_standard_model(document))
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isinstance(document, GpuPlanningDocument)`.
-- Guard with a raise path: `len(sha) != 64 or any((c not in '0123456789abcdefABCDEF' for c in sha))`.
-- Explicit raise expressions: `PlanningFeaturesError('GPU archive SHA256 must contain 64 hex chars')`, `PlanningFeaturesError('planning_document must be a GpuPlanningDocument')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_planning_context`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_planning_context`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_planning_context`.
-
-**Complete source-ordered implementation**
-
-```python
 def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
     if not isinstance(document, GpuPlanningDocument):
         raise PlanningFeaturesError("planning_document must be a GpuPlanningDocument")
@@ -1467,107 +2029,13 @@ def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
         archive_sha256=sha,
         standard_model=_standard_model(document),
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_summary_geometry_types`
-
-**Exact signature**
-
-```python
-def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], ...]:
-```
-
-**Purpose**
-
-Returns source geometry-type counts as a sorted tuple of (name, integer count) pairs.
-
-**Return contract**
-
-- Declared return annotation: `tuple[tuple[str, int], ...]`.
-- Every observed return expression is reproduced without truncation:
-```python
-tuple(((str(key), int(value)) for key, value in counts.items()))
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `frame.geometry.geom_type.value_counts`, `frame.geometry.geom_type.value_counts().sort_index`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_summary_geometry_types`.
-
-**Complete source-ordered implementation**
-
-```python
 def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], ...]:
     counts = frame.geometry.geom_type.value_counts().sort_index()
     return tuple((str(key), int(value)) for key, value in counts.items())
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_layer_summary`
-
-**Exact signature**
-
-```python
-def _validate_layer_summary(
-    layer: GpuInspectedLayer,
-    context: _PlanningContext,
-) -> None:
-```
-
-**Purpose**
-
-Recomputes ordered fields/dtypes/null counts, geometry counts, row count and CRS from the current layer, validates strict nonnegative count types and compares summary/document/archive/layer lineage.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `summary.source_document_id != context.document_id or summary.source_archive_sha256 != context.archive_sha256 or summary.source_layer != layer.reference.source_layer or (summary.feature_count != len(frame)) or (not actual_crs.equals(summary_crs)) or (summary.columns != tuple((str(column) for column in frame.columns))) or (summary.dtypes != expected_dtypes) or (summary.null_counts != expected_nulls) or (summary.geometry_types != _summary_geometry_types(frame)) or (summary.null_geometry_count != int((~non_null).sum())) or (summary.empty_geometry_count != int((non_null & geometry.is_empty).sum())) or (summary.invalid_geometry_count != int((non_empty & ~geometry.is_valid).sum()))`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{layer.logical_name} source summary is inconsistent with loaded data')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `_summary_geometry_types`, `geometry.notna`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_layer_summary(
     layer: GpuInspectedLayer,
     context: _PlanningContext,
@@ -1616,56 +2084,8 @@ def _validate_layer_summary(
         raise PlanningFeaturesError(
             f"{layer.logical_name} source summary is inconsistent with loaded data"
         )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_project_geometry`
-
-**Exact signature**
-
-```python
-def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
-```
-
-**Purpose**
-
-Copies geometry when CRS is equivalent to EPSG:2154 or reprojects a separate frame otherwise, then force_2d produces planar XY geometry. Original parcel/source geometry is not repaired or overwritten.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoSeries`.
-- Every observed return expression is reproduced without truncation:
-```python
-gpd.GeoSeries(force_2d(projected.array), crs=target)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} CRS cannot be transformed safely to EPSG:2154')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `force_2d`, `frame.geometry.copy`, `frame.to_crs`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_project_geometry`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `_project_geometry`.
-
-**Complete source-ordered implementation**
-
-```python
 def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
     source = _crs(frame.crs, label)
     target = CRS.from_epsg(2154)
@@ -1680,64 +2100,8 @@ def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
         raise PlanningFeaturesError(
             f"{label} CRS cannot be transformed safely to EPSG:2154"
         ) from error
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_source_feature_ids`
-
-**Exact signature**
-
-```python
-def _source_feature_ids(
-    layer: GpuInspectedLayer,
-    spec: _LayerSpec,
-    validated_source: GpuValidatedSpatialLayerSource,
-) -> tuple[pd.Series, SourceIdentityKind, str]:
-```
-
-**Purpose**
-
-Uses validated unique CNIG IDs where the configured identity column exists. Only prescription_surface may fall back to archive-scoped OGR_FID:<fid> from freshly validated physical FIDs when LIB_IDPSC is absent; other absent identity columns fail.
-
-**Return contract**
-
-- Declared return annotation: `tuple[pd.Series, SourceIdentityKind, str]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(result, 'CNIG_ATTRIBUTE', spec.identity_field)
-
-(values, 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')
-
-(pd.Series(dtype='object'), 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `spec.logical_layer == 'prescription_surface'`.
-- Guard with a raise path: `len(validated_source.ogr_fids) != len(layer.data)`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{layer.logical_name} verified source FIDs are unavailable')`, `PlanningFeaturesError(f'{spec.logical_layer} is missing required identity field {spec.identity_field}')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_source_feature_ids`.
-
-**Complete source-ordered implementation**
-
-```python
 def _source_feature_ids(
     layer: GpuInspectedLayer,
     spec: _LayerSpec,
@@ -1767,122 +2131,14 @@ def _source_feature_ids(
     raise PlanningFeaturesError(
         f"{spec.logical_layer} is missing required identity field {spec.identity_field}"
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_optional_values`
-
-**Exact signature**
-
-```python
-def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
-```
-
-**Purpose**
-
-Returns a copied NumPy array of an optional raw column, or an all-None object array when the column is absent. It does not trim, interpret or validate optional string content.
-
-**Return contract**
-
-- Declared return annotation: `np.ndarray`.
-- Every observed return expression is reproduced without truncation:
-```python
-frame[source_field].to_numpy(copy=True)
-
-np.full(len(frame), None, dtype='object')
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_optional_values`.
-
-**Complete source-ordered implementation**
-
-```python
 def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
     if source_field not in frame.columns:
         return np.full(len(frame), None, dtype="object")
     return frame[source_field].to_numpy(copy=True)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_normalize_layer`
-
-**Exact signature**
-
-```python
-def _normalize_layer(
-    layer: GpuInspectedLayer,
-    spec: _LayerSpec,
-    context: _PlanningContext,
-    validated_source: GpuValidatedSpatialLayerSource,
-) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Validates required type/subtype/IDURBA fields, source IDs, geometry and summary; IDURBA must equal the archive name after removing at most one case-insensitive .zip suffix. Copies factual raw values/provenance into an XY EPSG:2154 catalog and computes full-feature area, length or member count.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-projected
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isinstance(frame, gpd.GeoDataFrame)`.
-- Guard with a raise path: `missing`.
-- Guard with a raise path: `not frame['IDURBA'].eq(expected_reference).all()`.
-- Guard with a raise path: `spec.geometry_kind == 'SURFACE'`.
-- Guard with a raise path: `frame[field].isna().any()`.
-- Guard with a raise path: `not np.isfinite(values).all() or (values <= 0).any()`.
-- Guard with a raise path: `spec.geometry_kind == 'LINE'`.
-- Guard with a raise path: `not np.isfinite(values).all() or (values <= 0).any()`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{spec.logical_layer} IDURBA does not match planning archive identity')`, `PlanningFeaturesError(f'{spec.logical_layer} area calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} areas must be positive')`, `PlanningFeaturesError(f'{spec.logical_layer} is missing required source fields: ' + ', '.join(missing))`, `PlanningFeaturesError(f'{spec.logical_layer} length calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} lengths must be positive')`, `PlanningFeaturesError(f'{spec.logical_layer} must be a GeoDataFrame')`, `PlanningFeaturesError(f'{spec.logical_layer} point-member calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} {field} must not be null')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `_active_geometry`, `_project_geometry`, `geometry.to_numpy`, `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`, `projected.geometry.area.to_numpy`, `projected.geometry.length.to_numpy`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `projected['feature_area_m2']`, `projected['feature_length_m']`, `projected['point_member_count']`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_normalize_layer`.
-
-**Complete source-ordered implementation**
-
-```python
 def _normalize_layer(
     layer: GpuInspectedLayer,
     spec: _LayerSpec,
@@ -1991,59 +2247,8 @@ def _normalize_layer(
                 f"{spec.logical_layer} point-member calculation failed"
             ) from error
     return projected
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_canonical_catalog_dtypes`
-
-**Exact signature**
-
-```python
-def _canonical_catalog_dtypes(
-    catalog: gpd.GeoDataFrame,
-    kind: GeometryKind,
-) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Mutates the newly built catalog passed by its private callers: casts every nongeometry field according to the shared deterministic kind/null-pattern dtype contract and replaces its index with unnamed RangeIndex(0, len, 1).
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-catalog
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `catalog.index`, `catalog[column]`.
-- Input mutation: `catalog.index`, `catalog[column]`.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_empty_catalog` via `_canonical_catalog_dtypes`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes`.
-
-**Complete source-ordered implementation**
-
-```python
 def _canonical_catalog_dtypes(
     catalog: gpd.GeoDataFrame,
     kind: GeometryKind,
@@ -2060,55 +2265,8 @@ def _canonical_catalog_dtypes(
         )
     catalog.index = pd.RangeIndex(len(catalog))
     return catalog
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_empty_catalog`
-
-**Exact signature**
-
-```python
-def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Builds the complete kind-specific empty 27-column GeoDataFrame with shared canonical dtypes, active geometry, EPSG:2154 and canonical RangeIndex.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_catalog_dtypes(output, kind)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `data[column]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_empty_catalog`.
-
-**Complete source-ordered implementation**
-
-```python
 def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
     data: dict[str, object] = {}
     for column, dtype in zip(
@@ -2123,59 +2281,8 @@ def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
         )
     output = gpd.GeoDataFrame(data, geometry="geometry", crs=CALCULATION_CRS)
     return _canonical_catalog_dtypes(output, kind)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_combine_catalogs`
-
-**Exact signature**
-
-```python
-def _combine_catalogs(
-    frames: list[gpd.GeoDataFrame], kind: GeometryKind
-) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Concatenates catalogs in supplied order, rejects duplicate planning_feature_id values and canonicalizes the new combined frame; returns the stable empty kind schema when no catalogs are supplied.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_catalog_dtypes(combined, kind)
-
-_empty_catalog(kind)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` via `_combine_catalogs`.
-
-**Complete source-ordered implementation**
-
-```python
 def _combine_catalogs(
     frames: list[gpd.GeoDataFrame], kind: GeometryKind
 ) -> gpd.GeoDataFrame:
@@ -2186,67 +2293,8 @@ def _combine_catalogs(
     )
     _validate_ids(combined["planning_feature_id"], "planning_feature_id")
     return _canonical_catalog_dtypes(combined, kind)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_normalized_catalogs`
-
-**Exact signature**
-
-```python
-def _normalized_catalogs(
-    planning_document: GpuPlanningDocument,
-) -> tuple[
-    gpd.GeoDataFrame,
-    gpd.GeoDataFrame,
-    gpd.GeoDataFrame,
-    tuple[GpuValidatedSpatialLayerSource, ...],
-]:
-```
-
-**Purpose**
-
-Requires each inspected reference exactly once in the document spatial inventory, rejects unsupported/duplicate related logical roles, then calls revalidate_gpu_spatial_layer_sources once for the ordered requested roles. Normalization uses freshly reread source data, with the stored summary checked against it; combines surface/line/point catalogs in LAYER_SPECS order.
-
-**Return contract**
-
-- Declared return annotation: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, tuple[GpuValidatedSpatialLayerSource, ...]]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(combined('SURFACE'), combined('LINE'), combined('POINT'), validated_sources)
-
-_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `sum((reference == layer.reference for reference in spatial_inventory)) != 1`.
-- Guard with a raise path: `logical not in LAYER_SPECS`.
-- Guard with a raise path: `logical in layer_map`.
-- Explicit raise expressions: `PlanningFeaturesError('Related GPU spatial sources failed physical revalidation')`, `PlanningFeaturesError(f'Duplicate related layer: {logical}')`, `PlanningFeaturesError(f'Unsupported related layer: {logical}')`, `PlanningFeaturesError(f'{layer.logical_name} inspected reference must occur exactly once in the GPU spatial-layer inventory')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `layer_map[logical]`, `normalized[logical]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_normalized_catalogs`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_normalized_catalogs`.
-
-**Complete source-ordered implementation**
-
-```python
 def _normalized_catalogs(
     planning_document: GpuPlanningDocument,
 ) -> tuple[
@@ -2313,115 +2361,8 @@ def _normalized_catalogs(
         combined("POINT"),
         validated_sources,
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_normalized_catalogs.combined`
-
-**Exact signature**
-
-```python
-def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Selects normalized logical catalogs of one geometry kind in the explicit LAYER_SPECS insertion order, then combines them or constructs the canonical empty catalog.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `combined`.
-
-**Complete source-ordered implementation**
-
-```python
-def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
-        return _combine_catalogs(
-            [
-                normalized[logical]
-                for logical, spec in LAYER_SPECS.items()
-                if spec.geometry_kind == kind and logical in normalized
-            ],
-            kind,
-        )
-```
-
-**Business boundary**
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_metric_parcels`
-
-**Exact signature**
-
-```python
-def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Builds an independent planar XY EPSG:2154 parcel frame carrying original row positions and IDs, and requires finite positive full-polygon areas.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not np.isfinite(areas).all() or (areas <= 0).any()`.
-- Explicit raise expressions: `PlanningFeaturesError('Parcel metric areas must be finite and positive')`, `PlanningFeaturesError('Parcel metric-area calculation failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `(areas <= 0).any`, `_project_geometry`, `geometry.to_numpy`, `np.isfinite(areas).all`, `result.geometry.area.to_numpy`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `result['_parcel_area_m2']`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
-
-**Complete source-ordered implementation**
-
-```python
 def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     geometry = _project_geometry(parcels, "Parcel")
     result = gpd.GeoDataFrame(
@@ -2440,64 +2381,8 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         raise PlanningFeaturesError("Parcel metric areas must be finite and positive")
     result["_parcel_area_m2"] = areas
     return result
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_relation_base`
-
-**Exact signature**
-
-```python
-def _relation_base(
-    metric: gpd.GeoDataFrame,
-    catalog: gpd.GeoDataFrame,
-) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
-```
-
-**Purpose**
-
-Runs an inner GeoPandas sjoin with predicate intersects over full metric parcels and feature geometry; preserves matched parcel/feature positions and copies relation identity/raw/provenance fields. Empty inputs return empty work structures.
-
-**Return contract**
-
-- Declared return annotation: `tuple[pd.DataFrame, np.ndarray, np.ndarray]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(base, parcel_positions, feature_positions)
-
-(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))
-
-(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError('Planning-feature spatial join failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: GeoPandas sjoin(predicate="intersects") over full calculation polygons and feature geometry.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `_relation_base`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `_relation_base`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `_relation_base`.
-
-**Complete source-ordered implementation**
-
-```python
 def _relation_base(
     metric: gpd.GeoDataFrame,
     catalog: gpd.GeoDataFrame,
@@ -2560,60 +2445,8 @@ def _relation_base(
         }
     )
     return base, parcel_positions, feature_positions
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_surface_relations`
-
-**Exact signature**
-
-```python
-def _surface_relations(
-    metric: gpd.GeoDataFrame,
-    catalog: gpd.GeoDataFrame,
-) -> pd.DataFrame:
-```
-
-**Purpose**
-
-Computes exact polygon intersections and their areas; positive area is AREA_OVERLAP, zero-area contact is TOUCH_ONLY. Keeps clipped geometry only in temporary work, calculates both area percentages and leaves line/point-only metrics null.
-
-**Return contract**
-
-- Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-base
-
-base
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError('Surface intersection calculation failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `catalog['feature_area_m2'].to_numpy`, `intersection`, `shapely_area`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `base['_intersection_geometry']`, `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_surface_relations`.
-
-**Complete source-ordered implementation**
-
-```python
 def _surface_relations(
     metric: gpd.GeoDataFrame,
     catalog: gpd.GeoDataFrame,
@@ -2645,60 +2478,8 @@ def _surface_relations(
     for column in RELATION_COUNT_COLUMNS:
         base[column] = pd.array([pd.NA] * len(base), dtype="Int64")
     return base
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_line_relations`
-
-**Exact signature**
-
-```python
-def _line_relations(
-    metric: gpd.GeoDataFrame,
-    catalog: gpd.GeoDataFrame,
-) -> pd.DataFrame:
-```
-
-**Purpose**
-
-Computes clipped intersection length and distinguishes positive LENGTH_OVERLAP from zero-length TOUCH_ONLY. source_line_length_m is the entire source feature length, not the clipped length; area and point-only metrics are null.
-
-**Return contract**
-
-- Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-base
-
-base
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError('Line intersection calculation failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `intersection`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_line_relations`.
-
-**Complete source-ordered implementation**
-
-```python
 def _line_relations(
     metric: gpd.GeoDataFrame,
     catalog: gpd.GeoDataFrame,
@@ -2727,60 +2508,8 @@ def _line_relations(
     for column in RELATION_COUNT_COLUMNS:
         base[column] = pd.array([pd.NA] * len(base), dtype="Int64")
     return base
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_point_relations`
-
-**Exact signature**
-
-```python
-def _point_relations(
-    metric: gpd.GeoDataFrame,
-    catalog: gpd.GeoDataFrame,
-) -> pd.DataFrame:
-```
-
-**Purpose**
-
-Expands every member of each matched Point/MultiPoint, uses contains for strict inside and covers for inside-or-boundary, and counts both per parcel/feature. Source member count includes outside members; any inside member makes INSIDE, otherwise BOUNDARY_TOUCH. No covered member fails.
-
-**Return contract**
-
-- Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-base
-
-base
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `(inside_counts + boundary_counts <= 0).any()`.
-- Explicit raise expressions: `PlanningFeaturesError('Point candidate has no covered source member')`, `PlanningFeaturesError('Point intersection calculation failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: Shapely get_parts, contains and covers; scalar/bincount accumulation is not itself a geometry operation.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `base['point_member_count']`, `base['point_members_boundary_count']`, `base['point_members_inside_count']`, `base['relation_type']`, `base[column]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_point_relations`.
-
-**Complete source-ordered implementation**
-
-```python
 def _point_relations(
     metric: gpd.GeoDataFrame,
     catalog: gpd.GeoDataFrame,
@@ -2818,55 +2547,8 @@ def _point_relations(
     base["point_members_inside_count"] = pd.array(inside_counts, dtype="Int64")
     base["point_members_boundary_count"] = pd.array(boundary_counts, dtype="Int64")
     return base
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_empty_relations`
-
-**Exact signature**
-
-```python
-def _empty_relations() -> pd.DataFrame:
-```
-
-**Purpose**
-
-Creates the canonical empty plain 28-column DataFrame: string evidence, float64 measurements, nullable Int64 point counts and unnamed zero-based RangeIndex.
-
-**Return contract**
-
-- Declared return annotation: `pd.DataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-output
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output.index`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_empty_relations`.
-
-**Complete source-ordered implementation**
-
-```python
 def _empty_relations() -> pd.DataFrame:
     output = pd.DataFrame(
         {
@@ -2884,63 +2566,8 @@ def _empty_relations() -> pd.DataFrame:
     )
     output.index = pd.RangeIndex(0)
     return output
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_build_relation_tables`
-
-**Exact signature**
-
-```python
-def _build_relation_tables(
-    metric: gpd.GeoDataFrame,
-    surfaces: gpd.GeoDataFrame,
-    lines: gpd.GeoDataFrame,
-    points: gpd.GeoDataFrame,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-```
-
-**Purpose**
-
-Builds all three relation families, concatenates nonempty work and stable-sorts by original parcel position then planning_feature_id. Returns temporary family work plus the canonical plain relation frame; clipped geometry is not retained in public relations.
-
-**Return contract**
-
-- Declared return annotation: `tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]`.
-- Every observed return expression is reproduced without truncation:
-```python
-(surface_work, line_work, point_work, relations)
-
-(surface_work, line_work, point_work, _empty_relations())
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `relations.index`, `relations[column]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_build_relation_tables`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_build_relation_tables`.
-
-**Complete source-ordered implementation**
-
-```python
 def _build_relation_tables(
     metric: gpd.GeoDataFrame,
     surfaces: gpd.GeoDataFrame,
@@ -2966,70 +2593,8 @@ def _build_relation_tables(
         relations[column] = pd.array(relations[column], dtype="Int64")
     relations.index = pd.RangeIndex(len(relations))
     return surface_work, line_work, point_work, relations
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_canonical_integrity_value`
-
-**Exact signature**
-
-```python
-def _canonical_integrity_value(value: object) -> object:
-```
-
-**Purpose**
-
-Canonicalizes temporal scalars to ISO text, NumPy scalars recursively to Python scalars, scalar missing values to None, bool before integer, and finite real numbers; rejects unsupported values and non-finite nonmissing numbers. This is a hash-cell converter, not a public deep-immutability container.
-
-**Return contract**
-
-- Declared return annotation: `object`.
-- Every observed return expression is reproduced without truncation:
-```python
-value.isoformat()
-
-_canonical_integrity_value(value.item())
-
-None
-
-None
-
-value
-
-int(value)
-
-number
-
-value
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `isinstance(value, Real)`.
-- Guard with a raise path: `not isfinite(number)`.
-- Explicit raise expressions: `PlanningFeaturesError('Integrity payload contains non-finite numeric data')`, `PlanningFeaturesError(f'Integrity payload contains unsupported value {type(value).__name__}')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_value`.
-
-**Complete source-ordered implementation**
-
-```python
 def _canonical_integrity_value(value: object) -> object:
     if isinstance(value, (datetime, date, pd.Timestamp)):
         return value.isoformat()
@@ -3059,56 +2624,8 @@ def _canonical_integrity_value(value: object) -> object:
     raise PlanningFeaturesError(
         f"Integrity payload contains unsupported value {type(value).__name__}"
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_canonical_integrity_sha256`
-
-**Exact signature**
-
-```python
-def _canonical_integrity_sha256(payload: object) -> str:
-```
-
-**Purpose**
-
-Serializes a payload with sorted JSON keys, compact separators, Unicode preserved and allow_nan=False, then SHA256-hashes UTF-8 bytes; serialization failures are controlled.
-
-**Return contract**
-
-- Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-sha256(encoded).hexdigest()
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError('Planning-feature integrity payload cannot be serialized')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `sha256`, `sha256(encoded).hexdigest`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `_canonical_integrity_sha256`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_sha256`.
-
-**Complete source-ordered implementation**
-
-```python
 def _canonical_integrity_sha256(payload: object) -> str:
     try:
         encoded = json.dumps(
@@ -3123,58 +2640,8 @@ def _canonical_integrity_sha256(payload: object) -> str:
             "Planning-feature integrity payload cannot be serialized"
         ) from error
     return sha256(encoded).hexdigest()
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_gpu_related_source_files_sha256`
-
-**Exact signature**
-
-```python
-def _gpu_related_source_files_sha256(
-    planning_document: GpuPlanningDocument,
-    sources: tuple[GpuValidatedSpatialLayerSource, ...],
-) -> str:
-```
-
-**Purpose**
-
-Hashes the v1 verified-GPU-sources payload: archive SHA, logical-role-sorted layers, relative dataset path, driver/layer/CRS/count, ordered physical OGR FIDs and relative-path-sorted component file identities. Absolute extraction roots are excluded.
-
-**Return contract**
-
-- Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_integrity_sha256({'domain': 'landscout.planning_features.verified_gpu_sources.v1', 'source_archive_sha256': planning_document.extraction.archive.sha256, 'layers': [{'logical_layer': source.logical_name, 'driver': source.driver, 'source_layer': source.source_layer, 'dataset_relative_path': source.dataset_relative_path, 'source_feature_count': source.feature_count, 'source_crs': source.source_crs, 'ogr_fids': list(source.ogr_fids), 'files': [{'relative_path': item.relative_path, 'file_type': item.file_type, 'size_bytes': item.size_bytes, 'sha256': item.sha256, 'category': item.category} for item in sorted(source.files, key=lambda value: value.relative_path)]} for source in sorted(sources, key=lambda value: value.logical_name)]})
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_integrity_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_gpu_related_source_files_sha256`.
-
-**Complete source-ordered implementation**
-
-```python
 def _gpu_related_source_files_sha256(
     planning_document: GpuPlanningDocument,
     sources: tuple[GpuValidatedSpatialLayerSource, ...],
@@ -3209,55 +2676,8 @@ def _gpu_related_source_files_sha256(
             ],
         }
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_expected_relations_content_sha256`
-
-**Exact signature**
-
-```python
-def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
-```
-
-**Purpose**
-
-Hashes the v2 expected-relations payload, including deterministic ordered frame schema, index metadata/values and every canonical row cell. Uses freshly reconstructed expected relations, not a caller digest.
-
-**Return contract**
-
-- Declared return annotation: `str`.
-- Every observed return expression is reproduced without truncation:
-```python
-_canonical_integrity_sha256({'domain': 'landscout.planning_features.expected_relations.v2', 'schema': deterministic_frame_schema_signature(relations), 'index': [_canonical_integrity_value(value) for value in relations.index.tolist()], 'rows': [[_canonical_integrity_value(value) for value in row] for row in relations.itertuples(index=False, name=None)]})
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: `_canonical_integrity_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_expected_relations_content_sha256`.
-
-**Complete source-ordered implementation**
-
-```python
 def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
     return _canonical_integrity_sha256(
         {
@@ -3272,115 +2692,12 @@ def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
             ],
         }
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_technical_tolerance`
-
-**Exact signature**
-
-```python
-def _technical_tolerance(parcel_area: float) -> float:
-```
-
-**Purpose**
-
-Delegates to the common numerical overlay tolerance; this is a floating-point comparison tolerance, not a spatial buffer or policy threshold.
-
-**Return contract**
-
-- Declared return annotation: `float`.
-- Every observed return expression is reproduced without truncation:
-```python
-technical_overlay_tolerance(parcel_area)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `_technical_tolerance`.
-
-**Complete source-ordered implementation**
-
-```python
 def _technical_tolerance(parcel_area: float) -> float:
     return technical_overlay_tolerance(parcel_area)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_surface_union_summary`
-
-**Exact signature**
-
-```python
-def _surface_union_summary(
-    positive: pd.DataFrame,
-    parcel_areas: np.ndarray,
-    count: int,
-) -> np.ndarray:
-```
-
-**Purpose**
-
-Unions positive clipped surface intersections per parcel so overlapping source features do not double-count covered area. Rejects non-finite/negative areas and overshoot beyond numerical tolerance; clamps only a tolerance-sized overshoot to parcel area.
-
-**Return contract**
-
-- Declared return annotation: `np.ndarray`.
-- Every observed return expression is reproduced without truncation:
-```python
-output
-
-output
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isfinite(value) or value < 0`.
-- Guard with a raise path: `value > area`.
-- Guard with a raise path: `value - area > _technical_tolerance(area)`.
-- Explicit raise expressions: `PlanningFeaturesError('Surface covered-union area exceeds parcel area')`, `PlanningFeaturesError('Surface covered-union area is invalid')`, `PlanningFeaturesError('Surface covered-union calculation failed')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: Shapely union_all over clipped geometries and shapely_area.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `output[position]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_surface_union_summary`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_surface_union_summary`.
-
-**Complete source-ordered implementation**
-
-```python
 def _surface_union_summary(
     positive: pd.DataFrame,
     parcel_areas: np.ndarray,
@@ -3410,65 +2727,8 @@ def _surface_union_summary(
             value = area
         output[position] = value
     return output
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_attach_parcel_summaries`
-
-**Exact signature**
-
-```python
-def _attach_parcel_summaries(
-    parcels: gpd.GeoDataFrame,
-    metric: gpd.GeoDataFrame,
-    surface_work: pd.DataFrame,
-    line_work: pd.DataFrame,
-    point_work: pd.DataFrame,
-    context: _PlanningContext,
-) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Appends 21 facts to a deep copy of original parcels: family/total relation counts, overlapping raw area sum, non-double-counted total/family union areas and percentages, summed clipped line lengths, point inside/boundary member counts and document/archive lineage. No-match numeric summaries are zero, not null.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-output
-
-result
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: delegated clipped-geometry unions; line/point counts and numeric sums are tabular aggregation.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `line_sum[values.index.to_numpy(dtype='int64')]`, `output['planning_feature_archive_sha256']`, `output['planning_feature_document_id']`, `output['planning_line_intersection_length_sum_m']`, `output['planning_line_length_overlap_count']`, `output['planning_line_relation_count']`, `output['planning_line_touch_count']`, `output['planning_point_relation_count']`, `output['planning_surface_area_overlap_count']`, `output['planning_surface_covered_pct']`, `output['planning_surface_covered_union_area_m2']`, `output['planning_surface_intersection_area_sum_m2']`, `output['planning_surface_relation_count']`, `output['planning_surface_touch_count']`, `output[f'{prefix}_surface_covered_pct']`, `output[f'{prefix}_surface_covered_union_area_m2']`, `output[f'{prefix}_surface_relation_count']`, `output[target]`, `raw_sum[sums.index.to_numpy(dtype='int64')]`, `result[counts.index.to_numpy(dtype='int64')]`, `values[grouped.index.to_numpy(dtype='int64')]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_attach_parcel_summaries`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_attach_parcel_summaries`.
-
-**Complete source-ordered implementation**
-
-```python
 def _attach_parcel_summaries(
     parcels: gpd.GeoDataFrame,
     metric: gpd.GeoDataFrame,
@@ -3581,123 +2841,8 @@ def _attach_parcel_summaries(
     output["planning_feature_document_id"] = context.document_id
     output["planning_feature_archive_sha256"] = context.archive_sha256
     return output
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_attach_parcel_summaries.relation_counts`
-
-**Exact signature**
-
-```python
-def relation_counts(
-        frame: pd.DataFrame, mask: pd.Series | None = None
-    ) -> np.ndarray:
-```
-
-**Purpose**
-
-Counts relation rows by original parcel position into a new zero-filled int64 array; it does not count MultiPoint members.
-
-**Return contract**
-
-- Declared return annotation: `np.ndarray`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: `result[counts.index.to_numpy(dtype='int64')]`.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `relation_counts`.
-
-**Complete source-ordered implementation**
-
-```python
-def relation_counts(
-        frame: pd.DataFrame, mask: pd.Series | None = None
-    ) -> np.ndarray:
-        result = np.zeros(count, dtype="int64")
-        selected = frame if mask is None else frame.loc[mask]
-        if not selected.empty:
-            counts = selected.groupby("_parcel_position", sort=False).size()
-            result[counts.index.to_numpy(dtype="int64")] = counts.to_numpy(
-                dtype="int64"
-            )
-        return result
-```
-
-**Business boundary**
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_numeric_values`
-
-**Exact signature**
-
-```python
-def _numeric_values(
-    frame: pd.DataFrame,
-    columns: set[str] | frozenset[str] | tuple[str, ...],
-    label: str,
-    *,
-    allow_null: bool,
-) -> None:
-```
-
-**Purpose**
-
-Checks designated scalar numeric cells for allowed nullness, Real-but-not-bool type, finiteness and nonnegative values; does not cast or replace the frame values.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `pd.isna(value)`.
-- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
-- Guard with a raise path: `not isfinite(number) or number < 0`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} {column} must be finite and non-negative')`, `PlanningFeaturesError(f'{label} {column} must be finite')`, `PlanningFeaturesError(f'{label} {column} must be numeric')`, `PlanningFeaturesError(f'{label} {column} must not be null')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_numeric_values`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_numeric_values`.
-
-**Complete source-ordered implementation**
-
-```python
 def _numeric_values(
     frame: pd.DataFrame,
     columns: set[str] | frozenset[str] | tuple[str, ...],
@@ -3723,59 +2868,8 @@ def _numeric_values(
                 raise PlanningFeaturesError(
                     f"{label} {column} must be finite and non-negative"
                 )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_integer_values`
-
-**Exact signature**
-
-```python
-def _integer_values(
-    frame: pd.DataFrame,
-    columns: set[str] | frozenset[str] | tuple[str, ...],
-    label: str,
-    *,
-    allow_null: bool,
-) -> None:
-```
-
-**Purpose**
-
-Checks designated count cells for allowed nullness, Integral-but-not-bool type and nonnegative values without mutating the frame.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `pd.isna(value)`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} {column} must not be null')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_integer_values`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_integer_values`.
-
-**Complete source-ordered implementation**
-
-```python
 def _integer_values(
     frame: pd.DataFrame,
     columns: set[str] | frozenset[str] | tuple[str, ...],
@@ -3790,64 +2884,8 @@ def _integer_values(
                     continue
                 raise PlanningFeaturesError(f"{label} {column} must not be null")
             _strict_nonnegative_integer(value, f"{label} {column}")
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_null_safe_equal`
-
-**Exact signature**
-
-```python
-def _null_safe_equal(left: object, right: object) -> bool:
-```
-
-**Purpose**
-
-Compares scalar values with symmetric pandas missing-value handling; nonscalar null predicates or TypeError/ValueError during comparison return False.
-
-**Return contract**
-
-- Declared return annotation: `bool`.
-- Every observed return expression is reproduced without truncation:
-```python
-False
-
-left_null and right_null
-
-bool(left == right)
-
-False
-
-False
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
-
-**Complete source-ordered implementation**
-
-```python
 def _null_safe_equal(left: object, right: object) -> bool:
     try:
         left_missing = pd.isna(left)
@@ -3866,58 +2904,8 @@ def _null_safe_equal(left: object, right: object) -> bool:
         return bool(left == right)
     except (TypeError, ValueError):
         return False
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_require_close`
-
-**Exact signature**
-
-```python
-def _require_close(actual: object, expected: float, label: str) -> None:
-```
-
-**Purpose**
-
-Requires a finite Real-but-not-bool actual metric and compares it to the expected metric using technical_overlay_tolerance(max(abs(actual), abs(expected))).
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `isinstance(actual, bool) or not isinstance(actual, Real)`.
-- Guard with a raise path: `not isfinite(number)`.
-- Guard with a raise path: `abs(number - expected) > technical_overlay_tolerance(reference)`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} is inconsistent')`, `PlanningFeaturesError(f'{label} must be finite')`, `PlanningFeaturesError(f'{label} must be numeric')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_require_close`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_require_close`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_require_close`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_require_close`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_require_close`.
-
-**Complete source-ordered implementation**
-
-```python
 def _require_close(actual: object, expected: float, label: str) -> None:
     if isinstance(actual, bool) or not isinstance(actual, Real):
         raise PlanningFeaturesError(f"{label} must be numeric")
@@ -3930,59 +2918,8 @@ def _require_close(actual: object, expected: float, label: str) -> None:
     reference = max(abs(number), abs(expected))
     if abs(number - expected) > technical_overlay_tolerance(reference):
         raise PlanningFeaturesError(f"{label} is inconsistent")
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_catalog_identity`
-
-**Exact signature**
-
-```python
-def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
-```
-
-**Purpose**
-
-Checks required and optional text hygiene, IDs unique within logical roles, deterministic GPU planning IDs, logical/family/kind consistency and CNIG-versus-prescription-surface FID provenance. Physical rereading later checks full source identity, not merely its prefix.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `logical not in LAYER_SPECS`.
-- Guard with a raise path: `row['feature_family'] != spec.feature_family`.
-- Guard with a raise path: `row['geometry_kind'] != spec.geometry_kind`.
-- Guard with a raise path: `row['planning_feature_id'] != expected_planning_id`.
-- Guard with a raise path: `kind not in SOURCE_IDENTITY_KINDS`.
-- Guard with a raise path: `kind == 'CNIG_ATTRIBUTE'`.
-- Guard with a raise path: `field != spec.identity_field`.
-- Guard with a raise path: `logical != 'prescription_surface' or field != 'OGR_FID' or (not str(row['source_feature_id']).startswith('OGR_FID:'))`.
-- Explicit raise expressions: `PlanningFeaturesError('Archive-scoped OGR FID provenance is inconsistent')`, `PlanningFeaturesError('CNIG source identity field is inconsistent')`, `PlanningFeaturesError('Feature catalog family is inconsistent')`, `PlanningFeaturesError('Feature catalog logical layer and geometry kind are inconsistent')`, `PlanningFeaturesError('Feature catalog logical layer is invalid')`, `PlanningFeaturesError('Feature source identity kind is invalid')`, `PlanningFeaturesError('planning_feature_id differs from deterministic GPU identity')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_catalog_identity`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
     for column in _CATALOG_REQUIRED_EXACT_STRING_COLUMNS:
         _validate_exact_strings(
@@ -4030,65 +2967,8 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
             raise PlanningFeaturesError(
                 "Archive-scoped OGR FID provenance is inconsistent"
             )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_catalog_contract`
-
-**Exact signature**
-
-```python
-def _validate_catalog_contract(
-    catalog: object,
-    geometry_kind: GeometryKind,
-) -> gpd.GeoDataFrame:
-```
-
-**Purpose**
-
-Requires the shared exact ordered columns/dtypes, active EPSG:2154 geometry and canonical RangeIndex; checks 2D valid nonempty kind geometry, identity and positive metrics/member counts. Remeasured area/length uses numerical tolerance; member counts compare exactly.
-
-**Return contract**
-
-- Declared return annotation: `gpd.GeoDataFrame`.
-- Every observed return expression is reproduced without truncation:
-```python
-catalog
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `not isinstance(catalog, gpd.GeoDataFrame)`.
-- Guard with a raise path: `not catalog.empty and (not catalog['geometry_kind'].eq(geometry_kind).all())`.
-- Guard with a raise path: `geometry_kind == 'SURFACE'`.
-- Guard with a raise path: `(catalog['feature_area_m2'] <= 0).any()`.
-- Guard with a raise path: `geometry_kind == 'LINE'`.
-- Guard with a raise path: `(catalog['feature_length_m'] <= 0).any()`.
-- Guard with a raise path: `(catalog['point_member_count'] < 1).any()`.
-- Guard with a raise path: `catalog['point_member_count'].tolist() != member_counts`.
-- Explicit raise expressions: `PlanningFeaturesError('Line feature lengths must be positive')`, `PlanningFeaturesError('Line feature metric validation failed')`, `PlanningFeaturesError('Point feature member count is inconsistent with geometry')`, `PlanningFeaturesError('Point feature member validation failed')`, `PlanningFeaturesError('Point features must contain a member')`, `PlanningFeaturesError('Surface feature areas must be positive')`, `PlanningFeaturesError('Surface feature metric validation failed')`, `PlanningFeaturesError(f'{label} geometry kind is invalid')`, `PlanningFeaturesError(f'{label} must be a GeoDataFrame')`, `PlanningFeaturesError(str(error))`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `(catalog['feature_area_m2'] <= 0).any`, `_active_geometry`, `_validate_two_dimensional_geometry`, `catalog.geometry.area.to_numpy`, `catalog.geometry.length.to_numpy`, `catalog['feature_area_m2'].tolist`, `catalog['geometry_kind'].eq`, `catalog['geometry_kind'].eq(geometry_kind).all`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_catalog_contract`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_catalog_contract(
     catalog: object,
     geometry_kind: GeometryKind,
@@ -4171,57 +3051,8 @@ def _validate_catalog_contract(
                 "Point feature member count is inconsistent with geometry"
             )
     return catalog
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_compare_normalized_catalog`
-
-**Exact signature**
-
-```python
-def _compare_normalized_catalog(
-    supplied: gpd.GeoDataFrame,
-    expected: gpd.GeoDataFrame,
-    label: str,
-) -> None:
-```
-
-**Purpose**
-
-Compares deterministic frame schema, equivalent CRS, ordered geometry WKB and exact nongeometry DataFrame equality against a freshly normalized GPU catalog. Non-inplace drop creates comparison frames; inputs are not changed.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
-- Guard with a raise path: `not supplied_crs.equals(expected_crs) or not geometry_equal or (not attributes_equal)`.
-- Explicit raise expressions: `PlanningFeaturesError(f'{label} cannot be compared with normalized GPU source')`, `PlanningFeaturesError(f'{label} differs from normalized GPU source')`, `PlanningFeaturesError(f'{label} schema differs from normalized GPU source')`, `re-raise`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: ordered geometry WKB serialization and equivalent-CRS comparison; nongeometry DataFrame.equals is a tabular comparison.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_normalized_catalog`.
-
-**Complete source-ordered implementation**
-
-```python
 def _compare_normalized_catalog(
     supplied: gpd.GeoDataFrame,
     expected: gpd.GeoDataFrame,
@@ -4254,58 +3085,27 @@ def _compare_normalized_catalog(
         or not attributes_equal
     ):
         raise PlanningFeaturesError(f"{label} differs from normalized GPU source")
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+_RELATION_CATALOG_FIELDS = (
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "label_raw",
+    "text_raw",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
+)
 
-### `_validate_relation_catalog_consistency`
 
-**Exact signature**
-
-```python
-def _validate_relation_catalog_consistency(
-    relations: pd.DataFrame,
-    catalogs: tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame],
-) -> None:
-```
-
-**Purpose**
-
-Requires globally unique feature IDs and known relation references, compares 15 copied identity/raw/lineage values null-safely and compares the full source feature metric exactly to the corresponding catalog metric.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `feature_rows['planning_feature_id'].duplicated().any()`.
-- Guard with a raise path: `identifier not in indexed.index`.
-- Guard with a raise path: `metric_column is None or catalog_column is None or (not _null_safe_equal(relation[metric_column], feature[catalog_column]))`.
-- Guard with a raise path: `not _null_safe_equal(relation[column], feature[column])`.
-- Explicit raise expressions: `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Relation feature metric is inconsistent with feature catalog')`, `PlanningFeaturesError('planning_feature_id values must be globally unique')`, `PlanningFeaturesError(f'Relation {column} is inconsistent with feature catalog')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none; the dict lookups select metric column names, not geometry operations.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_catalog_consistency`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_relation_catalog_consistency(
     relations: pd.DataFrame,
     catalogs: tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame],
@@ -4350,112 +3150,15 @@ def _validate_relation_catalog_consistency(
             raise PlanningFeaturesError(
                 "Relation feature metric is inconsistent with feature catalog"
             )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_relation_semantics`
-
-**Exact signature**
-
-```python
-def _validate_relation_semantics(relations: pd.DataFrame) -> None:
-```
-
-**Purpose**
-
-Delegates closed relation-kind, null-pattern, numeric and percentage checks to the shared intrinsic planning relation validator; TypeError/ValueError are translated to PlanningFeaturesError.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError(str(error))`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_semantics`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_relation_semantics(relations: pd.DataFrame) -> None:
     try:
         validate_intrinsic_planning_feature_relations(relations)
     except (TypeError, ValueError) as error:
         raise PlanningFeaturesError(str(error)) from error
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_compare_rebuilt_relations`
-
-**Exact signature**
-
-```python
-def _compare_rebuilt_relations(
-    supplied: pd.DataFrame,
-    expected: pd.DataFrame,
-) -> None:
-```
-
-**Purpose**
-
-Requires identical schemas, index, row count/order and null patterns; nonfloat cells compare null-safely and float measurements compare with the shared technical tolerance, not byte identity.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
-- Guard with a raise path: `not supplied.index.equals(expected.index)`.
-- Guard with a raise path: `len(supplied) != len(expected)`.
-- Guard with a raise path: `column in RELATION_FLOAT_COLUMNS`.
-- Guard with a raise path: `actual_missing or expected_missing`.
-- Guard with a raise path: `not _null_safe_equal(actual, rebuilt)`.
-- Guard with a raise path: `actual_missing != expected_missing`.
-- Explicit raise expressions: `PlanningFeaturesError('Planning relation count differs from the spatial reconstruction')`, `PlanningFeaturesError('Planning relation index or row order differs from the spatial reconstruction')`, `PlanningFeaturesError('Planning relation schema differs from the spatial reconstruction')`, `PlanningFeaturesError(f'{label} differs from the spatial reconstruction')`, `PlanningFeaturesError(f'{label} null pattern differs from spatial reconstruction')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_relations`.
-
-**Complete source-ordered implementation**
-
-```python
 def _compare_rebuilt_relations(
     supplied: pd.DataFrame,
     expected: pd.DataFrame,
@@ -4495,58 +3198,8 @@ def _compare_rebuilt_relations(
                 raise PlanningFeaturesError(
                     f"{label} differs from the spatial reconstruction"
                 )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_compare_rebuilt_parcel_output`
-
-**Exact signature**
-
-```python
-def _compare_rebuilt_parcel_output(
-    supplied: gpd.GeoDataFrame,
-    expected: gpd.GeoDataFrame,
-) -> None:
-```
-
-**Purpose**
-
-Compares schema/index, equivalent CRS and ordered WKB to reconstructed parcel output; floating summary facts use tolerance, while count/lineage/original columns use exact Series equality.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
-- Guard with a raise path: `not supplied.index.equals(expected.index)`.
-- Guard with a raise path: `not _crs(supplied.crs, 'Parcel output').equals(_crs(expected.crs, 'Expected parcel output')) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb())`.
-- Guard with a raise path: `not supplied[column].equals(expected[column])`.
-- Explicit raise expressions: `PlanningFeaturesError('Planning-feature parcel geometry or CRS differs from reconstruction')`, `PlanningFeaturesError('Planning-feature parcel output index differs from reconstruction')`, `PlanningFeaturesError('Planning-feature parcel output schema differs from reconstruction')`, `PlanningFeaturesError(f'Planning-feature parcel column {column} differs from reconstruction')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.geometry.to_wkb`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_parcel_output`.
-
-**Complete source-ordered implementation**
-
-```python
 def _compare_rebuilt_parcel_output(
     supplied: gpd.GeoDataFrame,
     expected: gpd.GeoDataFrame,
@@ -4592,70 +3245,8 @@ def _compare_rebuilt_parcel_output(
             raise PlanningFeaturesError(
                 f"Planning-feature parcel column {column} differs from reconstruction"
             )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_normalized_planning_feature_inputs`
-
-**Exact signature**
-
-```python
-def _validate_normalized_planning_feature_inputs(
-    planning_document: GpuPlanningDocument,
-    parcels: gpd.GeoDataFrame,
-    surface_features: gpd.GeoDataFrame,
-    line_features: gpd.GeoDataFrame,
-    point_features: gpd.GeoDataFrame,
-    relations: pd.DataFrame,
-) -> PlanningFeatureInputValidation:
-```
-
-**Purpose**
-
-Accepts source parcels or parcels with all 21 summaries, rejects partial summaries, physically rebuilds GPU catalogs and relations, checks supplied canonical catalogs/evidence against those reconstructions and optionally rebuilds all parcel summaries. Returns hashes/counts of the reconstructed authority.
-
-**Return contract**
-
-- Declared return annotation: `PlanningFeatureInputValidation`.
-- Every observed return expression is reproduced without truncation:
-```python
-PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_source_files_sha256(planning_document, validated_sources), expected_relations_content_sha256=_expected_relations_content_sha256(expected_relations), related_source_layer_count=len(validated_sources), related_source_file_count=len(unique_files), expected_relation_count=len(expected_relations))
-```
-
-**Validation and exceptions**
-
-- Guard with a raise path: `present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS`.
-- Guard with a raise path: `len(all_feature_ids) != len(set(all_feature_ids))`.
-- Guard with a raise path: `not isinstance(relations, pd.DataFrame) or isinstance(relations, gpd.GeoDataFrame)`.
-- Guard with a raise path: `relations.duplicated(['parcel_id', 'planning_feature_id']).any()`.
-- Guard with a raise path: `not set(relations['planning_feature_id']).issubset(set(all_feature_ids))`.
-- Guard with a raise path: `present_outputs`.
-- Guard with a raise path: `parcel_id not in parcel_areas`.
-- Guard with a raise path: `not parcels['planning_feature_document_id'].eq(context.document_id).all()`.
-- Guard with a raise path: `not parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all()`.
-- Explicit raise expressions: `PlanningFeaturesError('Parcel planning-feature archive lineage differs')`, `PlanningFeaturesError('Parcel planning-feature document lineage differs')`, `PlanningFeaturesError('Parcel planning-feature summaries are incomplete: ' + ', '.join(missing))`, `PlanningFeaturesError('Parcel/planning-feature relations must be unique')`, `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Planning relation references an unknown source parcel')`, `PlanningFeaturesError('Planning relations must be a DataFrame')`, `PlanningFeaturesError('planning_feature_id values must be globally unique')`, `PlanningFeaturesError(str(error))`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
-- Filesystem write: none.
-- CRS/geometry calculation: delegated XY projection, catalog normalization and complete spatial reconstruction; iterating numeric parcel areas is not a geometry operation.
-- Hashing: `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `_validate_normalized_planning_feature_inputs`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_normalized_planning_feature_inputs(
     planning_document: GpuPlanningDocument,
     parcels: gpd.GeoDataFrame,
@@ -4795,88 +3386,8 @@ def _validate_normalized_planning_feature_inputs(
         related_source_file_count=len(unique_files),
         expected_relation_count=len(expected_relations),
     )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `validate_normalized_planning_feature_inputs`
-
-**Exact signature**
-
-```python
-def validate_normalized_planning_feature_inputs(
-    planning_document: GpuPlanningDocument,
-    parcels: gpd.GeoDataFrame,
-    surface_features: gpd.GeoDataFrame,
-    line_features: gpd.GeoDataFrame,
-    point_features: gpd.GeoDataFrame,
-    relations: pd.DataFrame,
-) -> PlanningFeatureInputValidation:
-```
-
-**Purpose**
-
-Source-complete public boundary for externally supplied normalized facts. Reconstructs physical source catalogs and full parcel-feature relations, preserving controlled errors and wrapping unexpected Exception failures as chained PlanningFeaturesError.
-
-**Return contract**
-
-- Declared return annotation: `PlanningFeatureInputValidation`.
-- Every observed return expression is reproduced without truncation:
-```python
-_validate_normalized_planning_feature_inputs(planning_document, parcels, surface_features, line_features, point_features, relations)
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: `PlanningFeaturesError('Normalized planning-feature input validation failed safely')`, `re-raise`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    PlanningFeatureInputValidation,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `validate_normalized_planning_feature_inputs`.
-- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `validate_normalized_planning_feature_inputs`.
-- direct call: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `validate_normalized_planning_feature_inputs`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `validate_normalized_planning_feature_inputs`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `validate_normalized_planning_feature_inputs`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `validate_normalized_planning_feature_inputs`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `validate_normalized_planning_feature_inputs`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `validate_normalized_planning_feature_inputs`.
-
-**Complete source-ordered implementation**
-
-```python
 def validate_normalized_planning_feature_inputs(
     planning_document: GpuPlanningDocument,
     parcels: gpd.GeoDataFrame,
@@ -4902,62 +3413,8 @@ def validate_normalized_planning_feature_inputs(
         raise PlanningFeaturesError(
             "Normalized planning-feature input validation failed safely"
         ) from error
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_parcel_summaries`
-
-**Exact signature**
-
-```python
-def _validate_parcel_summaries(
-    source: gpd.GeoDataFrame,
-    output: gpd.GeoDataFrame,
-    relations: pd.DataFrame,
-    surface_work: pd.DataFrame | None,
-) -> None:
-```
-
-**Purpose**
-
-Recomputes parcel metric areas and relation-derived counts/sums, checks union bounds and percentage formulas within numerical tolerance, and optionally reconstructs total/family unions from supplied temporary clipped geometry.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `planning_union - raw_sum > technical_overlay_tolerance(raw_sum)`.
-- Guard with a raise path: `planning_union - parcel_area > technical_overlay_tolerance(parcel_area)`.
-- Guard with a raise path: `parcel[column] != expected`.
-- Guard with a raise path: `union - planning_union > technical_overlay_tolerance(planning_union)`.
-- Guard with a raise path: `abs(pct - expected_pct) > pct_tolerance`.
-- Explicit raise expressions: `PlanningFeaturesError('Family surface union exceeds total union')`, `PlanningFeaturesError('Surface union exceeds parcel area')`, `PlanningFeaturesError('Surface union exceeds raw intersection sum')`, `PlanningFeaturesError(f'Parcel summary {column} is inconsistent with relations')`, `PlanningFeaturesError(f'{prefix} surface percentage is inconsistent')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: none.
-- Filesystem write: none.
-- CRS/geometry calculation: delegated parcel metric projection and optional clipped-geometry unions; relation sums are tabular aggregation.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcel_summaries`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_parcel_summaries`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_parcel_summaries(
     source: gpd.GeoDataFrame,
     output: gpd.GeoDataFrame,
@@ -5078,84 +3535,8 @@ def _validate_parcel_summaries(
                 output[column].tolist(), expected_union, strict=True
             ):
                 _require_close(actual, float(value), column)
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `_validate_result`
-
-**Exact signature**
-
-```python
-def _validate_result(
-    source: gpd.GeoDataFrame,
-    result: ParcelPlanningFeaturesResult,
-    surface_work: pd.DataFrame | None = None,
-    *,
-    planning_document: GpuPlanningDocument,
-    source_inputs_already_rebuilt: bool = False,
-) -> None:
-```
-
-**Purpose**
-
-Checks parcel preservation, required summaries, known relation IDs, summary consistency and lineage. By default invokes source-complete normalized validation; the public builder explicitly passes source_inputs_already_rebuilt=True to skip that second catalog/relation reconstruction, while still checking its fresh surface work.
-
-**Return contract**
-
-- Declared return annotation: `None`.
-- No explicit return; normal completion returns `None`.
-
-**Validation and exceptions**
-
-- Guard with a raise path: `missing_output`.
-- Guard with a raise path: `len(output) != len(source)`.
-- Guard with a raise path: `output['parcel_id'].tolist() != source['parcel_id'].tolist()`.
-- Guard with a raise path: `not output.index.equals(source.index)`.
-- Guard with a raise path: `output.crs != source.crs or not np.array_equal(output.geometry.to_wkb(), source.geometry.to_wkb())`.
-- Guard with a raise path: `not set(relations['parcel_id']).issubset(set(output['parcel_id']))`.
-- Guard with a raise path: `not set(relations['planning_feature_id']).issubset(known_features)`.
-- Guard with a raise path: `nonempty_catalogs`.
-- Guard with a raise path: `not output[column].equals(source[column])`.
-- Guard with a raise path: `len(expected_document_ids) != 1 or len(expected_archive_hashes) != 1 or set(output['planning_feature_document_id']) != expected_document_ids or (set(output['planning_feature_archive_sha256']) != expected_archive_hashes)`.
-- Explicit raise expressions: `PlanningFeaturesError('Parcel planning-feature lineage is inconsistent with catalogs')`, `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Planning relation references an unknown parcel')`, `PlanningFeaturesError('Planning-feature parcel IDs or order changed')`, `PlanningFeaturesError('Planning-feature parcel count changed')`, `PlanningFeaturesError('Planning-feature parcel geometry or CRS changed')`, `PlanningFeaturesError('Planning-feature parcel index changed')`, `PlanningFeaturesError('Planning-feature parcel output is missing columns: ' + ', '.join(missing_output))`, `PlanningFeaturesError(f'Existing parcel column changed: {column}')`.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: source-complete GPU rereads only when source_inputs_already_rebuilt=False; the public builder passes True.
-- Filesystem write: none.
-- CRS/geometry calculation: `output.geometry.to_wkb`, `source.geometry.to_wkb`.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- direct call: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
-
-**Complete source-ordered implementation**
-
-```python
 def _validate_result(
     source: gpd.GeoDataFrame,
     result: ParcelPlanningFeaturesResult,
@@ -5238,92 +3619,8 @@ def _validate_result(
             raise PlanningFeaturesError(
                 "Parcel planning-feature lineage is inconsistent with catalogs"
             )
-```
 
-**Business boundary**
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-### `intersect_parcels_with_gpu_planning_features`
-
-**Exact signature**
-
-```python
-def intersect_parcels_with_gpu_planning_features(
-    parcels: gpd.GeoDataFrame,
-    planning_document: GpuPlanningDocument,
-) -> ParcelPlanningFeaturesResult:
-```
-
-**Purpose**
-
-Source-complete factual builder: validates full parcels/document context, physically revalidates and normalizes related GPU sources, computes XY EPSG:2154 intersections/summaries and returns five frames. Original parcel values, index, CRS and geometry are preserved. Unlike the independent validator, this wrapper has no outer catch-all exception handler.
-
-**Return contract**
-
-- Declared return annotation: `ParcelPlanningFeaturesResult`.
-- Every observed return expression is reproduced without truncation:
-```python
-result
-```
-
-**Validation and exceptions**
-
-- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
-- Explicit raise expressions: none.
-
-**Side effects**
-
-- Network I/O: none.
-- Filesystem read: delegated current GPU extraction/inventory/component hashing and selected-layer rereads through revalidate_gpu_spatial_layer_sources; path-based revalidation, not an immutable package-byte snapshot.
-- Filesystem write: none.
-- CRS/geometry calculation: none.
-- Hashing: none.
-- Environment/process effects: none.
-- In-memory mutation: none.
-- Input mutation: none.
-
-**Repository interfaces and consumers**
-
-- re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    ParcelPlanningFeaturesResult,
-    PlanningFeatureInputValidation,
-    PlanningFeaturesError,
-    _validate_result,
-    intersect_parcels_with_gpu_planning_features,
-    validate_normalized_planning_feature_inputs,
-)`.
-- import: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
-    RELATION_COLUMNS,
-    intersect_parcels_with_gpu_planning_features,
-)`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_run` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_contract_result` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `intersect_parcels_with_gpu_planning_features`.
-- direct call: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `intersect_parcels_with_gpu_planning_features`.
-
-**Complete source-ordered implementation**
-
-```python
 def intersect_parcels_with_gpu_planning_features(
     parcels: gpd.GeoDataFrame,
     planning_document: GpuPlanningDocument,
@@ -5360,293 +3657,3 @@ def intersect_parcels_with_gpu_planning_features(
     )
     return result
 ```
-
-**Business boundary**
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-
-## 7. Data contracts
-
-### Reviewed execution and persistence contract
-
-The public builder owns fresh GPU related-source revalidation; callers do not supply normalized catalogs as its authority. GPU component paths are reread with extraction/config/inventory checks before and after. This differs from INPN immutable GeoPackage byte snapshots. No network, cache publication or production artifact write is implemented here.
-
-Catalogs have 27 columns: the 25 shared factual fields, active geometry and one kind metric. They use unnamed zero-based int64 RangeIndex and XY EPSG:2154. Shared schema fixes string/float64/int64 dtypes; text_raw, regulation_filename_raw and regulation_url_raw have deterministic str/object variants driven by kind and all-null/nonempty content. Relations have 28 columns, no geometry, float64 measurements and nullable Int64 point counts. Inapplicable relation metrics are null; no-match parcel summaries are zero.
-
-Surface area relations retain zero-area contact; line relations retain zero-length contact. Full-feature source_line_length_m and clipped intersection_length_m are distinct. Surface covered unions remove overlap double-counting; raw area sums and line-length sums do not. MultiPoint inside/boundary counts are member counts, while relation counts are parcel/feature row counts. Technical overlay tolerance is used in measurement comparison and tiny union overshoot handling, never as a geometric buffer.
-
-The independent public validator physically rebuilds catalogs, all relations and any supplied complete parcel summary set. Catalog geometry/attributes are exact; reconstructed floating relation/summary values allow the shared numerical tolerance. Returned integrity hashes bind fresh expected values: source-files domain v1 and expected-relations domain v2 (including schema/index). The initial builder skips that second full rebuild explicitly after creating its source-bound facts. Optional raw string hygiene is therefore checked at the independent boundary, not uniformly during initial normalization; this asymmetry is an open static audit limitation, not a repaired behavior.
-
-LAYER_SPECS, COMMON_SOURCE_FIELDS and _CATALOG_GEOMETRY_TYPES are ordinary module dictionaries, not deeply immutable loaded policy objects. Frozen result envelopes retain mutable DataFrames. Public callers must use the source-complete validation boundary for supplied facts. Raw codes and relations convey no BESS decision, legal authorization, score or ranking.
-
-### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
-
-```python
-PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `geometry` | GeoPandas geometry | non-null; valid nonempty Polygon/MultiPolygon | source/geometry fact | Active geometry; never an authorization or suitability result. |
-| 2 | `parcel_id` | input string values; source dtype retained | non-null, nonempty, unpadded and unique | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
-
-
-### `COMMON_SOURCE_FIELDS` — normalized-output to source-attribute mapping
-
-```python
-COMMON_SOURCE_FIELDS = {
-    "label_raw": "LIBELLE",
-    "text_raw": "TXT",
-    "regulation_filename_raw": "NOMFIC",
-    "regulation_url_raw": "URLFIC",
-    "source_document_reference_raw": "IDURBA",
-    "source_validity_date_raw": "DATVALID",
-}
-```
-
-| Position/value | Exact field | Source attribute | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `label_raw` | LIBELLE | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 2 | `text_raw` | TXT | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 3 | `regulation_filename_raw` | NOMFIC | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 4 | `regulation_url_raw` | URLFIC | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 5 | `source_document_reference_raw` | IDURBA | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-| 6 | `source_validity_date_raw` | DATVALID | optional raw value; absent column becomes None except IDURBA, which is required and exact | source fact | Copied source value; no semantic interpretation is implied by normalization. |
-
-### `OPTIONAL_SOURCE_FIELDS` — optional raw source attributes (unordered set)
-
-```python
-OPTIONAL_SOURCE_FIELDS = frozenset(
-    {
-        "LIBELLE",
-        "TXT",
-        "NOMFIC",
-        "URLFIC",
-        "DATVALID",
-    }
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `DATVALID` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
-| 2 | `LIBELLE` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
-| 3 | `NOMFIC` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
-| 4 | `TXT` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
-| 5 | `URLFIC` | raw source scalar values | optional column; absence becomes null | raw source attribute | Copied without semantic interpretation; canonical output dtype follows shared kind/null-pattern schema. |
-
-
-### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` — required input frame fields (unordered when stored as a set)
-
-```python
-_CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
-    "planning_feature_id",
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "source_document_reference_raw",
-    "source_provider",
-    "source_portal",
-    "source_commune_code",
-    "source_document_id",
-    "source_document_type",
-    "source_archive_name",
-    "source_archive_sha256",
-    "source_layer",
-    "source_crs",
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `planning_feature_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 2 | `source_feature_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 3 | `source_identity_kind` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 4 | `source_identity_field` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 5 | `logical_layer` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 6 | `feature_family` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 7 | `geometry_kind` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 8 | `type_code_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 9 | `subtype_code_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 10 | `source_document_reference_raw` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 11 | `source_provider` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 12 | `source_portal` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 13 | `source_commune_code` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 14 | `source_document_id` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 15 | `source_document_type` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 16 | `source_archive_name` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 17 | `source_archive_sha256` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 18 | `source_layer` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-| 19 | `source_crs` | canonical pandas str | non-null, nonempty, no edge whitespace | normalized identity/raw code/lineage | Value semantics and deterministic identities are enforced by _validate_catalog_identity plus fresh source comparison. |
-
-
-### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS` — canonical or derived frame-column schema
-
-```python
-_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
-    "label_raw",
-    "text_raw",
-    "regulation_filename_raw",
-    "regulation_url_raw",
-    "source_validity_date_raw",
-    "source_standard_model",
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `label_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-| 2 | `text_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-| 3 | `regulation_filename_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-| 4 | `regulation_url_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-| 5 | `source_validity_date_raw` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-| 6 | `source_standard_model` | shared canonical kind/null-pattern dtype (str or object) | scalar null allowed; otherwise nonempty unpadded string in independent validation | optional raw or standard-model lineage | No interpretation or source-date parsing; builder initially copies raw values before dtype canonicalization. |
-
-
-### `PARCEL_OUTPUT_COLUMNS` — canonical or derived frame-column schema
-
-```python
-PARCEL_OUTPUT_COLUMNS = frozenset(
-    {
-        "planning_surface_relation_count",
-        "planning_surface_area_overlap_count",
-        "planning_surface_touch_count",
-        "planning_surface_intersection_area_sum_m2",
-        "planning_surface_covered_union_area_m2",
-        "planning_surface_covered_pct",
-        "prescription_surface_relation_count",
-        "prescription_surface_covered_union_area_m2",
-        "prescription_surface_covered_pct",
-        "information_surface_relation_count",
-        "information_surface_covered_union_area_m2",
-        "information_surface_covered_pct",
-        "planning_line_relation_count",
-        "planning_line_length_overlap_count",
-        "planning_line_touch_count",
-        "planning_line_intersection_length_sum_m",
-        "planning_point_relation_count",
-        "planning_point_inside_count",
-        "planning_point_boundary_count",
-        "planning_feature_document_id",
-        "planning_feature_archive_sha256",
-    }
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `information_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 2 | `information_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 3 | `information_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 4 | `planning_feature_archive_sha256` | builder string column | non-null | source lineage | Document/archive context, also present when catalogs are empty. |
-| 5 | `planning_feature_document_id` | builder string column | non-null | identity | Document/archive context, also present when catalogs are empty. |
-| 6 | `planning_line_intersection_length_sum_m` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 7 | `planning_line_length_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 8 | `planning_line_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 9 | `planning_line_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 10 | `planning_point_boundary_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 11 | `planning_point_inside_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 12 | `planning_point_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 13 | `planning_surface_area_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 14 | `planning_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 15 | `planning_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 16 | `planning_surface_intersection_area_sum_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 17 | `planning_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 18 | `planning_surface_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 19 | `prescription_surface_covered_pct` | float64 | non-null; zero for no matching measurements | derived fact or proxy metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 20 | `prescription_surface_covered_union_area_m2` | float64 | non-null; zero for no matching measurements | geometry metric | Factual metric or percentage; raw area/line sums can double-count source overlaps, union areas do not. |
-| 21 | `prescription_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-
-
-### `PARCEL_COUNT_COLUMNS` — canonical or derived frame-column schema
-
-```python
-PARCEL_COUNT_COLUMNS = frozenset(
-    {
-        "planning_surface_relation_count",
-        "planning_surface_area_overlap_count",
-        "planning_surface_touch_count",
-        "prescription_surface_relation_count",
-        "information_surface_relation_count",
-        "planning_line_relation_count",
-        "planning_line_length_overlap_count",
-        "planning_line_touch_count",
-        "planning_point_relation_count",
-        "planning_point_inside_count",
-        "planning_point_boundary_count",
-    }
-)
-```
-
-| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
-|---:|---|---|---|---|---|
-| 1 | `information_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 2 | `planning_line_length_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 3 | `planning_line_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 4 | `planning_line_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 5 | `planning_point_boundary_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 6 | `planning_point_inside_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 7 | `planning_point_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 8 | `planning_surface_area_overlap_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 9 | `planning_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 10 | `planning_surface_touch_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-| 11 | `prescription_surface_relation_count` | int64 | non-null; zero for no matching measurements | derived count | Count of relation rows, except point inside/boundary summaries count source point members. |
-
-
-No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
-
-
-## 8. Interfaces
-
-This module defines an exact `__all__` contract:
-
-| Export | Kind | Origin | Included in `__all__` |
-|---|---|---|---|
-| `ParcelPlanningFeaturesResult` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
-| `PlanningFeatureInputValidation` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
-| `PlanningFeaturesError` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
-| `intersect_parcels_with_gpu_planning_features` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
-| `validate_normalized_planning_feature_inputs` | public symbol defined in this module | `defined in src/landscout/stages/enrich_planning_features.py` | yes |
-
-## 9. Error handling
-
-Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
-
-## 10. Side effects
-
-Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
-
-## 11. Security / trust boundaries
-
-Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
-
-
-## 12. GIS / CRS rules
-
-Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
-
-## 13. Provenance rules
-
-Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
-
-## 14. Business meaning
-
-The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
-
-## 15. Explicit non-goals
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-## 16. Tests
-
-Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
-
-## 17. Change impact
-
-Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
