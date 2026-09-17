@@ -7,6 +7,9 @@ import json
 import runpy
 import subprocess
 import sys
+import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -500,22 +503,152 @@ def test_progress_does_not_change_findings(repository: Path, capsys: Any) -> Non
     assert metrics["completed"] is True
 
 
-@pytest.mark.parametrize("failure", ["timeout", "nonzero", "cancelled"])
-def test_git_failure_reaps_child_and_is_controlled(
-    repository: Path, monkeypatch: Any, capsys: Any, failure: str
-) -> None:
-    popen = subprocess.Popen
-    children: list[Any] = []
+@contextmanager
+def _managed_subprocess_child(script: str) -> Iterator[subprocess.Popen[bytes]]:
+    """Own a real child even if setup or an assertion fails before the auditor."""
+    child = subprocess.Popen(
+        [sys.executable, "-I", "-S", "-c", script],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    try:
+        yield child
+    finally:
+        if child.poll() is None:
+            child.kill()
+        child.wait(timeout=30)
+        for stream in (child.stdin, child.stdout, child.stderr):
+            if stream is not None:
+                stream.close()
 
-    def substitute(*args: Any, **kwargs: Any) -> Any:
-        observed = capsys.readouterr().err
-        assert "[index] start" in observed
-        assert "Git index enumeration" in observed
-        script = "import sys,time; print('failure https://user:secret@example.test/x?token=abc',file=sys.stderr,flush=True); "
-        script += "sys.exit(7)" if failure == "nonzero" else "time.sleep(60)"
-        child = popen([sys.executable, "-c", script], **kwargs)
-        children.append(child)
-        if failure == "cancelled":
+
+def _subprocess_child_script(
+    ready: Path, startup_delay: float, exit_code: int | None
+) -> str:
+    """Publish READY only after flushing both real output pipes."""
+    return (
+        "import sys,time\nfrom pathlib import Path\n"
+        f"time.sleep({startup_delay!r})\n"
+        "print('real child stdout',flush=True)\n"
+        "print('failure https://user:secret@example.test/x?token=abc',"
+        "file=sys.stderr,flush=True)\n"
+        f"Path({str(ready)!r}).write_text('READY',encoding='ascii')\n"
+        + (f"sys.exit({exit_code})\n" if exit_code is not None else "time.sleep(60)\n")
+    )
+
+
+def _wait_for_subprocess_ready(
+    child: subprocess.Popen[bytes], ready: Path, *, startup_timeout: float = 30
+) -> None:
+    """Finite startup guard; never consume stdout/stderr needed by the auditor."""
+    deadline = time.monotonic() + startup_timeout
+    while time.monotonic() < deadline:
+        if ready.exists() and ready.read_text(encoding="ascii") == "READY":
+            assert child.poll() is None, "child exited before timeout/cancellation"
+            return
+        assert child.poll() is None, "child exited before READY"
+        time.sleep(0.01)
+    raise AssertionError("child startup guard expired before READY")
+
+
+def _assert_subprocess_diagnostic(
+    child: subprocess.Popen[bytes], capsys: Any, reason: str
+) -> None:
+    """Assert auditor cleanup before the fixture's fallback cleanup runs."""
+    assert child.poll() is not None
+    error = capsys.readouterr().err
+    assert "index" in error and "index enumeration" in error
+    assert reason in error
+    assert "failure" in error and "example.test" in error and "[REDACTED]" in error
+    assert "user:secret" not in error and "token=abc" not in error
+
+
+@pytest.mark.parametrize("startup_delay", [0, 0.75], ids=["normal", "slow-start"])
+def test_git_nonzero_exit_reaps_child_and_is_controlled(
+    repository: Path,
+    tmp_path: Path,
+    monkeypatch: Any,
+    capsys: Any,
+    startup_delay: float,
+) -> None:
+    ready = tmp_path / "nonzero.ready"
+    with _managed_subprocess_child(
+        _subprocess_child_script(ready, startup_delay, 7)
+    ) as child:
+
+        def substitute(*args: Any, **kwargs: Any) -> Any:
+            observed = capsys.readouterr().err
+            assert "[index] start" in observed and "Git index enumeration" in observed
+            return child
+
+        monkeypatch.setattr(subprocess, "Popen", substitute)
+        # This budget includes startup/completion, independent of deliberate timeout.
+        assert (
+            AUDITOR["main"](
+                [
+                    "--check",
+                    "--root",
+                    str(repository),
+                    "--progress",
+                    "--git-timeout",
+                    "30",
+                ]
+            )
+            == 2
+        )
+        assert child.returncode == 7
+        assert ready.read_text(encoding="ascii") == "READY"
+        _assert_subprocess_diagnostic(child, capsys, "exit 7")
+
+
+@pytest.mark.parametrize("startup_delay", [0, 0.75], ids=["normal", "slow-start"])
+def test_git_timeout_after_ready_reaps_child_and_is_controlled(
+    repository: Path,
+    tmp_path: Path,
+    monkeypatch: Any,
+    capsys: Any,
+    startup_delay: float,
+) -> None:
+    ready = tmp_path / "timeout.ready"
+    with _managed_subprocess_child(
+        _subprocess_child_script(ready, startup_delay, None)
+    ) as child:
+
+        def substitute(*args: Any, **kwargs: Any) -> Any:
+            observed = capsys.readouterr().err
+            assert "[index] start" in observed and "Git index enumeration" in observed
+            # Popen returns to the auditor only after real stderr was flushed.
+            _wait_for_subprocess_ready(child, ready)
+            return child
+
+        monkeypatch.setattr(subprocess, "Popen", substitute)
+        assert (
+            AUDITOR["main"](
+                [
+                    "--check",
+                    "--root",
+                    str(repository),
+                    "--progress",
+                    "--git-timeout",
+                    "0.1",
+                ]
+            )
+            == 2
+        )
+        _assert_subprocess_diagnostic(child, capsys, "timeout")
+
+
+def test_git_cancellation_reaps_ready_child_and_is_controlled(
+    repository: Path, tmp_path: Path, monkeypatch: Any, capsys: Any
+) -> None:
+    ready = tmp_path / "cancel.ready"
+    with _managed_subprocess_child(_subprocess_child_script(ready, 0, None)) as child:
+
+        def substitute(*args: Any, **kwargs: Any) -> Any:
+            observed = capsys.readouterr().err
+            assert "[index] start" in observed and "Git index enumeration" in observed
+            _wait_for_subprocess_ready(child, ready)
             communicate = child.communicate
 
             def interrupted(*a: Any, **k: Any) -> Any:
@@ -523,20 +656,48 @@ def test_git_failure_reaps_child_and_is_controlled(
                 raise KeyboardInterrupt
 
             child.communicate = interrupted
-        return child
+            return child
 
-    monkeypatch.setattr(subprocess, "Popen", substitute)
-    result = AUDITOR["main"](
-        ["--check", "--root", str(repository), "--progress", "--git-timeout", "0.5"]
+        monkeypatch.setattr(subprocess, "Popen", substitute)
+        assert (
+            AUDITOR["main"](
+                [
+                    "--check",
+                    "--root",
+                    str(repository),
+                    "--progress",
+                    "--git-timeout",
+                    "30",
+                ]
+            )
+            == 2
+        )
+        _assert_subprocess_diagnostic(child, capsys, "cancelled")
+
+
+@pytest.mark.parametrize("failure", ["startup-guard", "assertion", "interrupt"])
+def test_subprocess_fixture_reaps_child_on_setup_failure(
+    tmp_path: Path, failure: str
+) -> None:
+    expected = KeyboardInterrupt if failure == "interrupt" else AssertionError
+    with (
+        pytest.raises(expected),
+        _managed_subprocess_child("import time; time.sleep(60)") as child,
+    ):
+        if failure == "startup-guard":
+            # Zero forces guard expiry deterministically, regardless of scheduling.
+            _wait_for_subprocess_ready(
+                child, tmp_path / "never.ready", startup_timeout=0
+            )
+        elif failure == "interrupt":
+            raise KeyboardInterrupt
+        else:
+            raise AssertionError("injected setup assertion")
+    assert child.poll() is not None
+    assert all(
+        stream is not None and stream.closed
+        for stream in (child.stdin, child.stdout, child.stderr)
     )
-    assert result == 2
-    assert children and all(child.poll() is not None for child in children)
-    error = capsys.readouterr().err
-    assert "index" in error and "index enumeration" in error
-    assert ("exit 7" if failure == "nonzero" else failure) in error
-    if failure != "cancelled":
-        assert "failure" in error and "example.test" in error and "[REDACTED]" in error
-    assert "user:secret" not in error and "token=abc" not in error
 
 
 @pytest.mark.parametrize("value", ["nan", "inf", "0", "-1", "301"])

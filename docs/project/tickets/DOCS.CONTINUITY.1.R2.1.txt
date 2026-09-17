@@ -1,0 +1,282 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R2.1
+
+Stabilize the auditor's subprocess tests without changing the approved auditor
+
+Repository: C:\souhaib\landscout-ai
+Remote: hmsouhaib/landscout-ai
+Working branch: recovery/docs-continuity-1-partial
+Required starting recovery HEAD: 64787a28bd5801dcc88f8e2107cd230fe263d476
+Required unchanged main: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. One objective
+
+Make the existing subprocess-error tests independent of an assumption that a new
+Python interpreter starts, prints and exits in less than 0.5 seconds.
+
+The independent reviewer accepts the principal R2 auditor corrections: bounded
+alias rewriting, actual commit/file/anchor checks, explicit incomplete history,
+controlled ledger shapes, unique generated heading IDs, batched index reads,
+index postcondition, progress and child-process cleanup. Do not redesign them.
+
+This is a TEST-FIX ticket, not another auditor rewrite, application correction,
+global documentation completion, or permission to proceed to environmental work.
+
+The next semantic-document task remains the two enrich_planning_features companions.
+It is deferred, not forgotten. Global file/symbol closure must not increase here.
+
+1. Independent reproduction supplied by the reviewer
+
+The reviewer retrieved the complete tool and test through the GitHub connector,
+reconstructed container copies, and verified their Git object IDs and SHA256.
+
+Tool: tools/audit_documentation.py
+
+Git blob: fe552a4c4eeadb0da10acaa00b2329693ff34a59
+
+Content SHA256: 5b5aae765c6c32225496d7830e17e83a9bfac89e007949b032b75b13eda3029f
+
+Test: tests/unit/test_audit_documentation.py
+
+Git blob: f138ca77fde5b4baa9f88c4259bad815891a4ac8
+
+Content SHA256: 1a77c16a8b357ac6481682a649a9af0729d3eb54f66d9827967757d381c9fe29
+
+Actual unmodified-suite execution in the reviewer's Linux container, Python 3.13.5,
+Git 2.47.3:
+
+129 passed, 2 failed in 3.92s, process exit 1.
+
+Both failures belong to:
+test_git_failure_reaps_child_and_is_controlled
+
+[timeout]: the real child was killed/reaped and the auditor returned 2, but the
+test also required a printed credential URL which had not arrived before timeout.
+
+[nonzero]: the child intended to exit 7 instead timed out before completion;
+the auditor correctly reported timeout rather than the test's expected exit 7.
+
+A separate actual startup probe measured a normal child reaching its first READY
+message after approximately 0.522 seconds, and exiting after approximately 0.726
+seconds. A previous whole-command measurement was approximately 0.677 seconds.
+These are observations of THAT environment, not universal timings or a Windows
+regression claim.
+
+A DIAGNOSTIC-ONLY copy changed just the synthetic child command to:
+[sys.executable, "-I", "-S", "-c", script]
+The auditor stayed byte-identical; this diagnostic suite gave 131 passed in 3.20s.
+That is not a pass of unchanged test bytes, and merely adding those flags does not
+prove the test is independent of scheduling. It isolates the startup coupling.
+
+Codex's recorded Windows 131 passed is not contradicted. Different startup
+conditions expose a portability/reliability weakness in the test fixture.
+
+The exact published test currently combines all three scenarios with:
+--git-timeout 0.5, despite expecting distinct child output and exit behavior.
+
+2. Readiness and preservation
+
+Read AGENTS.md, working rules, CURRENT_STATE, the original R2 ticket and diagnostics,
+the complete tool, its complete test file and their companions.
+
+Use the verified repository/authorized execution identity. Inspect status before
+switching branches or fetching. Require clean recovery branch, local/remote recovery
+at the starting SHA and actual remote main unchanged. Check no unmerged operation.
+
+If an interrupted execution has local changes, inspect/preserve them and their
+provenance instead of resetting to manufacture readiness. No reset, restore, stash,
+clean, rebase, amend, force-push, ACL/security change or wildcard safe.directory.
+The prior exact command-scoped ownership exception is available only for the same
+verified ownership error and authorized repository; never configure global trust.
+
+3. Strict scope
+
+Permitted executable change:
+
+tests/unit/test_audit_documentation.py ONLY.
+
+Permitted related documentation:
+
+its exact SHA-bound companion;
+
+one concise R2.1 evidence/diagnostic receipt;
+
+minimal CURRENT_STATE and DOCUMENTATION_AUDIT progress notes;
+
+an exact archived copy of this supplied ticket.
+
+If an existing tool companion sentence needs clarification about test evidence,
+only that prose may change; its exact tool snapshot/hash must remain unchanged.
+
+Do NOT change:
+
+tools/audit_documentation.py or its CLI/timeouts/redaction;
+
+application src/**, existing application tests, configs or dependencies;
+
+coverage.json, original fragments or reconciliation matrices;
+
+original recovery/cold-start/ticket archives;
+
+EP research content, source caches, source schemas or baseline hashes;
+
+CI/PR/repository settings.
+
+A test failure is not permission to weaken the production error contract.
+
+4. Separate three behaviors and startup readiness
+
+Preserve permanent checks for all three existing scenarios:
+
+A. Nonzero child exit
+
+Use a real child whose stderr is known and whose intended final exit is 7.
+
+Give child startup/completion a bounded safety budget independent of the short
+timeout deliberately exercised in B.
+
+Require the auditor to return 2 with role/phase, exit 7, useful redacted stderr,
+and a reaped process.
+
+Never accept timeout as equivalent to exit 7 in this test.
+
+B. Timeout of a running child
+
+Establish and assert that the child is READY before relying on its output or
+applying the deliberately short test-operation deadline.
+
+Keep a finite independent startup guard; readiness may use a simple local
+handshake/sentinel, confined to tmp_path. No unbounded readline/poll/sleep loop.
+
+Preserve real stdout/stderr and real process termination. Do not consume and
+fabricate the stderr later merely to satisfy the assertion.
+
+Require actual timeout handling, return 2, timeout/role/phase diagnostics and
+child kill/drain/reap. Check known stderr only when its emission was established.
+
+C. Cancellation
+
+Preserve the injected KeyboardInterrupt branch and a real child whose cleanup
+is verified. Do not replace kill/reap evidence with a Boolean fake.
+
+A straightforward approach is to separate startup, deliberate timeout and normal
+nonzero-exit tests instead of sharing one timing assumption. Choose the smallest
+readable implementation, not a generic process-testing framework.
+
+For this stdlib-only synthetic child, -I -S is allowed to avoid unrelated site
+startup; do not change parent Python, application imports, global environment,
+dependencies, PATH or security. Flags complement readiness/behavior separation;
+they are not the sole proof of robust timing.
+
+5. Regression for slow startup and cleanup
+
+Add a controlled regression demonstrating that slow child startup does not:
+
+turn the intended exit-7 scenario into the timeout scenario;
+
+require stderr before the child has emitted it;
+
+bypass timeout enforcement after the running-child readiness point.
+
+Use a deterministic handshake or a deliberately delayed synthetic startup with an
+independent finite safety guard. It may intentionally delay startup beyond the old
+0.5-second assumption, but do not assert a tight wall-clock completion threshold.
+The required assertions are ordering/state/exit/output, not machine speed.
+
+All fixture paths must be newly created beneath tmp_path. No user temp-tree deletion.
+On bootstrap failure, assertion failure, timeout or cancellation, fixture cleanup
+must terminate and reap only its own child. Do not leave a sleeping process behind.
+
+Do not:
+
+skip/xfail slow cases;
+
+retry until green;
+
+drop exit-code/redaction/progress/reaping assertions;
+
+simply increase one global timeout and call the problem solved;
+
+patch auditor audit/git/main/timeout validation to obtain a pass;
+
+use a fake child for every test and remove real process evidence.
+
+6. Test evidence and documentation
+
+Keep the original R2 receipt as historical evidence. Add a scoped R2.1 receipt that
+separates original Windows execution, the reviewer's unmodified Linux failures,
+diagnostic-only child isolation and new executed corrected tests.
+
+Update the test companion with each helper's actual handshake, deadlines, cleanup,
+parametrizations and assertion boundary. No claim of full GFM/visual verification.
+Regenerate only the changed companion's source fingerprint/exact snapshot/anchors.
+
+Record the core R2 inspection as accepted IN THAT SCOPE, not as a global code audit.
+Keep global DOCS.CONTINUITY.1 PARTIAL and the 67/245 files, 1,388/4,769 symbols as
+historical closure totals unchanged. New tool-test cases are not semantic closure.
+Keep A-001/A-002/A-003, five evidence limitations, cold-start acceptance and 7F.1C.1
+semantic review pending. Never record this ticket as a complete corpus review.
+
+7. Validation
+
+Use a fresh short unique --basetemp below:
+%LOCALAPPDATA%\LandScout\pytest-runs for every pytest invocation.
+
+Run the corrected subprocess tests first, including controlled slow startup, then
+all of tests/unit/test_audit_documentation.py.
+
+Record actual collection, passed/failed/skipped/xfail/warnings, process exit and
+child-cleanup evidence. Preserve all previous behavioral coverage; explain changes
+in parametrization rather than blindly requiring the original number 131.
+
+Run:
+
+uv run ruff check tests/unit/test_audit_documentation.py
+
+uv run ruff format --check tests/unit/test_audit_documentation.py
+
+uv run mypy tools/audit_documentation.py (unchanged-code guard)
+
+uv run python -m compileall -q tests/unit/test_audit_documentation.py
+
+new-delta git diff --check and staged check.
+
+Verify the auditor bytes remain exactly at the SHA256 above, and every protected
+application/config/dependency/test file remains unchanged. Preserve the previously
+identified checkout-versus-Git EOL distinctions; no rewriting to satisfy a hash.
+
+After explicit staging, one progress-enabled full INDEX audit is permitted as an
+integration check. It should terminate normally with its actual expected PARTIAL/
+stale findings, not exit 2 or hang. Do not require exactly 10,266 findings after new
+test/document bytes, and do not edit the global ledger to recreate that count.
+Record the actual candidate manifest and distinguish later receipt changes.
+
+No full application pytest, EP rebuild, dependency update or source download is
+required for this fixture-only correction. No visual audit claim.
+
+8. Publication
+
+Stage exact reviewed paths only. Preserve all historical archives and the original
+13 cumulative whitespace observations; new delta must be clean.
+
+Use an accurate scoped commit such as:
+test: stabilize continuity auditor subprocess regressions
+
+Push only recovery/docs-continuity-1-partial. Do not amend/squash/merge/create PR
+or push main. Verify clean worktree, local/remote recovery equality, unchanged main.
+
+Then STOP for independent review. Do not begin planning companion closure or the
+remaining 178-file audit in the same execution.
+
+9. Required report
+
+Return DOCS.CONTINUITY.1.R2.1 completed — global audit PARTIAL; review pending
+only after actual scoped completion, otherwise report PARTIAL/BLOCKED.
+
+Include starting/final/recovery/main SHA; changed paths; unchanged tool fingerprint;
+nonzero/timeout/cancellation test names; readiness mechanism and finite boot guards;
+slow-start regression; cleanup on failing setup; exact tests/quality results;
+actual index-check result and candidate identity; updated companion verification;
+historical/cumulative whitespace distinction; unchanged global closure/pending work.
+
+No independent self-approval, no full-suite pass extrapolated from counts, no new
+functional ticket.
