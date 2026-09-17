@@ -2,6 +2,8 @@
 
 Status: **IN_PROGRESS / PARTIAL**. No completion or independent approval is claimed.
 
+Current bounded continuation: [DOCS.CONTINUITY.1.R2](../../project/tickets/DOCS.CONTINUITY.1.R2.txt), existing auditor reliability only. R1 publication is accepted as preservation, not semantic/tool approval. The [scoped R2 receipt](R2_DIAGNOSTICS.md) records diagnostics, 131 focused passing cases and candidate execution separately; R2 independent review remains pending. Original closure stays 67 files / 1,388 symbols, fragments and coverage unchanged. The enrich_planning_features companion review remains the first deferred semantic item. All execution reports below retain their historical scope.
+
 Current checkpoint authority: [DOCS.CONTINUITY.1.R1](../../project/tickets/DOCS.CONTINUITY.1.R1.txt). The [appended R1 record](RECOVERY_STATUS_2026-09-17.md#r1-recovery-checkpoint-preparation) preserves this partial state on a dedicated recovery branch only. Earlier no-stage/no-push statements below describe their historical execution, not the later explicit recovery authorization. No semantic status or original fragment is promoted by R1.
 
 Starting identity was fetched and checked on clean `main` at `aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02`. The original Git inventory has 245 files. The [coverage ledger](coverage.json) begins with every file and qualified Python symbol explicitly `NOT_READ`; AST enumeration is not semantic review. The [protected-file manifest](protected_files.json) records exact Git-content and starting-checkout SHA256 separately.

@@ -6,9 +6,14 @@ import argparse
 import ast
 import hashlib
 import json
+import math
+import os
 import re
 import subprocess
 import sys
+import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import unquote, urlsplit
@@ -21,19 +26,180 @@ STEP_LEDGER = "docs/project/STEP_LEDGER.json"
 SELF_OUTPUTS = "docs/code/audit/"
 
 
+class AuditInputError(ValueError):
+    """Malformed evidence prevents a complete trustworthy audit."""
+
+
+class AuditExecutionError(RuntimeError):
+    """An operational failure prevents a complete trustworthy audit."""
+
+
+def redacted(text: str) -> str:
+    """Bound stderr and remove URL credentials, query secrets and auth tokens."""
+    text = re.sub(r"(?i)\b(Bearer|Basic)\s+[^\s]+", r"\1 [REDACTED]", text)
+    text = re.sub(r"(https?://)[^\s/@]+@", r"\1[REDACTED]@", text)
+    text = re.sub(
+        r"(?i)(token|password|secret|authorization)([=: ]+)[^\s]+",
+        r"\1\2[REDACTED]",
+        text,
+    )
+    text = re.sub(r"(https?://[^\s?#]+)[?#][^\s]+", r"\1?[REDACTED]", text)
+    return text[:2000]
+
+
+class AuditRun:
+    """Per-call progress, timings and bounded read-only Git operations."""
+
+    def __init__(self, root: Path, progress: bool, timeout: float) -> None:
+        if not math.isfinite(timeout) or timeout <= 0 or timeout > 300:
+            raise AuditInputError("Git timeout must be finite, > 0 and <= 300 seconds")
+        self.root = root
+        self.progress = progress
+        self.timeout = timeout
+        self.phase_name = "initialization"
+        self.metrics: dict[str, Any] = {
+            "root": str(root),
+            "basis": BASIS,
+            "git_processes": 0,
+            "phase_seconds": {},
+        }
+
+    def note(self, message: str) -> None:
+        if self.progress:
+            print(f"[{self.phase_name}] {message}", file=sys.stderr, flush=True)
+
+    @contextmanager
+    def phase(self, name: str) -> Iterator[None]:
+        self.phase_name = name
+        self.note("start")
+        started = time.perf_counter()
+        try:
+            yield
+        finally:
+            elapsed = time.perf_counter() - started
+            self.metrics["phase_seconds"][name] = elapsed
+            self.note(f"elapsed={elapsed:.6f}s")
+
+    def git(self, role: str, *args: str, input_bytes: bytes | None = None) -> bytes:
+        self.note(f"Git {role}")
+        self.metrics["git_processes"] += 1
+        env = dict(
+            os.environ,
+            GIT_NO_LAZY_FETCH="1",
+            GIT_NO_REPLACE_OBJECTS="1",
+            GIT_OPTIONAL_LOCKS="0",
+        )
+        try:
+            with subprocess.Popen(
+                ["git", "-C", str(self.root), *args],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+            ) as child:
+                try:
+                    output, stderr = child.communicate(
+                        input_bytes, timeout=self.timeout
+                    )
+                except (subprocess.TimeoutExpired, KeyboardInterrupt) as exc:
+                    child.kill()
+                    _, stderr = child.communicate()
+                    reason = (
+                        "timeout"
+                        if isinstance(exc, subprocess.TimeoutExpired)
+                        else "cancelled"
+                    )
+                    raise AuditExecutionError(
+                        f"{self.phase_name}: Git {role} {reason}; {redacted(stderr.decode('utf-8', errors='replace'))}"
+                    ) from exc
+                if child.returncode:
+                    raise AuditExecutionError(
+                        f"{self.phase_name}: Git {role} exit {child.returncode}; {redacted(stderr.decode('utf-8', errors='replace'))}"
+                    )
+                return output
+        except OSError as exc:
+            raise AuditExecutionError(
+                f"{self.phase_name}: Git {role}: {redacted(str(exc))}"
+            ) from exc
+
+
 def sha256(raw: bytes) -> str:
     """Hash content bytes, never Git's blob envelope or a Python representation."""
     return hashlib.sha256(raw).hexdigest()
 
 
-def git(root: Path, *args: str) -> bytes:
-    """Run a read-only Git query; callers supply only fixed query verbs."""
-    return subprocess.check_output(
-        ["git", "-C", str(root), *args], stderr=subprocess.PIPE
+def canonical_path(path: str) -> bool:
+    """Require an exact repository-relative portable file path, not a URL."""
+    return (
+        bool(path)
+        and not any(ord(c) < 32 for c in path)
+        and not any(c in path for c in "\\:#?%")
+        and not path.startswith("/")
+        and all(part not in {"", ".", "..", ".git"} for part in path.split("/"))
     )
 
 
-def symbol_inventory(raw: bytes) -> list[dict[str, Any]]:
+def read_index(run: AuditRun) -> tuple[dict[str, bytes], bytes]:
+    """Capture stage-0 IDs, then read raw blobs in one length-framed batch."""
+    snapshot = run.git("index enumeration", "ls-files", "--stage", "-z")
+    entries: list[tuple[str, str, str]] = []
+    for entry in snapshot.split(b"\0"):
+        if not entry:
+            continue
+        match = re.fullmatch(
+            rb"(\d{6}) ([0-9a-f]{40}|[0-9a-f]{64}) ([0-3])\t(.+)", entry, re.DOTALL
+        )
+        if not match:
+            raise AuditInputError("index: malformed stage entry")
+        mode, oid, stage, raw_path = match.groups()
+        path = raw_path.decode("utf-8")
+        if stage != b"0":
+            raise AuditInputError(f"index: unmerged stage {stage.decode()}: {path}")
+        if mode not in {b"100644", b"100755"}:
+            raise AuditInputError(f"index: unsupported mode {mode.decode()}: {path}")
+        if not canonical_path(path):
+            raise AuditInputError(f"index: noncanonical path: {path!r}")
+        entries.append((path, mode.decode(), oid.decode()))
+    if len({entry[0] for entry in entries}) != len(entries):
+        raise AuditInputError("index: duplicate paths")
+    entries.sort()
+    run.metrics["manifest_sha256"] = sha256(
+        json.dumps(entries, ensure_ascii=True, separators=(",", ":")).encode()
+    )
+    oids = sorted({entry[2] for entry in entries})
+    batch = run.git(
+        "raw blob batch",
+        "cat-file",
+        "--batch",
+        input_bytes="".join(oid + "\n" for oid in oids).encode("ascii"),
+    )
+    blobs: dict[str, bytes] = {}
+    offset = 0
+    for oid in oids:
+        end = batch.find(b"\n", offset)
+        header = batch[offset:end] if end >= 0 else b""
+        match = re.fullmatch(oid.encode() + rb" blob (0|[1-9][0-9]*)", header)
+        if not match:
+            raise AuditInputError(f"blob batch: missing/malformed header for {oid}")
+        size = int(match[1])
+        start = end + 1
+        offset = start + size
+        if batch[offset : offset + 1] != b"\n":
+            raise AuditInputError(f"blob batch: truncated content for {oid}")
+        blobs[oid] = batch[start:offset]
+        offset += 1
+    if offset != len(batch):
+        raise AuditInputError("blob batch: unexpected trailing bytes")
+    files = {path: blobs[oid] for path, _, oid in entries}
+    run.metrics.update(
+        files=len(files), bytes=sum(map(len, files.values())), unique_blobs=len(blobs)
+    )
+    return files, snapshot
+
+
+def symbol_inventory(
+    raw: bytes, tree: ast.Module | None = None
+) -> list[dict[str, Any]]:
     """Enumerate definitions and annotated class fields without importing code."""
     source = raw.decode("utf-8")
     lines = source.splitlines(keepends=True)
@@ -91,13 +257,13 @@ def symbol_inventory(raw: bytes) -> list[dict[str, Any]]:
         def visit_ClassDef(self, node: ast.ClassDef) -> None:
             self.definition(node, "class")
 
-    Visitor().visit(ast.parse(source))
+    Visitor().visit(tree if tree is not None else ast.parse(source))
     return found
 
 
-def exports(raw: bytes) -> list[str] | None:
+def exports(raw: bytes, tree: ast.Module | None = None) -> list[str] | None:
     """Return a literal module-level __all__, rejecting dynamic declarations."""
-    for node in ast.parse(raw.decode("utf-8")).body:
+    for node in (tree if tree is not None else ast.parse(raw.decode("utf-8"))).body:
         if isinstance(node, ast.Assign) and any(
             isinstance(target, ast.Name) and target.id == "__all__"
             for target in node.targets
@@ -111,13 +277,21 @@ def exports(raw: bytes) -> list[str] | None:
     return None
 
 
-def python_namespaces(raw_files: dict[str, bytes]) -> tuple[set[str], dict[str, str]]:
+def python_namespaces(
+    raw_files: dict[str, bytes],
+    facts: dict[str, tuple[ast.Module, list[dict[str, Any]]]] | None = None,
+) -> tuple[set[str], dict[str, str]]:
     """Inventory static Python ownership and import aliases, without execution."""
     names: set[str] = set()
     aliases: dict[str, str] = {}
     for path, raw in raw_files.items():
         if not path.endswith(".py"):
             continue
+        if facts is None:
+            tree = ast.parse(raw.decode("utf-8"))
+            symbols = symbol_inventory(raw, tree)
+        else:
+            tree, symbols = facts[path]
         parts = list(PurePosixPath(path).with_suffix("").parts)
         if parts[0] == "src":
             parts.pop(0)
@@ -126,9 +300,8 @@ def python_namespaces(raw_files: dict[str, bytes]) -> tuple[set[str], dict[str, 
             parts.pop()
         module = ".".join(parts)
         names.update(".".join(parts[:end]) for end in range(1, len(parts) + 1))
-        for symbol in symbol_inventory(raw):
+        for symbol in symbols:
             names.add(module + "." + symbol["qualified_name"])
-        tree = ast.parse(raw.decode("utf-8"))
         for node in tree.body:
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
                 targets = (
@@ -163,6 +336,7 @@ def resolves_reference(
 ) -> bool:
     """Resolve static repository references; dynamic/external leaves remain unproven."""
     seen: set[str] = set()
+    rewritten: set[str] = set()
     while reference not in seen:
         seen.add(reference)
         if reference in names:
@@ -171,6 +345,9 @@ def resolves_reference(
         for end in range(len(parts), 0, -1):
             prefix = ".".join(parts[:end])
             if prefix in aliases:
+                if prefix in rewritten:
+                    return False
+                rewritten.add(prefix)
                 reference = ".".join([aliases[prefix], *parts[end:]])
                 break
         else:
@@ -206,15 +383,19 @@ def markdown(text: str) -> tuple[str, set[str], list[str], list[str]]:
         errors.append(f"unclosed fence at line {start}")
     outside = "".join(prose)
     anchors = set(re.findall(r'<a\s+(?:id|name)=["\']([^"\']+)["\']', outside))
-    seen: dict[str, int] = {}
+    generated: set[str] = set()
     for line in outside.splitlines():
         heading = re.match(r"^ {0,3}#{1,6}\s+(.+?)(?:\s+#+)?$", line)
         if heading:
             label = re.sub(r"<[^>]*>", "", heading[1]).lower()
             slug = re.sub(r"[^\w\- ]", "", label, flags=re.UNICODE).replace(" ", "-")
-            ordinal = seen.get(slug, 0)
-            anchors.add(slug + (f"-{ordinal}" if ordinal else ""))
-            seen[slug] = ordinal + 1
+            candidate = slug
+            ordinal = 0
+            while candidate in generated:
+                ordinal += 1
+                candidate = f"{slug}-{ordinal}"
+            generated.add(candidate)
+            anchors.add(candidate)
     return outside, anchors, blocks, errors
 
 
@@ -236,7 +417,7 @@ def local_links(path: str, prose: str) -> list[tuple[str, str]]:
             result.append(("!nonportable:" + target, ""))
             continue
         relative = unquote(parsed.path)
-        if relative.startswith("/"):
+        if relative.startswith("/") or "\\" in relative:
             result.append(("!nonportable:" + target, ""))
             continue
         parts = list(PurePosixPath(path).parent.parts) if relative else []
@@ -252,178 +433,408 @@ def local_links(path: str, prose: str) -> list[tuple[str, str]]:
     return result
 
 
-def audit(root: Path) -> list[str]:
-    """Check the indexed candidate plus unstaged drift; return sorted diagnostics."""
-    paths = git(root, "ls-files", "-z").decode("utf-8").rstrip("\0").split("\0")
-    raw_files = {path: git(root, "show", ":" + path) for path in paths if path}
+def load_ledger(raw: bytes, path: str) -> dict[str, Any]:
+    """Decode strict JSON; reject duplicate keys and all non-finite numbers."""
+
+    def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in items:
+            if key in result:
+                raise AuditInputError(f"{path}: duplicate JSON key {key!r}")
+            result[key] = value
+        return result
+
+    def constant(value: str) -> Any:
+        raise AuditInputError(f"{path}: non-finite JSON value {value}")
+
+    def floating(value: str) -> float:
+        parsed = float(value)
+        if not math.isfinite(parsed):
+            constant(value)
+        return parsed
+
+    try:
+        value = json.loads(
+            raw, object_pairs_hook=pairs, parse_constant=constant, parse_float=floating
+        )
+    except (ValueError, UnicodeError, RecursionError) as exc:
+        raise AuditInputError(f"{path}: {exc}") from exc
+    require(value, dict, path)
+    return value  # type: ignore[no-any-return]
+
+
+def require(value: Any, expected: type, context: str) -> None:
+    """Check exact JSON shapes before using mappings, iterables or scalars."""
+    if type(value) is not expected:
+        raise AuditInputError(
+            f"{context}: expected {expected.__name__}, got {type(value).__name__}"
+        )
+
+
+def string_list(value: Any, context: str) -> None:
+    require(value, list, context)
+    for i, item in enumerate(value):
+        require(item, str, f"{context}[{i}]")
+
+
+def validate_coverage(ledger: dict[str, Any]) -> None:
+    """Validate consumed coverage shapes; missing review evidence stays a finding."""
+    for key in ("source_binding_basis", "audit_status"):
+        require(ledger.get(key), str, f"{COVERAGE}.{key}")
+    require(ledger.get("files"), list, f"{COVERAGE}.files")
+    for i, row in enumerate(ledger["files"]):
+        context = f"{COVERAGE}.files[{i}]"
+        require(row, dict, context)
+        for key in ("path", "basis_sha256", "status"):
+            require(row.get(key), str, f"{context}.{key}")
+        if not canonical_path(row["path"]):
+            raise AuditInputError(f"{context}.path: noncanonical path")
+        require(row.get("read_complete"), bool, f"{context}.read_complete")
+        for key in ("documentation_path", "companion_exception", "checkout_sha256"):
+            if row.get(key) is not None:
+                require(row[key], str, f"{context}.{key}")
+        if row.get("documentation_path") and not canonical_path(
+            row["documentation_path"]
+        ):
+            raise AuditInputError(f"{context}.documentation_path: noncanonical path")
+        if "eol_only_difference" in row:
+            require(row["eol_only_difference"], bool, f"{context}.eol_only_difference")
+        if row.get("exports") is not None:
+            string_list(row["exports"], f"{context}.exports")
+        symbols = row.get("symbols", [] if not row["path"].endswith(".py") else None)
+        require(symbols, list, f"{context}.symbols")
+        for j, item in enumerate(symbols):
+            location = f"{context}.symbols[{j}]"
+            require(item, dict, location)
+            for key in ("qualified_name", "kind", "signature_sha256", "status"):
+                require(item.get(key), str, f"{location}.{key}")
+            require(item.get("range"), list, f"{location}.range")
+            if (
+                len(item["range"]) != 2
+                or any(type(n) is not int or n < 1 for n in item["range"])
+                or item["range"][1] < item["range"][0]
+            ):
+                raise AuditInputError(
+                    f"{location}.range: expected positive ordered line pair"
+                )
+            if item.get("documentation_anchor") is not None:
+                require(
+                    item["documentation_anchor"],
+                    str,
+                    f"{location}.documentation_anchor",
+                )
+    exceptions = ledger.get("dynamic_reference_exceptions", [])
+    require(exceptions, list, f"{COVERAGE}.dynamic_reference_exceptions")
+    for i, item in enumerate(exceptions):
+        context = f"{COVERAGE}.dynamic_reference_exceptions[{i}]"
+        require(item, dict, context)
+        for key in ("documentation_path", "reference", "reason"):
+            require(item.get(key), str, f"{context}.{key}")
+
+
+def validate_steps(ledger: dict[str, Any]) -> None:
+    """Validate consumed step/review/provenance shapes without inventing approval."""
+    require(ledger.get("steps"), list, f"{STEP_LEDGER}.steps")
+    for i, step in enumerate(ledger["steps"]):
+        context = f"{STEP_LEDGER}.steps[{i}]"
+        require(step, dict, context)
+        require(step.get("step_id"), str, f"{context}.step_id")
+        for key in ("dependencies", "corrections", "superseded_by", "provenance"):
+            string_list(step.get(key, []), f"{context}.{key}")
+        implementation = step.get("implementation", {})
+        require(implementation, dict, f"{context}.implementation")
+        string_list(
+            implementation.get("commits", []), f"{context}.implementation.commits"
+        )
+        if "history_audit_status" in step:
+            require(
+                step["history_audit_status"], str, f"{context}.history_audit_status"
+            )
+        review = step.get("review")
+        require(review, dict, f"{context}.review")
+        require(review.get("status"), str, f"{context}.review.status")
+        for key in ("reviewer", "source", "scope", "commit"):
+            if review.get(key) is not None:
+                require(review[key], str, f"{context}.review.{key}")
+
+
+def evidence_problem(
+    evidence: str,
+    raw_files: dict[str, bytes],
+    parsed_docs: dict[str, tuple[str, set[str], list[str], list[str]]],
+) -> str | None:
+    """Check canonical root-relative receipt path and an optional Markdown anchor."""
+    target, separator, anchor = evidence.partition("#")
+    if not canonical_path(target) or (separator and (not anchor or "#" in anchor)):
+        return "noncanonical evidence path"
+    if target not in raw_files:
+        return "missing evidence file"
+    if separator and (
+        target not in parsed_docs or anchor not in parsed_docs[target][1]
+    ):
+        return "bad evidence anchor"
+    return None
+
+
+def audit(
+    root: Path,
+    *,
+    progress: bool = False,
+    git_timeout: float = 30,
+    metrics: dict[str, Any] | None = None,
+) -> list[str]:
+    """Check a captured index plus checkout drift; incomplete execution raises."""
+    run = AuditRun(root.resolve(), progress, git_timeout)
+    run.note(f"root={run.root} basis={BASIS}")
+    try:
+        with run.phase("index"):
+            raw_files, snapshot = read_index(run)
+        errors = audit_candidate(run, raw_files)
+        with run.phase("index-postcondition"):
+            if run.git("index postcondition", "ls-files", "--stage", "-z") != snapshot:
+                raise AuditExecutionError(
+                    "index-postcondition: index changed during audit; rerun on a stable candidate"
+                )
+        run.metrics["findings"] = len(errors)
+        run.metrics["completed"] = True
+        return errors
+    finally:
+        if metrics is not None:
+            metrics.update(run.metrics)
+
+
+def audit_candidate(run: AuditRun, raw_files: dict[str, bytes]) -> list[str]:
+    """Check one captured index candidate; never promote or rewrite its ledgers."""
+    root = run.root
+    paths = list(raw_files)
     errors: list[str] = []
     if COVERAGE not in raw_files:
-        return [f"missing coverage ledger: {COVERAGE}"]
-    ledger = json.loads(raw_files[COVERAGE])
-    if ledger.get("source_binding_basis") != BASIS:
-        errors.append("ambiguous source binding basis; exact Git content required")
-    rows = ledger["files"]
-    indexed = {row["path"]: row for row in rows}
-    if len(indexed) != len(rows):
-        errors.append("duplicate file coverage rows")
-    expected = {path for path in paths if not path.startswith(SELF_OUTPUTS)}
-    if set(indexed) != expected:
-        errors.append(
-            f"inventory mismatch missing={sorted(expected - set(indexed))} "
-            f"extra={sorted(set(indexed) - expected)}"
+        raise AuditInputError(f"missing coverage ledger: {COVERAGE}")
+    with run.phase("coverage-input"):
+        ledger = load_ledger(raw_files[COVERAGE], COVERAGE)
+        validate_coverage(ledger)
+        run.metrics["coverage_files"] = len(ledger["files"])
+        run.metrics["coverage_symbols"] = sum(
+            len(row.get("symbols", [])) for row in ledger["files"]
         )
-    if ledger.get("audit_status") != "COMPLETE":
-        errors.append("semantic audit ledger is not COMPLETE (not a tool verdict)")
+        if ledger.get("source_binding_basis") != BASIS:
+            errors.append("ambiguous source binding basis; exact Git content required")
+        rows = ledger["files"]
+        indexed = {row["path"]: row for row in rows}
+        if len(indexed) != len(rows):
+            errors.append("duplicate file coverage rows")
+        expected = {path for path in paths if not path.startswith(SELF_OUTPUTS)}
+        if set(indexed) != expected:
+            errors.append(
+                f"inventory mismatch missing={sorted(expected - set(indexed))} "
+                f"extra={sorted(set(indexed) - expected)}"
+            )
+        if ledger.get("audit_status") != "COMPLETE":
+            errors.append("semantic audit ledger is not COMPLETE (not a tool verdict)")
     parsed_docs: dict[str, tuple[str, set[str], list[str], list[str]]] = {}
-    names, aliases = python_namespaces(raw_files)
-    for path, raw in raw_files.items():
-        checkout = root.joinpath(*PurePosixPath(path).parts)
-        if not checkout.is_file():
-            errors.append(f"missing checkout file: {path}")
-            continue
-        current = checkout.read_bytes()
-        if current != raw:
-            row = indexed.get(path, {})
-            if not (
-                row.get("eol_only_difference") is True
-                and current.replace(b"\r\n", b"\n") == raw
-                and row.get("checkout_sha256") == sha256(current)
-            ):
-                errors.append(f"unstaged content or undeclared EOL difference: {path}")
-        if path.endswith(".md"):
-            parsed_docs[path] = markdown(raw.decode("utf-8"))
-            errors.extend(f"{path}: {error}" for error in parsed_docs[path][3])
-    for path, row in indexed.items():
-        if path not in raw_files:
-            continue
-        raw = raw_files[path]
-        if row.get("basis_sha256") != sha256(raw):
-            errors.append(f"stale file fingerprint: {path}")
-        status = row.get("status")
-        if (
-            status not in STATUSES
-            or status not in COMPLETE
-            or not row.get("read_complete")
-        ):
-            errors.append(f"unresolved semantic review row: {path} ({status})")
-        companion = row.get("documentation_path")
-        if not companion:
-            if not row.get("companion_exception"):
-                errors.append(f"missing companion exception: {path}")
-            continue
-        if companion not in parsed_docs:
-            errors.append(f"missing companion: {path} -> {companion}")
-            continue
-        prose, anchors, blocks, _ = parsed_docs[companion]
-        hashes = re.findall(r"^- Source SHA256: `([0-9a-f]{64})`$", prose, re.MULTILINE)
-        if hashes != [sha256(raw)]:
-            errors.append(f"stale companion hash: {path}")
-        bases = re.findall(r"^- Source SHA256 basis: `([^`]+)`$", prose, re.MULTILINE)
-        if bases != ["git-content"]:
-            errors.append(f"ambiguous companion line-ending basis: {path}")
-        if raw.decode("utf-8") not in blocks:
-            errors.append(f"missing exact source snapshot: {path}")
-        if not path.endswith(".py"):
-            continue
-        actual = symbol_inventory(raw)
-        symbols = row.get("symbols", [])
-        wanted = {(item["qualified_name"], item["kind"]): item for item in actual}
-        recorded = {(item["qualified_name"], item["kind"]): item for item in symbols}
-        if set(wanted) != set(recorded) or len(recorded) != len(symbols):
-            errors.append(f"symbol inventory mismatch: {path}")
-        for key in sorted(set(wanted) & set(recorded)):
-            item, evidence = wanted[key], recorded[key]
-            for field in ("range", "signature_sha256"):
-                if item[field] != evidence.get(field):
-                    errors.append(f"stale symbol {field}: {path}:{key[0]}")
-            if evidence.get("status") not in COMPLETE:
-                errors.append(f"unresolved symbol review: {path}:{key[0]}")
-            if evidence.get("documentation_anchor") not in anchors:
-                errors.append(f"missing documented anchor: {path}:{key[0]}")
-        declared = exports(raw)
-        if declared != row.get("exports"):
-            errors.append(f"export inventory mismatch: {path}")
-        for name in declared or []:
-            if f"`{name}`" not in prose:
-                errors.append(f"missing documented export: {path}:{name}")
-            module = path.removeprefix("src/").removesuffix(".py").replace("/", ".")
-            module = module.removesuffix(".__init__")
-            if not resolves_reference(module + "." + name, names, aliases):
-                errors.append(f"unresolved export owner: {path}:{name}")
-    for path, (prose, _, _, _) in parsed_docs.items():
-        exceptions = ledger.get("dynamic_reference_exceptions", [])
-        for literal in re.findall(r"`([^`\n]+)`", prose):
-            for reference in re.findall(
-                r"(?<![\w./])(?:landscout|tests|tools)\.(?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*",
-                literal,
-            ):
-                if not resolves_reference(reference, names, aliases) and not any(
-                    item.get("documentation_path") == path
-                    and item.get("reference") == reference
-                    and item.get("reason")
-                    for item in exceptions
+    facts: dict[str, tuple[ast.Module, list[dict[str, Any]]]] = {}
+    with run.phase("python"):
+        for path, raw in raw_files.items():
+            if path.endswith(".py"):
+                run.note(path)
+                try:
+                    tree = ast.parse(raw.decode("utf-8"), filename=path)
+                    facts[path] = (tree, symbol_inventory(raw, tree))
+                except (SyntaxError, ValueError) as exc:
+                    raise AuditInputError(f"{path}: {exc}") from exc
+        names, aliases = python_namespaces(raw_files, facts)
+        run.metrics["python_files"] = len(facts)
+        run.metrics["ast_parses"] = len(facts)
+        run.metrics["symbols"] = sum(len(items) for _, items in facts.values())
+    with run.phase("checkout-markdown"):
+        for path, raw in raw_files.items():
+            if path.endswith(".md"):
+                parsed_docs[path] = markdown(raw.decode("utf-8"))
+                errors.extend(f"{path}: {error}" for error in parsed_docs[path][3])
+            checkout = root.joinpath(*PurePosixPath(path).parts)
+            if not checkout.is_file():
+                errors.append(f"missing checkout file: {path}")
+                continue
+            if checkout.is_symlink() or not checkout.resolve().is_relative_to(root):
+                errors.append(f"unsafe checkout link: {path}")
+                continue
+            current = checkout.read_bytes()
+            if current != raw:
+                row = indexed.get(path, {})
+                if not (
+                    row.get("eol_only_difference") is True
+                    and current.replace(b"\r\n", b"\n") == raw
+                    and row.get("checkout_sha256") == sha256(current)
                 ):
-                    errors.append(f"unresolved qualified reference: {path}:{reference}")
-        for target, anchor in local_links(path, prose):
-            if target not in raw_files and not any(
-                name.startswith(target.rstrip("/") + "/") for name in raw_files
-            ):
-                errors.append(f"bad local link: {path} -> {target}")
-            elif (
-                anchor
-                and target in parsed_docs
-                and anchor not in parsed_docs[target][1]
-            ):
-                errors.append(f"bad local anchor: {path} -> {target}#{anchor}")
-    if STEP_LEDGER not in raw_files:
-        errors.append("missing step ledger")
-    else:
-        steps = json.loads(raw_files[STEP_LEDGER])
-        step_ids = [step["step_id"] for step in steps["steps"]]
-        if len(step_ids) != len(set(step_ids)):
-            errors.append("duplicate step IDs")
-        known_commits = set(git(root, "rev-list", "--all").decode("ascii").splitlines())
-        for step in steps["steps"]:
-            for kind in ("dependencies", "corrections", "superseded_by"):
-                for target in step.get(kind, []):
-                    if target not in step_ids or target == step["step_id"]:
-                        errors.append(
-                            f"invalid step {kind}: {step['step_id']} -> {target}"
-                        )
-            for commit in step.get("implementation", {}).get("commits", []):
-                if commit not in known_commits:
                     errors.append(
-                        f"unknown publication commit: {step['step_id']}:{commit}"
+                        f"unstaged content or undeclared EOL difference: {path}"
                     )
-            if step.get("history_audit_status", "CHECKED") not in COMPLETE:
-                errors.append(f"unfinished history audit: {step['step_id']}")
-            for evidence in step.get("provenance", []):
-                if evidence.startswith("git:"):
-                    commit = evidence.split(":")[1]
-                    if commit not in known_commits:
+    with run.phase("coverage"):
+        for path, row in indexed.items():
+            run.note(path)
+            if path not in raw_files:
+                continue
+            raw = raw_files[path]
+            if row.get("basis_sha256") != sha256(raw):
+                errors.append(f"stale file fingerprint: {path}")
+            status = row.get("status")
+            if (
+                status not in STATUSES
+                or status not in COMPLETE
+                or not row.get("read_complete")
+            ):
+                errors.append(f"unresolved semantic review row: {path} ({status})")
+            companion = row.get("documentation_path")
+            if not companion:
+                if not row.get("companion_exception"):
+                    errors.append(f"missing companion exception: {path}")
+                continue
+            if companion not in parsed_docs:
+                errors.append(f"missing companion: {path} -> {companion}")
+                continue
+            prose, anchors, blocks, _ = parsed_docs[companion]
+            hashes = re.findall(
+                r"^- Source SHA256: `([0-9a-f]{64})`$", prose, re.MULTILINE
+            )
+            if hashes != [sha256(raw)]:
+                errors.append(f"stale companion hash: {path}")
+            bases = re.findall(
+                r"^- Source SHA256 basis: `([^`]+)`$", prose, re.MULTILINE
+            )
+            if bases != ["git-content"]:
+                errors.append(f"ambiguous companion line-ending basis: {path}")
+            if raw.decode("utf-8") not in blocks:
+                errors.append(f"missing exact source snapshot: {path}")
+            if not path.endswith(".py"):
+                continue
+            actual = facts[path][1]
+            symbols = row.get("symbols", [])
+            wanted = {(item["qualified_name"], item["kind"]): item for item in actual}
+            recorded = {
+                (item["qualified_name"], item["kind"]): item for item in symbols
+            }
+            if set(wanted) != set(recorded) or len(recorded) != len(symbols):
+                errors.append(f"symbol inventory mismatch: {path}")
+            for key in sorted(set(wanted) & set(recorded)):
+                item, evidence = wanted[key], recorded[key]
+                for field in ("range", "signature_sha256"):
+                    if item[field] != evidence.get(field):
+                        errors.append(f"stale symbol {field}: {path}:{key[0]}")
+                if evidence.get("status") not in COMPLETE:
+                    errors.append(f"unresolved symbol review: {path}:{key[0]}")
+                if evidence.get("documentation_anchor") not in anchors:
+                    errors.append(f"missing documented anchor: {path}:{key[0]}")
+            declared = exports(raw, facts[path][0])
+            if declared != row.get("exports"):
+                errors.append(f"export inventory mismatch: {path}")
+            for name in declared or []:
+                if f"`{name}`" not in prose:
+                    errors.append(f"missing documented export: {path}:{name}")
+                module = path.removeprefix("src/").removesuffix(".py").replace("/", ".")
+                module = module.removesuffix(".__init__")
+                if not resolves_reference(module + "." + name, names, aliases):
+                    errors.append(f"unresolved export owner: {path}:{name}")
+    with run.phase("references"):
+        for path, (prose, _, _, _) in parsed_docs.items():
+            run.note(path)
+            exceptions = ledger.get("dynamic_reference_exceptions", [])
+            for literal in re.findall(r"`([^`\n]+)`", prose):
+                for reference in re.findall(
+                    r"(?<![\w./])(?:landscout|tests|tools)\.(?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*",
+                    literal,
+                ):
+                    if not resolves_reference(reference, names, aliases) and not any(
+                        item.get("documentation_path") == path
+                        and item.get("reference") == reference
+                        and item.get("reason")
+                        for item in exceptions
+                    ):
                         errors.append(
-                            f"unknown history provenance: {step['step_id']}:{commit}"
+                            f"unresolved qualified reference: {path}:{reference}"
                         )
-                    continue
-                target, _, anchor = evidence.partition("#")
-                if target not in raw_files:
-                    errors.append(f"missing step evidence: {step['step_id']}:{target}")
+            for target, anchor in local_links(path, prose):
+                if target not in raw_files and not any(
+                    name.startswith(target.rstrip("/") + "/") for name in raw_files
+                ):
+                    errors.append(f"bad local link: {path} -> {target}")
                 elif (
                     anchor
                     and target in parsed_docs
                     and anchor not in parsed_docs[target][1]
                 ):
-                    errors.append(
-                        f"bad step evidence anchor: {step['step_id']}:{evidence}"
-                    )
-            review = step["review"]
-            if review["status"].startswith(("APPROVED", "PARTIAL_REVIEW")):
-                if not all(
-                    review.get(key) for key in ("source", "commit", "scope", "reviewer")
-                ):
-                    errors.append(f"missing review provenance: {step['step_id']}")
-                elif review["source"].split("#", 1)[0] not in raw_files:
-                    errors.append(f"missing review source: {step['step_id']}")
+                    errors.append(f"bad local anchor: {path} -> {target}#{anchor}")
+    with run.phase("history"):
+        if STEP_LEDGER not in raw_files:
+            raise AuditInputError(f"missing step ledger: {STEP_LEDGER}")
+        else:
+            steps = load_ledger(raw_files[STEP_LEDGER], STEP_LEDGER)
+            validate_steps(steps)
+            step_ids = [step["step_id"] for step in steps["steps"]]
+            if len(step_ids) != len(set(step_ids)):
+                errors.append("duplicate step IDs")
+            known_commits = set(
+                run.git("available history", "rev-list", "--all")
+                .decode("ascii")
+                .splitlines()
+            )
+            shallow = (
+                run.git("history scope", "rev-parse", "--is-shallow-repository").strip()
+                == b"true"
+            )
+            run.metrics["shallow_history"] = shallow
+            history_limit = (
+                "unavailable in local history (shallow repository)"
+                if shallow
+                else "unavailable in local reachable history"
+            )
+            for step in steps["steps"]:
+                for kind in ("dependencies", "corrections", "superseded_by"):
+                    for target in step.get(kind, []):
+                        if target not in step_ids or target == step["step_id"]:
+                            errors.append(
+                                f"invalid step {kind}: {step['step_id']} -> {target}"
+                            )
+                for commit in step.get("implementation", {}).get("commits", []):
+                    if commit not in known_commits:
+                        errors.append(
+                            f"unknown publication commit: {step['step_id']}:{commit} ({history_limit})"
+                        )
+                if step.get("history_audit_status") not in COMPLETE:
+                    errors.append(f"unfinished history audit: {step['step_id']}")
+                for evidence in step.get("provenance", []):
+                    if evidence.startswith("git:"):
+                        commit = evidence.split(":")[1]
+                        if commit not in known_commits:
+                            errors.append(
+                                f"unknown history provenance: {step['step_id']}:{commit} ({history_limit})"
+                            )
+                        continue
+                    problem = evidence_problem(evidence, raw_files, parsed_docs)
+                    if problem:
+                        errors.append(
+                            f"missing step evidence: {step['step_id']}:{evidence} ({problem})"
+                        )
+                review = step["review"]
+                if review["status"].startswith(("APPROVED", "PARTIAL_REVIEW")):
+                    if not all(
+                        type(review.get(key)) is str
+                        and bool(review[key])
+                        and review[key] == review[key].strip()
+                        for key in ("source", "commit", "scope", "reviewer")
+                    ):
+                        errors.append(f"missing review provenance: {step['step_id']}")
+                    else:
+                        if review["commit"] not in known_commits:
+                            errors.append(
+                                f"unknown review commit: {step['step_id']}:{review['commit']} ({history_limit})"
+                            )
+                        problem = evidence_problem(
+                            review["source"], raw_files, parsed_docs
+                        )
+                        if problem:
+                            errors.append(
+                                f"invalid review source: {step['step_id']}:{review['source']} ({problem})"
+                            )
     return sorted(set(errors))
 
 
@@ -434,19 +845,43 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--root", type=Path, default=Path(__file__).resolve().parents[1]
     )
+    parser.add_argument(
+        "--progress", action="store_true", help="flush phase/file progress to stderr"
+    )
+    parser.add_argument(
+        "--git-timeout",
+        type=float,
+        default=30,
+        help="Git operation timeout in seconds (0 < value <= 300)",
+    )
     args = parser.parse_args(argv)
+    metrics: dict[str, Any] = {}
     try:
-        errors = audit(args.root.resolve())
+        errors = audit(
+            args.root.resolve(),
+            progress=args.progress,
+            git_timeout=args.git_timeout,
+            metrics=metrics,
+        )
     except (
         OSError,
-        subprocess.CalledProcessError,
+        AuditExecutionError,
+        KeyboardInterrupt,
         ValueError,
-        KeyError,
-        TypeError,
         SyntaxError,
     ) as exc:
-        print(f"documentation audit input error: {exc}", file=sys.stderr)
+        print(
+            f"documentation audit input error/execution failure: {redacted(str(exc))}",
+            file=sys.stderr,
+            flush=True,
+        )
         return 2
+    finally:
+        print(
+            "audit metrics: " + json.dumps(metrics, sort_keys=True),
+            file=sys.stderr,
+            flush=True,
+        )
     if errors:
         print("\n".join(errors))
         return 1

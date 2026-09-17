@@ -1,0 +1,458 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R2
+
+Make the local documentation auditor finish observably and reject invalid review evidence
+
+Repository: C:\souhaib\landscout-ai
+Remote identity: hmsouhaib/landscout-ai
+Working branch: recovery/docs-continuity-1-partial
+Required starting recovery HEAD: a413ee01072ed1c0ba2c4efb32a0f4c978c63aff
+Required unchanged remote main: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. One bounded objective
+
+The R1 recovery checkpoint is accepted as a preservation/publication checkpoint,
+NOT as approval of its unfinished documentation or tooling.
+
+Make the EXISTING local documentation auditor usable and trustworthy for continuing
+the audit: bounded/observable execution, controlled input errors, correct review
+provenance checks and non-colliding heading anchors. Preserve every actual pending
+review. Do not start a new auditor, global regeneration or application feature.
+
+This is a narrow continuation of DOCS.CONTINUITY.1 on the SAME recovery branch.
+ChatGPT remains read-only reviewer/ticket author. Codex implements this ticket.
+No merge, squash, PR, main push, branch deletion, force-push or independent self-approval.
+
+The next semantic-document review remains the two enrich_planning_features
+companions against unchanged source/tests. It is deferred, not forgotten, while
+this tool blocker is repaired. Do not perform that semantic review in R2.
+
+1. Preserved state and review findings
+
+R1 published 139 candidate paths with source/config/dependency/pre-existing test
+files unchanged from main. The 106-path protected manifest and historical checkout
+EOL exception remain authoritative evidence to recheck, not silently regenerate.
+
+The original inventory is 245 files / 4,769 symbols. Reported closure remains:
+67 files / 1,388 symbols closed; 178 files / 3,381 symbols open. The original
+coverage.json is still the unmerged initial NOT_READ inventory; stronger progress
+is in owner fragments and the dated reconciliation matrix. These different views
+must not be misreported as one reconciled COMPLETE inventory.
+
+Other preserved pending matters:
+
+application findings A-001 Cadastre XYM, A-002 RTE malformed-type error,
+A-003 planning raw-label builder/validator disagreement;
+
+five documented test-evidence limitations;
+
+cold-start status REPORTED_EXECUTED_PENDING_REVIEW;
+
+no completed visual Markdown audit;
+
+last approved functional boundary 7F.1B.4;
+
+7F.1C.1 is a research draft with exhaustive independent semantic review pending.
+
+No application correction is authorized here.
+
+Independently inspected exact tool
+
+File: tools/audit_documentation.py
+Git blob object ID: 71799192aa840ba3ce07bac27ed65fb323511bdb
+Raw content SHA256:
+8eca12abc2b9a93faab1c33ab21deddd2fe01b58ac1eba50778ad5b83236510f
+
+The reviewer executed a byte-identical copy on small synthetic Git repositories,
+under Linux/Python 3.13.5/Git 2.47.3. This was NOT a full LandScout/Windows run.
+Confirmed observations:
+
+An APPROVED review referring to a nonexistent 40-zero commit returns exit 0.
+
+An APPROVED review referring to an existing file but nonexistent #anchor returns 0.
+
+Omitting history_audit_status silently uses CHECKED and can return 0.
+
+A valid JSON coverage root [] produces an uncaught AttributeError/traceback,
+rather than the documented controlled input-error exit 2.
+
+Headings a, a, a-1 collapse into two generated anchors with no diagnostic.
+
+A five-file synthetic candidate invokes seven Git commands: ls-files, five
+separate show operations, and rev-list. Production subprocess calls have no
+timeout; the CLI prints nothing until the whole audit completes.
+
+The 630.254-second Windows interruption is reported R1 execution evidence.
+Its precise slow phase/root cause was NOT independently reproduced. Do not
+present the per-file subprocess cost as a proven sole cause. Profile first.
+
+2. Readiness and mandatory reading
+
+Read before editing:
+
+AGENTS.md;
+
+docs/project/WORKING_RULES.md and CURRENT_STATE.md;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md;
+
+docs/code/audit/RECOVERY_STATUS_2026-09-17.md;
+
+docs/code/audit/recovery_checkpoint_R1.json;
+
+the archived original DOCS.CONTINUITY.1 and R1 instructions;
+
+tools/audit_documentation.py, COMPLETELY;
+
+tests/unit/test_audit_documentation.py, COMPLETELY;
+
+their two exact source/test companions;
+
+the current coverage/step-ledger schemas and actual statuses.
+
+In the verified repository and authorized execution context inspect:
+
+git status --short --untracked-files=all
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git rev-parse origin/main
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+git ls-files -u
+
+Require clean recovery branch, HEAD/remote recovery at the required checkpoint,
+main at the required base, no unresolved Git operation/conflicts.
+If an interrupted execution of R2 already has local changes, preserve/inspect
+that work and its diff before continuing; never reset to satisfy cleanliness.
+
+Use the repository-owning execution context. R1's command-scoped exact-directory
+exception remains available only when the same verified ownership error occurs.
+No persistent safe.directory change, wildcard trust, owner/ACL/security change,
+hook bypass, or sandbox permission bypass. A tool's child Git calls must run in
+authorized context; an outer Git -c invocation does not configure unrelated
+future child processes. Report exact operational failures, not a presumed fix.
+
+3. Scope
+
+Allowed executable edits:
+
+tools/audit_documentation.py;
+
+tests/unit/test_audit_documentation.py.
+
+Related documentation only:
+
+the two corresponding companions;
+
+a short R2 diagnostics/review record under docs/code/audit/;
+
+minimal current-state/audit-progress updates;
+
+archive this ticket and the supplied scoped review receipt with provenance.
+
+Forbidden:
+
+src/, existing application tests, configs/, dependencies/tool configuration;
+
+changing application findings or raw data;
+
+blanket coverage/status promotions;
+
+merging all fragments or regenerating 50k-line coverage/other inventories;
+
+rewriting original tickets, cold-start answers or historical recovery evidence;
+
+installing a Markdown framework, network service, CI, package or another auditor;
+
+full global semantic audit or functional progression.
+
+The original reviewed file/symbol totals must not increase merely because the
+checker works. Track newly reviewed TOOL-specific material separately.
+
+4. Bounded, observable execution and efficient Git reads
+
+First instrument the current phases so a single controlled diagnostic run reveals
+where time is spent. Show phase start before expensive work and flushed progress
+to stderr. Keep final diagnostic data sorted/deterministic; timings do not belong
+in evidence fingerprints. Do not rerun another silent ten-minute attempt.
+
+Retain existing --check and --root behavior. A small documented --progress
+and a finite Git timeout option are acceptable; do not build an execution framework.
+
+Required behavior:
+
+finite, validated timeout for child Git operations;
+
+timeout/nonzero Git exit yields controlled operational error with phase,
+command role and useful redacted stderr, not just CalledProcessError text;
+
+no credentials/environment dumps;
+
+no abandoned child after timeout or cancellation;
+
+no shell=True;
+
+identify the selected root and index basis in diagnostics;
+
+print progress even when a final report is not yet available.
+
+Replace one git show :path process per file with a bounded number of read-only
+Git processes, e.g. index enumeration with git ls-files --stage -z and raw
+object reading through git cat-file --batch using captured stage-0 blob IDs.
+Batch protocol must be parsed by declared BYTE LENGTH, not by splitting content
+on newlines. Do not use textconv/smudge filters or change the git-content basis.
+Preserve spaces/Unicode paths and zero-byte files. Diagnose unmerged index entries
+and unsupported modes without reading arbitrary external symlink targets.
+
+Keep the index authoritative. Do not quietly substitute worktree bytes to make
+unstaged changes disappear. Detect index changes during the read or otherwise
+bind the result to one explicitly captured candidate. Preserve checkout/EOL
+comparison and the current declared CRLF-only exception.
+
+Avoid reparsing every Python AST and re-extracting the same source segment for
+multiple inventory/export/reference passes. Cache within the single audit call.
+Use safe source offsets for annotations if profiling identifies repeated
+ast.get_source_segment scans; preserve signature/range meaning, Unicode byte
+column handling, LF/CRLF behavior and output identity. No persistent cache.
+
+Do not call a slow run fixed merely because its timeout is longer or its scope
+has been narrowed. Record phase timings, counts, bytes and actual process counts.
+
+Primary implementation references (documentation only):
+https://git-scm.com/docs/git-cat-file
+https://git-scm.com/docs/git-ls-files
+https://docs.python.org/3.12/library/subprocess.html
+
+5. Review provenance and truthful missing states
+
+Correct the reviewed ledger logic without granting new approvals.
+
+For a recorded APPROVED* or PARTIAL_REVIEW* status:
+
+require exact non-empty strings for reviewer, source and scope;
+
+verify the commit refers to a real known commit in the available local history;
+
+verify the referenced source file AND supplied Markdown anchor actually exist;
+
+apply the existing canonical local-path rules consistently;
+
+missing, malformed or inaccessible provenance remains a diagnostic;
+
+an unavailable historical receipt is not fabricated or retroactively approved.
+
+Missing history_audit_status MUST NOT default to CHECKED. Diagnose it as missing
+or unreviewed. Existing explicit incomplete statuses remain incomplete.
+
+An accessible commit/file/anchor is only structural provenance. It does not prove
+that the named reviewer actually approved every claim. Preserve the separate
+recorded-review versus independent-approval distinction.
+
+If shallow or intentionally incomplete Git history prevents resolving an old
+commit, report that exact limitation offline. Do not fetch in the auditor or
+silently count it as a valid approval.
+
+Do not demand that current old records become approved in order to pass R2.
+The real candidate is expected to remain PARTIAL with nonzero findings.
+
+6. Controlled ledger input
+
+Validate JSON structure before .get, indexing, iteration or membership tests.
+The current 23 tests cover syntactically invalid JSON, not every valid-but-wrong
+shape. Add explicit shape checks for roots and records used by the checker.
+
+Require appropriate object/list/scalar types for coverage files, symbols, step
+records and review/provenance fields. Missing required members must yield a useful
+controlled diagnostic, not AttributeError or incidental iteration behavior.
+Reject duplicate object keys and non-finite JSON values in the trust-bearing
+ledgers rather than letting later occurrences silently replace earlier states.
+
+Keep documented exit meanings:
+
+0: the requested checks finish and no required diagnostic remains; NOT an
+independent semantic approval;
+
+1: audit finishes and reports findings/incomplete/stale evidence;
+
+2: controlled input/execution failure preventing a trustworthy full check.
+
+An interrupted or timed-out run is NOT ordinary exit 1 and NOT success.
+Do not manufacture a finished report from partial computation.
+
+Do not satisfy this section solely by adding a blanket except Exception.
+Fix the input assumptions and retain helpful file/record context.
+
+7. Heading-anchor collision
+
+Fix only the demonstrated collision behavior while preserving the explicitly
+supported Markdown subset. Track all generated anchor IDs, not only repetitions
+of the original heading text.
+
+For headings a, a, a-1, no two headings may silently share a generated ID;
+under the GitHub-style convention the IDs are a, a-1, a-1-1.
+Retain explicit anchors and existing fence/snapshot behavior. Add duplicate/slug
+collision tests with genuine expected outputs, not production-derived expectations.
+
+Do not claim a complete GitHub Markdown renderer or full GFM conformance from a
+small regex-based checker. Unsupported/dynamic constructs must be documented as
+limits rather than accepted as visual verification.
+
+8. Permanent synthetic regressions
+
+Preserve all 23 existing auditor cases, with equivalent documented assertions if
+private helpers change. Add small offline tests for the fixes:
+
+nonexistent approved-review commit; valid known-commit control;
+
+nonexistent review anchor; valid anchor control;
+
+missing history status stays unreviewed; explicit pending stays pending;
+
+[]/null/wrong-shaped coverage and malformed nested records;
+
+valid-but-wrong step/review structures, duplicate keys and non-finite JSON;
+
+same semantic findings whether progress is on or off;
+
+timed-out and nonzero Git commands give controlled diagnostic/exit 2;
+
+visible phase progress before an injected stall and useful stderr on failure;
+
+bounded Git process count on a multi-file fixture, independent of file count;
+
+batch content with empty files, multiline data, Unicode and spaces;
+
+exact index bytes and preservation of unstaged-drift/EOL diagnostics;
+
+parse each Python file once for inventory reuse, with no production imports;
+
+heading sequence a/a/a-1 and repeated headings without collision;
+
+auditor is read-only for checkout/index/refs/config;
+
+partial ledger still reports exit 1; no automatic status edits.
+
+Use counters/controlled child processes for cost/error tests, not flaky strict
+wall-clock timing. Missing-stage/conflict diagnostics must not silently skip
+unread blobs. No live network or real EP cache in these tests.
+
+9. Real-candidate diagnosis — completion is NOT required
+
+After focused tests, audit the full current INDEX with the corrected tool and
+visible progress. Stage ONLY the exact reviewed R2 paths if necessary so the
+candidate contains the new tool/tests/companions. Index staging is not publication.
+
+Do not merge/promote old coverage fragments to eliminate expected findings.
+Existing inventory drift, missing basis headers/anchors and PARTIAL review are
+expected reportable findings. A complete run returning 1 with those findings is
+acceptable for this WIP tool-repair ticket. An unhandled exception, unexplained
+hang, incomplete process termination or operational exit 2 is not tool success.
+
+Separate the resulting report into operational completion, mechanical issues,
+coverage/staleness findings and pending semantic/independent acceptance. Report
+actual input manifest identity, file/symbol counts, subprocess counts, phase
+elapsed times, exit code and limits. Do not copy an enormous full ledger into a
+second new report. Keep detailed machine output outside Git when appropriate,
+with a bounded digest/summary and exact reproduction command in the R2 receipt.
+
+If adding the receipt changes the staged candidate afterward, state precisely
+which candidate was checked; do not imply later bytes were included earlier.
+Avoid self-hashing reports and future-self commit identifiers.
+
+The global coverage/semantic status stays PARTIAL regardless of tool improvements.
+
+10. Whitespace and original archives
+
+R1 retained 13 whitespace findings in exact archived material. Do not rewrite
+those historic tickets or archived cold-start answers simply to remove the
+warnings. They are not proof of application corruption.
+
+Require git diff --check for the NEW R2 delta to pass. Report the inherited
+cumulative whitespace findings separately and truthfully. No global disabling
+of whitespace rules, hooks, checks or blanket archival exclusions.
+
+11. Validation and publication
+
+Run focused auditor tests with one SHORT unique --basetemp under:
+%LOCALAPPDATA%\LandScout\pytest-runs.
+Record exact passed cases, warnings, skips and native final exit including cleanup.
+
+Run:
+
+uv run ruff check tools/audit_documentation.py tests/unit/test_audit_documentation.py
+uv run ruff format --check tools/audit_documentation.py tests/unit/test_audit_documentation.py
+uv run mypy tools/audit_documentation.py
+uv run mypy src
+uv lock --check
+uv pip check
+uv run python -m compileall -q tools tests/unit/test_audit_documentation.py
+git diff --check
+
+No full application suite or EP rebuild is required merely for R2, because all
+application files remain unchanged. Full application validation is still pending
+for final DOCS.CONTINUITY.1 closure. Do not call 3,939+new tests a full executed pass.
+
+Verify all 106 original protected files against main and the recorded checkout
+manifest; preserve the EOL exception explicitly. Also verify untouched source
+roots/configs/research reference bytes and original audit fragments.
+
+Refresh only changed tool/test companions with the existing git-content SHA basis.
+Append a concise scoped review/R2 record and update CURRENT_STATE to distinguish:
+
+R1 preservation checkpoint accepted;
+
+R2 tool correction implemented, independent review pending;
+
+global semantic audit PARTIAL;
+
+planning companion review still first deferred semantic item;
+
+A-001/A-002/A-003, cold-start and 7F.1C.1 still pending their proper reviews.
+
+Preserve the existing recovery commit. Stage explicit reviewed paths only; no
+git add ., git add -A, git commit -a, or force staging.
+
+If R2's focused/quality/real-candidate operational gates pass:
+
+git commit -m "wip: make continuity auditor diagnostic and reliable"
+git push origin recovery/docs-continuity-1-partial
+git status --short
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+
+Require clean recovery worktree, HEAD == remote recovery SHA, remote main unchanged.
+No final DOCS.CONTINUITY.1 completion log, merge, PR, main push or next feature.
+Stop on a genuine blocker and preserve the exact current work without rewriting it.
+
+12. Required final report
+
+Return DOCS.CONTINUITY.1.R2 completed — global audit PARTIAL; review pending
+only when the scoped tool work completes; otherwise report BLOCKED/PARTIAL.
+
+Report:
+
+starting/final recovery SHA; main SHA unchanged; exact changed paths;
+
+proof protected code/config/application tests and archived materials unchanged;
+
+observed slow phase or explicit root-cause uncertainty;
+
+Git/AST cost before and after, actual subprocess counts and stage timings;
+
+timeout/error/JSON/provenance/anchor regression results;
+
+focused case count, exact commands and exit codes;
+
+real candidate manifest/operational completion and findings by category;
+
+no promoted semantic statuses and no regenerated original global ledger;
+
+tool/test companion synchronization and scoped documentation updates;
+
+original whitespace findings versus clean new R2 delta;
+
+pending application findings, cold-start and semantic-reference review retained;
+
+next deferred semantic item unchanged: enrich_planning_features companions.
+
+Then STOP for independent review. Do not proceed through the 178 open files in R2.
