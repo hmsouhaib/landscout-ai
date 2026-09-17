@@ -13,6 +13,12 @@ R3 ran this unchanged file once: **183 passed, 2 warnings, 64.14 s; native exit 
 including cleanup**, no failures/skips/xfails/deselections. Exact command/base and
 both warnings are retained in the R3 receipt. This is not the full application suite.
 
+[R3.1](../../../audit/R3_1_PLANNING_FIDELITY.md) corrects the specific fixture,
+call-order and branch-scope contradictions found by independent R3 review, plus
+the bounded helper clarification recorded there. All 122 notices were cross-checked
+against unchanged test bodies; no new pytest execution or independent acceptance
+is claimed. R3.1 review remains pending.
+
 ## Fixture provenance, imports and effects
 
 The builder and public validator are real calls into the unchanged stage; the
@@ -320,7 +326,7 @@ function; source lines 479–488. Signature SHA256: `e7e3011c8a3f69871d409425e07
 def test_polygon_and_multipolygon_surfaces(geometry: object) -> None:
 ```
 
-Two parametrized geometries, square Polygon or separated two-part MultiPolygon; each becomes a physical prescription surface. Asserts one relation and positive intersection area only, not an exact area for the multipolygon.
+Two parametrized geometries, square Polygon or separated two-part MultiPolygon; each becomes a physical information_surface (INFORMATION / SURFACE). Asserts one relation and positive intersection area only, not an exact area for the multipolygon.
 
 Collected-case expansion: 2. AST assert statements: 2; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -360,7 +366,7 @@ function; source lines 510–519. Signature SHA256: `dc26d9dab1079b748d819c1c546
 def test_line_boundary_touch_is_zero_length() -> None:
 ```
 
-Physical information line ending at parcel boundary. Requires TOUCH_ONLY, intersection length 0 and one line-touch summary. No road/access meaning is implied.
+Physical prescription_line from (10, 5) to (15, 5), starting at the boundary of the (0, 0)-(10, 10) parcel and extending outside. Requires TOUCH_ONLY, intersection length 0 and one line-touch summary. No road/access meaning is implied.
 
 Collected-case expansion: 1. AST assert statements: 3; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -400,7 +406,7 @@ function; source lines 540–564. Signature SHA256: `1bfc14cca0f5c1e505f1f125ed2
 def test_points_inside_boundary_outside_and_multipoint() -> None:
 ```
 
-Physical information points IN, BOUNDARY, OUT and a three-member MULTI with one inside, one boundary, one outside. Asserts only IN/BOUNDARY/MULTI relate; types for IN and BOUNDARY; full MULTI count 3, inside/boundary 1 each; three relation rows but parcel inside/boundary member totals 2 each.
+Physical prescription_point features IN, BOUNDARY, OUT and a three-member MULTI with one inside, one boundary, one outside. Asserts only IN/BOUNDARY/MULTI relate; types for IN and BOUNDARY; full MULTI count 3, inside/boundary 1 each; three relation rows but parcel inside/boundary member totals 2 each.
 
 Collected-case expansion: 1. AST assert statements: 9; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -442,7 +448,7 @@ function; source lines 594–608. Signature SHA256: `a0e926f6ba8b0f41e9041060fce
 def test_epsg4326_parcels_are_measured_in_lambert93_but_preserved() -> None:
 ```
 
-Constructs realistic Lambert-93 100 m2 parcel, reprojects input parcel to EPSG:4326 and intersects matching physical surface. Asserts output CRS and exact parcel WKB match original geographic input and relation area approximately 100 m2. Real projection/overlay.
+_parcels starts with a synthetic (0, 0)-(10, 10) square assigned EPSG:2154, then reprojects it to EPSG:4326. Intersects a matching physical prescription surface. Asserts output CRS and exact parcel WKB match the geographic input and relation area approximately 100 m2. Real projection/overlay of synthetic coordinates, not geographically representative or official-source evidence.
 
 Collected-case expansion: 1. AST assert statements: 3; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -476,7 +482,7 @@ function; source lines 617–622. Signature SHA256: `8fa73512481068bbd64e84eacdd
 def test_duplicate_parcel_ids_are_rejected() -> None:
 ```
 
-Two valid equal-shape parcels share DUP; expects PlanningFeaturesError matching unique at initial parcel check. Does not require GPU physical revalidation to be reached.
+Two valid different-sized squares, (0, 0)-(2, 2) and (3, 3)-(4, 4), have IDs ["P", "P"]; expects PlanningFeaturesError matching unique at initial parcel check. Does not require GPU physical revalidation to be reached.
 
 Collected-case expansion: 1. AST assert statements: 0; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -490,7 +496,7 @@ function; source lines 625–632. Signature SHA256: `53e5e3642eada3bf7046ad2849f
 def test_duplicate_source_ids_are_rejected() -> None:
 ```
 
-Two physical prescription surfaces share DUP. Parcel checks pass, real physical batch read succeeds, then source-ID uniqueness rejects with PlanningFeaturesError matching unique. Not a cross-layer uniqueness attack.
+Two physical information_surface features have IDs ["SAME", "SAME"]. Parcel checks pass, real physical batch read succeeds, then source-ID uniqueness rejects with PlanningFeaturesError matching unique. This is per-role uniqueness, not a cross-layer uniqueness attack.
 
 Collected-case expansion: 1. AST assert statements: 0; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -772,7 +778,7 @@ def test_present_empty_optional_layer_is_valid(
 ) -> None:
 ```
 
-Three real empty prescription source kinds. Surface drops CNIG ID. Builds after wrapping Pyogrio reader, asserts empty correct catalog/relations, CRS2154, retained parcel and document lineage; requires fid_reads == 1. Empty source still undergoes a physical FID read.
+Three real empty prescription source kinds. All cases assert empty corresponding catalog/relations, EPSG:2154 catalog CRS, one retained parcel and document lineage. Only prescription_surface drops LIB_IDPSC, installs the delegating Pyogrio reader spy and asserts fid_reads == 1. That empty surface still undergoes a physical FID read; line and point variants have no measured reader-call-count assertion.
 
 Collected-case expansion: 3. AST assert statements: 6; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -799,7 +805,7 @@ function; source lines 886–890. Signature SHA256: `3a03b77e6af2477f8eb47a965a8
         def unexpected_fid_read(*args: object, **kwargs: object) -> object:
 ```
 
-Monkeypatched reader delegates every call to the real Pyogrio read_dataframe; increments nonlocal fid_reads only for fid_as_index. It does not raise or forbid reads despite its name, and it does not fabricate data.
+Defined and installed only in the prescription_surface branch. The monkeypatched reader delegates every call to the real Pyogrio read_dataframe; increments nonlocal fid_reads only for fid_as_index. It does not raise or forbid reads despite its name, and it does not fabricate data.
 
 <a id="r3-contract-result"></a>
 
@@ -1213,7 +1219,7 @@ function; source lines 1411–1429. Signature SHA256: `b1a374d9f942cd84515ace473
 def test_same_source_id_is_allowed_in_distinct_logical_layers() -> None:
 ```
 
-Two physical prescription logical kinds share SAME source ID; real builder produces two relations with two unique planning_feature_id values. Confirms logical-role scoping of source IDs.
+Physical prescription_line and prescription_point fixtures both use SHARED as source ID; real builder produces two relation rows with two distinct planning_feature_id values. Confirms logical-role scoping of source IDs.
 
 Collected-case expansion: 1. AST assert statements: 2; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -1584,7 +1590,7 @@ function; source lines 1704–1708. Signature SHA256: `acf9d0e83c88f1982a454e380
 def test_source_complete_contract_accepts_epsg4326_parcels() -> None:
 ```
 
-Reprojects original parcels to 4326 and passes unchanged normalized result to public validator; success/no exception is the assertion. Actual metric reprojection occurs; no assertion pins transformed coordinates.
+Discards the earlier _source_complete_contract result via _, reprojects its parcels to EPSG:4326, calls intersect_parcels_with_gpu_planning_features again with the geographic parcels and same document, then validates that newly built result with those parcels. Success/no exception is the assertion; no transformed coordinates are pinned and no reuse of an old result across changed parcel inputs is proved.
 
 Collected-case expansion: 1. AST assert statements: 0; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -1825,7 +1831,7 @@ function; source lines 1916–1931. Signature SHA256: `7b0d55c68a914db691bd4e8b8
 def test_source_complete_contract_rejects_tampered_gpkg_inventory_hash() -> None:
 ```
 
-Changes one envelope file SHA to b*64, leaves manifest/disk unchanged. Public GPU extraction-manifest/inventory consistency rejects before selected-dataset per-file validation. Broad source/file/inventory/SHA regex.
+Changes one envelope file SHA to "f" * 64, leaves manifest and physical GPKG bytes unchanged. Public GPU extraction-manifest/inventory consistency rejects before selected-dataset per-file validation. Broad source/file/inventory/SHA regex.
 
 Collected-case expansion: 1. AST assert statements: 0; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 
@@ -1969,7 +1975,7 @@ function; source lines 2073–2074. Signature SHA256: `24c9e5a33b551c65a92c28708
     def synthetic_link(path: Path) -> bool:
 ```
 
-Returns true only for selected dataset, otherwise delegates actual detector. Used solely by parent test; no filesystem mutation.
+Returns true for the selected dataset without calling the real detector; for every other path, returns actual_link_check(path), which can also be true. Used solely by parent test; no filesystem mutation.
 
 <a id="r3-shapefile-source-complete-contract"></a>
 
@@ -1983,7 +1989,7 @@ def _shapefile_source_complete_contract(
 ) -> tuple[GpuPlanningDocument, gpd.GeoDataFrame, ParcelPlanningFeaturesResult]:
 ```
 
-Writes and rereads real prescription-surface Shapefile with CNIG ID PSC-SHP and codes07/04; builds local document and 100 m2 parcel result. Returns document, parcels, result for sidecar tests; core/optional files are real temp bytes, archive envelope fabricated.
+Writes and rereads real prescription-surface Shapefile with CNIG ID SHAPE-1 and code pair 07/04; builds local document and 100 m2 parcel result. Returns document, parcels, result for sidecar tests; core/optional files are real temp bytes, archive envelope fabricated.
 
 <a id="r3-shapefile-ogr-fid-source-complete-contract"></a>
 
@@ -2079,7 +2085,7 @@ def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
 ) -> None:
 ```
 
-Rewrites actual .cpg to ISO-8859-1 with unchanged manifest. Extraction inventory SHA/size mismatch rejects before selected sidecar family comparison or driver read. Real local tamper of one extension.
+Rewrites the actual .cpg using cpg.write_text("UTF-8\n", encoding="utf-8"), leaving the inventory/manifest stale. This writes UTF-8 text with a trailing newline (platform text-mode newline translation), not a change to the Latin-1 charset family. Extraction inventory SHA/size mismatch rejects before selected sidecar family comparison or driver read. Real local tamper of one extension.
 
 Collected-case expansion: 1. AST assert statements: 0; exception contexts/equality helpers and no-exception success are also assertions, as described above.
 

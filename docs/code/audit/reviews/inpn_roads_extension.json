@@ -7,7 +7,7 @@
     {
       "path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
       "role": "transferred planning-feature factual relation source/test/companion",
-      "source_sha256": "227e99c83b96bd7e5c3aa9a3746fb82830ca7716365b47629dcaecaf22c60f23",
+      "source_sha256": "6014d59a08f557ebeab6672e33d25d917d50db11fab52b9ee5e3b5a452b394a8",
       "documentation_path": null,
       "read_complete": true,
       "status": "CORRECTED",
@@ -35,6 +35,16 @@
         "source_sha256": "d11f3980bbcf115470eae16012c722774f6f7fcaadba5b8e018333019ba33583"
       },
       "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r3_1_correction": {
+        "ticket": "DOCS.CONTINUITY.1.R3.1",
+        "reviewed_commit": "aad641420c0b0d2c8c503815854ae9c17f4d09f4",
+        "supplied_r3_verdict": "CORRECTION_REQUIRED_FOR_DOCUMENTARY_FINDINGS",
+        "independent_acceptance": "PENDING",
+        "receipt": "docs/code/audit/R3_1_PLANNING_FIDELITY.md",
+        "resolution": "D-ANCHOR: private/public destinations separated; 84 unique symbol IDs/headings/signatures/ranges checked.",
+        "execution_boundary": "R3 183-pass run is historical; no R3.1 pytest or A-003 rerun.",
+        "prior_evidence": "R3 fields/r3_prior_evidence and original receipt remain historical; no new closure or status promotion."
+      },
       "review_ticket": "DOCS.CONTINUITY.1.R3",
       "review_starting_commit": "fd4d87b973be9e6842a6b1934077b61ad6c70f93",
       "independent_review_status": "PENDING",
@@ -44,7 +54,7 @@
     {
       "path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
       "role": "transferred planning-feature factual relation source/test/companion",
-      "source_sha256": "5b41259990b4c50f3c37d62a7edffc9355b44965a0e0b86f69cd5d4af2847fd7",
+      "source_sha256": "73f4f2c6647a3bb643457b698ab063fdc8eb7dd5bda5ecafeb126a4173c58fbf",
       "documentation_path": null,
       "read_complete": true,
       "status": "CORRECTED",
@@ -72,6 +82,16 @@
         "source_sha256": "dcc1fe680b262a3360b667cd45402537c2351fdb80ac076381e11e0af84e450d"
       },
       "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r3_1_correction": {
+        "ticket": "DOCS.CONTINUITY.1.R3.1",
+        "reviewed_commit": "aad641420c0b0d2c8c503815854ae9c17f4d09f4",
+        "supplied_r3_verdict": "CORRECTION_REQUIRED_FOR_DOCUMENTARY_FINDINGS",
+        "independent_acceptance": "PENDING",
+        "receipt": "docs/code/audit/R3_1_PLANNING_FIDELITY.md",
+        "resolution": "D-FACTS/D-SCOPE: 12 mandated notices, surface-only nested spy scope and synthetic_link clarification corrected; all 122 notices checked.",
+        "execution_boundary": "R3 183-pass run is historical; no R3.1 pytest or A-003 rerun.",
+        "prior_evidence": "R3 fields/r3_prior_evidence and original receipt remain historical; no new closure or status promotion."
+      },
       "review_ticket": "DOCS.CONTINUITY.1.R3",
       "review_starting_commit": "fd4d87b973be9e6842a6b1934077b61ad6c70f93",
       "independent_review_status": "PENDING",
@@ -1970,7 +1990,7 @@
           "end_line": 1787,
           "signature_sha256": "14e9e05f7a84581924315d580f40be8e99d174a2cb58cd2248c811b609fdc088",
           "status": "CHECKED",
-          "documentation_anchor": "r3-validate-normalized-planning-feature-inputs",
+          "documentation_anchor": "r3-private-validate-normalized-planning-feature-inputs",
           "review_notes": [
             "Ordered source-complete boundary: require none/all 21 parcel outputs, validate baseline parcels and metric copy; physically rebuild catalogs; intrinsically validate supplied catalogs then compare exact rebuilds; check canonical plain relations, IDs and actual parcel areas, intrinsic semantics and catalog consistency; reconstruct all relations and compare. If complete parcel outputs supplied, rebuild/compare/check summaries and lineage. Return hashes/counts of verified sources and rebuilt relations. Accepts no arbitrary precompiled trust substitute; no mutation or network.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
@@ -2099,6 +2119,16 @@
         "source_sha256": "01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148"
       },
       "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r3_1_correction": {
+        "ticket": "DOCS.CONTINUITY.1.R3.1",
+        "reviewed_commit": "aad641420c0b0d2c8c503815854ae9c17f4d09f4",
+        "supplied_r3_verdict": "CORRECTION_REQUIRED_FOR_DOCUMENTARY_FINDINGS",
+        "independent_acceptance": "PENDING",
+        "receipt": "docs/code/audit/R3_1_PLANNING_FIDELITY.md",
+        "resolution": "D-ANCHOR: private mapping corrected; all 84 immutable source bindings retained.",
+        "execution_boundary": "R3 183-pass run is historical; no R3.1 pytest or A-003 rerun.",
+        "prior_evidence": "R3 fields/r3_prior_evidence and original receipt remain historical; no new closure or status promotion."
+      },
       "review_ticket": "DOCS.CONTINUITY.1.R3",
       "review_starting_commit": "fd4d87b973be9e6842a6b1934077b61ad6c70f93",
       "independent_review_status": "PENDING",
@@ -2480,7 +2510,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-polygon-and-multipolygon-surfaces",
           "review_notes": [
-            "Two parametrized geometries, square Polygon or separated two-part MultiPolygon; each becomes a physical prescription surface. Asserts one relation and positive intersection area only, not an exact area for the multipolygon.",
+            "Two parametrized geometries, square Polygon or separated two-part MultiPolygon; each becomes a physical information_surface (INFORMATION / SURFACE). Asserts one relation and positive intersection area only, not an exact area for the multipolygon.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -2526,7 +2556,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-line-boundary-touch-is-zero-length",
           "review_notes": [
-            "Physical information line ending at parcel boundary. Requires TOUCH_ONLY, intersection length 0 and one line-touch summary. No road/access meaning is implied.",
+            "Physical prescription_line from (10, 5) to (15, 5), starting at the boundary of the (0, 0)-(10, 10) parcel and extending outside. Requires TOUCH_ONLY, intersection length 0 and one line-touch summary. No road/access meaning is implied.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -2572,7 +2602,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-points-inside-boundary-outside-and-multipoint",
           "review_notes": [
-            "Physical information points IN, BOUNDARY, OUT and a three-member MULTI with one inside, one boundary, one outside. Asserts only IN/BOUNDARY/MULTI relate; types for IN and BOUNDARY; full MULTI count 3, inside/boundary 1 each; three relation rows but parcel inside/boundary member totals 2 each.",
+            "Physical prescription_point features IN, BOUNDARY, OUT and a three-member MULTI with one inside, one boundary, one outside. Asserts only IN/BOUNDARY/MULTI relate; types for IN and BOUNDARY; full MULTI count 3, inside/boundary 1 each; three relation rows but parcel inside/boundary member totals 2 each.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -2641,7 +2671,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-epsg4326-parcels-are-measured-in-lambert93-but-preserved",
           "review_notes": [
-            "Constructs realistic Lambert-93 100 m2 parcel, reprojects input parcel to EPSG:4326 and intersects matching physical surface. Asserts output CRS and exact parcel WKB match original geographic input and relation area approximately 100 m2. Real projection/overlay.",
+            "_parcels starts with a synthetic (0, 0)-(10, 10) square assigned EPSG:2154, then reprojects it to EPSG:4326. Intersects a matching physical prescription surface. Asserts output CRS and exact parcel WKB match the geographic input and relation area approximately 100 m2. Real projection/overlay of synthetic coordinates, not geographically representative or official-source evidence.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -2687,7 +2717,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-duplicate-parcel-ids-are-rejected",
           "review_notes": [
-            "Two valid equal-shape parcels share DUP; expects PlanningFeaturesError matching unique at initial parcel check. Does not require GPU physical revalidation to be reached.",
+            "Two valid different-sized squares, (0, 0)-(2, 2) and (3, 3)-(4, 4), have IDs [\"P\", \"P\"]; expects PlanningFeaturesError matching unique at initial parcel check. Does not require GPU physical revalidation to be reached.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -2710,7 +2740,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-duplicate-source-ids-are-rejected",
           "review_notes": [
-            "Two physical prescription surfaces share DUP. Parcel checks pass, real physical batch read succeeds, then source-ID uniqueness rejects with PlanningFeaturesError matching unique. Not a cross-layer uniqueness attack.",
+            "Two physical information_surface features have IDs [\"SAME\", \"SAME\"]. Parcel checks pass, real physical batch read succeeds, then source-ID uniqueness rejects with PlanningFeaturesError matching unique. This is per-role uniqueness, not a cross-layer uniqueness attack.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -3078,7 +3108,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-present-empty-optional-layer-is-valid",
           "review_notes": [
-            "Three real empty prescription source kinds. Surface drops CNIG ID. Builds after wrapping Pyogrio reader, asserts empty correct catalog/relations, CRS2154, retained parcel and document lineage; requires fid_reads == 1. Empty source still undergoes a physical FID read.",
+            "Three real empty prescription source kinds. All cases assert empty corresponding catalog/relations, EPSG:2154 catalog CRS, one retained parcel and document lineage. Only prescription_surface drops LIB_IDPSC, installs the delegating Pyogrio reader spy and asserts fid_reads == 1. That empty surface still undergoes a physical FID read; line and point variants have no measured reader-call-count assertion.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -3101,7 +3131,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-present-empty-optional-layer-is-valid-unexpected-fid-read",
           "review_notes": [
-            "Monkeypatched reader delegates every call to the real Pyogrio read_dataframe; increments nonlocal fid_reads only for fid_as_index. It does not raise or forbid reads despite its name, and it does not fabricate data.",
+            "Defined and installed only in the prescription_surface branch. The monkeypatched reader delegates every call to the real Pyogrio read_dataframe; increments nonlocal fid_reads only for fid_as_index. It does not raise or forbid reads despite its name, and it does not fabricate data.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -3630,7 +3660,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-same-source-id-is-allowed-in-distinct-logical-layers",
           "review_notes": [
-            "Two physical prescription logical kinds share SAME source ID; real builder produces two relations with two unique planning_feature_id values. Confirms logical-role scoping of source IDs.",
+            "Physical prescription_line and prescription_point fixtures both use SHARED as source ID; real builder produces two relation rows with two distinct planning_feature_id values. Confirms logical-role scoping of source IDs.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4182,7 +4212,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-source-complete-contract-accepts-epsg4326-parcels",
           "review_notes": [
-            "Reprojects original parcels to 4326 and passes unchanged normalized result to public validator; success/no exception is the assertion. Actual metric reprojection occurs; no assertion pins transformed coordinates.",
+            "Discards the earlier _source_complete_contract result via _, reprojects its parcels to EPSG:4326, calls intersect_parcels_with_gpu_planning_features again with the geographic parcels and same document, then validates that newly built result with those parcels. Success/no exception is the assertion; no transformed coordinates are pinned and no reuse of an old result across changed parcel inputs is proved.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4412,7 +4442,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-source-complete-contract-rejects-tampered-gpkg-inventory-hash",
           "review_notes": [
-            "Changes one envelope file SHA to b*64, leaves manifest/disk unchanged. Public GPU extraction-manifest/inventory consistency rejects before selected-dataset per-file validation. Broad source/file/inventory/SHA regex.",
+            "Changes one envelope file SHA to \"f\" * 64, leaves manifest and physical GPKG bytes unchanged. Public GPU extraction-manifest/inventory consistency rejects before selected-dataset per-file validation. Broad source/file/inventory/SHA regex.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4642,7 +4672,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-source-complete-contract-rejects-linked-spatial-dataset-synthetic-link",
           "review_notes": [
-            "Returns true only for selected dataset, otherwise delegates actual detector. Used solely by parent test; no filesystem mutation.",
+            "Returns true for the selected dataset without calling the real detector; for every other path, returns actual_link_check(path), which can also be true. Used solely by parent test; no filesystem mutation.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4665,7 +4695,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-shapefile-source-complete-contract",
           "review_notes": [
-            "Writes and rereads real prescription-surface Shapefile with CNIG ID PSC-SHP and codes07/04; builds local document and 100 m2 parcel result. Returns document, parcels, result for sidecar tests; core/optional files are real temp bytes, archive envelope fabricated.",
+            "Writes and rereads real prescription-surface Shapefile with CNIG ID SHAPE-1 and code pair 07/04; builds local document and 100 m2 parcel result. Returns document, parcels, result for sidecar tests; core/optional files are real temp bytes, archive envelope fabricated.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4803,7 +4833,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r3-test-source-complete-contract-rejects-changed-shapefile-sidecar-bytes",
           "review_notes": [
-            "Rewrites actual .cpg to ISO-8859-1 with unchanged manifest. Extraction inventory SHA/size mismatch rejects before selected sidecar family comparison or driver read. Real local tamper of one extension.",
+            "Rewrites the actual .cpg using cpg.write_text(\"UTF-8\\n\", encoding=\"utf-8\"), leaving the inventory/manifest stale. This writes UTF-8 text with a trailing newline (platform text-mode newline translation), not a change to the Latin-1 charset family. Extraction inventory SHA/size mismatch rejects before selected sidecar family comparison or driver read. Real local tamper of one extension.",
             "Exact signature/range checked against unchanged Git content; behavioral review, not automatic AST promotion. Related tests do not imply unvisited branches were covered."
           ],
           "test_references": [
@@ -4943,6 +4973,16 @@
         "source_sha256": "f742a30c7921e83fd28114c7419ba0d4c2ca36aa0aed5d04c8881cad1feaef57"
       },
       "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r3_1_correction": {
+        "ticket": "DOCS.CONTINUITY.1.R3.1",
+        "reviewed_commit": "aad641420c0b0d2c8c503815854ae9c17f4d09f4",
+        "supplied_r3_verdict": "CORRECTION_REQUIRED_FOR_DOCUMENTARY_FINDINGS",
+        "independent_acceptance": "PENDING",
+        "receipt": "docs/code/audit/R3_1_PLANNING_FIDELITY.md",
+        "resolution": "D-FACTS/D-SCOPE: same 14 corrected test/helper notes as companion; all 122 immutable test bindings retained.",
+        "execution_boundary": "R3 183-pass run is historical; no R3.1 pytest or A-003 rerun.",
+        "prior_evidence": "R3 fields/r3_prior_evidence and original receipt remain historical; no new closure or status promotion."
+      },
       "review_ticket": "DOCS.CONTINUITY.1.R3",
       "review_starting_commit": "fd4d87b973be9e6842a6b1934077b61ad6c70f93",
       "independent_review_status": "PENDING",
@@ -4950,6 +4990,7 @@
     }
   ],
   "findings": [],
+  "r3_1_owner_note": "Bounded correction of the same four R3 rows after supplied independent documentary findings; R3.1 acceptance pending. Source/test bytes and 71/245 file, 1594/4769 symbol closure totals unchanged. Next CNIG configuration remains queued, not started. Original r3_owner_note and receipt are historical, not current independent acceptance.",
   "r3_owner_note": "Only these four previously NOT_READ rows are updated by R3. Prior planning.json duplicate transfer rows and original matrix/coverage stay unchanged. Deduplicated original closure delta: +4 files, +206 symbols; independent review pending.",
   "r3_reconciled_original_totals": {
     "files": 245,

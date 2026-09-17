@@ -6,7 +6,7 @@
 - Source SHA256: `01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148`
 - Source SHA256 basis: `git-content`
 - Binding convention: `SHA256_OF_EXACT_GIT_CONTENT_BYTES`; the complete UTF-8 snapshot below matches those bytes, not an EOL-normalized surrogate.
-- R3 review: 84 existing class/field/function records checked against unchanged source; documentation fidelity only, independent review pending. A-003 remains OPEN.
+- R3 review: 84 existing class/field/function records checked against unchanged source; its independent review requires bounded documentary corrections, not an application change. [R3.1 correction](../../../../audit/R3_1_PLANNING_FIDELITY.md) separates the private/public validation anchors; independent acceptance is pending. A-003 remains OPEN.
 - Navigation: [source](../../../../../../src/landscout/stages/enrich_planning_features.py), [test companion](../../../tests/unit/test_enrich_planning_features.py.md), [technical index](../../../../README.md), [R3 receipt](../../../../audit/R3_PLANNING_FEATURES.md).
 
 ## Purpose and two distinct public paths
@@ -1490,7 +1490,7 @@ Compares full schema, exact index, equivalent CRS and ordered WKB with newly reb
 
 Related evidence (limits in linked test explanation): [test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-noncanonical-parcel-summary-dtype), [test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact](../../../tests/unit/test_enrich_planning_features.py.md#r3-test-source-complete-contract-rejects-each-corrupted-parcel-summary-fact).
 
-<a id="r3-validate-normalized-planning-feature-inputs"></a>
+<a id="r3-private-validate-normalized-planning-feature-inputs"></a>
 
 ### `_validate_normalized_planning_feature_inputs`
 

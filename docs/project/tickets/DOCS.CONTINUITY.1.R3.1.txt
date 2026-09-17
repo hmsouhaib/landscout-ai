@@ -1,0 +1,426 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R3.1
+
+Correct planning companion facts and remove the public/private anchor collision
+
+Repository: C:\souhaib\landscout-ai
+Remote: hmsouhaib/landscout-ai
+Working branch: recovery/docs-continuity-1-partial
+REQUIRED STARTING RECOVERY HEAD: aad641420c0b0d2c8c503815854ae9c17f4d09f4
+REQUIRED UNCHANGED MAIN: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. One objective
+
+Finish the fidelity/navigation correction of the TWO planning-feature companions
+already reviewed under R3. Preserve their useful new explanations and every
+application source/test byte. This is not a new code audit, an auditor redesign,
+a configuration review, or permission to restart the 174-file remaining queue.
+
+The independent reviewer read the entire published planning source, entire test
+file, and the unique explanatory prose of both companions. The review found
+specific contradictions between the test bodies and their explanations, and one
+explicit anchor shared by a private/public pair. Selected owner-fragment records
+repeat the same errors while marked CHECKED.
+
+R3 is therefore CORRECTION_REQUIRED for these documentary findings, not rejected
+as a whole implementation. Its architecture explanations, preservation of known
+application findings, and honest test-evidence limitations are to be retained.
+
+ChatGPT stays read-only reviewer/ticket author. Codex implements this bounded
+correction. No main push, merge, PR, CI, history rewrite or next functional step.
+
+1. Review provenance and what was actually verified
+
+Reviewed commit: aad641420c0b0d2c8c503815854ae9c17f4d09f4.
+Its reported publication scope is seven documentation paths, with application
+source/tests unchanged. Verify the actual Git state again rather than trusting
+this receipt as a live ref.
+
+Reviewed source:
+src/landscout/stages/enrich_planning_features.py, lines 1–2057.
+Git blob: e19525566471a99743aa6c3d36ac3096a78eeb5e.
+
+Reviewed test:
+tests/unit/test_enrich_planning_features.py, lines 1–2287.
+Git blob: 085c5bc7838159598656675e945aa8d54491c0d8.
+
+Reviewed companion blobs:
+
+source: d5e9e6bcaf3ec9675e11807941d3fb7c68db2eaa;
+
+test: 399875f8fe5a9515381e385cf1cdf65f0be8d5cc.
+
+The reviewer compared the code and explanations by read-only connector retrieval.
+It was NOT a fresh 183-case runtime execution, a byte-level verification of the
+whole embedded snapshots, a visual Markdown render, a full independent scan of
+all 206 owner-fragment records, or a rerun of A-003. Do not claim those activities
+in this receipt. R3's 183-pass run remains Codex-reported prior execution.
+
+2. Readiness and non-destructive recovery
+
+Read first:
+
+AGENTS.md;
+
+docs/project/WORKING_RULES.md;
+
+docs/project/CURRENT_STATE.md;
+
+docs/code/audit/R3_PLANNING_FEATURES.md;
+
+the archived original continuity, R3 and relevant recovery instructions.
+
+In the verified repository/authorized execution context inspect:
+
+git status --short --untracked-files=all
+git branch --show-current
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git rev-parse origin/main
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+git ls-files -u
+
+Require the exact recovery branch and starting SHA, unchanged main, clean worktree
+and no Git operation/conflict. If this same ticket was interrupted with local
+work, inspect and preserve that work rather than resetting to satisfy cleanliness.
+Do not reconcile differing/unrelated history automatically.
+
+Use the repository-owning authorized context. The previously authorized
+COMMAND-SCOPED safe.directory exception is available only for a reproduced
+ownership error on this exact checkout; no persistent/wildcard trust, permissions,
+security changes, hook bypass, dependency reinstall or sandbox bypass.
+
+3. Strict edit scope
+
+Expected seven paths:
+
+docs/code/files/src/landscout/stages/enrich_planning_features.py.md
+
+docs/code/files/tests/unit/test_enrich_planning_features.py.md
+
+docs/code/audit/reviews/inpn_roads_extension.json
+
+docs/code/audit/R3_1_PLANNING_FIDELITY.md (new bounded receipt)
+
+docs/code/audit/DOCUMENTATION_AUDIT.md (minimal current-status update)
+
+docs/project/CURRENT_STATE.md (minimal current-status update)
+
+docs/project/tickets/DOCS.CONTINUITY.1.R3.1.txt (exact supplied ticket)
+
+Do NOT modify:
+
+src/** or any existing application test;
+
+tools/audit_documentation.py or its tests/companions;
+
+configurations, dependencies, source identities, schemas or hash algorithms;
+
+coverage.json, historical recovery matrix, other review fragments;
+
+original R3 receipt, tickets or cold-start answers;
+
+semantic reference artifacts or global DEV_LOG finalization.
+
+The three application findings A-001/A-002/A-003 stay OPEN. In particular, do not
+strip optional text, repair the planning validator or change a fixture to match
+its mistaken documentary description.
+
+4. Use the existing work; do not regenerate the companions
+
+Read the two existing companions and all affected source/test definitions in
+context before editing. The source/test already have full-reading records; this
+correction does not erase them or require rebuilding the documentation from AST.
+
+Cross-check the concrete fixture values, logical families, reader/mutation sites,
+call order and assertions in EVERY test/helper notice of this one test companion.
+Keep the check bounded to this file and its referenced helper definitions. Do not
+restart reviews of unrelated source domains or configurations.
+
+Use AST inventories to locate/count definitions; they do not write their meaning.
+Preserve the good distinctions already added about frozen envelopes vs mutable
+frames, real local datasets vs fabricated archive identity, full vs clipped
+measurements, raw sums vs union, actual early rejection paths and missing direct
+regressions.
+
+5. D-ANCHOR — distinct public and private symbol destinations
+
+In the source companion, these two headings currently share:
+
+r3-validate-normalized-planning-feature-inputs
+
+_validate_normalized_planning_feature_inputs, source lines 1649–1787;
+
+validate_normalized_planning_feature_inputs, source lines 1790–1814.
+
+The owner fragment also maps BOTH qualified names to that same anchor.
+
+A presence check against an anchor set cannot detect this defect. Each link must
+identify the intended symbol, not merely a name occurring somewhere in the file.
+
+Use a stable collision-free distinction. Preferred minimal change:
+
+keep r3-validate-normalized-planning-feature-inputs for the PUBLIC wrapper;
+
+use r3-private-validate-normalized-planning-feature-inputs for the PRIVATE body.
+
+Inspect all references to the old ID before deciding which target each intends.
+Update the corresponding owner-fragment mapping and any affected current links.
+Do not introduce a second alias with the same HTML ID. Preserve historical receipt
+bytes; explain any obsolete historic reference rather than rewriting the archive.
+
+For both companions verify, with a bounded temporary read-only check:
+
+each explicit ID outside fenced code has one occurrence per document;
+
+each of the 84/122 recorded symbol mappings targets exactly one explicit ID;
+
+the heading immediately associated with that ID names the exact qualified
+symbol, preserving a leading underscore and enclosing scope;
+
+the displayed signature/range belongs to that symbol in the unchanged file;
+
+no two distinct per-symbol records use the same symbol destination;
+
+relevant incoming links resolve to their intended public/private target.
+
+Do not expand the global auditor to add this check. Its limited Markdown/DOM
+coverage is already documented. The small temporary check stays outside Git.
+Do not claim visual rendering from an HTML-ID or regex check.
+
+6. D-FACTS — correct the explicit contradictions below
+
+Correct both the test companion and any matching review_notes in the owner
+fragment. An exact source snapshot below an incorrect explanation does not fix
+that explanation.
+
+6.1 test_polygon_and_multipolygon_surfaces (source 479–488)
+
+Current prose calls the source a prescription surface.
+Actual _inspected and _source_frame arguments: information_surface.
+Document the INFORMATION / SURFACE fixture. Preserve the limited assertions:
+one relation and positive intersection area, not a pinned exact MultiPolygon area.
+
+6.2 test_line_boundary_touch_is_zero_length (510–519)
+
+Current prose calls it an information line ending at the boundary.
+Actual logical role: prescription_line.
+Actual coordinates: (10, 5) to (15, 5) against the (0,0)-(10,10) parcel.
+Document prescription line starting at the boundary and extending outside, with
+the actual TOUCH_ONLY / zero-length / touch-count assertions.
+
+6.3 test_points_inside_boundary_outside_and_multipoint (540–564)
+
+Current prose says information points.
+Actual role: prescription_point for IN, BOUNDARY, OUT and MULTI.
+Keep the correct part/pair count distinctions and exact observed assertions.
+
+6.4 test_duplicate_source_ids_are_rejected (625–632)
+
+Current prose says prescription surfaces sharing DUP.
+Actual role: information_surface; IDs are ["SAME", "SAME"].
+Correct both facts. Do not alter the fixtures, exception expectation or claimed
+per-role vs cross-role scope.
+
+6.5 test_duplicate_parcel_ids_are_rejected (617–622)
+
+Current prose says equal-shape parcels sharing DUP.
+Actual IDs: ["P", "P"].
+Actual rectangles: (0,0)-(2,2) and (3,3)-(4,4); they are different-sized
+squares, not identical or equal-area parcels.
+Document only the tested duplicate-ID behavior and correct concrete setup.
+
+6.6 test_same_source_id_is_allowed_in_distinct_logical_layers (1411–1429)
+
+Current prose names the shared ID SAME.
+Actual ID in both prescription-line and prescription-point fixtures: SHARED.
+The outcome is two relation rows / two distinct planning_feature_id values.
+
+6.7 test_source_complete_contract_accepts_epsg4326_parcels (1704–1708)
+
+Current prose says an unchanged previous normalized result is passed to validation.
+Actual algorithm discards the earlier result (_), reprojects the parcels,
+CALLS intersect_parcels_with_gpu_planning_features(geographic, planning_document)
+again, and validates THAT newly constructed result with the geographic parcels.
+
+Explain the builder-then-validator path. Do not claim this test proves reuse of
+an old result across changed parcel inputs.
+
+6.8 test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes
+
+(source 2196–2207)
+
+Current prose says the .cpg is rewritten to ISO-8859-1.
+Actual statement:
+
+cpg.write_text("UTF-8\n", encoding="utf-8")
+
+Describe those exact bytes/text and the stale inventory/marker condition. Do not
+claim the test deliberately changes the declared character-set family to Latin-1.
+
+6.9 test_source_complete_contract_rejects_tampered_gpkg_inventory_hash
+
+(source 1916–1931)
+
+Current prose says b*64.
+Actual synthetic replacement: "f" * 64.
+Describe an envelope hash mutation, not a physical GPKG byte mutation.
+
+6.10 _shapefile_source_complete_contract (2085–2107)
+
+Current prose calls the source ID PSC-SHP.
+Actual fixture ID: SHAPE-1.
+Keep the actual role, code pair 07/04 and physical Shapefile construction.
+
+7. D-SCOPE — qualify claims by the branch actually exercised
+
+test_present_empty_optional_layer_is_valid (875–905)
+
+The three cases cover surface/line/point, but the Pyogrio wrapper and
+fid_reads == 1 assertion occur ONLY when logical == prescription_surface.
+
+Document explicitly:
+
+common empty-frame/catalog/parcel assertions across the three cases;
+
+absent-CNIG-ID setup, reader spy and exact FID call-count assertion only in the
+surface case;
+
+no measured reader-call-count claim for the line and point variants.
+
+test_epsg4326_parcels_are_measured_in_lambert93_but_preserved (594–608)
+
+Remove the unsubstantiated adjective “realistic” from the fixture geography.
+_parcels() starts with a synthetic square at coordinates 0..10 assigned EPSG:2154,
+then transforms it for the test. Document what is built and asserted; do not imply
+geographic representativeness or official-source evidence.
+
+If the bounded review reveals another factual mismatch in these two companions,
+fix it in the same small correction and list it. Do not manufacture unsupported
+coverage, infer behavior from test names or fix application code.
+
+8. Keep the ledger honest and avoid duplicate authorities
+
+The owner fragment repeats the same manual notes as the companions. Correct the
+matching entries together; do not leave stale CHECKED explanations elsewhere in
+that same four-row handoff.
+
+Retain prior R3 evidence as history (it already has r3_prior_evidence). Add scoped
+R3.1 provenance and findings resolution without regenerating all fragments.
+Update companion content fingerprints only after their content is final. Source
+and test fingerprints/signatures must remain tied to the UNCHANGED Python files.
+
+Current-state/progress documents must say:
+
+R3 publication and prior 183-case run exist;
+
+independent R3 review found documentary contradictions / duplicate navigation;
+
+R3.1 corrects them, with independent acceptance pending until actually supplied;
+
+no application correctness approval or closure of A-003 follows.
+
+Do not increase the original reviewed-file/symbol totals merely for reworking the
+same four rows. The reported R3 totals are 71/245 and 1,594/4,769; independent
+acceptance of this batch is a separate state, not hidden inside those totals.
+No other NOT_READ/READ item is promoted. The next configuration remains queued,
+not started: configs/planning/cnig_plu_2017_feature_codes.yaml.
+
+Preserve the global PARTIAL state, application findings, original five evidence
+limitations, R3-T01..R3-T04, cold-start pending acceptance, visual-rendering limit,
+full-suite finalization pending and 7F.1C.1 semantic review pending.
+
+9. Checks appropriate to a documentation-only correction
+
+Required scoped checks, run on the real candidate:
+
+compare source/test and all original protected files to the recorded bases;
+
+verify unchanged auditor and auditor tests;
+
+compare every corrected factual statement against the actual source/test body;
+
+verify both complete snapshots and git-content SHA headers;
+
+verify all 206 per-symbol mappings using the uniqueness/heading/signature checks
+in section 5, not just anchor in set;
+
+verify updated Markdown links, balanced fences and table syntax;
+
+strict JSON parse of the changed owner fragment;
+
+verify only the four existing file rows are touched and only necessary symbol
+notes/anchors/provenance updated; no unrelated status promotions;
+
+verify new-delta whitespace with git diff --check and staged equivalent.
+
+No full application suite or EP/GPU real-source operation is required here.
+No rerun of the unchanged 183-case suite is required just to correct prose.
+Do not describe R3's prior run as an R3.1 execution. New temporary checking scripts
+are not permanent tests or additional application cases.
+
+Use the unchanged auditor ONCE on the explicitly staged candidate with progress:
+
+.venv\Scripts\python.exe -X utf8 tools/audit_documentation.py --check --progress
+
+A completed exit 1 with the real remaining PARTIAL/stale findings is acceptable.
+Do not force a fixed total, hide the two known hash-domain false positives, modify
+exceptions, merge coverage or promote statuses to get exit 0. A timeout, traceback
+or operational exit 2 is not a completed run. Preserve and report any blocker.
+
+Record the candidate manifest and any later receipt-only delta accurately.
+Old archived whitespace observations remain separate from the clean NEW delta;
+never rewrite archived tickets/answers to remove them.
+
+10. Publication
+
+Before publication inspect every changed hunk. Stage only explicit approved paths.
+No git add ., git add -A, amend, force-push, new recovery branch or main merge.
+
+Once the scoped correction and checks genuinely finish:
+
+git commit -m "docs: correct planning companion evidence and anchors"
+git push origin recovery/docs-continuity-1-partial
+git status --short --untracked-files=all
+git rev-parse HEAD
+git rev-parse origin/recovery/docs-continuity-1-partial
+git ls-remote --heads origin main recovery/docs-continuity-1-partial
+
+Require clean worktree, local/remote recovery equality and main unchanged.
+Do not put a commit's own future SHA inside itself. Preserve the preceding
+checkpoint chain and original receipts. If incomplete, preserve partial work and
+report the exact unfinished item, rather than manufacture completion.
+
+11. Final report and STOP
+
+Return:
+DOCS.CONTINUITY.1.R3.1 completed — global audit PARTIAL; review pending
+only when this bounded correction is complete.
+
+Report:
+
+starting/final recovery SHA, main equality, exact changed paths;
+
+explicit private/public anchor choices and incoming-link reconciliation;
+
+duplicate-ID check, 84/122 mapping counts and intended-heading checks;
+
+every factual correction with actual source lines and corrected meaning;
+
+conditional spy and EPSG:4326 rebuild descriptions corrected;
+
+companion + owner-note consistency and exact source/snapshot checks;
+
+proof protected Python/config/auditor bytes unchanged;
+
+actual checks/executions versus historical results;
+
+index auditor manifest, completion flag, exit and limits;
+
+clean new delta vs unchanged inherited archive warnings;
+
+unchanged original closure totals and all pending findings;
+
+clean worktree and remote recovery publication.
+
+Then STOP for independent review. Do not start the next CNIG configuration audit,
+fix A-003, implement semantics, read new source data, or author another ticket.
