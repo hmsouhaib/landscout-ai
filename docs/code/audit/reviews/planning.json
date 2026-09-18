@@ -48,16 +48,37 @@
       "source_sha256": "8a26fcb8ee7e2f028baca65d94c2b5be5445ba9fc4b82b9b1a21843f933f8b2a",
       "documentation_path": "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",
       "role": "configuration",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R5: complete owning BESS policy source, strict YAML and immutable mapping helpers; bounded CNIG source/test and downstream application/aggregation reads. Exact ranges and limits in docs/code/audit/R5_BESS_CNIG_POLICY.md; no dependency row promoted."
       ],
-      "test_references": [],
+      "contract_review": [
+        "Entire unchanged 154-line YAML and unique prose/tables of old 930-line companion read; repeated class/YAML/Base64 snapshots checked. Stale mutable status_priority declaration and enable-switch/no-hashing claims corrected.",
+        "10 root fields, 7 source-lock fields, 5 priority keys, 12 entries with 11 fields each, 151 leaves; all labels/references/narratives documented. Required nullable fields, source versus shape validation, guard order, immutable config versus mutable result table, and hash payloads explained.",
+        "One offline policy load: entries SHA 1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91; full SHA 1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489. One CNIG load for twelve-triple/36-text-or-null/full-profile-hash equality. No pytest/compiler/GPU/EP/artifact production/legal verification."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py:1-1242 read only; private snapshot builder, source-complete synthetic fixtures, stale/rehashed mutations and early guards distinguished.",
+        "tests/unit/test_resolve_planning_feature_codes.py:1-338,537-671 synthetic physical fixture helpers; tests/unit/test_deep_immutability.py:1-113,300-482 BESS graph/hash versus other families' alias/mutation cases; tests/unit/test_strict_serialization.py:1-23 YAML decoding assertions."
+      ],
       "symbols": [],
-      "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "findings": [
+        "R5 documentary correction complete; independent review PENDING; global audit PARTIAL.",
+        "A-001..A-004 and existing test-evidence limitations preserved. No new application finding or reproduction; current references remain true nulls."
+      ],
+      "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r5_prior_evidence": {
+        "status": "NOT_READ",
+        "read_complete": false,
+        "source_sha256": "8a26fcb8ee7e2f028baca65d94c2b5be5445ba9fc4b82b9b1a21843f933f8b2a",
+        "contract_review": [
+          "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+        ],
+        "transferred_to": "inpn_roads extension"
+      },
+      "r5_ownership_resolution": "Original matrix and all six fragments show only this exact planning.json row; extension has no counterpart. Historical transfer intention retained as prior evidence, not materialized or counted twice.",
+      "r5_receipt": "docs/code/audit/R5_BESS_CNIG_POLICY.md"
     },
     {
       "path": "configs/planning/muret_bess_zoning_policy.yaml",
@@ -166,19 +187,40 @@
     },
     {
       "path": "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",
-      "source_sha256": "68f27bc57f35bdcfa508fd56bb83374fffc131970fa2aa9c25789b0ff013f40a",
+      "source_sha256": "630da631d3b803d09e9a1e78e546fd51ef2bf8e0c484a31f2ad083c87b36ce61",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R5: complete owning BESS policy source, strict YAML and immutable mapping helpers; bounded CNIG source/test and downstream application/aggregation reads. Exact ranges and limits in docs/code/audit/R5_BESS_CNIG_POLICY.md; no dependency row promoted."
       ],
-      "test_references": [],
+      "contract_review": [
+        "Entire unchanged 154-line YAML and unique prose/tables of old 930-line companion read; repeated class/YAML/Base64 snapshots checked. Stale mutable status_priority declaration and enable-switch/no-hashing claims corrected.",
+        "10 root fields, 7 source-lock fields, 5 priority keys, 12 entries with 11 fields each, 151 leaves; all labels/references/narratives documented. Required nullable fields, source versus shape validation, guard order, immutable config versus mutable result table, and hash payloads explained.",
+        "One offline policy load: entries SHA 1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91; full SHA 1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489. One CNIG load for twelve-triple/36-text-or-null/full-profile-hash equality. No pytest/compiler/GPU/EP/artifact production/legal verification."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py:1-1242 read only; private snapshot builder, source-complete synthetic fixtures, stale/rehashed mutations and early guards distinguished.",
+        "tests/unit/test_resolve_planning_feature_codes.py:1-338,537-671 synthetic physical fixture helpers; tests/unit/test_deep_immutability.py:1-113,300-482 BESS graph/hash versus other families' alias/mutation cases; tests/unit/test_strict_serialization.py:1-23 YAML decoding assertions."
+      ],
       "symbols": [],
-      "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "findings": [
+        "R5 documentary correction complete; independent review PENDING; global audit PARTIAL.",
+        "A-001..A-004 and existing test-evidence limitations preserved. No new application finding or reproduction; current references remain true nulls."
+      ],
+      "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r5_prior_evidence": {
+        "status": "NOT_READ",
+        "read_complete": false,
+        "source_sha256": "68f27bc57f35bdcfa508fd56bb83374fffc131970fa2aa9c25789b0ff013f40a",
+        "contract_review": [
+          "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+        ],
+        "transferred_to": "inpn_roads extension"
+      },
+      "r5_ownership_resolution": "Original matrix and all six fragments show only this exact planning.json row; extension has no counterpart. Historical transfer intention retained as prior evidence, not materialized or counted twice.",
+      "r5_receipt": "docs/code/audit/R5_BESS_CNIG_POLICY.md"
     },
     {
       "path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",

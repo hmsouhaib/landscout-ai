@@ -1,0 +1,401 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R5
+
+Audit documentaire de la politique BESS fondée sur les significations CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche de travail : recovery/docs-continuity-1-partial
+HEAD de départ requis : ab7d9d41fe2444b63d31c7dc075af59cab8884f7
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Un seul objectif
+
+Auditer et corriger la documentation de ces deux unités, et seulement celles-ci :
+
+configs/planning/muret_bess_cnig_feature_policy.yaml
+
+docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md
+
+Lire le YAML intégral, son compagnon intégral et les implémentations nécessaires
+pour expliquer fidèlement son contrat réel. Le YAML reste STRICTEMENT IDENTIQUE.
+Seuls le compagnon et les éléments documentaires de suivi explicitement autorisés
+ci-dessous peuvent changer. Aucun développement fonctionnel, changement de règle,
+recalcul de données métier ou début d'un autre lot.
+
+ChatGPT fournit la revue indépendante et le ticket ; Codex réalise ce lot puis
+s'arrête pour revue. Ce ticket n'approuve pas encore R5, ni le moteur BESS, ni la
+pertinence juridique ou métier des classifications enregistrées.
+
+1. Reçu fourni de la revue indépendante R4
+
+Cette section constitue la déclaration fournie par le reviewer. L'archiver avec
+ce ticket exact, sans l'attribuer à une nouvelle exécution Codex ni à une signature
+cryptographique indisponible.
+
+Reviewer : ChatGPT, revue indépendante en lecture seule.
+Commit examiné : ab7d9d41fe2444b63d31c7dc075af59cab8884f7.
+Parent : e89f7f176f7bc3369977055aceb6423b882d3429.
+Verdict : APPROVED — périmètre documentaire R4 uniquement.
+Aucun correctif documentaire R4.1 demandé.
+
+La comparaison Git confirme un seul commit et les sept chemins documentaires
+annoncés, sans changement de YAML, code, tests ou auditeur. Les références
+GitHub recovery/main correspondent aux deux SHA attendus. Le reviewer ne peut
+pas attester depuis GitHub l'état du checkout Windows ou de son index local.
+
+Le compagnon CNIG a été confronté aux modèles, au décodage YAML, aux validations,
+à la résolution, aux hashes et aux corps de tests pertinents. Les descriptions
+correctes distinguent les champs stricts de la date parsée, les champs requis
+mais nullables, la normalisation vérifiée plutôt que réparée, la revalidation
+in-memory et les limites d'une enveloppe contenant des DataFrames mutables.
+La sélection utilise le triplet exact famille/type/sous-type ; « 00 » n'est pas
+un joker. Le test nommé cross-family retire deux enregistrements mais ne construit
+pas de collision entre familles : cette limite est correctement documentée.
+Le diff du fragment propriétaire ne modifie que les deux lignes R4 prévues.
+
+Vérification indépendante supplémentaire réellement réalisée : transfert isolé
+du texte YAML renvoyé par GitHub, confirmation de son OID de blob Git, puis
+recalcul Python/PyYAML des comptes et des sérialisations canoniques correspondant
+aux fonctions lues. Pour ce profil valide, la date est sérialisée en ISO comme
+le JSON-mode du modèle. Ce contrôle N'EST PAS une exécution du chargeur, des
+modèles Pydantic, de pytest ou de l'auditeur du dépôt.
+
+Résultats indépendants concordants :
+
+OID du blob YAML : 904e20b8767e31838ae4732c9c31a6d096a1a731.
+
+YAML : 4 934 octets UTF-8, 94 lignes ; 8 champs racine, 2 champs source,
+7 champs par enregistrement et 92 valeurs élémentaires.
+
+12 enregistrements : 4 INFORMATION, 8 PRESCRIPTION ; 22 références textuelles
+et 2 valeurs réellement nulles parmi les 24 cellules légales/annexes.
+
+SHA256 des octets YAML :
+77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e.
+
+SHA256 des enregistrements ordonnés :
+5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c.
+
+SHA256 du profil JSON complet, métadonnées comprises :
+5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee.
+
+A-004 est confirmé par lecture : les chaînes canoniques « None », « nan » et
+« <NA> » ne sont pas interdites par le validateur optionnel du record, tandis que
+le contrôle intrinsèque des valeurs du résultat les refuse. La reproduction R4
+porte sur « None », modèle versus helper, en mémoire seulement. Le reviewer ne
+l'a pas réexécutée. Le YAML actuel utilise de vrais nulls : ce constat n'établit
+ni un échec de son chargement ni un correctif applicatif. A-004 reste OPEN.
+
+Limites de la revue : aucune nouvelle exécution du loader applicatif, de pytest,
+du full INDEX auditor, du compilateur BESS, de GPU/EP ou d'une vérification
+juridique/officielle. Aucun rendu visuel. Les contrôles complets des 106 fichiers
+protégés, 279 chemins hors périmètre, snapshots du compagnon, 85 liens, 9 IDs,
+manifest et whitespace restent les exécutions locales consignées dans le reçu R4,
+non de nouvelles exécutions indépendantes. La vérification des octets du YAML
+ci-dessus ne doit pas être élargie à tous ces artefacts.
+
+Le reçu R4 conserve honnêtement un auditeur terminé, exit 1 / completed=true,
+10 266 constats, sur un candidat déterminé ; le reçu seul a changé après ce run.
+Cette approbation ne transforme pas ce candidat en audit global propre.
+
+Clôture documentaire enregistrée et acceptée pour ce lot : 73/245 fichiers,
+1 594/4 769 symboles ; 172 fichiers et 3 175 symboles restent à terminer.
+Aucune hausse de compteur pour la simple réception de cette approbation.
+A-001/A-002/A-003/A-004, les cinq limitations historiques, R3-T01..04,
+l'acceptation cold-start, le rendu, la validation finale complète et la revue
+sémantique exhaustive 7F.1C.1 restent ouverts/en attente selon leur statut réel.
+Dernière frontière fonctionnelle indépendamment approuvée : 7F.1B.4.
+
+Préserver le reçu R4 et son ancien statut PENDING comme historique d'implémentation.
+Enregistrer cette approbation successorale dans CURRENT_STATE avec un lien vers
+la présente section archivée ; ne pas réécrire le passé ni retoucher le compagnon
+CNIG approuvé. Ne pas rouvrir R3/R3.1/R4 ou l'auditeur pour harmoniser des statuts.
+
+2. Préparation et préservation
+
+Lire AGENTS.md, WORKING_RULES.md et leur route documentaire existante, puis
+CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R4 et les dernières
+instructions de continuité/reprise applicables. Résoudre leurs chemins réels.
+
+Vérifier le répertoire racine, la branche, le checkout, l'index, les références
+locales/de suivi et les références distantes réelles. Exiger les SHA ci-dessus,
+un arbre initial propre et aucune opération Git en cours. Ne pas confondre une
+référence de suivi avec une observation actuelle du serveur.
+
+Réutiliser seulement si nécessaire l'exception déjà autorisée, limitée à la
+commande, -c safe.directory=C:/souhaib/landscout-ai, après constat du même
+problème de propriétaire. Aucun wildcard, changement persistant de confiance,
+ACL, sécurité, dépendances, hooks ou configuration. Un échec réseau doit rester
+signalé ; ne pas le transformer en rafraîchissement réussi.
+
+En cas de reprise de CE ticket, préserver ses changements partiels identifiés.
+Ne pas reset/restore/clean/stash/amend pour retrouver artificiellement le départ.
+Des changements étrangers ou des références contradictoires imposent un rapport
+de blocage conservant l'état, pas une réconciliation destructive automatique.
+
+3. Périmètre d'écriture et propriété
+
+Chemins autorisés :
+
+docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md ;
+
+le fragment propriétaire effectif sous docs/code/audit/reviews/, uniquement
+pour les DEUX lignes de ce lot et leurs preuves ;
+
+docs/code/audit/R5_BESS_CNIG_POLICY.md (nouveau reçu) ;
+
+docs/project/tickets/DOCS.CONTINUITY.1.R5.txt (ticket fourni exact) ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md et docs/project/CURRENT_STATE.md
+pour les seules mises à jour bornées de continuité/progression ;
+
+docs/project/BACKLOG_AND_GAPS.md seulement si un NOUVEAU constat concret,
+sourcé et borné doit être conservé. Aucun ajout automatique pour une simple
+absence de test, aucun doublon d'A-004.
+
+Le diff R4 montre les deux chemins R5 dans planning.json, mais confirmer leur
+propriété opérationnelle, statut initial et absence de doublon dans la matrice
+originale et tous les fragments. Ne pas matérialiser une ancienne intention de
+transfert sans raison ni compter deux fois un même chemin. Préserver les preuves
+historiques pertinentes au lieu de les remplacer silencieusement.
+
+Interdits : tous les YAML, code, tests, auditeur et tests de l'auditeur, manifests
+applicatifs, données, caches, dépendances, artefacts GPU/EP/BESS, anciens reçus,
+anciens tickets, compagnon CNIG approuvé et fusion du coverage.json global.
+Aucun nouveau script vérificateur ajouté au dépôt. Les scripts temporaires de
+lecture restent hors Git et sans mutation de sources.
+
+4. Point de départ R5 réellement constaté — à revérifier
+
+Le YAML ciblé est le profil muret_bess_cnig_feature_policy_v1, schema_version=1.
+Son OID Git au départ est b39ed76230fd5b55e3142b031e24d5adbb762121.
+Son consommateur est le module src/landscout/stages/bess_planning_feature_policy.py,
+notamment BessPlanningFeaturePolicyConfig, load_bess_planning_feature_policy_config
+et compile_bess_planning_feature_policy.
+
+NE PAS confondre cette configuration avec un autre moteur BESS, une ancienne
+politique « EXCLUDED/REVIEW_REQUIRED » ou le dictionnaire CNIG schema 2 de R4.
+Ici les champs réels sont policy_scope, les trois flags false, source_lock,
+status_priority, canonical_policy_entries_sha256 et entries.
+
+Les cinq valeurs configurées de priorité sont :
+LIKELY_MATERIAL_CONSTRAINT=50 ; UNKNOWN=40 ; MATERIAL_REVIEW_REQUIRED=30 ;
+DESIGN_REVIEW_REQUIRED=20 ; CONTEXT_REVIEW_REQUIRED=10.
+Les douze entrées et leurs classifications sont des valeurs à expliquer et
+contrôler contre le fichier, pas des règles métier à réviser dans R5.
+
+Le verrou référence un document, son archive, le profil CNIG v2 et un résultat
+CNIG schema 5 déterminé. Le hash de profil CNIG est le hash COMPLET confirmé en
+R4, et non le hash du fichier YAML ou celui des seuls records. Lister les autres
+identités à partir du fichier réel et des fonctions qui les consomment.
+
+Ce repérage préparatoire n'est pas une acceptation de R5, du moteur ou de la
+sémantique des douze classifications.
+
+5. Lectures nécessaires, sans clôture de dépendances
+
+Lire entièrement le YAML et le compagnon, prose unique comprise. Les snapshots
+répétés peuvent être vérifiés mécaniquement, mais leur présence ne remplace pas
+la lecture explicative des champs, des douze entrées et de leurs consommateurs.
+
+Lire les modèles/constants/validators/loader et les corps du compilateur qui
+établissent effectivement : source locks, comparaison au dictionnaire CNIG,
+complétude des triplets, égalité des labels/références, construction de policy_table,
+propagation des flags et priorités, hashes, validation intrinsèque versus complète.
+Lire les helpers appelés nécessaires, notamment strict_yaml et freeze_mapping.
+Si le contexte est insuffisant, lire le module complet ; ne pas déduire le contrat
+d'une liste AST, d'un nom, d'une signature ou de la prose de l'ancien compagnon.
+
+Identifier par recherche les tests existants de cette configuration/du compilateur,
+ainsi que les tests d'immuabilité et de liaison aux sources pertinents. Lire leurs
+fixtures, helpers, branches et assertions avant d'attribuer une preuve. Identifier
+les tests synthétiques, les IO locaux, les hashes recalculés ou périmés et les
+contrôles antérieurs susceptibles de masquer celui nommé dans le test.
+
+Tracer les consommateurs aval nécessaires pour décrire la fonction des colonnes,
+mais ne pas auditer/clôturer toute la chaîne. La lecture d'un module ou test comme
+dépendance ne modifie aucun de ses statuts ou compteurs de symboles. Inscrire les
+plages réellement lues et les limites dans le reçu R5.
+
+6. Exigences de fidélité du compagnon
+
+6.1 Tous les champs et toutes les entrées
+
+Présenter les valeurs réelles, types YAML et runtime, caractère requis/nullabilité,
+contraintes et propriétaire de validation, transformations/rejets, rôle consommé,
+propagation et participation aux hashes. Compter les champs racine, champs du
+source_lock, clés de priorité et valeurs élémentaires depuis les données réelles.
+
+Couvrir les douze triplets et CHAQUE champ d'entrée : expected_official_label,
+expected_legal_reference, expected_regulation_reference, precheck_status,
+confidence, rationale, required_human_action, limitations, famille et deux codes.
+Conserver casse, accents, ponctuation, codes à zéro initial et vrais nulls.
+Une table structurée et des explications communes précises sont préférables à
+répéter un texte générique qui renvoie seulement au code reproduit plus bas.
+
+6.2 Frontière d'interprétation
+
+policy_scope vaut OFFICIAL_CNIG_CODE_MEANING_ONLY. Les flags
+local_feature_text_interpreted, local_regulation_content_interpreted et
+legal_conclusion_produced doivent rester false selon le modèle réel ; ne pas
+les décrire comme trois fonctionnalités librement activables par l'utilisateur.
+
+Distinguer une signification officielle recopiée du dictionnaire d'une
+classification BESS interne. Les endpoints et références légales n'authentifient
+pas les statuts, confidence ou rationale rédigés dans cette politique.
+LIKELY_MATERIAL_CONSTRAINT ne signifie pas « interdit ». HIGH n'est pas une
+probabilité mesurée, une validation juridique ou une preuve de faisabilité.
+Une priority n'est pas automatiquement un score parcellaire ni une décision
+d'exclusion : décrire uniquement les usages réellement présents dans le code.
+
+Expliquer les cinq statuts, la place de UNKNOWN, leurs priorités et la distribution
+réelle des douze entrées. Ne pas inventer de fallback, d'interprétation LIBELLE,
+de lecture du règlement, d'agrégation géométrique ou de résultat par parcelle
+si ce compilateur ne les produit pas. Une policy_table de significations n'est
+pas une autorisation de projet ni une évaluation complète du droit applicable.
+
+6.3 Verrouillage, immuabilité et erreurs
+
+Séparer les checks de forme du modèle des comparaisons avec la source réelle.
+Par exemple, un entier positif de version dans un source_lock n'est pas forcément
+une égalité localement imposée à 2 ou 5 : identifier le contrôle exact au bon étage.
+Même discipline pour SHA syntaxiquement valide versus SHA égal à une référence.
+
+Tracer la revalidation d'une configuration fournie en mémoire, extra=forbid,
+les tuples/modèles frozen et le mapping des priorités figé/sérialisé. Ne pas
+confondre état du modèle, données d'entrée conservées, model_dump et résultat
+contenant un DataFrame mutable. Lire le helper réel avant d'affirmer un gel profond.
+
+Expliquer l'ordre des contrôles, l'égalité des ensembles de triplets et des textes
+attendus, les erreurs contrôlées et leurs causes, et les entrées requises pour
+une validation complète. Distinguer chargement YAML local, vérification d'enveloppe,
+reconstruction depuis sources et éventuelle persistance d'artefacts.
+Un hash configuré de résultat ne prouve pas qu'une reconstruction a été exécutée
+pendant ce ticket. Ne pas fabriquer le contexte physique pour faire passer un run.
+
+6.4 Identités et preuves
+
+Distinguer au minimum : SHA des octets YAML ; hash canonique des entries ; hash
+du modèle complet ; identités verrouillées document/archive/profil/résultat CNIG ;
+hashes de sortie du compilateur, seulement dans la mesure où ce YAML les influence.
+Pour chaque identité, relever le vrai payload, l'ordre, les valeurs exclues/incluses,
+le traitement des nulls, la sérialisation du mapping et la propagation.
+Ne pas inventer de self-hash, de signature externe ou d'actualisation juridique.
+
+Conserver les limites pertinentes d'A-004 si cette frontière intervient, sans
+la « corriger » dans le YAML, un modèle, un helper ou un test. Les constats nouveaux
+exigent une preuve source/exécution circonscrite et une autorité corrective séparée.
+
+7. Contrôles d'exécution autorisés
+
+Un chargement unique hors réseau par le loader EXISTANT de la politique est
+approprié. Utiliser l'environnement existant, sans installation. Mesurer les
+comptes/types/hashes réellement retournés ; conserver commandes, exceptions et
+codes de sortie. Un refus du loader n'autorise pas à modifier la configuration.
+La comparaison en mémoire des triplets/textes et du hash CNIG avec le profil
+inchangé R4 est permise, sans la présenter comme un run physique complet.
+
+Ne pas lancer pytest, la suite complète, le compilateur source-complete avec
+production de données, le pipeline GPU/EP ou une acquisition réseau pour ce lot
+documentaire. Les tests sont lus, pas annoncés « passés ». Aucun ancien résultat
+n'est réétiqueté en exécution R5. Une éventuelle reproduction nouvelle modèle/helper
+reste minimale, sans IO ni fichier modifié, et distincte d'un test de régression.
+
+Contrôler les octets Git/checkout/index, les snapshots YAML complets, les empreintes
+source et compagnon, les valeurs de tables, les signatures et destinations utilisées,
+le JSON strict, les fences et les liens locaux. Compter les occurrences des IDs
+explicites hors fences : un simple ensemble d'ancres ne démontre pas l'unicité.
+Préserver les ancres entrantes ou les rediriger explicitement, sans alias ambigu.
+
+Un renderer local déjà disponible peut être employé sans installation ni upload
+externe ; documenter la portée réelle. Sinon garder le rendu visuel PENDING.
+Les contrôles de syntaxe Markdown ne constituent pas une validation visuelle.
+
+8. Progression et preuves de préservation
+
+Recalculer l'état dédupliqué à partir de la matrice d'origine et des fragments
+opérationnels, pas du nombre de fichiers actuellement énumérés par l'auditeur.
+Point de départ accepté : 73/245 fichiers, 1 594/4 769 symboles.
+
+Si les deux unités R5 sont effectivement encore ouvertes et leur audit complet
+réussit, le delta attendu est +2 fichiers et +0 symbole : 75/245 fichiers,
+1 594/4 769 symboles ; 170 fichiers et 3 175 symboles restent ouverts.
+Ne pas forcer cette arithmétique si l'identité/statut observé contredit l'hypothèse :
+expliquer l'écart, préserver les preuves et ne promouvoir aucune autre ligne.
+Conserver les deux états initiaux et les nouvelles preuves bornées dans le fragment.
+
+Reprendre les 106 chemins protégés depuis leur inventaire d'autorité. Vérifier
+aussi TOUS les chemins hors liste d'écriture contre le départ Git et checkout ;
+calculer leur nombre réel plutôt que recopier 279 de R4. Distinguer les exceptions
+EOL historiques déjà autorisées, sans les réparer ni généraliser leur portée.
+Aucun ancien reçu/ticket, configuration, outil ou donnée ne doit changer.
+
+Global reste PARTIAL. Les états READ ne valent pas automatiquement CHECKED.
+Les nouveaux reçu/ticket ne gonflent pas le dénominateur original de 245/4 769.
+L'approbation successorale R4 ne génère aucun nouveau symbole/fichier clôturé.
+
+9. Auditeur INDEX, candidat et reçu final
+
+Après contrôle du diff et staging EXPLICITE des chemins autorisés, exécuter
+l'auditeur INDEX inchangé UNE FOIS, avec progression et conservation du stdout.
+Reprendre la commande validée du reçu R4, sans changement de l'outil ou de ses tests.
+
+Rapporter completed, exit, phases/compteurs, manifest exact et nature des constats.
+Un exit 1 avec constats PARTIAL/stale n'est pas un audit global propre ; un exit 2
+ou une interruption n'est pas un check terminé. Identifier les nouveaux constats
+liés au delta et toute anomalie inattendue ; ne pas les effacer/supprimer ou
+promouvoir des statuts pour obtenir exit 0. Ne pas relancer en boucle.
+
+Si seul le reçu est complété ensuite, contrôler séparément cette différence
+EXACTE de manifest, ses liens/fences et les octets finaux. Le candidat audité et
+le contenu final ne doivent pas être présentés comme identiques s'ils ne le sont
+pas. Aucun second run global pour ajouter son propre compte rendu à lui-même.
+
+Le nouveau diff de travail et d'index doit être propre selon git diff --check.
+Les 13 observations historiques restent identifiables et inchangées ; ne pas
+réécrire les archives pour les faire disparaître. Ne pas masquer une nouvelle
+observation en la rangeant parmi les anciennes.
+
+10. Publication, arrêt et réponse
+
+Relire l'ensemble du diff. Stage explicite uniquement ; pas de git add .,
+git add -A, commit-all ou force staging. Publier seulement si le périmètre et
+les contrôles bornés sont cohérents :
+
+git commit -m "docs: audit BESS CNIG policy configuration reference"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier les références locales/de suivi/distantes réelles, l'arbre propre et
+main inchangé. Aucun reset, rebase, amend, squash, merge, main push, PR ou suppression
+de branche. Le SHA final se résout APRÈS commit, jamais comme futur self-SHA dans
+un fichier qu'il serait censé identifier.
+
+Si le lot reste incomplet, préserver le travail et nommer exactement les champs,
+entrées, validations ou preuves restant ouverts. Ne pas recommencer le grand audit
+ni forger un statut terminé. Une fois publié, STOP pour revue indépendante.
+Identifier le prochain élément réel de la file sans commencer son audit.
+
+Le rapport final doit distinguer :
+
+SHA de départ/final/main et état observé local/distant ; chemins modifiés ;
+
+propriétaire, deux statuts initiaux/finals et progression dédupliquée ;
+
+lectures réellement effectuées, règles/champs/entrées expliqués et limites ;
+
+hashes et résultats réellement calculés/chargés, absence de pytest/pipeline ;
+
+préservation, snapshots, liens/IDs/tableaux/fences et rendu réellement effectué ;
+
+nouveaux constats éventuels, A-001..A-004 et autres limites préservées ;
+
+résultat INDEX, manifest du candidat, différence ultérieure du seul reçu ;
+
+prochain élément non commencé, global PARTIAL et revue R5 PENDING.
+
+Libellé de fin si tout le lot borné est réellement terminé :
+DOCS.CONTINUITY.1.R5 completed — global audit PARTIAL; review pending.
+Sinon utiliser PARTIAL/BLOCKED avec le périmètre effectivement accompli.
+
+Ne pas s'auto-approuver. La réussite consiste à décrire le comportement existant
+sans confondre contrat logiciel, classification de préanalyse et décision juridique.
