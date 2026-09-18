@@ -1,0 +1,168 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R6
+
+Audit documentaire de la politique BESS de zonage écrit
+
+Dépôt : C:\souhaib\landscout-ai / hmsouhaib/landscout-ai
+Branche : recovery/docs-continuity-1-partial
+Départ requis : 86be69fe05f2ec27cd528c05200db3ad63176cc9
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique
+
+Auditer et corriger uniquement la documentation de :
+
+configs/planning/muret_bess_zoning_policy.yaml ;
+
+docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md.
+
+Le YAML, le code, les tests et les données restent inchangés. Lire le contenu complet et les implémentations/tests nécessaires ; expliquer les contrats réellement présents, sans modifier une classification ni rendre une nouvelle conclusion juridique. Ne pas commencer l'unité suivante. Codex réalise ce lot, publie seulement sur recovery si les contrôles sont cohérents, puis s'arrête pour revue indépendante.
+
+1. Reçu fourni de la revue indépendante R5
+
+Cette section est la déclaration fournie du reviewer ChatGPT. L'archiver avec le ticket effectivement reçu. Ce n'est ni une nouvelle exécution Codex ni une signature cryptographique.
+
+Commit examiné : 86be69fe05f2ec27cd528c05200db3ad63176cc9.
+Parent : ab7d9d41fe2444b63d31c7dc075af59cab8884f7.
+Verdict : APPROVED — périmètre documentaire R5, avec réserve rédactionnelle mineure non bloquante R5-D01. Aucun R5.1 préalable à R6 n'est demandé. Aucune approbation fonctionnelle, juridique ou globale.
+
+La comparaison Git indépendante confirme un commit et les six chemins documentaires annoncés, sans changement de configuration, source, tests, auditeur ou anciens reçus. La référence distante recovery pointe sur le commit examiné et main reste au SHA ci-dessus. L'état propre du checkout/index Windows et l'égalité avec la référence locale de suivi sont des observations Codex, pas une attestation indépendante obtenue depuis GitHub.
+
+Le reviewer a confronté les sections explicatives et tables du compagnon aux 1 114 lignes du module propriétaire bess_planning_feature_policy.py, aux 1 242 lignes de son module de tests, aux helpers strict_yaml.py et immutable_mapping.py, ainsi qu'aux consommateurs d'application 442–574 et d'agrégation 714–874. Le reçu R5, CURRENT_STATE, le diff des deux lignes propriétaires, le ticket R5 fourni et le YAML ont également été examinés. Cette lecture n'est pas la réexécution de toutes les lectures ou vérifications locales consignées par Codex.
+
+Les descriptions centrales sont fidèles : 10 champs racine, 7 verrous, 5 priorités, 12 entrées de 11 champs ; stricteté par champ et références requises mais nullables ; versions positives du verrou distinctes des schémas 2/5 exigés aux autres étages ; mapping de priorités copié/figé et table résultat mutable ; ordre verrous → validation complète CNIG → complétude/textes → construction/enveloppe ; trois identités distinctes ; UNKNOWN configuré distinct d'UNRESOLVED_CODE_PAIR ; séparation entre compilateur, application et agrégation. Ni HIGH ni un statut de préanalyse n'est une validation juridique.
+
+Les limites des tests sont correctement décrites : _checked_in_policy_result remplace les identités d'un contexte synthétique puis appelle le constructeur privé, sans faire accepter ce contexte substitué par le compilateur public ; le contrôle d'enveloppe peut accepter une seule ligne rehashée, contrairement à une validation complète de la politique ; certaines mutations peuvent être arrêtées par un contrôle antérieur. La qualification de ces preuves ne doit pas être élargie.
+
+Recalcul indépendant réellement effectué : transfert isolé du texte renvoyé par GitHub, contrôle de l'OID Git du blob, parsing PyYAML puis sérialisation canonique des données valides correspondant aux fonctions lues. Aucun import/exécution du chargeur, des modèles, du compilateur, de pytest ou de l'auditeur applicatifs.
+
+Blob confirmé : b39ed76230fd5b55e3142b031e24d5adbb762121.
+
+Source : 10 147 octets UTF-8, 154 lignes ; 154 LF, zéro CR, LF final.
+
+SHA256 YAML : 8a26fcb8ee7e2f028baca65d94c2b5be5445ba9fc4b82b9b1a21843f933f8b2a.
+
+SHA256 entries : 1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91.
+
+SHA256 politique complète : 1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489.
+
+151 feuilles, 4 INFORMATION / 8 PRESCRIPTION ; 22 références textuelles et 2 nulles.
+
+Statuts : contexte 3, unknown 1, contrainte probablement matérielle 3, revue matérielle 3, revue de conception 2. Confiances HIGH 8 / MEDIUM 3 / LOW 1.
+
+Le profil CNIG et les résultats physiques n'ont pas été recalculés dans cette revue indépendante R5. Le hash CNIG provient de la preuve R4 et de la comparaison locale R5, pas d'une nouvelle reconstruction indépendante ici. Les snapshots intégrés du compagnon, l'ensemble des liens/IDs/signatures, la déduplication exhaustive de tous les fragments, les 106/282 contrôles locaux, le stdout INDEX et les manifests ne sont pas réannoncés comme des recalculs indépendants. L'égalité exacte de l'archive texte avec l'attachement brut remis à Codex n'a pas été démontrée par comparaison binaire indépendante. Aucun rendu visuel, source officielle ou droit actuel n'a été vérifié.
+
+R5-D01 — réserve documentaire faible, ouverte, non bloquante : le compagnon, section 18 / ligne 499 au commit examiné, annonce « including mixed CRLF/LF positions ». Les octets Git indépendamment confirmés du YAML R5 sont exclusivement LF : 154 LF, zéro CR. Cette formule suggère à tort des fins de ligne mixtes ; les trois hashes recalculés restent exacts. Formulation factuelle pour une correction ultérieure bornée : « Decoding the concatenated payload reproduces the exact 10,147 Git-content bytes, with 154 LF characters, no CR characters, and a final LF. » Ne pas modifier le YAML ni ses hashes. Ne pas créer A-005 pour ce point, ni prétendre qu'il est déjà corrigé. Sa présence dans ce reçu fourni et le résumé successoral rend la réserve durable ; R6 ne rouvre pas le compagnon R5 ni son fragment pour la corriger.
+
+Le diff propriétaire R5 ne change que les deux lignes attendues NOT_READ/false → CHECKED/true pour le YAML et CORRECTED/true pour le compagnon, en conservant les preuves antérieures. L'augmentation de deux fichiers est cohérente avec 75/245 fichiers et 1 594/4 769 symboles, soit 170 fichiers et 3 175 symboles encore ouverts. Ce verdict n'ajoute aucune unité aux compteurs.
+
+Le reçu rapporte un auditeur terminé completed=true, exit 1, 10 266 constats, sur un candidat précis ; seul le reçu est complété ensuite. L'approbation ne transforme pas ce rapport PARTIAL en audit propre. A-001..A-004, les cinq limites historiques, R3-T01..04, R5-D01, cold-start/rendu/validation finale et la revue sémantique 7F.1C.1 restent ouverts ou en attente selon leur nature. Dernière frontière fonctionnelle approuvée : 7F.1B.4.
+
+Conserver le reçu R5 et son PENDING historique. Enregistrer le présent verdict successoral et sa réserve dans CURRENT_STATE avec un lien vers cette section archivée, sans harmoniser rétroactivement les anciennes preuves.
+
+2. Préparation et périmètre d'écriture
+
+Lire AGENTS, WORKING_RULES et la route de reprise existante, puis CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R5 et les autorités de préservation. Résoudre les chemins réels. Vérifier racine, branche, arbre/index propre, absence d'opération Git en cours, SHA locaux/de suivi et références distantes réelles. Ne pas assimiler une référence de suivi à une observation serveur.
+
+Seulement après reproduction du problème d'ownership déjà autorisé, employer au besoin -c safe.directory=C:/souhaib/landscout-ai pour la commande concernée. Aucun changement persistant de confiance, wildcard, ACL, sécurité, dépendance ou hook. Une divergence de SHA ou un travail étranger impose de conserver l'état et rapporter le blocage, pas reset/restore/clean/stash/amend/rebase. En reprise du même ticket, préserver son travail partiel identifié.
+
+Écritures autorisées :
+
+compagnon docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md ;
+
+fragment propriétaire effectif, uniquement les deux lignes R6 et leurs preuves ;
+
+nouveau reçu docs/code/audit/R6_BESS_WRITTEN_ZONING_POLICY.md ;
+
+archive exacte du ticket reçu docs/project/tickets/DOCS.CONTINUITY.1.R6.txt ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md et docs/project/CURRENT_STATE.md, changements bornés de progression/continuité ;
+
+docs/project/BACKLOG_AND_GAPS.md seulement pour un nouveau constat concret établi pendant R6, avec preuve et périmètre exacts. Pas d'ajout automatique pour une absence de test, ni doublon d'une anomalie existante.
+
+Confirmer le propriétaire opérationnel et les deux statuts dans la matrice originale et tous les fragments. Le diff précédent montre les chemins de zonage dans planning.json ; cela ne dispense pas de vérifier les doublons/transferts réels. Préserver l'historique au lieu d'effacer une ancienne intention de transfert. Ne promouvoir aucune ligne de dépendance.
+
+Interdits : tous les YAML, code, tests, auditeur, manifests/données/caches/artefacts applicatifs, dépendances, anciens tickets/reçus, compagnons R4/R5 et fusion de coverage.json. Aucun nouveau checker ajouté au dépôt. Les scripts temporaires restent hors Git et en lecture des sources.
+
+3. Point de départ spécifique et exception EOL
+
+Repérage seulement, à confirmer avant travail :
+
+schema_version: 5, profil muret_bess_written_zoning_v6 ;
+
+planning_precheck_scope: WRITTEN_ZONING_REGULATION_ONLY ;
+
+review_scope: CONFIGURED_USE_CONTROL_ARTICLES_ONLY ;
+
+six champs source_lock : document, archive, PDF, contenu indexé, résultat structuré et profil de structure ;
+
+articles requis configurés : les chaînes '1' et '2' ;
+
+chapitres, occurrences de preuve et route_assessments ;
+
+propriétaire : src/landscout/stages/interpret_bess_zoning.py, notamment BessZoningPolicyConfig, load_bess_zoning_policy_config, interpret_bess_zoning et validate_bess_zoning_precheck ;
+
+le code initial annonce aussi RESULT_HASH_SCHEMA_VERSION=5 : ne pas confondre version de profil v6, schéma de politique 5 et schéma de résultat 5.
+
+OID Git observé du YAML : a8a1f2d8e5fb04107a3e46de2b67cb140cafa38d.
+
+Attention : ce YAML R6, contrairement au YAML CNIG R5, possède une exception historique checkout/Git à préserver. Le reçu R5 consigne :
+
+SHA256 Git : c736ea8901997f4852fd1f72a3f6f34282452f18dcd9abc0ccbce8255adaad45 ;
+
+SHA256 checkout : 879d50627c063bb10096950d004cf4d4e446ff04ef9a1178b3e3fb28e2ffdae3.
+
+Ce sont des références historiques à revérifier localement, pas une nouvelle observation du checkout par ChatGPT. L'ancien compagnon affiche le hash checkout ; ne pas le déclarer faux en le comparant implicitement à des octets Git. Mesurer les deux bases et les fins de ligne réelles, nommer explicitement la base choisie, lier correctement le snapshot et le fragment propriétaire. Préserver les octets de chacune sans normalisation/sauvegarde automatique du YAML. Conserver également l'autre exception historique du ticket RESUME.
+
+Ce repérage n'est ni un audit complet de R6 ni une approbation des conclusions enregistrées.
+
+4. Lecture et fidélité attendue
+
+Lire entièrement le YAML, toutes les sections explicatives de l'ancien compagnon et toutes ses lignes de valeurs. Les blocs répétés peuvent être comparés mécaniquement à une source déjà lue ; ne pas remplacer la compréhension par un inventaire AST. Lire les modèles, validateurs, loader, calculs de hash, algorithmes de preuve/route/décision et validations publiques réellement nécessaires ; élargir les plages jusqu'à avoir le contexte, ou le module complet si nécessaire. Rechercher et lire les tests avec leurs fixtures/helpers/assertions, pas leurs noms seulement. Consigner les plages lues ; aucune dépendance n'est clôturée.
+
+Le nouveau compagnon doit couvrir :
+
+Champs et valeurs. Compter les champs racine, verrous, chapitres, preuves, routes, références et feuilles depuis les données réelles. Documenter chaque champ et chaque valeur configurée : représentation YAML, type runtime, requis/default/nullabilité, domaine, validateurs, propagation/hash, rejets et transformations. Préserver exactement accents, ponctuation, espaces, retours internes, identifiants, extraits, listes vides et vrais nulls. Éviter le boilerplate « voir validator ci-dessous ». Les snapshots complets complètent les explications, ils ne les remplacent pas.
+
+Preuves et positions. Expliquer evidence_id, section/page, evidence_kind/direction, exact_raw_excerpt, son hash, section_page_fragment_sha256, positions de début/fin, source_rule_id/excerpt/hash/positions et interpretation_note. Déterminer dans le code si chaque offset compte caractères ou octets, ses bornes et son référentiel ; ne pas supposer. Distinguer égalité d'un extrait, appartenance à un fragment et cohérence de la règle complète. Décrire les répétitions autorisées, identités uniques et checks croisés réels. Ne pas normaliser un texte pour faire réussir une égalité.
+
+Routes et décisions. Documenter les domaines réels DIRECT_ROUTE, CONDITIONAL_ROUTE, RESTRICTION_EXCEPTION_ROUTE et DIFFICULTY_ONLY, les références positives/conditions/difficultés et les règles de cohérence effectivement contrôlées. Tracer les relations preuve → règle source → route → chapitre et l'effet du review_completeness et des articles requis. Ne pas confondre « complet pour les articles configurés » et « tout le règlement a été lu ». Distinguer les décisions de chapitre des statuts parcellaires et les cas mixtes/non résolus. Les contraintes exactes doivent venir des corps de code, pas être inférées des seuls noms de statuts.
+
+Sources et autorité. Séparer la forme des six verrous de leur égalité avec le contexte réel, la validation du modèle de celle des index/fragments/structures et l'éventuelle reconstruction complète. Une phrase ICPE ou une exception ne prouve pas qu'un BESS y entre. POTENTIALLY_COMPATIBLE/CONDITIONAL_REVIEW/LIKELY_DIFFICULT/UNKNOWN sont les valeurs du système existant, pas une nouvelle autorisation/interdiction. Ne pas étendre à cette politique les non-goals du compilateur CNIG qui ne produit pas de résultat parcellaire : tracer les sorties réelles de ce module.
+
+Immuabilité, erreurs et hashes. Vérifier collections/nested models et revalidation in-memory réelles ; distinguer modèle frozen et DataFrames/GIS mutables. Donner signatures, ordre des contrôles et erreurs/cause. Identifier les payloads canoniques exacts, ordre conservé/trié, traitements des nulls/textes/valeurs spéciales, auto-hashes exclus, identité de politique versus Git/checkout et identités de résultat. Ne pas inventer de digest entries ou de garantie d'exhaustivité emprunté à R5.
+
+Preuves de tests. Distinguer IO physiques synthétiques, simples stubs, appels privés, recomposition/rehash, garde antérieure et comparaison à une constante. Conserver les limites existantes sans en déduire automatiquement un nouveau défaut. Identifier où une affirmation dépend de sources originales non relues. Aucun résultat historique n'est une exécution R6.
+
+5. Exécution bornée et contrôles
+
+Un seul appel au loader EXISTANT de ce YAML est autorisé dans l'environnement existant, hors réseau, sans installation. Calculer comptes/types/hashes utiles à partir de l'objet réellement validé. Comparaisons de texte/hash en mémoire permises ; documenter méthode, commande, exit et exceptions. Si le chargeur échoue, ne pas retoucher les données pour le faire passer ni multiplier silencieusement les tentatives.
+
+Ne pas exécuter pytest, interpret_bess_zoning, un pipeline GPU/EP, une reconstruction géospatiale/PDF ou une production d'artefacts. Ne pas fabriquer un contexte physique pour valider les verrous. La lecture des implémentations de validation n'est pas une exécution de ces validations. Aucune acquisition officielle ou nouvelle recherche juridique n'est demandée. Les extraits PDF cités restent une provenance enregistrée, pas une revalidation juridique fraîche.
+
+Vérifier snapshots complets, octets Git/checkout/index selon leur base explicite, empreintes source/compagnon, toutes les cellules de valeurs, signatures, JSON strict, tableaux, fences, liens et IDs. Compter les occurrences d'IDs hors fences, pas uniquement un ensemble. Préserver/rediriger proprement les ancres entrantes sans doublon. Un renderer déjà présent peut être utilisé sans installation/upload ; sinon rendu PENDING. Les checks de syntaxe ne sont pas une validation visuelle.
+
+Reprendre les 106 chemins protégés de leur autorité et vérifier tous les chemins hors périmètre contre le départ Git/checkout. Recalculer leur nombre réel ; ne pas recopier les 282 de R5. Préserver les deux exceptions EOL et les 13 observations whitespace héritées. Nouveau diff et index propres ; ne pas réécrire les archives pour nettoyer le cumul.
+
+6. Progression et unique audit INDEX
+
+Départ accepté : 75/245 fichiers, 1 594/4 769 symboles. Refaire la réconciliation dédupliquée originale. Si les deux unités R6 sont bien NOT_READ et entièrement auditées, attendu : 77/245 fichiers, 1 594/4 769 symboles, 168 fichiers / 3 175 symboles restants. Ne pas forcer ces chiffres en cas de contradiction ; ne pas clôturer de symbole par lecture de dépendance. Ni l'approbation R5 ni R5-D01 ni les nouveaux reçu/ticket ne modifient les dénominateurs.
+
+Après revue du diff et staging EXPLICITE des chemins autorisés, exécuter une fois l'auditeur inchangé, conserver stdout et manifest du candidat, sur le modèle de R5 :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r6-candidate.stdout.txt
+
+Rapporter completed, exit, métriques, phases et différences de constats. Exit 1/PARTIAL n'est pas un audit propre ; exit 2/interruption n'est pas un check terminé. Ne pas modifier l'auditeur/coverage pour masquer les écarts, ni relancer en boucle. Si seul le reçu est complété ensuite, vérifier séparément cette différence EXACTE de manifest et les bytes/liens/fences finaux. Ne pas prétendre que le candidat et le contenu final sont identiques. Pas de second full audit pour inclure son propre compte rendu.
+
+7. Publication puis arrêt
+
+Pas de git add ., git add -A, commit-all, amend, reset/rebase, squash, merge, main push, PR, force push ou suppression de branche. Publier seulement avec périmètre et contrôles cohérents :
+
+git commit -m "docs: audit BESS written zoning policy configuration reference"
+git push origin recovery/docs-continuity-1-partial
+
+Résoudre le SHA final après commit ; ne pas inscrire un futur self-SHA. Vérifier arbre propre, local/tracking/remote recovery concordants et main inchangé. Identifier le prochain élément réel sans le commencer. En cas de lot incomplet, préserver ce qui a été fait et lister précisément les champs/preuves non terminés, sans réinitialiser le grand audit.
+
+Réponse finale : SHA départ/final/main, chemins, propriétaire et deux transitions, progression, plages lues/limites, résultats du seul chargement et hashes, préservation/EOL/snapshots/liens/IDs/rendu, nouveaux constats éventuels et réserves conservées, auditeur/candidat/delta final, prochain élément non commencé. Statut global PARTIAL ; R6 review PENDING. Ne pas s'auto-approuver.
+
+Libellé si le périmètre borné est terminé :
+DOCS.CONTINUITY.1.R6 completed — global audit PARTIAL; review pending.

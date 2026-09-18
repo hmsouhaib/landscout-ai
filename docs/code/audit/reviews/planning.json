@@ -85,13 +85,43 @@
       "source_sha256": "c736ea8901997f4852fd1f72a3f6f34282452f18dcd9abc0ccbce8255adaad45",
       "documentation_path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
       "role": "configuration",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "landscout.stages.interpret_bess_zoning::load_bess_zoning_policy_config",
+        "landscout.stages.interpret_bess_zoning::interpret_bess_zoning",
+        "landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck"
+      ],
+      "contract_review": [
+        "R6: full YAML 1-723, all old companion unique explanations and 642 value rows; repeated six model blocks and both snapshots compared to read source.",
+        "7 root fields, 6 locks, 13 chapters, 28 evidence, 13 routes, 18 rule IDs; 655 terminal values including 13 empty lists, 0 nulls.",
+        "Field strictness/defaults/tuple immutability; model versus source locks/fragments/physical GPU validation; character positions, full-rule/role coherence, chapter/parcel outputs, errors and canonical hashes explained.",
+        "One offline existing-loader call, exit 0; policy hash ef1f7cd0f5589e9a07428d25cd2b1a844e7cd49fb6db359951eb6c812c767586. No pytest, interpreter, PDF/GIS/source reconstruction.",
+        "Git-content and checkout EOL/hash bases preserved. No YAML/source/test change. Dependency reading grants no other file/symbol closure."
+      ],
+      "test_references": [
+        "tests/unit/test_interpret_bess_zoning.py:1-2164 (read, not run)",
+        "tests/integration/test_gpu_planning_end_to_end.py:1-409 (read, not run)",
+        "tests/unit/test_deep_immutability.py:300-481 (read, not run)"
+      ],
       "symbols": [],
-      "findings": []
+      "findings": [],
+      "r6_prior_evidence": {
+        "path": "configs/planning/muret_bess_zoning_policy.yaml",
+        "source_sha256": "c736ea8901997f4852fd1f72a3f6f34282452f18dcd9abc0ccbce8255adaad45",
+        "documentation_path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
+        "role": "configuration",
+        "read_complete": false,
+        "status": "NOT_READ",
+        "imports_exports_callers_reviewed": [],
+        "contract_review": [],
+        "test_references": [],
+        "symbols": [],
+        "findings": []
+      },
+      "r6_source_sha256_basis": "git-content",
+      "r6_ownership_resolution": "Original matrix and all six fragments contain only these planning.json rows; no duplicate, extension counterpart or historical transfer field on these R6 rows.",
+      "r6_receipt": "docs/code/audit/R6_BESS_WRITTEN_ZONING_POLICY.md"
     },
     {
       "path": "configs/planning/muret_plu_structure.yaml",
@@ -224,16 +254,46 @@
     },
     {
       "path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
-      "source_sha256": "af05d5650f98a1b0c1691fb36b63c730cec5b9bca65bef0e75220166b73a51e7",
+      "source_sha256": "c5dbf13de941ef153d5759ef54441092b475298c0ab649db9b8fe3a2cc8f3afe",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "landscout.stages.interpret_bess_zoning::load_bess_zoning_policy_config",
+        "landscout.stages.interpret_bess_zoning::interpret_bess_zoning",
+        "landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck"
+      ],
+      "contract_review": [
+        "R6: full YAML 1-723, all old companion unique explanations and 642 value rows; repeated six model blocks and both snapshots compared to read source.",
+        "7 root fields, 6 locks, 13 chapters, 28 evidence, 13 routes, 18 rule IDs; 655 terminal values including 13 empty lists, 0 nulls.",
+        "Field strictness/defaults/tuple immutability; model versus source locks/fragments/physical GPU validation; character positions, full-rule/role coherence, chapter/parcel outputs, errors and canonical hashes explained.",
+        "One offline existing-loader call, exit 0; policy hash ef1f7cd0f5589e9a07428d25cd2b1a844e7cd49fb6db359951eb6c812c767586. No pytest, interpreter, PDF/GIS/source reconstruction.",
+        "Git-content and checkout EOL/hash bases preserved. No YAML/source/test change. Dependency reading grants no other file/symbol closure."
+      ],
+      "test_references": [
+        "tests/unit/test_interpret_bess_zoning.py:1-2164 (read, not run)",
+        "tests/integration/test_gpu_planning_end_to_end.py:1-409 (read, not run)",
+        "tests/unit/test_deep_immutability.py:300-481 (read, not run)"
+      ],
       "symbols": [],
-      "findings": []
+      "findings": [],
+      "r6_prior_evidence": {
+        "path": "docs/code/files/configs/planning/muret_bess_zoning_policy.yaml.md",
+        "source_sha256": "af05d5650f98a1b0c1691fb36b63c730cec5b9bca65bef0e75220166b73a51e7",
+        "documentation_path": null,
+        "role": "companion",
+        "read_complete": false,
+        "status": "NOT_READ",
+        "imports_exports_callers_reviewed": [],
+        "contract_review": [],
+        "test_references": [],
+        "symbols": [],
+        "findings": []
+      },
+      "r6_source_sha256_basis": "git-content",
+      "r6_ownership_resolution": "Original matrix and all six fragments contain only these planning.json rows; no duplicate, extension counterpart or historical transfer field on these R6 rows.",
+      "r6_receipt": "docs/code/audit/R6_BESS_WRITTEN_ZONING_POLICY.md"
     },
     {
       "path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
