@@ -3,445 +3,310 @@
 ## File identity
 
 - Repository path: `configs/planning/cnig_plu_2017_feature_codes.yaml`
-- File type: YAML checked-in configuration/policy/source lock
-- Responsibility: Defines the approved CNIG PLU v2017 official planning-feature code pairs, labels, references, and profile identity.
+- File type: offline YAML configuration; observed-pair dictionary, not BESS policy.
 - Source SHA256: `77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e`
+- Source SHA256 basis: `git-content`
+- Exact source size: 4,934 UTF-8 bytes, LF endings, including final newline.
+- R4 documentation fidelity review: [receipt](../../../audit/R4_CNIG_CONFIGURATION.md);
+  independent acceptance PENDING. YAML bytes are unchanged.
 
-## 1. Purpose
+<a id="r4-purpose"></a>
 
-Defines the approved CNIG PLU v2017 official planning-feature code pairs, labels, references, and profile identity.
+## Purpose and authority
 
-## 2. Position in LandScout architecture
+This profile supplies twelve exact CNIG PLU v2017 family/type/subtype meanings
+observed in the Muret pilot: four INFORMATION and eight PRESCRIPTION records.
+It is neither the entire official nomenclature nor a universal BESS policy.
+The profile name identifies a snapshot; it does not restrict the whole product
+to Muret. There is no geometry-kind selector, spatial threshold or policy outcome
+in this file.
 
-The exact YAML bytes are parsed by `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile` into `landscout.stages.resolve_planning_feature_codes.CnigFeatureCodeProfile`. Runtime consumers include `resolve_planning_feature_codes`.
+Three versions must not be conflated: profile schema **2** is the accepted YAML
+model shape; **2017** identifies the planning standard; result-hash schema **5**
+belongs to the consuming coded-result envelope, not this YAML.
 
-## 3. Imports and dependencies
+The [loader](../../src/landscout/stages/resolve_planning_feature_codes.py.md#load_cnig_feature_code_profile)
+reads local bytes only. Exact source URLs bind strings; it does not fetch them,
+validate current law or independently establish official meaning.
+[DEV_LOG 7D.5A](../../../../DEV_LOG.md#step-7d5a--resolve-official-cnig-meanings-for-planning-feature-codes)
+reports inspection of the two GPU tables on 2026-08-12.
+[7D.5A.1](../../../../DEV_LOG.md#step-7d5a1--harden-cnig-snapshot-fidelity-and-public-coding-contracts)
+records the reviewed v2 canonical-display correction for INFORMATION 99/00 and
+PRESCRIPTION 15/00, and pins all twelve records. That historical report is
+preserved, not a new R4 web/legal verification or a newly supplied independent
+review receipt. A retained byte snapshot of each external table and a complete
+original independent verdict are not established by the evidence read here.
+EP 7F.1C.1 research and its pending semantic review are separate.
 
-Not applicable to YAML. Python/Pydantic consumers are named above and reproduced below.
+<a id="r4-fields"></a>
 
-## 4. Contract taxonomy
+## Complete field contract
 
-Every row below is a configuration field/list leaf. It is not a DataFrame column unless a consuming stage explicitly copies it into a documented result schema.
+Owners are the actual
+[profile](../../src/landscout/stages/resolve_planning_feature_codes.py.md#cnigfeaturecodeprofile),
+[source URLs](../../src/landscout/stages/resolve_planning_feature_codes.py.md#officialsourceurls)
+and [record](../../src/landscout/stages/resolve_planning_feature_codes.py.md#cnigfeaturecoderecord)
+models. All **8 root fields**, **2 source fields** and **7 fields per record**
+are required; none has a default. Nullable is not optional-to-omit.
+There are **92 scalar leaves**: 6 root scalars + 2 URL scalars + 12 × 7 record
+scalars. The field rules below and the twelve-row value table cover every leaf.
 
-| Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
-|---|---|---|---|---|---|
-| `schema_version` | `2` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required supported schema integer; accepted versions are pinned by the owning Literal/validator | Selects the strict configuration schema; unsupported versions are rejected. | `resolve_planning_feature_codes` |
-| `profile` | `"cnig_plu_2017_muret_observed_pairs_v2"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `profile` under the exact parent path `<root>`. | `resolve_planning_feature_codes` |
-| `standard_model` | `"CNIG PLU v2017"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the official planning standard/model against which records are validated. | `resolve_planning_feature_codes` |
-| `official_text_normalization` | `"GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official text normalization` under the exact parent path `<root>`. | `resolve_planning_feature_codes` |
-| `official_sources.prescription` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `prescription` under the exact parent path `official_sources`. | `resolve_planning_feature_codes` |
-| `official_sources.information` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `information` under the exact parent path `official_sources`. | `resolve_planning_feature_codes` |
-| `retrieval_date` | `"2026-08-12"` | `date` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `retrieval date` under the exact parent path `<root>`. | `resolve_planning_feature_codes` |
-| `canonical_records_sha256` | `"5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; canonical lowercase SHA256 where the owning model uses CanonicalSha256; required/nullability follows the exact model field | Binds the exact bytes or canonical component named by `canonical_records_sha256`. | `resolve_planning_feature_codes` |
-| `records[0].feature_family` | `"INFORMATION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].type_code` | `"02"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].official_label` | `"Zone d'aménagement concerté"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].legal_reference` | `"L311-1 code de l’urbanisme"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].regulation_or_annex_reference` | `"R151-52 8°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[0]`. | `resolve_planning_feature_codes` |
-| `records[0].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[1].feature_family` | `"INFORMATION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].type_code` | `"14"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].official_label` | `"Périmètre de voisinage d'infrastructure de transport terrestre (secteur affecté par le bruit)"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].legal_reference` | `"L571-10 code de l’environnement"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].regulation_or_annex_reference` | `"R151-53 5°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[1]`. | `resolve_planning_feature_codes` |
-| `records[1].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[2].feature_family` | `"INFORMATION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].type_code` | `"27"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].official_label` | `"Plan d'exposition au bruit des aérodromes"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].legal_reference` | `"L112-6 code de l’urbanisme"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].regulation_or_annex_reference` | `"R151-52 2°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[2]`. | `resolve_planning_feature_codes` |
-| `records[2].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[3].feature_family` | `"INFORMATION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].type_code` | `"99"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].official_label` | `"Autre périmètre, secteur, plan, document, site, projet, espace."` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].legal_reference` | `null` | `NoneType` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; true YAML null; accepted only where the owning model field is optional/nullable | Configures `legal reference` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].regulation_or_annex_reference` | `null` | `NoneType` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; true YAML null; accepted only where the owning model field is optional/nullable | Configures `regulation or annex reference` under the exact parent path `records[3]`. | `resolve_planning_feature_codes` |
-| `records[3].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[4].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].type_code` | `"01"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].official_label` | `"Espace boisé classé"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].legal_reference` | `"L113-1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].regulation_or_annex_reference` | `"R151-31 1°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[4]`. | `resolve_planning_feature_codes` |
-| `records[4].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[5].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].type_code` | `"05"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].official_label` | `"Emplacement réservé"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].legal_reference` | `"L151-41 1° à 3°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].regulation_or_annex_reference` | `"R151-34 4°, R151-38 1°, R151-43 3°, R151-48 2°, R151-50 1°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[5]`. | `resolve_planning_feature_codes` |
-| `records[5].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[6].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].type_code` | `"07"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].official_label` | `"Patrimoine bâti, paysager ou éléments de paysages à protéger pour des motifs d'ordre culturel, historique, architectural ou écologique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].legal_reference` | `"L151-19 et L151-23"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].regulation_or_annex_reference` | `"R151-41 3° Et R151-43"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[6]`. | `resolve_planning_feature_codes` |
-| `records[6].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[7].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].type_code` | `"07"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].subtype_code` | `"04"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].official_label` | `"Éléments de paysage, (sites et secteurs) à préserver pour des motifs d'ordre écologique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].legal_reference` | `"L151-23"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].regulation_or_annex_reference` | `"R151-43 5°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[7]`. | `resolve_planning_feature_codes` |
-| `records[7].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[8].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].type_code` | `"15"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].official_label` | `"Règles d’implantation des constructions"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].legal_reference` | `"L151-17 et L151-18"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].regulation_or_annex_reference` | `"R151-39 dernier al."` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[8]`. | `resolve_planning_feature_codes` |
-| `records[8].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[9].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].type_code` | `"15"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].subtype_code` | `"01"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].official_label` | `"Implantation des constructions par rapport aux voies et aux emprises publiques"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].legal_reference` | `"L151-17 et L151-18"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].regulation_or_annex_reference` | `"R151-39"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[9]`. | `resolve_planning_feature_codes` |
-| `records[9].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[10].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].type_code` | `"17"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].official_label` | `"Secteur à programme de logements mixité sociale en zone U et AU"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].legal_reference` | `"L151-15"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].regulation_or_annex_reference` | `"R151-38 3°"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[10]`. | `resolve_planning_feature_codes` |
-| `records[10].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
-| `records[11].feature_family` | `"PRESCRIPTION"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `feature family` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].type_code` | `"18"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `type code` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].subtype_code` | `"00"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `subtype code` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].official_label` | `"Périmètre comportant des orientations d’aménagement et de programmation (OAP)"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official label` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].legal_reference` | `"L151-6 et L151-7"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `legal reference` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].regulation_or_annex_reference` | `"R151-6 à R151-8-1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `regulation or annex reference` under the exact parent path `records[11]`. | `resolve_planning_feature_codes` |
-| `records[11].official_source_url` | `"https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact official source url; HTTPS/origin/path validation is defined by the consuming model. | `resolve_planning_feature_codes` |
+Hash notation: **R** = ordered records hash; **P** = complete parsed profile hash;
+**O** = result payload, directly or through the propagated P digest. All fields
+enter P; the seven record fields enter R. No value is measured geometry.
 
-## STEP 7F.1A.4 dependent-model refresh
+| Profile field | Exact YAML representation → runtime value/type | Validation, consumer and hash effect |
+|---|---|---|
+| `schema_version` | plain integer `2` → `int` | `StrictInt` plus equality to PROFILE_SCHEMA_VERSION=2; booleans, numeric strings and other versions are not accepted. P; copied to result.profile_schema_version and O metadata. |
+| `profile` | plain `cnig_plu_2017_muret_observed_pairs_v2` → `str` | `StrictStr`, min length 1, nonempty and equal to its stripped value. Identifier is not pinned to this one name by the model. P; dictionary/profile columns and O metadata. |
+| `standard_model` | plain `CNIG PLU v2017` → `str` | Exact Literal. Consumer compares it with the unique planning-document standard before factual validation. P; dictionary and result metadata/O. |
+| `official_text_normalization` | plain `GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1` → `str` | Exact Literal naming the implemented NFC/whitespace check; not a selectable repair mode. P; O through profile digest only. |
+| `official_sources` | mapping → frozen `OfficialSourceUrls` | Both required StrictStr fields below; extra keys forbidden. P; no standalone result source-map column. |
+| `retrieval_date` | unquoted `2026-08-12` → `datetime.date` | SafeLoader parses this date; Pydantic field is `date`, not StrictStr/strict date. ISO date strings are also accepted in the synthetic tests. No custom freshness, exact-date or relation-to-download check. P emits ISO date; O through profile digest only. |
+| `canonical_records_sha256` | plain `5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c` → `str` | StrictStr, full lowercase ASCII hex match `[0-9a-f]{64}`, equality to recomputed R. Not part of R itself; P and therefore O. |
+| `records` | ordered YAML sequence of 12 mappings → `tuple[CnigFeatureCodeRecord, ...]` | At least one record, not hardcoded to twelve; unique keys already lexically ordered by family/type/subtype; mismatch rejects, never sorts. Ordered content enters R and P; all records enter output dictionary, even if no feature references them. |
 
-- The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile`; section 5 now embeds the exact current owning model sources and qualified consumers.
-- Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
-- No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+Exact family endpoint identities (plain YAML scalars; runtime **str**, not HttpUrl):
 
-## 5. Classes / models / dataclasses
+| Source field / model owner | Exact checked-in value | Allowed domain and use |
+|---|---|---|
+| `official_sources.prescription` / OfficialSourceUrls | `https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType` | Exact equality to PRESCRIPTION_OFFICIAL_SOURCE_URL; P, not R. Each PRESCRIPTION record independently requires this same constant. |
+| `official_sources.information` / OfficialSourceUrls | `https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType` | Exact equality to INFORMATION_OFFICIAL_SOURCE_URL; P, not R. Each INFORMATION record independently requires this same constant. |
 
-- Exact checked-in configuration SHA256 remains `77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e`; its values are unchanged by STEP 7F.1A.4.
-- Authoritative loader/config boundary: `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile`.
-- Owning Python module: `landscout.stages.resolve_planning_feature_codes`.
-- The owning model declarations below are refreshed from the current source so frozen/deeply immutable fields, strict serialization, exact domains, validators, and internal metadata schemas cannot remain stale merely because the YAML bytes did not change.
+This is exact-string validation, not a generic URL-parser/origin allowlist.
+Swapped families, other paths, ports, credentials, queries, fragments, HTTP,
+host spellings or trailing slashes differ from the constants and fail.
 
-### `_StrictModel`
+| Record field / owner CnigFeatureCodeRecord | YAML representation → runtime type | Domain, meaning and output use (all enter R/P) |
+|---|---|---|
+| `feature_family` | plain INFORMATION or PRESCRIPTION → `str` | Exact Literal of those two values; selects endpoint and first lookup-key component. Copied to dictionary; factual feature family is preserved. |
+| `type_code` | double-quoted two-digit value → `str` | StrictStr with full `[0-9]{2}` match, preserving leading zeros; second key component/dictionary field. No integer-to-string conversion. |
+| `subtype_code` | double-quoted two-digit value → `str` | Same strict rule; third key component. `"00"` is a literal subtype, neither wildcard nor null; no fallback. |
+| `official_label` | plain text → `str` | StrictStr, nonempty, already canonical official display text. Dictionary field; copied to official_code_label for a known pair. |
+| `legal_reference` | plain text or true `null` → `str` or `NoneType` | Required but nullable; non-null text must already be canonical. Dictionary field; copied to official_legal_reference, retaining true null. See boundary discrepancy below. |
+| `regulation_or_annex_reference` | plain text or true `null` → `str` or `NoneType` | Same required/nullable text rule; dictionary field; copied to official_regulation_reference. No parsing of cited article applicability. |
+| `official_source_url` | plain family endpoint → `str` | StrictStr and exact family-constant equality; dictionary field; copied to official_code_source_url. Twelve occurrences, only two distinct URLs. |
 
-**Source purpose:** Defines `_StrictModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+Canonical official display text means exact equality to
+`" ".join(unicodedata.normalize("NFC", text).split())`, together with
+nonempty/no-edge-whitespace checking. Internal Unicode whitespace must already
+be one ASCII space; decomposed accents, repeated spaces and newlines fail.
+The loader rejects, not repairs, supplied text; case, punctuation and accents are
+not reinterpreted. This is distinct from factual GPU LIBELLE preservation:
+[A-003](../../../../project/BACKLOG_AND_GAPS.md#application-findings) remains OPEN.
 
-- Exact decorators: none.
-- Exact bases: `BaseModel`.
+True YAML `null` is Python None, not the string `"None"`.
+**Observed boundary discrepancy A-004:** the record model's optional-text
+validator does not ban canonical strings `"None"`, `"nan"` or `"<NA>"`;
+the result dictionary's
+[_validate_nullable_official_value](../../src/landscout/stages/resolve_planning_feature_codes.py.md#_validate_nullable_official_value)
+explicitly rejects these literals. R4 reproduced the `"None"` model/helper
+difference in memory only. The checked-in references contain no such strings;
+no source-complete resolver run or production fix is claimed.
 
-**Fields and model attributes**
+<a id="r4-records"></a>
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
+## All twelve checked-in records
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+Rows are in exact file/lookup order. **I** means the exact INFORMATION endpoint
+above; **P** means the exact PRESCRIPTION endpoint above, not an alternative URL.
+There are 24 legal/annex cells: **22 non-null strings and 2 true nulls**.
+These are recorded display references, not fresh legal findings.
 
-**Qualified consumers**
+| records index | feature_family | type_code | subtype_code | official_label | legal_reference | regulation_or_annex_reference | official_source_url |
+|---|---|---|---|---|---|---|---|
+| 0 | INFORMATION | `02` | `00` | Zone d'aménagement concerté | L311-1 code de l’urbanisme | R151-52 8° | I |
+| 1 | INFORMATION | `14` | `00` | Périmètre de voisinage d'infrastructure de transport terrestre (secteur affecté par le bruit) | L571-10 code de l’environnement | R151-53 5° | I |
+| 2 | INFORMATION | `27` | `00` | Plan d'exposition au bruit des aérodromes | L112-6 code de l’urbanisme | R151-52 2° | I |
+| 3 | INFORMATION | `99` | `00` | Autre périmètre, secteur, plan, document, site, projet, espace. | `null` | `null` | I |
+| 4 | PRESCRIPTION | `01` | `00` | Espace boisé classé | L113-1 | R151-31 1° | P |
+| 5 | PRESCRIPTION | `05` | `00` | Emplacement réservé | L151-41 1° à 3° | R151-34 4°, R151-38 1°, R151-43 3°, R151-48 2°, R151-50 1° | P |
+| 6 | PRESCRIPTION | `07` | `00` | Patrimoine bâti, paysager ou éléments de paysages à protéger pour des motifs d'ordre culturel, historique, architectural ou écologique | L151-19 et L151-23 | R151-41 3° Et R151-43 | P |
+| 7 | PRESCRIPTION | `07` | `04` | Éléments de paysage, (sites et secteurs) à préserver pour des motifs d'ordre écologique | L151-23 | R151-43 5° | P |
+| 8 | PRESCRIPTION | `15` | `00` | Règles d’implantation des constructions | L151-17 et L151-18 | R151-39 dernier al. | P |
+| 9 | PRESCRIPTION | `15` | `01` | Implantation des constructions par rapport aux voies et aux emprises publiques | L151-17 et L151-18 | R151-39 | P |
+| 10 | PRESCRIPTION | `17` | `00` | Secteur à programme de logements mixité sociale en zone U et AU | L151-15 | R151-38 3° | P |
+| 11 | PRESCRIPTION | `18` | `00` | Périmètre comportant des orientations d’aménagement et de programmation (OAP) | L151-6 et L151-7 | R151-6 à R151-8-1 | P |
 
-- No conservative direct repository consumer was found.
+<a id="r4-loading"></a>
 
-**Exact class source**
+## Loading, immutability and errors
+
+Actual public loader signature:
 
 ```python
-class _StrictModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+def load_cnig_feature_code_profile(path: str | Path) -> CnigFeatureCodeProfile:
 ```
 
-### `OfficialSourceUrls`
+No default path: the caller supplies one; relative paths are relative to the
+process working directory. Path construction/read_bytes occur inside the loader's
+try block. No write, network, GIS, GPU download or environment change occurs.
 
-**Source purpose:** Defines `OfficialSourceUrls`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+[Strict YAML decoding](../../src/landscout/common/strict_yaml.py.md) uses a
+SafeLoader subclass, accepts exact str/bytes, decodes bytes as UTF-8, flattens
+mapping merges and rejects duplicate constructed keys at every depth, including
+duplicates after flattening. Unhashable keys raise StrictYamlError. Invalid UTF-8,
+TypeError, ValueError and YAML parser/constructor errors are controlled; unsafe
+Python constructors are not enabled. A non-mapping top level is rejected by this
+profile loader.
 
-- Exact decorators: none.
-- Exact bases: `_StrictModel`.
+Do not borrow strict-JSON semantics: this YAML helper does **not** contain a
+general nonfinite-number rejection. SafeLoader can construct `.nan`/`.inf`;
+this profile's strict string/integer, Literal, date and nested-model fields reject
+inapplicable numeric values. Canonical hashing additionally uses allow_nan=False.
 
-**Fields and model attributes**
+Every owning model inherits `ConfigDict(extra="forbid", frozen=True)`, **not**
+model-wide strict=True. StrictInt/StrictStr, Literal and explicit validators
+supply the field-specific rules. YAML lists/mappings are parsed into a tuple and
+frozen nested models; date parsing is allowed. There is no list/dict/set in the
+validated public field graph. Normal field assignment and tuple mutation fail;
+input dictionaries/lists are not retained as mutable collection aliases.
+Dumped Python/JSON data is a separate serialization, not writable model state.
+Unvalidated model_construct/model_copy updates are not trustworthy: consumers'
+[_resolved_profile](../../src/landscout/stages/resolve_planning_feature_codes.py.md#_resolved_profile)
+dumps a supplied profile with mode="python", warnings="error", reconstructs and
+revalidates it. A path instead goes through the loader.
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `prescription` | `StrictStr` | `required` | `prescription: StrictStr` |
-| `information` | `StrictStr` | `required` | `information: StrictStr` |
+Direct model validation yields Pydantic ValidationError (a ValueError) for
+missing/extra fields or validator failures. The loader preserves existing
+PlanningFeatureCodeError, translates StrictYamlError with its message, and wraps
+other exceptions (including path/read/model failures) as
+PlanningFeatureCodeError("CNIG feature-code profile is invalid"), with cause.
+In-memory reconstruction wraps failures as
+PlanningFeatureCodeError("In-memory CNIG feature-code profile is invalid").
+No acceptance proves that a URL was visited, a reference remains current or a
+parcel satisfies its requirements.
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+<a id="r4-hashes"></a>
 
-**Qualified consumers**
+## Three identities, not one
 
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::OfficialSourceUrls._validate_urls` via `OfficialSourceUrls`
+| Identity | Actual input and current SHA256 |
+|---|---|
+| Documentation Source SHA256 | Exact Git-stored YAML bytes, including formatting: `77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e`. Not calculated as a raw-file hash by the runtime loader; not Git's blob OID. |
+| Ordered records R | [_records_sha256](../../src/landscout/stages/resolve_planning_feature_codes.py.md#_records_sha256): array of [_record_payload](../../src/landscout/stages/resolve_planning_feature_codes.py.md#_record_payload) objects in existing tuple order: `5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c`. Recomputed during profile validation. |
+| Complete profile P | [_profile_sha256](../../src/landscout/stages/resolve_planning_feature_codes.py.md#_profile_sha256): complete `profile.model_dump(mode="json")`, including schema/profile/standard/normalization, both source URLs, ISO retrieval date, canonical_records_sha256 and records: `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`. Computed by the resolver and by the R4 read-only check. |
 
-**Exact class source**
+_record_payload contains exactly feature_family, type_code, subtype_code,
+official_label, legal_reference, regulation_or_annex_reference,
+official_source_url: the seven record fields above, no geometry/status/profile.
+R/P use UTF-8 JSON, ensure_ascii=False, allow_nan=False, sort_keys=True,
+separators=(",", ":"). Object keys are sorted for serialization; record order is
+preserved and validated, not sorted by _records_sha256. True null becomes JSON
+null; tuple records serialize as an array. No Python repr/class/address enters
+these hashes. Formatting-only YAML changes can alter the documentation hash
+without altering R/P. Metadata-only changes can alter P without altering R.
+A changed record must have a matching R but still requires semantic review;
+a recomputable digest is not an external authenticity signature.
+
+P is propagated into result metadata and every dictionary/catalog/relation row.
+Result component hashes include that metadata and frame payloads; the complete
+schema-5 result digest binds the component digests. Thus metadata not copied as
+its own frame column still affects O through P. No hash/schema changed in R4.
+
+<a id="r4-resolution"></a>
+
+## Exact-pair consumption and trust boundaries
+
+Actual public API (not the compact wrapper used inside tests):
 
 ```python
-class OfficialSourceUrls(_StrictModel):
-    prescription: StrictStr
-    information: StrictStr
-
-    @model_validator(mode="after")
-    def _validate_urls(self) -> OfficialSourceUrls:
-        if self.prescription != PRESCRIPTION_OFFICIAL_SOURCE_URL:
-            raise ValueError(
-                "prescription source URL is not the exact official GPU host endpoint"
-            )
-        if self.information != INFORMATION_OFFICIAL_SOURCE_URL:
-            raise ValueError(
-                "information source URL is not the exact official GPU host endpoint"
-            )
-        return self
+def resolve_planning_feature_codes(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+) -> PlanningFeatureCodeResult:
 ```
 
-### `CnigFeatureCodeRecord`
+It resolves/revalidates the profile, checks the planning standard, invokes the
+source-complete normalized-input validator once, and passes that validation to
+_build_result so it is not repeated there. It copies factual frames, builds the
+dictionary, performs exact tuple lookup and validates the result envelope.
+[Physical validation](../../src/landscout/stages/enrich_planning_features.py.md#r3-validate-normalized-planning-feature-inputs)
+belongs to the upstream validator, not this YAML or a URL lookup.
 
-**Source purpose:** Defines `CnigFeatureCodeRecord`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+_lookup keys are (feature_family, type_code, subtype_code).
+_coded_catalog queries (feature_family, type_code_raw, subtype_code_raw).
+Conceptual examples with this exact file: PRESCRIPTION/07/04 resolves;
+PRESCRIPTION/07/99 stays UNKNOWN_CODE_PAIR although 07/00 exists.
+No type-only, prefix, fuzzy or cross-family fallback; raw code strings are not
+modified. The code dictionary holds all twelve rows plus profile, profile_sha256
+and standard_model.
 
-- Exact decorators: none.
-- Exact bases: `_StrictModel`.
+| Appended field | Exact match | Missing exact pair |
+|---|---|---|
+| official_code_status | RESOLVED_OFFICIAL | UNKNOWN_CODE_PAIR |
+| official_code_label | record.official_label | true null |
+| official_legal_reference | record.legal_reference (may be null) | true null |
+| official_regulation_reference | record.regulation_or_annex_reference (may be null) | true null |
+| official_code_source_url | record.official_source_url | true null |
+| official_code_profile | profile.profile | same profile.profile |
+| official_code_profile_sha256 | P | same P |
 
-**Fields and model attributes**
+Relations receive these same seven fields from their referenced coded feature ID.
+Strings use Pandas "str" columns; true nulls may display as the dtype's missing
+sentinel, not literal null-replacement strings. Factual columns, row order, raw
+codes and geometry are preserved in copies; frozen result envelopes do not make
+their DataFrames deeply immutable.
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `feature_family` | `FeatureFamily` | `required` | `feature_family: FeatureFamily` |
-| `type_code` | `StrictStr` | `required` | `type_code: StrictStr` |
-| `subtype_code` | `StrictStr` | `required` | `subtype_code: StrictStr` |
-| `official_label` | `StrictStr` | `required` | `official_label: StrictStr` |
-| `legal_reference` | `StrictStr \| None` | `required` | `legal_reference: StrictStr \| None` |
-| `regulation_or_annex_reference` | `StrictStr \| None` | `required` | `regulation_or_annex_reference: StrictStr \| None` |
-| `official_source_url` | `StrictStr` | `required` | `official_source_url: StrictStr` |
+[Envelope validation](../../src/landscout/stages/resolve_planning_feature_codes.py.md#validate_planning_feature_code_result_envelope)
+checks local schemas, nonempty ordered dictionary, exact meanings/statuses,
+profile lineage, relation-to-feature agreement and hashes without physical reads.
+[Source-complete validation](../../src/landscout/stages/resolve_planning_feature_codes.py.md#validate_planning_feature_code_result)
+first checks that envelope, then re-resolves the supplied profile and independently
+rebuilds from all factual/source inputs before scalar/frame comparison.
+Intrinsic coherence alone is not physical authority.
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+The separate [BESS policy compiler](../../src/landscout/stages/bess_planning_feature_policy.py.md#compile_bess_planning_feature_policy)
+validates source locks, the source-complete coded result, exact dictionary/policy
+pair-set equality and expected label/references. Its policy entries supply
+precheck status, priority, confidence, rationale and human action, not this YAML.
+A CNIG match alone does not authorize construction, establish BESS compatibility,
+require parcel exclusion or determine a complete regulatory regime.
 
-**Qualified consumers**
+<a id="r4-tests"></a>
 
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::CnigFeatureCodeRecord._validate_record` via `CnigFeatureCodeRecord`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_record_payload` via `CnigFeatureCodeRecord`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_records_sha256` via `CnigFeatureCodeRecord`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_lookup` via `CnigFeatureCodeRecord`
+## Existing test evidence and limits
 
-**Exact class source**
+The following are source-read assertions, **not tests executed in R4**.
+Links point to the owning test sections; reading these definitions does not
+close the whole resolver/test inventory unit.
 
-```python
-class CnigFeatureCodeRecord(_StrictModel):
-    feature_family: FeatureFamily
-    type_code: StrictStr
-    subtype_code: StrictStr
-    official_label: StrictStr
-    legal_reference: StrictStr | None
-    regulation_or_annex_reference: StrictStr | None
-    official_source_url: StrictStr
+| Existing test | Literal setup and asserted boundary |
+|---|---|
+| [checked-in snapshot](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs) | Loads this path; compares all 12 seven-field tuples, profile metadata, endpoints, retrieval date, R and P constants. Offline equality, not fresh official-table evidence or exhaustive nomenclature coverage. |
+| [exact family/leading zeros](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_exact_family_pair_resolution_and_leading_zeros) | Synthetic dictionary and real temporary GPKGs; asserts distinct INFORMATION 02/00, PRESCRIPTION 07/00 and 07/04 labels and unchanged raw 07/04 strings. |
+| [no fallback](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_no_type_only_or_cross_family_fallback_and_unknown_is_retained) | Removes PRESCRIPTION 07/04 and INFORMATION 99/00, recomputes R, checks both features retained/unknown and line label null. No competing same-code record in another family is introduced, so this is not an isolated cross-family collision test despite its name; it does not assert all four null meaning fields. |
+| [model_copy hash](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated), [model_construct schema](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated), [model_construct duplicate](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated) | Supplies forged profiles to public resolution; expects controlled profile errors. Profile rejection precedes source-complete validation in the resolver; fixture construction itself has already performed local physical IO. |
+| [endpoint identity](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_official_family_endpoints_require_exact_identity) | Ten root-and-record coordinated URL mutations, recomputed R; model rejection. Multiple nested errors can coexist; no claim that only the record endpoint guard fired. |
+| [canonical text](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_official_text_must_already_be_canonical) | Repeated spaces/decomposed accent/newline/edge space in four label/reference cases; R recomputed first; model rejection, not hash mismatch or repair. |
+| [malformed code](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_malformed_code_is_rejected) | Changes type_code to "1", "001", "A1", padded "01" or integer 1; expects ValueError. Does not separately parameterize subtype_code at the profile-model boundary. |
+| [duplicate/hash](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_duplicate_pair_and_profile_hash_mutation_are_rejected), [record order](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_record_order_must_be_deterministic) | Duplicate append rejects before hash comparison; wrong R rejects; reversed records reject deterministic order, not automatic sorting. Test helper _records_hash sorts its fixture inputs; production _records_sha256 does not. |
+| [host/extra field](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_wrong_official_host_and_unknown_field_are_rejected), [duplicate YAML](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_duplicate_yaml_key_is_rejected), [valid YAML](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_yaml_snapshot_loads_strictly) | Wrong root endpoint and extra semantic_policy fail; duplicate schema_version=1 keys fail at decoding before unsupported-version validation; safe_dump synthetic payload reload equals validated synthetic profile. |
+| [dictionary intrinsic rows](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_schema_v5_dictionary_rows_are_intrinsically_validated) | Rehashes dictionary mutations including malformed type/subtype, family/URL/profile, duplicate/order and literal "None" reference; checks envelope rejection. This tests result rows, not profile-model literal-null rejection (A-004). |
+| [physical validation call counts](../../tests/unit/test_resolve_planning_feature_codes.py.md#test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats) | Spies delegate to real physical revalidation/relation builder after fixture construction; counts 1/1 after resolution, 2/2 after separate public validation. Not an official GPU acquisition. |
+| [immutable field graph](../../tests/unit/test_deep_immutability.py.md#test_all_loaded_trust_families_have_no_reachable_mutable_collection), [stable hashes](../../tests/unit/test_deep_immutability.py.md#test_canonical_config_and_policy_hashes_match_starting_commit) | CNIG is one loaded family in recursive field-graph checks; P is pinned unchanged. The separate immediate sequence-mutation test uses scan AOI, and alias tests use AOI/structure, not a dedicated CNIG alias mutation. |
 
-    @model_validator(mode="after")
-    def _validate_record(self) -> CnigFeatureCodeRecord:
-        for code, label in (
-            (self.type_code, "type code"),
-            (self.subtype_code, "subtype code"),
-        ):
-            if _CODE_PATTERN.fullmatch(code) is None:
-                raise ValueError(f"{label} must contain exactly two digits")
-        _validate_official_text(self.official_label, "official label")
-        _validate_optional_official_text(self.legal_reference, "legal reference")
-        _validate_optional_official_text(
-            self.regulation_or_annex_reference,
-            "regulation or annex reference",
-        )
-        expected_url = (
-            PRESCRIPTION_OFFICIAL_SOURCE_URL
-            if self.feature_family == "PRESCRIPTION"
-            else INFORMATION_OFFICIAL_SOURCE_URL
-        )
-        if self.official_source_url != expected_url:
-            raise ValueError("record source URL is not the exact family endpoint")
-        return self
-```
+The inspected synthetic helpers write/read tiny local GPKGs and a schema-2
+extraction manifest with a fabricated ZIP envelope; geometries are synthetic
+EPSG:2154 coordinates, not surveyed Muret geography. Test-local wrappers insert
+_integration_parcels into the real seven-argument API. No R4 pytest, GPU/EP run,
+artifact rebuild or external page read was performed. Dedicated profile cases
+for every missing/nullable/date/nonfinite input are not established by this
+bounded reading; this is a coverage limit, not evidence of a new defect.
+A-001/A-002/A-003, previous test-evidence limitations and A-004 remain open.
 
-### `CnigFeatureCodeProfile`
+<a id="r4-snapshot"></a>
 
-**Source purpose:** Strict offline snapshot of official CNIG feature code records.
+## Complete exact Git-content snapshot
 
-- Exact decorators: none.
-- Exact bases: `_StrictModel`.
-
-**Fields and model attributes**
-
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `schema_version` | `StrictInt` | `required` | `schema_version: StrictInt` |
-| `profile` | `StrictStr` | `Field(min_length=1)` | `profile: StrictStr = Field(min_length=1)` |
-| `standard_model` | `Literal['CNIG PLU v2017']` | `required` | `standard_model: Literal["CNIG PLU v2017"]` |
-| `official_text_normalization` | `Literal['GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1']` | `required` | `official_text_normalization: Literal["GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"]` |
-| `official_sources` | `OfficialSourceUrls` | `required` | `official_sources: OfficialSourceUrls` |
-| `retrieval_date` | `date` | `required` | `retrieval_date: date` |
-| `canonical_records_sha256` | `StrictStr` | `required` | `canonical_records_sha256: StrictStr` |
-| `records` | `tuple[CnigFeatureCodeRecord, ...]` | `Field(min_length=1)` | `records: tuple[CnigFeatureCodeRecord, ...] = Field(min_length=1)` |
-
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
-
-**Qualified consumers**
-
-- public re-export: `landscout.stages::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeError,
-    PlanningFeatureCodeResult,
-    load_cnig_feature_code_profile,
-    resolve_planning_feature_codes,
-    validate_planning_feature_code_result,
-    validate_planning_feature_code_result_envelope,
-)`
-- import: `landscout.stages.aggregate_bess_planning_feature_policy::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeResult,
-)`
-- value/type reference: `landscout.stages.aggregate_bess_planning_feature_policy::_validate_application_source` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.aggregate_bess_planning_feature_policy::aggregate_bess_planning_feature_policy_to_parcels` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.aggregate_bess_planning_feature_policy::validate_bess_planning_feature_parcel_aggregation_result` via `CnigFeatureCodeProfile`
-- import: `landscout.stages.apply_bess_planning_feature_policy::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeResult,
-    validate_planning_feature_code_result_envelope,
-)`
-- value/type reference: `landscout.stages.apply_bess_planning_feature_policy::_validate_policy_source` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.apply_bess_planning_feature_policy::apply_bess_planning_feature_policy` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.apply_bess_planning_feature_policy::validate_bess_planning_feature_application_result` via `CnigFeatureCodeProfile`
-- import: `landscout.stages.bess_planning_feature_policy::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeResult,
-    validate_planning_feature_code_result,
-)`
-- value/type reference: `landscout.stages.bess_planning_feature_policy::_validate_coded_source` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.bess_planning_feature_policy::compile_bess_planning_feature_policy` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.bess_planning_feature_policy::validate_bess_planning_feature_policy_result` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::CnigFeatureCodeProfile._validate_profile` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::load_cnig_feature_code_profile` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_resolved_profile` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_profile_sha256` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_dictionary` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_lookup` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_coded_catalog` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::_build_result` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::validate_planning_feature_code_result` via `CnigFeatureCodeProfile`
-- value/type reference: `landscout.stages.resolve_planning_feature_codes::resolve_planning_feature_codes` via `CnigFeatureCodeProfile`
-- import: `tests.unit.test_resolve_planning_feature_codes::<module>` via `from landscout.stages.resolve_planning_feature_codes import (
-    CODE_DICTIONARY_COLUMNS,
-    OFFICIAL_CODE_COLUMNS,
-    CnigFeatureCodeProfile,
-    PlanningFeatureCodeError,
-    PlanningFeatureCodeResult,
-    _result_with_hashes,
-    load_cnig_feature_code_profile,
-)`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::_profile` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::_mutated_profile` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::_integration_inputs` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::_inputs` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::resolve_planning_feature_codes` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::validate_planning_feature_code_result` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_no_type_only_or_cross_family_fallback_and_unknown_is_retained` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_official_family_endpoints_require_exact_identity` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_official_text_must_already_be_canonical` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_malformed_code_is_rejected` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_duplicate_pair_and_profile_hash_mutation_are_rejected` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_wrong_official_host_and_unknown_field_are_rejected` via `CnigFeatureCodeProfile`
-- value/type reference: `tests.unit.test_resolve_planning_feature_codes::test_record_order_must_be_deterministic` via `CnigFeatureCodeProfile`
-
-**Exact class source**
-
-```python
-class CnigFeatureCodeProfile(_StrictModel):
-    """Strict offline snapshot of official CNIG feature code records."""
-
-    schema_version: StrictInt
-    profile: StrictStr = Field(min_length=1)
-    standard_model: Literal["CNIG PLU v2017"]
-    official_text_normalization: Literal["GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"]
-    official_sources: OfficialSourceUrls
-    retrieval_date: date
-    canonical_records_sha256: StrictStr
-    records: tuple[CnigFeatureCodeRecord, ...] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_profile(self) -> CnigFeatureCodeProfile:
-        if self.schema_version != PROFILE_SCHEMA_VERSION:
-            raise ValueError(
-                f"unsupported CNIG feature-code profile schema: {self.schema_version}"
-            )
-        _exact_string(self.profile, "code profile")
-        if _SHA_PATTERN.fullmatch(self.canonical_records_sha256) is None:
-            raise ValueError("canonical records SHA256 is invalid")
-        keys = [
-            (record.feature_family, record.type_code, record.subtype_code)
-            for record in self.records
-        ]
-        if len(set(keys)) != len(keys):
-            raise ValueError("configured CNIG code pairs contain a duplicate")
-        if keys != sorted(keys):
-            raise ValueError("configured CNIG records must use deterministic order")
-        if _records_sha256(self.records) != self.canonical_records_sha256:
-            raise ValueError("canonical records SHA256 differs from configured records")
-        return self
-```
-
-## 6. Functions and methods
-
-Loader: `landscout.stages.resolve_planning_feature_codes.load_cnig_feature_code_profile`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, exact validation, and any hashing actually performed by that loader.
-
-## 7. Data contracts
-
-This file supplies configuration/policy/source identity. It does not itself create a frame. Any fields copied into output rows are documented by the consuming stage's canonical frame schema.
-
-## 8. Interfaces
-
-Runtime consumers: `resolve_planning_feature_codes`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
-
-## 9. Error handling
-
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
-
-## 10. Side effects
-
-Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: none; this loader parses/validates configuration values but does not hash this file's bytes.
-
-## 11. Security / trust boundaries
-
-A configured URL/provider/hash is a source lock or provenance input. Physical authority requires the consuming source adapter's safe transport and byte/source revalidation.
-
-## 12. GIS / CRS rules
-
-Only explicit CRS fields impose GIS rules; configured storage/calculation CRS values are policy/configuration, not an implicit reprojection of data.
-
-## 13. Provenance rules
-
-The companion's Source SHA256 binds this checked-in file for documentation fidelity; that documentation digest is not attributed to the runtime loader. Source identities remain textual until the adapter validates physical bytes/content.
-
-## 14. Business meaning
-
-Thresholds and outcomes are policy/configuration values. They are never relabeled as measured geometry or legal conclusions.
-
-## 15. Explicit non-goals
-
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
-
-## 16. Tests
-
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
-
-## 17. Change impact
-
-Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.
-
-## 18. Complete readable configuration and authoritative raw-byte snapshot
-
-### Complete readable YAML
-
-The following is the complete decoded UTF-8 configuration with line endings normalized to LF for stable Markdown display. Every character and logical line is present, but this readable fence is not the authority for original CR/LF byte positions.
+This single UTF-8 YAML fence reproduces all 4,934 Git-content bytes, including
+the final LF. It is the source snapshot, not a claim that explanatory prose or
+official meanings are certified by its digest.
 
 ```yaml
 schema_version: 2
@@ -538,100 +403,4 @@ records:
     legal_reference: L151-6 et L151-7
     regulation_or_annex_reference: R151-6 à R151-8-1
     official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
-```
-
-### Authoritative raw-byte payload
-
-- Raw byte length: `4934`.
-- Raw SHA256: `77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e` (identical to **File identity**).
-- Encoding: RFC 4648 Base64, wrapped for display only. Decoding the concatenated payload reproduces every original byte, including mixed CRLF/LF positions.
-
-```text
-c2NoZW1hX3ZlcnNpb246IDIKcHJvZmlsZTogY25pZ19wbHVfMjAxN19tdXJldF9vYnNlcnZlZF9w
-YWlyc192MgpzdGFuZGFyZF9tb2RlbDogQ05JRyBQTFUgdjIwMTcKb2ZmaWNpYWxfdGV4dF9ub3Jt
-YWxpemF0aW9uOiBHUFVfRElTUExBWV9URVhUX05GQ19XSElURVNQQUNFX1YxCm9mZmljaWFsX3Nv
-dXJjZXM6CiAgcHJlc2NyaXB0aW9uOiBodHRwczovL3d3dy5nZW9wb3J0YWlsLXVyYmFuaXNtZS5n
-b3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvUHJlc2NyaXB0aW9uVXJiYVR5cGUK
-ICBpbmZvcm1hdGlvbjogaHR0cHM6Ly93d3cuZ2VvcG9ydGFpbC11cmJhbmlzbWUuZ291di5mci9z
-dGFuZGFyZC9jbmlnX1BMVV8yMDE3L2NvZGVzL0luZm9ybWF0aW9uVXJiYVR5cGUKcmV0cmlldmFs
-X2RhdGU6IDIwMjYtMDgtMTIKY2Fub25pY2FsX3JlY29yZHNfc2hhMjU2OiA1OTkwNTUyYTY4MWE5
-ZTUwYzA3MmViMjA3YmY4OGQyNWM4NzZmNjFjODllZWI4ODYxOGU3NGQ5MDU0ODc2NzJjCnJlY29y
-ZHM6CiAgLSBmZWF0dXJlX2ZhbWlseTogSU5GT1JNQVRJT04KICAgIHR5cGVfY29kZTogIjAyIgog
-ICAgc3VidHlwZV9jb2RlOiAiMDAiCiAgICBvZmZpY2lhbF9sYWJlbDogWm9uZSBkJ2Ftw6luYWdl
-bWVudCBjb25jZXJ0w6kKICAgIGxlZ2FsX3JlZmVyZW5jZTogTDMxMS0xIGNvZGUgZGUgbOKAmXVy
-YmFuaXNtZQogICAgcmVndWxhdGlvbl9vcl9hbm5leF9yZWZlcmVuY2U6IFIxNTEtNTIgOMKwCiAg
-ICBvZmZpY2lhbF9zb3VyY2VfdXJsOiBodHRwczovL3d3dy5nZW9wb3J0YWlsLXVyYmFuaXNtZS5n
-b3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvSW5mb3JtYXRpb25VcmJhVHlwZQog
-IC0gZmVhdHVyZV9mYW1pbHk6IElORk9STUFUSU9OCiAgICB0eXBlX2NvZGU6ICIxNCIKICAgIHN1
-YnR5cGVfY29kZTogIjAwIgogICAgb2ZmaWNpYWxfbGFiZWw6IFDDqXJpbcOodHJlIGRlIHZvaXNp
-bmFnZSBkJ2luZnJhc3RydWN0dXJlIGRlIHRyYW5zcG9ydCB0ZXJyZXN0cmUgKHNlY3RldXIgYWZm
-ZWN0w6kgcGFyIGxlIGJydWl0KQogICAgbGVnYWxfcmVmZXJlbmNlOiBMNTcxLTEwIGNvZGUgZGUg
-bOKAmWVudmlyb25uZW1lbnQKICAgIHJlZ3VsYXRpb25fb3JfYW5uZXhfcmVmZXJlbmNlOiBSMTUx
-LTUzIDXCsAogICAgb2ZmaWNpYWxfc291cmNlX3VybDogaHR0cHM6Ly93d3cuZ2VvcG9ydGFpbC11
-cmJhbmlzbWUuZ291di5mci9zdGFuZGFyZC9jbmlnX1BMVV8yMDE3L2NvZGVzL0luZm9ybWF0aW9u
-VXJiYVR5cGUKICAtIGZlYXR1cmVfZmFtaWx5OiBJTkZPUk1BVElPTgogICAgdHlwZV9jb2RlOiAi
-MjciCiAgICBzdWJ0eXBlX2NvZGU6ICIwMCIKICAgIG9mZmljaWFsX2xhYmVsOiBQbGFuIGQnZXhw
-b3NpdGlvbiBhdSBicnVpdCBkZXMgYcOpcm9kcm9tZXMKICAgIGxlZ2FsX3JlZmVyZW5jZTogTDEx
-Mi02IGNvZGUgZGUgbOKAmXVyYmFuaXNtZQogICAgcmVndWxhdGlvbl9vcl9hbm5leF9yZWZlcmVu
-Y2U6IFIxNTEtNTIgMsKwCiAgICBvZmZpY2lhbF9zb3VyY2VfdXJsOiBodHRwczovL3d3dy5nZW9w
-b3J0YWlsLXVyYmFuaXNtZS5nb3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvSW5m
-b3JtYXRpb25VcmJhVHlwZQogIC0gZmVhdHVyZV9mYW1pbHk6IElORk9STUFUSU9OCiAgICB0eXBl
-X2NvZGU6ICI5OSIKICAgIHN1YnR5cGVfY29kZTogIjAwIgogICAgb2ZmaWNpYWxfbGFiZWw6IEF1
-dHJlIHDDqXJpbcOodHJlLCBzZWN0ZXVyLCBwbGFuLCBkb2N1bWVudCwgc2l0ZSwgcHJvamV0LCBl
-c3BhY2UuCiAgICBsZWdhbF9yZWZlcmVuY2U6IG51bGwKICAgIHJlZ3VsYXRpb25fb3JfYW5uZXhf
-cmVmZXJlbmNlOiBudWxsCiAgICBvZmZpY2lhbF9zb3VyY2VfdXJsOiBodHRwczovL3d3dy5nZW9w
-b3J0YWlsLXVyYmFuaXNtZS5nb3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvSW5m
-b3JtYXRpb25VcmJhVHlwZQogIC0gZmVhdHVyZV9mYW1pbHk6IFBSRVNDUklQVElPTgogICAgdHlw
-ZV9jb2RlOiAiMDEiCiAgICBzdWJ0eXBlX2NvZGU6ICIwMCIKICAgIG9mZmljaWFsX2xhYmVsOiBF
-c3BhY2UgYm9pc8OpIGNsYXNzw6kKICAgIGxlZ2FsX3JlZmVyZW5jZTogTDExMy0xCiAgICByZWd1
-bGF0aW9uX29yX2FubmV4X3JlZmVyZW5jZTogUjE1MS0zMSAxwrAKICAgIG9mZmljaWFsX3NvdXJj
-ZV91cmw6IGh0dHBzOi8vd3d3Lmdlb3BvcnRhaWwtdXJiYW5pc21lLmdvdXYuZnIvc3RhbmRhcmQv
-Y25pZ19QTFVfMjAxNy9jb2Rlcy9QcmVzY3JpcHRpb25VcmJhVHlwZQogIC0gZmVhdHVyZV9mYW1p
-bHk6IFBSRVNDUklQVElPTgogICAgdHlwZV9jb2RlOiAiMDUiCiAgICBzdWJ0eXBlX2NvZGU6ICIw
-MCIKICAgIG9mZmljaWFsX2xhYmVsOiBFbXBsYWNlbWVudCByw6lzZXJ2w6kKICAgIGxlZ2FsX3Jl
-ZmVyZW5jZTogTDE1MS00MSAxwrAgw6AgM8KwCiAgICByZWd1bGF0aW9uX29yX2FubmV4X3JlZmVy
-ZW5jZTogUjE1MS0zNCA0wrAsIFIxNTEtMzggMcKwLCBSMTUxLTQzIDPCsCwgUjE1MS00OCAywrAs
-IFIxNTEtNTAgMcKwCiAgICBvZmZpY2lhbF9zb3VyY2VfdXJsOiBodHRwczovL3d3dy5nZW9wb3J0
-YWlsLXVyYmFuaXNtZS5nb3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvUHJlc2Ny
-aXB0aW9uVXJiYVR5cGUKICAtIGZlYXR1cmVfZmFtaWx5OiBQUkVTQ1JJUFRJT04KICAgIHR5cGVf
-Y29kZTogIjA3IgogICAgc3VidHlwZV9jb2RlOiAiMDAiCiAgICBvZmZpY2lhbF9sYWJlbDogUGF0
-cmltb2luZSBiw6J0aSwgcGF5c2FnZXIgb3Ugw6lsw6ltZW50cyBkZSBwYXlzYWdlcyDDoCBwcm90
-w6lnZXIgcG91ciBkZXMgbW90aWZzIGQnb3JkcmUgY3VsdHVyZWwsIGhpc3RvcmlxdWUsIGFyY2hp
-dGVjdHVyYWwgb3Ugw6ljb2xvZ2lxdWUKICAgIGxlZ2FsX3JlZmVyZW5jZTogTDE1MS0xOSBldCBM
-MTUxLTIzCiAgICByZWd1bGF0aW9uX29yX2FubmV4X3JlZmVyZW5jZTogUjE1MS00MSAzwrAgRXQg
-UjE1MS00MwogICAgb2ZmaWNpYWxfc291cmNlX3VybDogaHR0cHM6Ly93d3cuZ2VvcG9ydGFpbC11
-cmJhbmlzbWUuZ291di5mci9zdGFuZGFyZC9jbmlnX1BMVV8yMDE3L2NvZGVzL1ByZXNjcmlwdGlv
-blVyYmFUeXBlCiAgLSBmZWF0dXJlX2ZhbWlseTogUFJFU0NSSVBUSU9OCiAgICB0eXBlX2NvZGU6
-ICIwNyIKICAgIHN1YnR5cGVfY29kZTogIjA0IgogICAgb2ZmaWNpYWxfbGFiZWw6IMOJbMOpbWVu
-dHMgZGUgcGF5c2FnZSwgKHNpdGVzIGV0IHNlY3RldXJzKSDDoCBwcsOpc2VydmVyIHBvdXIgZGVz
-IG1vdGlmcyBkJ29yZHJlIMOpY29sb2dpcXVlCiAgICBsZWdhbF9yZWZlcmVuY2U6IEwxNTEtMjMK
-ICAgIHJlZ3VsYXRpb25fb3JfYW5uZXhfcmVmZXJlbmNlOiBSMTUxLTQzIDXCsAogICAgb2ZmaWNp
-YWxfc291cmNlX3VybDogaHR0cHM6Ly93d3cuZ2VvcG9ydGFpbC11cmJhbmlzbWUuZ291di5mci9z
-dGFuZGFyZC9jbmlnX1BMVV8yMDE3L2NvZGVzL1ByZXNjcmlwdGlvblVyYmFUeXBlCiAgLSBmZWF0
-dXJlX2ZhbWlseTogUFJFU0NSSVBUSU9OCiAgICB0eXBlX2NvZGU6ICIxNSIKICAgIHN1YnR5cGVf
-Y29kZTogIjAwIgogICAgb2ZmaWNpYWxfbGFiZWw6IFLDqGdsZXMgZOKAmWltcGxhbnRhdGlvbiBk
-ZXMgY29uc3RydWN0aW9ucwogICAgbGVnYWxfcmVmZXJlbmNlOiBMMTUxLTE3IGV0IEwxNTEtMTgK
-ICAgIHJlZ3VsYXRpb25fb3JfYW5uZXhfcmVmZXJlbmNlOiBSMTUxLTM5IGRlcm5pZXIgYWwuCiAg
-ICBvZmZpY2lhbF9zb3VyY2VfdXJsOiBodHRwczovL3d3dy5nZW9wb3J0YWlsLXVyYmFuaXNtZS5n
-b3V2LmZyL3N0YW5kYXJkL2NuaWdfUExVXzIwMTcvY29kZXMvUHJlc2NyaXB0aW9uVXJiYVR5cGUK
-ICAtIGZlYXR1cmVfZmFtaWx5OiBQUkVTQ1JJUFRJT04KICAgIHR5cGVfY29kZTogIjE1IgogICAg
-c3VidHlwZV9jb2RlOiAiMDEiCiAgICBvZmZpY2lhbF9sYWJlbDogSW1wbGFudGF0aW9uIGRlcyBj
-b25zdHJ1Y3Rpb25zIHBhciByYXBwb3J0IGF1eCB2b2llcyBldCBhdXggZW1wcmlzZXMgcHVibGlx
-dWVzCiAgICBsZWdhbF9yZWZlcmVuY2U6IEwxNTEtMTcgZXQgTDE1MS0xOAogICAgcmVndWxhdGlv
-bl9vcl9hbm5leF9yZWZlcmVuY2U6IFIxNTEtMzkKICAgIG9mZmljaWFsX3NvdXJjZV91cmw6IGh0
-dHBzOi8vd3d3Lmdlb3BvcnRhaWwtdXJiYW5pc21lLmdvdXYuZnIvc3RhbmRhcmQvY25pZ19QTFVf
-MjAxNy9jb2Rlcy9QcmVzY3JpcHRpb25VcmJhVHlwZQogIC0gZmVhdHVyZV9mYW1pbHk6IFBSRVND
-UklQVElPTgogICAgdHlwZV9jb2RlOiAiMTciCiAgICBzdWJ0eXBlX2NvZGU6ICIwMCIKICAgIG9m
-ZmljaWFsX2xhYmVsOiBTZWN0ZXVyIMOgIHByb2dyYW1tZSBkZSBsb2dlbWVudHMgbWl4aXTDqSBz
-b2NpYWxlIGVuIHpvbmUgVSBldCBBVQogICAgbGVnYWxfcmVmZXJlbmNlOiBMMTUxLTE1CiAgICBy
-ZWd1bGF0aW9uX29yX2FubmV4X3JlZmVyZW5jZTogUjE1MS0zOCAzwrAKICAgIG9mZmljaWFsX3Nv
-dXJjZV91cmw6IGh0dHBzOi8vd3d3Lmdlb3BvcnRhaWwtdXJiYW5pc21lLmdvdXYuZnIvc3RhbmRh
-cmQvY25pZ19QTFVfMjAxNy9jb2Rlcy9QcmVzY3JpcHRpb25VcmJhVHlwZQogIC0gZmVhdHVyZV9m
-YW1pbHk6IFBSRVNDUklQVElPTgogICAgdHlwZV9jb2RlOiAiMTgiCiAgICBzdWJ0eXBlX2NvZGU6
-ICIwMCIKICAgIG9mZmljaWFsX2xhYmVsOiBQw6lyaW3DqHRyZSBjb21wb3J0YW50IGRlcyBvcmll
-bnRhdGlvbnMgZOKAmWFtw6luYWdlbWVudCBldCBkZSBwcm9ncmFtbWF0aW9uIChPQVApCiAgICBs
-ZWdhbF9yZWZlcmVuY2U6IEwxNTEtNiBldCBMMTUxLTcKICAgIHJlZ3VsYXRpb25fb3JfYW5uZXhf
-cmVmZXJlbmNlOiBSMTUxLTYgw6AgUjE1MS04LTEKICAgIG9mZmljaWFsX3NvdXJjZV91cmw6IGh0
-dHBzOi8vd3d3Lmdlb3BvcnRhaWwtdXJiYW5pc21lLmdvdXYuZnIvc3RhbmRhcmQvY25pZ19QTFVf
-MjAxNy9jb2Rlcy9QcmVzY3JpcHRpb25VcmJhVHlwZQo=
 ```

@@ -10,16 +10,38 @@
       "source_sha256": "77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e",
       "documentation_path": "docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md",
       "role": "configuration",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R4: exact profile/record/URL models, loader, strict YAML decoder, lookup/result validation and hash consumers; bounded BESS compiler and actual test helpers. Exact read ranges in docs/code/audit/R4_CNIG_CONFIGURATION.md; no other inventory row closed."
       ],
-      "test_references": [],
+      "contract_review": [
+        "Entire unchanged 94-line YAML and entire old companion reviewed; 8 root fields, 2 source fields, 7 fields per record, 92 scalar leaves, 12 records (4 INFORMATION/8 PRESCRIPTION), 22 non-null legal/annex references and 2 true nulls.",
+        "Strict field-specific rules, exact endpoints, canonical official text, tuple/frozen models and reconstruction, required nullable references, literal 00, exact-pair/no-fallback selection, profile/result version separation and all three distinct hashes documented.",
+        "One offline existing-loader call succeeded: records SHA 5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c; profile SHA 5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee. No pytest, GPU/EP run, external legal verification or application change."
+      ],
+      "test_references": [
+        "tests/unit/test_resolve_planning_feature_codes.py:728-923,1593-1852,2101-2295; source-read setups/assertions and limits, not executed in R4",
+        "tests/unit/test_deep_immutability.py:300-354,356-424,434-482; recursive CNIG graph/hash coverage distinguished from AOI mutation/alias tests",
+        "tests/unit/test_strict_serialization.py:1-23; YAML duplicate/safe-loader tests, not JSON nonfinite coverage"
+      ],
       "symbols": [],
-      "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "findings": [
+        "R4 documentation corrections complete; independent review PENDING",
+        "A-004 OPEN: record optional-text acceptance versus result literal-null rejection; bounded in-memory model/helper check only"
+      ],
+      "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r4_prior_evidence": {
+        "status": "NOT_READ",
+        "read_complete": false,
+        "source_sha256": "77407429fd414eece8f6b20ca4da587aac76ab6b0b93e02f148622ab85ee253e",
+        "contract_review": [
+          "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+        ],
+        "transferred_to": "inpn_roads extension"
+      },
+      "r4_ownership_resolution": "Original matrix names planning.json; all six fragments contain only this one explicit row for this exact path. Historical transfer intention was not materialized in extension. Retain existing planning ownership, no duplicate/transfer closure.",
+      "r4_receipt": "docs/code/audit/R4_CNIG_CONFIGURATION.md"
     },
     {
       "path": "configs/planning/muret_bess_cnig_feature_policy.yaml",
@@ -108,19 +130,39 @@
     },
     {
       "path": "docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md",
-      "source_sha256": "91a88465643f319a5d55da18ebc5d6e6155e031fb3e8e9581204dfc5d3b94244",
+      "source_sha256": "57ba6adf300e215302bf21ef1130ae79824b0215294422fc3ee58eb9c382c005",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R4 source-derived companion; precise owner/test navigation and source ranges in docs/code/audit/R4_CNIG_CONFIGURATION.md. Resolver/test companions are not otherwise reviewed or edited."
       ],
-      "test_references": [],
+      "contract_review": [
+        "Replaced generic leaf/validator/source dumps and unrelated road/scan/CRS prose with concrete field constraints, full twelve-record reference table, exact signatures, errors, hash payloads and factual-versus-policy boundaries.",
+        "Corrected no-hashing assertion: loader recomputes ordered records hash but not raw YAML hash; resolver hashes full JSON-mode profile. Corrected date representation, required nullable fields, strict-YAML limits and test assertion scope.",
+        "Exact Git-content YAML snapshot/header binding retained; historical GPU table inspection and v2 display correction reports preserved without claiming fresh external/legal verification. A-003 raw LIBELLE remains distinct; A-004 disclosed. Independent R4 review PENDING."
+      ],
+      "test_references": [
+        "Exact existing test names/setups/limits linked in companion r4-tests; no new test run or expanded test-file ownership"
+      ],
       "symbols": [],
-      "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "findings": [
+        "R4 documentation corrections complete; independent review PENDING",
+        "A-004 OPEN; no change to application/YAML/test bytes"
+      ],
+      "source_sha256_basis": "SHA256_OF_EXACT_GIT_CONTENT_BYTES",
+      "r4_prior_evidence": {
+        "status": "NOT_READ",
+        "read_complete": false,
+        "source_sha256": "91a88465643f319a5d55da18ebc5d6e6155e031fb3e8e9581204dfc5d3b94244",
+        "contract_review": [
+          "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+        ],
+        "transferred_to": "inpn_roads extension"
+      },
+      "r4_ownership_resolution": "Original matrix names planning.json; only this fragment has this exact path. Historical transfer intention retained above, not counted as a second row or completed transfer.",
+      "r4_receipt": "docs/code/audit/R4_CNIG_CONFIGURATION.md"
     },
     {
       "path": "docs/code/files/configs/planning/muret_bess_cnig_feature_policy.yaml.md",

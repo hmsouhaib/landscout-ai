@@ -1,0 +1,396 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R4
+
+Audit the CNIG feature-code configuration reference against its unchanged YAML, loader and consumers
+
+Repository: C:\souhaib\landscout-ai
+Remote: hmsouhaib/landscout-ai
+Working branch: recovery/docs-continuity-1-partial
+Required starting recovery HEAD: e89f7f176f7bc3369977055aceb6423b882d3429
+Required unchanged main: aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. One objective
+
+Resume the next preserved documentation unit, not functional development:
+
+configs/planning/cnig_plu_2017_feature_codes.yaml
+
+docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md
+
+Read the entire YAML and existing companion, then explain accurately how the
+existing loader and consumers use this configuration. Only the companion and
+bounded audit/continuity records may change. The YAML MUST remain byte-identical.
+
+This is documentation fidelity review, NOT official CNIG/legal certification,
+completion of the code dictionary, a new policy, or authorization to resolve the
+EP semantic research backlog. Do not begin another inventory unit in this ticket.
+
+ChatGPT remains read-only reviewer/ticket author; Codex implements. One ticket
+at a time. Publish only on the recovery branch and stop for independent review.
+
+1. Supplied independent R3.1 review receipt
+
+This section is the reviewer's supplied statement. Archive the ticket exactly;
+do not describe it as a fresh Codex execution or an unavailable signed receipt.
+
+Reviewed commit: e89f7f176f7bc3369977055aceb6423b882d3429.
+Parent: aad641420c0b0d2c8c503815854ae9c17f4d09f4.
+Reviewer: ChatGPT, independent read-only reviewer.
+Verdict: APPROVED for the R3.1 planning documentation-fidelity correction.
+
+The reviewer checked the actual seven-path publication/diffs, the corrected
+public/private destinations and corresponding owner mapping, and the amended
+notices against the unchanged test bodies and fixture definitions already read
+in the preceding R3 review. Targeted current source/test sections and matching
+owner notes were inspected again. No remaining blocking mismatch was identified
+in the requested correction scope.
+
+Accepted corrections: separate private/public validator anchors; actual
+PRESCRIPTION/INFORMATION roles; literal synthetic IDs and SHA mutation; the
+EPSG:4326 test's new builder call; the actual UTF-8-plus-newline .cpg write;
+surface-only FID spy; actual synthetic-link delegation; synthetic-geography
+qualification. Useful R3 limitations and the A-003 discrepancy stay visible.
+
+Limits: this review did NOT independently execute the 183 planning tests, rerun
+the full INDEX checker, perform a new automated audit of all 206 mappings,
+recalculate the complete companion/snapshot bytes, visually render Markdown,
+rerun A-003, or execute official GPU/EP data. Those mechanical counts/snapshot
+checks remain the local executions documented by Codex, not new reviewer runs.
+The historical R3 Windows run remains 183 passed / two warnings / exit 0.
+
+R3 documentation with this corrective delta is accepted in its bounded prose
+scope. No application-correctness approval, new functional boundary or global
+documentation approval follows. Preserve the historical R3 correction verdict
+and R3.1 implementation receipt rather than rewriting them as always correct.
+Record this successor approval by referencing this archived ticket in CURRENT_STATE.
+Do not increase closure totals for receiving this verdict.
+
+2. Readiness and preservation
+
+Read AGENTS.md, WORKING_RULES.md, CURRENT_STATE.md, BACKLOG_AND_GAPS.md,
+DOCUMENTATION_AUDIT.md and the latest R3/R3.1 receipts before editing.
+
+Inspect the actual repository root, worktree, branch, local/tracking refs,
+unmerged index entries and remote main/recovery refs. Require the starting SHAs
+above, a clean recovery worktree and no Git operation in progress.
+
+A failed fetch is not a successful refresh. Report observed local and actual
+remote refs distinctly. Use the repository-owning context. Only if the known
+ownership error recurs, the previously authorized command-scoped exception for
+C:/souhaib/landscout-ai may be reused. No wildcard/persistent safe.directory,
+ACL/security/dependency change, hook bypass or history rewrite.
+
+For interruption of this same ticket, inspect and preserve matching partial
+work rather than resetting/restoring/cleaning/stashing it. Unrelated changes or
+contradictory refs require a preserved-state report, not automatic reconciliation.
+
+3. Establish the exact two-row audit ownership
+
+Read the original recovery matrix and existing fragments under
+docs/code/audit/reviews/. Locate the operational owner of these TWO paths.
+Use actual path identities, not an assumed owner or the alphabetical queue alone.
+Resolve historical duplicate/transfer records without counting them twice.
+
+Baseline original scope: 245 files / 4,769 symbols; recorded closure after R3:
+71 files / 1,594 symbols. The larger current Git candidate includes newer audit
+and tooling documents and is NOT this original denominator.
+
+Capture the two rows' real starting statuses, hashes, read_complete and evidence.
+Do not regenerate coverage.json, every fragment, or the original recovery matrix.
+Do not mark the loader, resolver or their tests reviewed in full merely because
+their relevant definitions are read for this configuration.
+
+4. Read the implementation that gives the YAML meaning
+
+Read completely:
+
+the YAML and its existing companion;
+
+the exact configuration-loader models and functions in
+src/landscout/stages/resolve_planning_feature_codes.py;
+
+relevant existing configuration tests in
+tests/unit/test_resolve_planning_feature_codes.py;
+
+the strict YAML decoding definitions actually called from
+src/landscout/common/strict_yaml.py;
+
+relevant existing consumer/caller portions discovered through real references.
+
+At minimum inspect _StrictModel, OfficialSourceUrls, CnigFeatureCodeRecord,
+CnigFeatureCodeProfile, load_cnig_feature_code_profile, _resolved_profile,
+_records_sha256, _profile_sha256 and the actual resolution/validation paths.
+Trace the exact (family, type, subtype) lookup and propagation of official fields.
+Read downstream BESS-policy uses only as necessary to distinguish descriptive
+lookup from decision logic. Record exact read ranges; no expanded ownership.
+
+Do not derive prose from AST names, a stale companion, or this ticket alone.
+The current implementation uses strict individual fields and validators; do not
+invent a model-wide strict=True configuration that is not present.
+
+5. Companion: whole-file context and complete field explanations
+
+Explain every root field and nested source/record field, including:
+
+exact checked-in value, YAML representation and resulting runtime type;
+
+owning model, allowed domain and real validation rule;
+
+required versus nullable behavior and default only if actually implemented;
+
+where the value is read and consumed;
+
+whether it affects the records hash, complete profile hash or result payload;
+
+exception class and boundary for invalid input;
+
+what is NOT established by acceptance of the configuration.
+
+The current file actually contains:
+
+schema_version: 2;
+
+profile: cnig_plu_2017_muret_observed_pairs_v2;
+
+standard_model: CNIG PLU v2017;
+
+official_text_normalization: GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1;
+
+two exact GPU family endpoints in official_sources;
+
+retrieval_date: 2026-08-12;
+
+12 records: four INFORMATION and eight PRESCRIPTION;
+
+canonical_records_sha256:
+5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c.
+
+Verify these from the exact starting bytes. This is an observed-pair profile,
+not the entire official nomenclature or a universal BESS policy. Do NOT describe
+an obsolete schema-1 starter, six mapping entries, a geometry_kind field, nullable
+subtype fallback or mapping_status fields: none belong to this current YAML.
+
+Explicitly document:
+
+profile schema 2 versus standard version and result hash schema 5;
+
+profile identifier is metadata, not a rule limiting the whole product to Muret;
+
+PRESCRIPTION/INFORMATION and exact family-specific endpoint equality;
+
+type_code AND subtype_code must be strict two-digit strings, preserving zeros;
+
+a subtype "00" is a literal subtype, NOT a wildcard and NOT null;
+
+legal_reference and regulation_or_annex_reference are required fields that
+may contain true null; null is not the literal string "None";
+
+the official label/reference text must ALREADY equal its NFC and whitespace
+canonical form: validation rejects a mismatch rather than silently repairing
+the supplied text;
+
+this official dictionary-text contract is distinct from raw LIBELLE preservation
+in A-003; do not merge the two contracts;
+
+record keys are unique and already lexically ordered by family/type/subtype;
+
+frozen Pydantic models and tuple records; actual input parsing/coercion limits;
+
+strict YAML duplicate/nonfinite/error behavior actually implemented;
+
+unknown-field rejection, unsupported schema and hash mismatch handling;
+
+raw YAML Git-content SHA256, canonical records SHA256 and complete parsed
+profile SHA256 are THREE different identities.
+
+Explain the exact _record_payload fields. _records_sha256 hashes the ordered
+record payloads, not the entire YAML bytes. _profile_sha256 hashes the complete
+JSON-mode model, including metadata not present in the records-only hash.
+Do not claim record order is automatically sorted: it is validated.
+
+Replace generic repeated text such as "validators reproduced below" with
+concrete rules. Keep every actual leaf covered without producing a giant repeated
+source dump. Include a readable table for all 12 records preserving codes,
+labels, legal/annex references (including nulls), and endpoint association.
+
+6. Describe exact-pair resolution without inventing fallback or policy
+
+Trace the current lookup on (feature_family, type_code, subtype_code).
+Its status vocabulary is RESOLVED_OFFICIAL / UNKNOWN_CODE_PAIR.
+A missing exact pair does not inherit the meaning of the same type's "00" row.
+
+Derive compact examples from actual code, such as PRESCRIPTION/07/04 being a
+configured key and PRESCRIPTION/07/99 remaining unknown despite the 07/00 entry.
+Use the actual API signatures, or label a data-flow example as conceptual;
+do not invent a callable public lookup helper.
+
+Explain which official fields are copied for a known pair, which must remain
+null for an unknown pair, and how profile identity propagates to result frames.
+Keep raw codes untouched. Distinguish intrinsic result checks from upstream
+physical planning-input revalidation; reading this YAML is not a GPU download.
+
+A code match does not itself authorize construction, establish BESS legal
+compatibility, require exclusion or decide a complete regulatory regime.
+Do not add, reinterpret or remove any record while documenting it.
+
+7. Reference provenance is not a new legal verification
+
+The YAML contains exact GPU CNIG-2017 family endpoints, not just a generic CNIG
+homepage. The loader binds those URL strings; it does not fetch their current
+contents during configuration loading. Preserve recorded retrieval and review
+provenance, and state what existing evidence supports the historical wording.
+Do not erase an earlier documented review merely because R4 does not repeat it.
+
+This ticket does not require a new web/legal investigation or downloading a
+standard. Do not claim to have reverified an external page, current law or PDF
+that was not read. If precise historical evidence is missing, record that gap;
+do not replace URLs, labels, references, versions or record hashes to close prose.
+A successful hash/model check proves internal consistency, not independently
+verified current legal meaning.
+
+The EP 7F.1C.1 research dossier remains a distinct pending review. Documenting
+these 12 CNIG pairs does not resolve EP categories or their legal meaning.
+
+8. Test evidence and known application findings
+
+Link to actual existing tests for the relevant field/model/loader/selection
+contracts. Describe their literal setup, asserted outcome and any earlier
+rejection that limits coverage. No invented names or coverage inferred from a
+passing suite count. A missing direct case is a stated limitation, not proof of
+a production bug and not permission to add application tests here.
+
+A-001/A-002/A-003 and all previous test-evidence limitations remain OPEN.
+In particular, do not fix or normalize A-003 raw labels. A new evidenced
+application discrepancy must be recorded separately with symbols and a minimal
+explanation; no application/config/test edits are authorized.
+
+9. Narrow write scope and progress reconciliation
+
+Authorized changes only:
+
+docs/code/files/configs/planning/cnig_plu_2017_feature_codes.yaml.md;
+
+the TWO corresponding records in their verified existing operational audit
+fragment(s), plus strictly necessary local aggregate/evidence notes;
+
+one new docs/code/audit/R4_CNIG_CONFIGURATION.md receipt;
+
+minimal docs/code/audit/DOCUMENTATION_AUDIT.md update;
+
+minimal docs/project/CURRENT_STATE.md update;
+
+exact archived ticket docs/project/tickets/DOCS.CONTINUITY.1.R4.txt;
+
+a narrow BACKLOG_AND_GAPS addition only for a genuinely new unresolved finding.
+
+No new companion-of-companion, second checker, global inventory rewrite or
+unrelated prose sweep. All YAML/Python/tests/config/dependency/tool bytes stay
+unchanged. Prior receipts and archives remain historical.
+
+Only close a row after complete fidelity review. If both original rows are open
+and both close, explain 71+2=73/245 files; YAML/Markdown add zero AST symbols,
+so 1,594/4,769 symbols stays unchanged. Verify identities and statuses before
+using this arithmetic; never force an expected count or count the receipt/ticket
+as original-scope progress. Independent R4 review stays PENDING.
+
+10. Validation proportional to this documentation-only unit
+
+Verify the 106 original protected identities and every out-of-scope starting
+path using the existing recorded Git-content/checkout bases. Preserve the YAML,
+resolver and tests exactly; no EOL rewrite to make hashes agree.
+
+Required scoped checks:
+
+complete companion snapshot equals exact YAML Git-content bytes;
+
+companion header SHA and owner-row fingerprint agree;
+
+field inventory explains all real YAML leaves/reference/mapping records;
+
+documented runtime fields, signatures, match order and hash meaning agree
+with the actual inspected loader/consumer;
+
+reference/test links exist and point to the intended owners/sections;
+
+explicit anchor IDs are unique, not merely present in a set;
+
+strict fragment JSON; links/fences/table syntax on changed Markdown;
+
+new working/staged git diff --check has exit 0.
+
+A single read-only load through the EXISTING loader is appropriate: record actual
+record counts, runtime field types, records hash and complete profile hash using existing
+helpers, with zero network and no persistent artifact/config change. Use a short
+scratch script outside Git only if needed. It does not certify official meanings.
+A failed loader run is a real failure to report, not permission to alter YAML.
+
+No full application suite, real GPU/EP operation or mandatory broad pytest run
+is needed for this unchanged-code documentation unit. Do not rebrand historical
+passes or arithmetic totals as new executions. Any justified optional focused
+test uses a fresh short --basetemp and is reported with exact selection/exit.
+
+If a suitable local renderer already exists, inspect representative changed
+sections and record exact scope. Otherwise keep visual acceptance pending.
+Do not install dependencies or upload private content to an external renderer.
+
+After explicit staging, execute the unchanged full INDEX auditor ONCE with
+progress. Exit 1 with honest PARTIAL/stale findings is normal; exit 2 or an
+interruption is not a completed check. Record candidate manifest, counts and
+limits. Do not change auditor behavior, suppress findings or promote statuses to
+obtain exit 0. If only the receipt is completed afterward, verify that precise
+one-path difference and the receipt's links/fences separately.
+
+Keep the 13 inherited cumulative whitespace observations identifiable; do not
+rewrite archived tickets to erase them. New delta must remain clean.
+
+11. Publication and interruption
+
+Review the complete diff and stage only explicit authorized paths.
+No git add ., git add -A, commit-all, force staging or unreviewed generated output.
+
+When this bounded unit is complete and checks pass:
+
+git commit -m "docs: audit CNIG feature code configuration reference"
+git push origin recovery/docs-continuity-1-partial
+
+Verify clean worktree, local/actual remote recovery equality and actual main
+unchanged. No reset/rebase/amend/squash/merge/main push/PR/branch deletion.
+If incomplete, preserve exact partial progress and return PARTIAL with the next
+unfinished field/record. Do not restart the global audit or forge completion.
+After publication, STOP for independent review. No next unit or functional step.
+
+12. Required final report
+
+Return DOCS.CONTINUITY.1.R4 completed — global audit PARTIAL; review pending
+only after actual bounded completion; otherwise return PARTIAL/BLOCKED.
+
+Report:
+
+starting/final recovery and actual main SHAs, branch/worktree;
+
+exact changed paths, operational owner and protected-byte comparisons;
+
+two starting/final statuses with deduplicated original-scope arithmetic;
+
+concrete documentation corrections, exact field/mapping/reference counts;
+
+inspected loader/consumer/test ranges and actual coverage limitations;
+
+raw-YAML versus records versus complete-profile hash explanation and any actual load result;
+
+explicit lack of official/legal meaning verification;
+
+preserved application and documentary pending findings;
+
+exact snapshot/fingerprint/anchor/link/format outcomes;
+
+actual rendering/runtime scope, never an implied pass;
+
+INDEX auditor result, manifest and later receipt boundary;
+
+new delta versus inherited whitespace observations;
+
+next actual unread item identified from the preserved queue, NOT started.
+
+Do not self-approve R4. This unit must help a new reader understand the existing
+configuration without confusing a documented observed-pair lookup with a complete standard or a fresh
+legal verification.
