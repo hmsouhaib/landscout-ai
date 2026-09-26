@@ -545,7 +545,7 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md",
-      "source_sha256": "11baff27c2e1a825547a8ab4d32c92192d520218161c048e763c64f57f938086",
+      "source_sha256": "1cec06e3f60561dc6001586b72d96a03e104d886371618446309f2eecd524e88",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -583,7 +583,14 @@
       },
       "r8_source_sha256_basis": "git-content",
       "r8_evidence": "docs/code/audit/R8_BESS_CNIG_AGGREGATION.md",
-      "r8_independent_review": "PENDING"
+      "r8_independent_review": "PENDING",
+      "r8_1_resolution": {
+        "reviewed_commit": "e5279b1a7486afb973f4404d94a4bd3dd4f56483",
+        "supplied_r8_review": "CORRECTION_REQUIRED — documentation R8 only",
+        "resolution_receipt": "docs/code/audit/R8_1_AGGREGATION_FIDELITY.md",
+        "scope": "Existing four R8 units only; corrected notices/owner notes, no new closure credit. D16 is a test-module declaration, not an additional AST symbol.",
+        "independent_review": "PENDING"
+      }
     },
     {
       "path": "docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md",
@@ -792,7 +799,7 @@
     },
     {
       "path": "docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md",
-      "source_sha256": "fca22d51c27258eb8566eae7ef9afe81a533a1f994cca3307260c21bd227cf6d",
+      "source_sha256": "4433a8a5bebd603dd7fa9afb1a74dcbc5c8ea105062ae72c56eb2677ba57e85e",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -830,7 +837,14 @@
       },
       "r8_source_sha256_basis": "git-content",
       "r8_evidence": "docs/code/audit/R8_BESS_CNIG_AGGREGATION.md",
-      "r8_independent_review": "PENDING"
+      "r8_independent_review": "PENDING",
+      "r8_1_resolution": {
+        "reviewed_commit": "e5279b1a7486afb973f4404d94a4bd3dd4f56483",
+        "supplied_r8_review": "CORRECTION_REQUIRED — documentation R8 only",
+        "resolution_receipt": "docs/code/audit/R8_1_AGGREGATION_FIDELITY.md",
+        "scope": "Existing four R8 units only; corrected notices/owner notes, no new closure credit. D16 is a test-module declaration, not an additional AST symbol.",
+        "independent_review": "PENDING"
+      }
     },
     {
       "path": "docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md",
@@ -4174,8 +4188,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-bessplanningfeatureparcelaggregationerror",
           "review_notes": [
-            "Public ValueError subclass for controlled aggregation boundary failures. Private helpers raise it directly; public builder/validator/loader preserve it and wrap other exceptions. It is not a legal decision status.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Public ValueError subclass for controlled aggregation boundary failures. Explicit aggregation mismatch guards raise it; public builder/validator/loader preserve it and wrap other exceptions. Not every private helper failure is already this subclass: _exact_string and _sha256_string raise built-in ValueError, and _read_verified_artifact does not wrap read/decode/library errors itself. It is not a legal decision status.",
+            "R8.1 D03/D04/D05 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -4318,8 +4332,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--applicationlineage-complete-result-content-sha256",
           "review_notes": [
-            "Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Upstream application complete_result_content_sha256, copied from result.application_complete_result_content_sha256 when _validate_result_envelope assembles _ApplicationLineage for inherited-relation checks. This internal field is not the aggregation complete digest; the aggregation result and artifact manifest fields with the same short name have that separate role.",
+            "R8.1 D07 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -4350,8 +4364,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--exact-string",
           "review_notes": [
-            "Return the same non-empty stripped string; reject non-string, empty or surrounding whitespace with aggregation error. Does not reject textual null sentinels on its own. Used by SHA/ID/envelope guards; no mutation or I/O.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Require isinstance(value, str), a nonempty value and equality with value.strip(); return the original value without trimming. Failed checks raise built-in ValueError locally. Does not reject textual null sentinels on its own. Called by _sha256_string and result-envelope guards; _validate_feature_id has its own checks. Exception translation depends on the caller; no mutation or I/O.",
+            "R8.1 D03 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -4366,8 +4380,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--sha256-string",
           "review_notes": [
-            "Apply exact-string guard then fullmatch of lowercase 64-hex SHA_PATTERN; return the same string or aggregation error. Used by record, manifest and result envelope; it checks syntax, not bytes.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Call _exact_string, then SHA_PATTERN.fullmatch for lowercase 64-hex syntax; return the original string. A malformed checksum raises built-in ValueError locally, not BessPlanningFeatureParcelAggregationError. Record/manifest model validation reports validator ValueError through Pydantic ValidationError; result-envelope guards catch ValueError and wrap it as the aggregation error. This helper checks syntax, not bytes.",
+            "R8.1 D04 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -4542,8 +4556,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-bessplanningfeatureparcelaggregationartifactrecord--validate-record",
           "review_notes": [
-            "After-validation first recursively freezes schema/CRS and stores them via object.__setattr__, then checks portable filename, count, size, SHA, role/geospatial equivalence and CRS equality/null rules. Returns self. This controlled initialization mutation does not expose mutable metadata. Full measured schema is checked later at readback.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "After-validation first creates recursively frozen local schema/CRS values. It then checks portable filename, count, size, SHA, role/geospatial equivalence and CRS equality/null rules. Only after these guards does object.__setattr__ store frame_schema_signature and non-null crs, then return self. This controlled initialization does not expose mutable metadata. Full measured schema is checked later at readback.",
+            "R8.1 D06 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -4942,8 +4956,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-bessplanningfeatureparcelaggregationresult-complete-result-content-sha256",
           "review_notes": [
-            "Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Aggregation complete hash of component metadata and both output component digests, with result domain. This is the aggregation digest, distinct from application_complete_result_content_sha256 and the upstream application digest stored in the internal _ApplicationLineage field.",
+            "R8.1 D07 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -5406,8 +5420,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-bessplanningfeatureparcelaggregationartifactmanifest-complete-result-content-sha256",
           "review_notes": [
-            "Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Aggregation complete hash of component metadata and both output component digests, with result domain. This is the aggregation digest, distinct from application_complete_result_content_sha256 and the upstream application digest stored in the internal _ApplicationLineage field.",
+            "R8.1 D07 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -5534,8 +5548,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--validate-feature-id",
           "review_notes": [
-            "Require exact string, reject NULL_LITERALS and absolute PurePosixPath/PureWindowsPath. Return original value. This is feature-ID grammar, not portable artifact-basename grammar: colon-bearing GPU IDs can be valid. All role IDs are checked, not only selected JSON IDs.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Check one supplied value: require a nonempty exact string without surrounding whitespace; reject NULL_LITERALS and absolute PurePosixPath/PureWindowsPath. Failed guards raise BessPlanningFeatureParcelAggregationError; return the original value. This is feature-ID grammar, not portable artifact-basename grammar: colon-bearing GPU IDs can be valid. _json_ids applies this helper to selected/unresolved/context lists, and _validate_json_ids checks decoded members. The upstream common relation contract checks every relation identity, including lower-priority/deferred rows; there is no all-role loop inside this helper.",
+            "R8.1 D17 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -5694,8 +5708,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--aggregate-frames",
           "review_notes": [
-            "Validate parcels, inherited relations and metric areas; reject output-prefix collisions and unknown parcel IDs; group relations for every input parcel and summarize in parcel order. Copy source frames, restore original relation order via group cursors, append exact schemas with typed arrays. Returns relation assessments then parcels. Does not spatially intersect or weight areas.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Validate parcels, inherited relations and metric areas; reject output-prefix collisions and unknown parcel IDs; group relations for every input parcel and summarize in parcel order. Copy source frames, restore original relation order via group cursors, append exact schemas with typed arrays. Returns (parcels, assessments): GeoDataFrame first, non-geospatial DataFrame second. _build_result and _validate_result_envelope unpack in that order. Does not spatially intersect or weight areas.",
+            "R8.1 D01 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -5854,8 +5868,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--read-verified-artifact",
           "review_notes": [
-            "Check Path.name equality, capture bytes once, verify size then SHA, decode BytesIO as GeoParquet/Parquet by role, then verify row count, frozen complete schema and CRS/frame kind. Each failure is controlled. It returns a mutable frame from verified captured bytes; no post-read path check, atomic set, symlink guard or external source reconstruction.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Check Path.name equality, capture bytes once, verify size then SHA, decode BytesIO as GeoParquet/Parquet by role, then verify row count, frozen complete schema and CRS/frame kind. Explicit mismatch guards raise BessPlanningFeatureParcelAggregationError; there is no enclosing catch for read_bytes, Parquet or schema/CRS-library errors. The public loader preserves aggregation errors and wraps other Exception values; direct helper calls do not have that translation guarantee. Returns a mutable frame from verified captured bytes; no post-read path check, atomic set, symlink guard or external source reconstruction.",
+            "R8.1 D05 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py"
@@ -7077,7 +7091,14 @@
       },
       "r8_source_sha256_basis": "git-content",
       "r8_evidence": "docs/code/audit/R8_BESS_CNIG_AGGREGATION.md",
-      "r8_independent_review": "PENDING"
+      "r8_independent_review": "PENDING",
+      "r8_1_resolution": {
+        "reviewed_commit": "e5279b1a7486afb973f4404d94a4bd3dd4f56483",
+        "supplied_r8_review": "CORRECTION_REQUIRED — documentation R8 only",
+        "resolution_receipt": "docs/code/audit/R8_1_AGGREGATION_FIDELITY.md",
+        "scope": "Existing four R8 units only; corrected notices/owner notes, no new closure credit. D16 is a test-module declaration, not an additional AST symbol.",
+        "independent_review": "PENDING"
+      }
     },
     {
       "path": "src/landscout/stages/apply_bess_planning_feature_policy.py",
@@ -16882,8 +16903,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-aggregation-artifact-record-is-deeply-immutable-without-aliases",
           "review_notes": [
-            "Construct record, save JSON dump, mutate caller-owned schema columns and CRS name, then assert retained tuple/name and dump unchanged. Assert immediate TypeError/AttributeError for mapping item, nested tuple append, CRS item and nested coordinate_system item. Tests these four operations and alias copies; not every conceivable Python escape or frame immutability.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Construct the record, append caller_mutation to the caller-owned schema columns and add caller_mutation=True to the caller CRS mapping. Assert retained columns == (\"geometry\",), absence of that key in retained CRS, and model_dump(mode=\"json\", warnings=\"error\") equal to a fresh _aggregation_artifact_record_payload() result. There is no saved pre-mutation dump or CRS-name mutation. Assert immediate TypeError/AttributeError for mapping item, nested tuple append, CRS item and nested coordinate_system item. Tests these four operations and alias copies; not every conceivable Python escape or frame immutability.",
+            "R8.1 D09 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:114"
@@ -16962,8 +16983,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--relation",
           "review_notes": [
-            "Construct one relation from an imported physical application fixture, then substitute parcel/feature ID, relation type, policy status/confidence/priority and metrics. Default exact material constraint/high/30, AREA_OVERLAP, area 1e-6. LENGTH uses line donor; other kinds start from surface donor. Unresolved nulls decision fields; point metrics/counts are synthesized. Return dict, not validated physical overlay. Repeated calls and parametrization trigger synthetic setup.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Construct one relation from an imported physical application fixture, then substitute parcel/feature ID, relation type, policy status/confidence/priority and metrics. Defaults are APPLIED_EXACT_POLICY, MATERIAL_REVIEW_REQUIRED, HIGH and 30, with AREA_OVERLAP and area 1e-6. LENGTH uses line donor; other kinds start from surface donor. Unresolved nulls decision fields; point metrics/counts are synthesized. Return dict, not validated physical overlay. Repeated calls and parametrization trigger synthetic setup.",
+            "R8.1 D15 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:287"
@@ -16978,8 +16999,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--write-artifacts",
           "review_notes": [
-            "Test-only writer: write index-preserving parcels.parquet and relations.parquet, capture each size/SHA/schema/count, build strict manifest from result scalars and ordered roles, write aggregation.json. Returns three paths. This fixture mutates tmp_path only; production has no corresponding writer API.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Test-only writer: write index-preserving parcels.parquet and relations.parquet, capture each size/SHA/schema/count, build strict manifest from result scalars and ordered roles, write aggregation.json. Returns (manifest_path, paths, manifest): a Path, a dict[str, Path] keyed by PARCELS/RELATION_ASSESSMENTS, and a dict[str, object] manifest payload. These are three tuple elements, not three paths. This fixture mutates tmp_path only; production has no corresponding writer API.",
+            "R8.1 D02 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:382"
@@ -17106,8 +17127,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-policy-unknown-is-exact-but-unresolved-controlling-overrides",
           "review_notes": [
-            "Exact policy UNKNOWN/40/LOW aggregates normally; adding an unresolved controlling row beside MATERIAL_REVIEW_REQUIRED/30 yields unresolved state, all three decision nulls and deferred/unresolved roles. Distinguishes exact UNKNOWN from unresolved official code pair; private builder/envelope only.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Exact policy UNKNOWN/40/LOW aggregates normally; adding an unresolved controlling row beside MATERIAL_REVIEW_REQUIRED/30 yields unresolved state, all three decision nulls, unresolved-ID JSON and deferred/unresolved roles. Distinguishes exact UNKNOWN from an unresolved official code pair. _build_from_relations exercises the private builder and its internal guards, not the aggregation _validate_result_envelope in this scenario.",
+            "R8.1 D12 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:587"
@@ -17346,8 +17367,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-valid-repeated-status-and-priority-mapping-selects-every-exact-match",
           "review_notes": [
-            "Two exact MATERIAL_REVIEW_REQUIRED/30 rows A/B both selected; assert both sorted IDs and selected count2. Confirms repeated identical mapping accepted, unlike ambiguous bijection.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Two exact MATERIAL_REVIEW_REQUIRED/30 rows A/B are both selected; assert selected count 2 and the two SELECTED_CONTROLLING roles. This test has no selected-ID JSON assertion. Confirms repeated identical mapping accepted, unlike ambiguous bijection; sorted selected-ID JSON is asserted separately by test_exact_relations_select_configured_max_priority_and_lowest_confidence.",
+            "R8.1 D10 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:947"
@@ -17474,8 +17495,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-document-wide-repeated-mapping-and-unresolved-rows-are-valid",
           "review_notes": [
-            "Two repeated MATERIAL_REVIEW_REQUIRED/30 exact rows plus one unresolved on three parcels: local envelope succeeds and only total relation count3 is asserted. Does not assert all per-parcel states in this test.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Three relations on two parcels: PARCEL-1/A and PARCEL-2/B,U, with two repeated MATERIAL_REVIEW_REQUIRED/30 exact rows and one unresolved row. _build_from_relations calls the private builder and its guards, not the aggregation envelope validator. The sole explicit assertion is len(result.relation_assessments) == 3; no per-parcel state assertion is made here.",
+            "R8.1 D11 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1138"
@@ -17890,8 +17911,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-artifact-manifest-corruption-is-rejected",
           "review_notes": [
-            "Nineteen manifest lambdas: versions, roles/count/order, filename/path/duplication, size, SHA, row count, schema, CRS, geospatial flag or extra key. Adapter-load must fail. First guard differs: Pydantic type/literal/after-model, upstream locks, filename, size, SHA, decoded row/schema/CRS. This broad test does not prove one particular branch per mutation.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Nineteen manifest lambdas: manifest schema 2; application hash schema 1/3/999; remove a role record, append EXTRA or append a duplicate record; wrong, duplicate or absolute filename; size 1; mismatched or malformed SHA; row count 999; wrong schema index_names; null or wrong CRS; geospatial=False; extra unknown key. None permutes the two otherwise-valid records, so this is not direct record-order regression coverage. Adapter-load must fail. First guard differs: Pydantic type/literal/after-model, upstream locks, filename, size, SHA, decoded row/schema/CRS. This broad test does not prove one particular branch per mutation.",
+            "R8.1 D13 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1697"
@@ -17906,8 +17927,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-aggregation-manifest-uses-strict-json-before-artifact-read",
           "review_notes": [
-            "Write four invalid manifest texts (duplicate key, NaN, Infinity, non-object list), count artifact Path.read_bytes and pd.read_parquet. Valid synthetic upstream permits manifest parse; strict JSON fails with both counters0. Manifest read itself is allowed and not counted as artifact read.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Write four invalid manifest texts (duplicate key, NaN, Infinity, non-object list). The counted_bytes Path.read_bytes spy and counted pd.read_parquet forbidden-read sentinel share one artifact_reads counter. Valid synthetic upstream permits manifest parse; strict JSON fails and the test asserts artifact_reads == 0. The manifest read delegates without incrementing this counter; an artifact decode would increment it and raise AssertionError immediately.",
+            "R8.1 D08 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1721"
@@ -17922,8 +17943,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-aggregation-manifest-uses-strict-json-before-artifact-read-counted-bytes",
           "review_notes": [
-            "Intercept Path.read_bytes; increment only when self is parcel/relation path, delegate original read. Manifest can still be read. Parent requires zero artifact captures.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Intercept Path.read_bytes; increment the shared artifact_reads only when path is a parcel/relation artifact, then delegate original_read_bytes(path). Manifest reading is allowed without incrementing the counter. The pd.read_parquet sentinel shares this counter; the parent asserts zero.",
+            "R8.1 D08 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1735"
@@ -17938,8 +17959,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-aggregation-manifest-uses-strict-json-before-artifact-read-counted",
           "review_notes": [
-            "Count pd.read_parquet calls then delegate saved reader; parent requires zero, so no decode occurred. No claims about total GeoPandas calls beyond the manifest guard.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Forbidden-read sentinel installed for pd.read_parquet: increment shared artifact_reads, then immediately raise AssertionError(\"Artifact read preceded strict manifest validation\"). Does not delegate to any saved reader. The parent requires the same counter shared with counted_bytes to remain zero; inspect_read in the separate captured-bytes replacement test is the delegating reader.",
+            "R8.1 D08 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1741"
@@ -18130,8 +18151,8 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-step-7d-5b-2b-5-aggregation-loader-requires-exact-upstreams",
           "review_notes": [
-            "Inspect actual production loader signature for five required parameter names and existence of application envelope validator. No artifact execution here; test wrapper optional defaults are not production compatibility.",
-            "Source-derived R8 comparison; exact qualified owner/signature/range and limitations documented at the mapped heading."
+            "Inspect the actual production loader signature and assert its ordered five parameter names plus existence of the application-envelope validator. The test does not inspect parameter defaults or separately assert requiredness; that is evident in the production signature. No artifact execution here; the test wrapper optional defaults are not production compatibility.",
+            "R8.1 D14 correction against unchanged source; prior notice at e5279b1a7486afb973f4404d94a4bd3dd4f56483; resolution in docs/code/audit/R8_1_AGGREGATION_FIDELITY.md. Independent review pending."
           ],
           "test_references": [
             "tests/unit/test_aggregate_bess_planning_feature_policy.py:1935"
@@ -19337,7 +19358,14 @@
       },
       "r8_source_sha256_basis": "git-content",
       "r8_evidence": "docs/code/audit/R8_BESS_CNIG_AGGREGATION.md",
-      "r8_independent_review": "PENDING"
+      "r8_independent_review": "PENDING",
+      "r8_1_resolution": {
+        "reviewed_commit": "e5279b1a7486afb973f4404d94a4bd3dd4f56483",
+        "supplied_r8_review": "CORRECTION_REQUIRED — documentation R8 only",
+        "resolution_receipt": "docs/code/audit/R8_1_AGGREGATION_FIDELITY.md",
+        "scope": "Existing four R8 units only; corrected notices/owner notes, no new closure credit. D16 is a test-module declaration, not an additional AST symbol.",
+        "independent_review": "PENDING"
+      }
     },
     {
       "path": "tests/unit/test_apply_bess_planning_feature_policy.py",

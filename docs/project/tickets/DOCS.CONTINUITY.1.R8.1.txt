@@ -1,0 +1,360 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R8.1
+
+Corriger la fidélité des interfaces, exceptions et preuves de tests de l’agrégation BESS/CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt GitHub : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : e5279b1a7486afb973f4404d94a4bd3dd4f56483
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Un seul correctif documentaire, sans recommencer R8
+
+Le regroupement R8 reste le bon périmètre : agrégation, tests, deux compagnons. La revue indépendante a trouvé des explications locales fausses au milieu d’une synthèse largement améliorée. Corriger ces écarts et leurs notes propriétaires dans un seul passage. Ne pas relancer l’audit des autres fichiers et ne pas commencer le groupe application suivant.
+
+Ne modifier aucun fichier Python, aucun test, aucun YAML, aucun algorithme ou hash applicatif. Ne pas faire correspondre le code à une mauvaise notice. Aucun bug de production nouveau n’est établi par ces contradictions documentaires ; ne pas créer A-005 pour les représenter.
+
+Conserver notamment les bons apports R8 : sélection sans poids de surface ; codes non résolus distincts du statut exact UNKNOWN ; confiance limitée aux relations sélectionnées ; trois chemins de validation distincts ; loader fondé sur les upstreams fournis, sans nouvelle validation physique GPU ; lecture Parquet depuis les bytes capturées sans promesse de postcondition de chemin ; adapter de tests legacy et limites des assertions.
+
+ChatGPT reste reviewer/ticket author en lecture seule. Codex effectue uniquement les modifications autorisées, puis publie sur recovery et s’arrête. Une exécution Codex ou un statut CHECKED ne vaut pas approbation indépendante.
+
+1. Reçu fourni de la revue indépendante R8
+
+Cette section archive la déclaration du reviewer ChatGPT, pas une exécution Codex ni une signature cryptographique.
+
+Verdict : CORRECTION_REQUIRED — documentation R8 uniquement.
+
+Commit examiné : e5279b1a7486afb973f4404d94a4bd3dd4f56483.
+
+Parent : fcf618ca6f569db35dd0f5b55cbca986393451ea.
+
+Message : docs: audit BESS CNIG parcel aggregation reference.
+
+La comparaison Git indépendante retrouve un descendant direct, sept chemins documentaires et aucune modification des deux Python. Les références distantes main/recovery sont consultées ; la propreté du checkout Windows n’est pas attestée par cette lecture.
+
+Le reviewer a lu les 1 495 lignes du source et les 2 211 lignes du test, comparé les sections explicatives et les notices des deux compagnons, et consulté le ticket, le reçu, l’état courant et des passages de dépendances nécessaires. Il n’a pas réalisé une nouvelle revue complète des modules amont.
+
+Des recherches dans le fragment publié confirment au minimum que la fausse inversion de _aggregate_frames et la fausse délégation du callback counted sont également présentes dans des notes CHECKED. La duplication de la réponse du connecteur ne doit pas être comptée comme deux propriétaires dans le fichier.
+
+Le reviewer n’a exécuté ni pytest, ni pipeline/loader applicatif, ni auditeur INDEX, ni GPU/EP, ni renderer. Les 182 passes en 463,30 s et les 10 267 constats du candidat restent les résultats locaux R8 rapportés, non réexécutés indépendamment.
+
+Il n’a pas réattesté le contrôle exhaustif des 198 mappings, tous les snapshots, les 106 fichiers protégés ou les 287 chemins hors périmètre. Le présent constat est fondé sur le code et les notices, pas sur leur seul SHA.
+
+Le bilan enregistré par R8, 83/245 fichiers et 1 792/4 769 symboles, reste celui de la clôture locale, avec correction indépendante en attente. Ce correctif des mêmes unités crée zéro gain supplémentaire. Les lectures déjà réalisées ne sont pas annulées.
+
+Conserver le reçu R8 et ses faits historiques inchangés. Enregistrer le verdict successoral et son périmètre dans CURRENT_STATE avec un lien vers cette section. Ne présenter aucun résultat ancien comme une nouvelle exécution R8.1.
+
+2. Reprise et périmètre d’écriture
+
+Lire AGENTS.md, WORKING_RULES, RESUME, CURRENT_STATE, DOCUMENTATION_AUDIT, le reçu R8, le présent ticket et l’autorité de préservation. Vérifier racine réelle, branche, HEAD, index/worktree, opérations en cours et références de suivi/distantes réelles.
+
+Avant le premier changement, exiger la branche et le HEAD ci-dessus, un arbre/index propre et main inchangé. Si reprise interrompue du même ticket, reconnaître et préserver ses modifications au lieu de les effacer. Pas de reset, restore, clean, stash, rebase, amend, squash, merge ou changement de protection. L’exception safe.directory n’est permise qu’après l’erreur constatée, pour une commande et le chemin exact déjà autorisé, jamais un wildcard ou une configuration persistante.
+
+Sept chemins d’écriture seulement :
+
+docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md
+
+docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md
+
+docs/code/audit/reviews/planning.json — uniquement les quatre unités R8, leurs notes concernées, hashes de compagnons et provenance de résolution.
+
+Nouveau docs/code/audit/R8_1_AGGREGATION_FIDELITY.md.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md.
+
+docs/project/CURRENT_STATE.md.
+
+Nouvelle archive docs/project/tickets/DOCS.CONTINUITY.1.R8.1.txt.
+
+Les tickets/reçus antérieurs, coverage.json, la matrice originale, BACKLOG et les autres fragments/compagnons sont hors périmètre. Ne pas dupliquer des milliers de lignes de registre pour enregistrer un petit delta : conserver les preuves antérieures existantes et référencer le commit et le nouveau reçu pour la résolution.
+
+Les deux Python doivent conserver exactement leurs identités :
+
+Fichier
+
+Blob Git
+
+SHA256 Git rapporté dans R8, à comparer aux bytes
+
+Source agrégation
+
+affad41097bbe253b002158c35537160d3846029
+
+27bc7dcc9c67fead2c6f0638b033aab6e98282cfd2d865aec37dbf11b681c598
+
+Test agrégation
+
+4a07d0f7f9a856dd8820cce917e7b9011e5c8ad4
+
+52f53bc0808d49b0a50f4b09b2383af9b473308824472bfc3f6a3faf99479d83
+
+Comparer également les 106 fichiers protégés et tous les chemins initiaux hors périmètre à leur autorité/départ. Recalculer le nombre réel, ne pas recopier 287 automatiquement. Conserver les deux exceptions Git/checkout EOL et les 13 observations whitespace historiques.
+
+3. Méthode de correction
+
+Ne pas réécrire globalement les compagnons. Relire intégralement les corps concernés, leurs appels effectifs et les assertions nommées ci-dessous. Réutiliser les sources et la lecture R8 pour les parties inchangées. Vérifier les notices connexes quand une formule copiée a pu produire le même écart, en particulier les retours, exceptions, side effects et appels d’enveloppe.
+
+Un nom de helper commun n’autorise pas la copie de son explication dans un autre propriétaire. La notice locale doit décrire ce symbole, et attribuer au bon caller les garanties supplémentaires.
+
+Corriger le compagnon ET la note correspondante du registre lorsqu’elle reprend l’erreur. Ne pas déclarer une note correcte seulement parce que sa signature, son ancre ou son hash sont exacts.
+
+4. Écarts démontrés à corriger
+
+Les lignes ci-dessous sont celles des deux fichiers Python inchangés, pas les lignes mouvantes du Markdown. Les identifiants R8-Dxx sont des constats documentaires, pas des défauts applicatifs.
+
+R8-D01 — _aggregate_frames
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 909–965.
+
+Notice à rectifier : Returns relation assessments then parcels.
+
+Contrat à expliquer : Returns (parcels, assessments): GeoDataFrame first, non-geospatial DataFrame second. _build_result unpacks in that order.
+
+R8-D02 — _write_artifacts
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 382–431.
+
+Notice à rectifier : Returns three paths.
+
+Contrat à expliquer : Returns (manifest_path, paths, manifest): Path, dictionary of PARCELS/RELATION_ASSESSMENTS paths, and manifest payload dictionary. Three tuple elements are not three Path values.
+
+R8-D03 — _exact_string
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 206–209.
+
+Notice à rectifier : Rejects with aggregation error; wording suggests a stripped returned string.
+
+Contrat à expliquer : Raises built-in ValueError locally. Requires isinstance(value, str), nonempty, and equality with value.strip(); returns the original value without trimming. Translation is caller-dependent.
+
+R8-D04 — _sha256_string
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 212–216.
+
+Notice à rectifier : Returns the same string or aggregation error.
+
+Contrat à expliquer : Calls _exact_string then SHA_PATTERN.fullmatch; raises built-in ValueError locally for malformed checksum. It does not itself translate to BessPlanningFeatureParcelAggregationError.
+
+R8-D05 — _read_verified_artifact
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 1398–1443.
+
+Notice à rectifier : Each failure is controlled.
+
+Contrat à expliquer : Its explicit mismatch guards raise the aggregation error, but there is no enclosing catch for read_bytes/Parquet/schema-library errors. The public loader catches other Exception values and wraps them; direct helper calls do not have that guarantee.
+
+R8-D06 — BessPlanningFeatureParcelAggregationArtifactRecord._validate_record
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 236–261.
+
+Notice à rectifier : Freezes and stores metadata via object.setattr before filename/count/size/SHA/role/CRS checks.
+
+Contrat à expliquer : First creates frozen local values; checks filename/count/size/SHA/role/CRS; only then assigns frame_schema_signature and non-null crs via object.setattr.
+
+R8-D07 — _ApplicationLineage.complete_result_content_sha256
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 199–199.
+
+Notice à rectifier : Starts with the aggregation complete-hash definition, then says this internal field instead contains the application digest.
+
+Contrat à expliquer : Describe this field directly as upstream application complete_result_content_sha256 copied from result.application_complete_result_content_sha256. The aggregation result/manifest field of the same short name has a different role.
+
+R8-D08 — test_aggregation_manifest_uses_strict_json_before_artifact_read.counted
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 1741–1744.
+
+Notice à rectifier : Counts pd.read_parquet calls then delegates a saved reader.
+
+Contrat à expliquer : Increments shared artifact_reads and immediately raises AssertionError. This is a forbidden-read sentinel, not a delegating reader. counted_bytes delegates Path.read_bytes and shares that same counter.
+
+R8-D09 — test_aggregation_artifact_record_is_deeply_immutable_without_aliases
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 114–142.
+
+Notice à rectifier : Saves JSON dump, modifies the CRS name, and compares saved dump/name.
+
+Contrat à expliquer : Appends caller_mutation to caller schema columns and adds caller_mutation=True to the CRS mapping. Checks retained columns, absence of that key, and compares model_dump(mode=json, warnings=error) with a fresh helper payload. No saved pre-mutation dump or CRS-name mutation.
+
+R8-D10 — test_valid_repeated_status_and_priority_mapping_selects_every_exact_match
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 947–960.
+
+Notice à rectifier : Asserts both sorted IDs and selected count 2.
+
+Contrat à expliquer : Asserts selected count 2 and the two SELECTED_CONTROLLING roles. No selected-ID JSON assertion in this test; the sorted IDs are asserted by another named test, not inherited here.
+
+R8-D11 — test_document_wide_repeated_mapping_and_unresolved_rows_are_valid
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 1138–1154.
+
+Notice à rectifier : Three parcels and a successful local envelope validation.
+
+Contrat à expliquer : Three relations on two parcels: PARCEL-1/A and PARCEL-2/B,U. _build_from_relations calls the private builder; this test does not call the aggregation envelope validator. Sole explicit assertion is three output relation rows.
+
+R8-D12 — test_policy_unknown_is_exact_but_unresolved_controlling_overrides
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 587–611.
+
+Notice à rectifier : Private builder/envelope only.
+
+Contrat à expliquer : Private builder plus its internal guards; no aggregation _validate_result_envelope call in this scenario. Preserve its real assertions for exact UNKNOWN and unresolved dominance.
+
+R8-D13 — test_artifact_manifest_corruption_is_rejected
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 1667–1708.
+
+Notice à rectifier : Lists order among the nineteen lambda mutations.
+
+Contrat à expliquer : The role-array mutations remove or append records; none permutes the two otherwise-valid records. Document actual cases and do not claim direct record-order regression coverage from this test.
+
+R8-D14 — test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 1935–1950.
+
+Notice à rectifier : Signature inspection proves five required parameters.
+
+Contrat à expliquer : The test checks ordered parameter names and existence of the application-envelope validator, not parameter defaults. Requiredness is evident in the production signature but is not separately asserted by this test.
+
+R8-D15 — _relation
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 287–379.
+
+Notice à rectifier : Default exact material constraint/high/30.
+
+Contrat à expliquer : Use the exact default status MATERIAL_REVIEW_REQUIRED, confidence HIGH and priority 30; do not confuse it with LIKELY_MATERIAL_CONSTRAINT.
+
+R8-D16 — PARCEL_COLUMNS
+
+Source : tests/unit/test_aggregate_bess_planning_feature_policy.py, lignes 45–75.
+
+Notice à rectifier : Says field meanings/dtypes/nulls are tabulated below in this test companion.
+
+Contrat à expliquer : Point to the actual Appended column dictionary in the production companion, or place a real table here. Do not leave a nonexistent local table reference.
+
+R8-D17 — _validate_feature_id
+
+Source : src/landscout/stages/aggregate_bess_planning_feature_policy.py, lignes 463–475.
+
+Notice à rectifier : Notice says all role IDs are checked, without separating this helper from its callers.
+
+Contrat à expliquer : This helper checks one supplied value. _json_ids applies it to selected/unresolved/context lists; lower-priority and deferred identities are covered by the upstream common relation contract, not a loop inside this helper.
+
+5. Points précis à ne pas confondre pendant la correction
+
+Retours
+
+L’ordre réel de _aggregate_frames est démontré à la fois par le return et par son déballage dans _build_result / _validate_result_envelope :
+
+parcels, assessments = _aggregate_frames(...)
+# return: (GeoDataFrame, DataFrame)
+
+Le writer de test renvoie trois éléments structurés :
+
+manifest_path, paths, manifest = _write_artifacts(...)
+# Path ; dict[str, Path] ; dict[str, object]
+
+Ne pas changer ces signatures ou leurs appels pour corriger la prose.
+
+Callback interdit versus spy déléguant
+
+Le callback counted à l’intérieur du test de JSON strict est une sentinelle :
+
+artifact_reads += 1
+raise AssertionError("Artifact read preceded strict manifest validation")
+
+Le callback counted_bytes de ce même test délègue à Path.read_bytes. Ils utilisent le même compteur, pas deux compteurs indépendants. La sentinelle ne délègue à aucun reader enregistré. Ne pas confondre ce montage avec inspect_read du test de remplacement physique, qui délègue réellement.
+
+Assertions et appels
+
+Un test utilisant _build_from_relations exécute les gardes du builder privé, mais n’exécute pas automatiquement _validate_result_envelope. Indiquer un appel d’enveloppe uniquement si le chemin du test le contient. Ne pas enlever les bonnes limites sur l’adapter legacy ou les objets globaux pour remplacer ces explications par des affirmations plus générales.
+
+L’absence d’une assertion dans un test ne signifie pas que le comportement n’est jamais testé ailleurs. Pour les IDs triés, une référence au test qui les affirme réellement est permise, mais ne pas transférer ses assertions dans le test des deux rôles sélectionnés.
+
+Métadonnées et erreurs
+
+_validate_record calcule d’abord des valeurs locales figées, valide, puis les affecte. Ne pas parler d’une mutation du modèle avant ces gardes.
+
+Pour les helpers levant ValueError, nommer cette exception locale. Expliquer séparément la conversion par Pydantic ou les wrappers publics lorsque pertinente. Le simple héritage de l’erreur applicative depuis ValueError ne rend pas tous les ValueError des erreurs applicatives spécifiques.
+
+_read_verified_artifact possède des erreurs applicatives explicites pour ses comparaisons ; il ne possède pas un try/except global couvrant read_bytes et Parquet. Le loader public apporte cette traduction. Aucune modification du comportement d’erreur n’est autorisée ici.
+
+6. Vérifications documentaires et maintien des preuves
+
+Effectuer un contrôle borné unique du lot final :
+
+Toutes les notices R8-D01..17 rapprochées du corps réel ; leurs notes propriétaires mises à jour lorsqu’elles reprennent la phrase.
+
+Retour, appel, exception et assertion cités explicitement dans le reçu pour les erreurs principales. Ne pas générer un statut de fidélité à partir de l’AST.
+
+Rechercher les anciennes formulations dans les deux compagnons et les quatre unités du fragment. Les occurrences conservées dans les anciens reçus/snapshots historiques ne sont pas à supprimer ; distinguer historique et documentation courante.
+
+Conserver les 107/91 identités originales de symboles. Vérifier les 198 mappings vers la bonne section qualifiée, signatures/plages, unicité des IDs et liens entrants. Aucun nouveau symbole n’est créé par une correction de prose.
+
+Vérifier snapshots complets contre les mêmes fichiers Git ; ne pas recopier/régénérer les sources s’ils sont déjà exacts. Mettre à jour les seuls hashes nécessaires des compagnons dans le registre.
+
+JSON strict, liens relatifs, tableaux, fences et Unicode. Corriger les renvois de table réellement absents, pas inventer un nouveau tableau pour remplir une rubrique.
+
+Rendu visuel avec un outil déjà disponible seulement ; sinon conserver PENDING. Aucun ajout de renderer/dépendance.
+
+Nouveau delta propre ; comparer séparément les 13 observations héritées sans toucher aux archives.
+
+Les scripts de vérification temporaires doivent rester hors Git, lire les sources sans import applicatif ni écriture de code, et être décrits selon ce qu’ils contrôlent réellement.
+
+7. Pas de nouveau pytest pour cette correction de prose
+
+Les 182 passes, 463,30 s et sortie 0 restent l’exécution historique R8. Ne pas relancer les 182 tests, la suite applicative, un loader ou un pipeline GPU/EP sous R8.1. Ne pas attribuer un nouveau succès à une exécution antérieure. Aucun compilateur/linter Python n’est nécessaire pour un delta sans fichier Python ; aucun uv sync, installation ou modification d’environnement.
+
+Après corrections et staging explicite, une exécution complète de l’auditeur INDEX inchangé reste autorisée :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r8-1-candidate.stdout.txt
+
+Conserver manifeste et stdout complets, completed/exit, métriques et changements de constats pertinents par rapport au candidat R8. Les 10 267 constats R8 n’étaient pas une validation sémantique ni un audit global propre. Ne pas fixer artificiellement le nouveau total. Exit 1 / completed=true peut refléter PARTIAL ; exit 2/timeout/interruption doit être déclaré comme contrôle non abouti.
+
+Préparer les autres documents avant cette exécution, puis compléter idéalement seulement le reçu et vérifier son delta exact. Si un autre fichier est corrigé après le run, identifier ces bytes et leur contrôle ciblé ; ne pas déclarer le final identique au candidat. Ne pas boucler les audits pour faire figurer un reçu dans sa propre preuve.
+
+Ne modifier ni l’auditeur ni coverage pour rendre le résultat artificiellement vert.
+
+8. Progression et historique
+
+Conserver dans CURRENT_STATE : revue indépendante R8 = CORRECTION_REQUIRED documentaire, présent R8.1 = en attente de revue après publication. Référencer le présent reçu successoral sans réécrire le PENDING historique de R8 ou les approbations R3–R7.
+
+Les mêmes quatre unités sont corrigées : 83/245 fichiers et 1 792/4 769 symboles restent les totaux locaux enregistrés ; 162 fichiers / 2 977 symboles restent les autres unités ouvertes. Ne compter aucune unité supplémentaire. Ne pas prétendre que ces totaux étaient déjà intégralement approuvés par le reviewer. Les lectures acquises et les anciens r8_prior_evidence restent préservés.
+
+Ne pas promouvoir une ligne voisine/dépendance, fusionner tous les fragments ou renouveler leurs statuts automatiquement. L’approbation de la correction sera donnée séparément.
+
+A-001..A-004, les cinq limites historiques, R3-T01..04, OPEN R5-D01, acceptation cold-start/rendu/validation globale et revue sémantique 7F.1C.1 restent ouverts. Dernière frontière fonctionnelle approuvée : 7F.1B.4. Aucun autre lot n’est autorisé avant cette revue.
+
+9. Publication, arrêt et rapport
+
+Si le périmètre est complet et les preuves cohérentes, stage seulement les sept chemins autorisés explicitement. Pas de git add ., git add -A, commit -a, amend, rebase, merge, PR, push main ou force-push.
+
+Message proposé :
+
+docs: correct aggregation reference fidelity
+
+Push uniquement :
+
+git push origin recovery/docs-continuity-1-partial
+
+Résoudre ensuite le SHA final, comparer HEAD/suivi/vrai distant et main. Aucun futur self-SHA inventé dans le reçu. Préserver et rapporter si la publication ou une preuve est bloquée.
+
+Rapport final :
+
+départ/final/main et chemins réellement publiés ;
+
+tableau R8-D01..17 : notice corrigée, note propriétaire concernée, source/call/assertion justificatifs ;
+
+classification des petits points de formulation distincte des erreurs d’interface/preuve ;
+
+198 mappings, snapshots/hashes/liens/JSON, préservation exacte des fichiers protégés/hors périmètre ;
+
+absence de pytest/pipeline nouveau, résultats historiques explicitement étiquetés ;
+
+auditeur completed/exit/constats/manifeste et delta final réel ;
+
+progression inchangée et validations encore en attente ;
+
+arbre propre, main inchangé, HEAD=recovery distant.
+
+Libellé : DOCS.CONTINUITY.1.R8.1 completed — global audit PARTIAL; review pending.
+
+Puis STOP. Pas de R9 automatique et aucune modification applicative.

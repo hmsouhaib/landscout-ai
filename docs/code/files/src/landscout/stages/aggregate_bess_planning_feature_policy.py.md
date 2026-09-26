@@ -445,7 +445,7 @@ Class, source lines 186–187.
 class BessPlanningFeatureParcelAggregationError(ValueError):
 ```
 
-Public ValueError subclass for controlled aggregation boundary failures. Private helpers raise it directly; public builder/validator/loader preserve it and wrap other exceptions. It is not a legal decision status.
+Public ValueError subclass for controlled aggregation boundary failures. Explicit aggregation mismatch guards raise it; public builder/validator/loader preserve it and wrap other exceptions. Not every private helper failure is already this subclass: _exact_string and _sha256_string raise built-in ValueError, and _read_verified_artifact does not wrap read/decode/library errors itself. It is not a legal decision status.
 
 <a id="symbol--applicationlineage"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy._ApplicationLineage`
@@ -544,7 +544,7 @@ Field, source lines 199–199.
 complete_result_content_sha256: str
 ```
 
-Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.
+Upstream application complete_result_content_sha256, copied from result.application_complete_result_content_sha256 when _validate_result_envelope assembles _ApplicationLineage for inherited-relation checks. This internal field is not the aggregation complete digest; the aggregation result and artifact manifest fields with the same short name have that separate role.
 
 <a id="symbol--strictmodel"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy._StrictModel`
@@ -566,7 +566,7 @@ Function, source lines 206–209.
 def _exact_string(value: object, label: str) -> str:
 ```
 
-Return the same non-empty stripped string; reject non-string, empty or surrounding whitespace with aggregation error. Does not reject textual null sentinels on its own. Used by SHA/ID/envelope guards; no mutation or I/O.
+Require isinstance(value, str), a nonempty value and equality with value.strip(); return the original value without trimming. Failed checks raise built-in ValueError locally. Does not reject textual null sentinels on its own. Called by _sha256_string and result-envelope guards; _validate_feature_id has its own checks. Exception translation depends on the caller; no mutation or I/O.
 
 <a id="symbol--sha256-string"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy._sha256_string`
@@ -577,7 +577,7 @@ Function, source lines 212–216.
 def _sha256_string(value: object, label: str) -> str:
 ```
 
-Apply exact-string guard then fullmatch of lowercase 64-hex SHA_PATTERN; return the same string or aggregation error. Used by record, manifest and result envelope; it checks syntax, not bytes.
+Call _exact_string, then SHA_PATTERN.fullmatch for lowercase 64-hex syntax; return the original string. A malformed checksum raises built-in ValueError locally, not BessPlanningFeatureParcelAggregationError. Record/manifest model validation reports validator ValueError through Pydantic ValidationError; result-envelope guards catch ValueError and wrap it as the aggregation error. This helper checks syntax, not bytes.
 
 <a id="symbol-bessplanningfeatureparcelaggregationartifactrecord"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationArtifactRecord`
@@ -700,7 +700,7 @@ Function, source lines 236–261.
     def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
 ```
 
-After-validation first recursively freezes schema/CRS and stores them via object.__setattr__, then checks portable filename, count, size, SHA, role/geospatial equivalence and CRS equality/null rules. Returns self. This controlled initialization mutation does not expose mutable metadata. Full measured schema is checked later at readback.
+After-validation first creates recursively frozen local schema/CRS values. It then checks portable filename, count, size, SHA, role/geospatial equivalence and CRS equality/null rules. Only after these guards does object.__setattr__ store frame_schema_signature and non-null crs, then return self. This controlled initialization does not expose mutable metadata. Full measured schema is checked later at readback.
 
 <a id="symbol-bessplanningfeatureparcelaggregationresult"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationResult`
@@ -975,7 +975,7 @@ Field, source lines 289–289.
 complete_result_content_sha256: str
 ```
 
-Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.
+Aggregation complete hash of component metadata and both output component digests, with result domain. This is the aggregation digest, distinct from application_complete_result_content_sha256 and the upstream application digest stored in the internal _ApplicationLineage field.
 
 <a id="symbol-bessplanningfeatureparcelaggregationresult-relation-assessments"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationResult.relation_assessments`
@@ -1294,7 +1294,7 @@ Field, source lines 328–328.
 complete_result_content_sha256: StrictStr
 ```
 
-Hash of component metadata and both output component digests, with result domain. Internal _ApplicationLineage instead carries the upstream application digest under this field name.
+Aggregation complete hash of component metadata and both output component digests, with result domain. This is the aggregation digest, distinct from application_complete_result_content_sha256 and the upstream application digest stored in the internal _ApplicationLineage field.
 
 <a id="symbol-bessplanningfeatureparcelaggregationartifactmanifest-artifacts"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy.BessPlanningFeatureParcelAggregationArtifactManifest.artifacts`
@@ -1384,7 +1384,7 @@ Function, source lines 463–475.
 def _validate_feature_id(value: object) -> str:
 ```
 
-Require exact string, reject NULL_LITERALS and absolute PurePosixPath/PureWindowsPath. Return original value. This is feature-ID grammar, not portable artifact-basename grammar: colon-bearing GPU IDs can be valid. All role IDs are checked, not only selected JSON IDs.
+Check one supplied value: require a nonempty exact string without surrounding whitespace; reject NULL_LITERALS and absolute PurePosixPath/PureWindowsPath. Failed guards raise BessPlanningFeatureParcelAggregationError; return the original value. This is feature-ID grammar, not portable artifact-basename grammar: colon-bearing GPU IDs can be valid. _json_ids applies this helper to selected/unresolved/context lists, and _validate_json_ids checks decoded members. The upstream common relation contract checks every relation identity, including lower-priority/deferred rows; there is no all-role loop inside this helper.
 
 <a id="symbol--json-ids"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy._json_ids`
@@ -1509,7 +1509,7 @@ def _aggregate_frames(
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
 ```
 
-Validate parcels, inherited relations and metric areas; reject output-prefix collisions and unknown parcel IDs; group relations for every input parcel and summarize in parcel order. Copy source frames, restore original relation order via group cursors, append exact schemas with typed arrays. Returns relation assessments then parcels. Does not spatially intersect or weight areas.
+Validate parcels, inherited relations and metric areas; reject output-prefix collisions and unknown parcel IDs; group relations for every input parcel and summarize in parcel order. Copy source frames, restore original relation order via group cursors, append exact schemas with typed arrays. Returns (parcels, assessments): GeoDataFrame first, non-geospatial DataFrame second. _build_result and _validate_result_envelope unpack in that order. Does not spatially intersect or weight areas.
 
 <a id="symbol--component-metadata"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy._component_metadata`
@@ -1672,7 +1672,7 @@ def _read_verified_artifact(
 ) -> pd.DataFrame:
 ```
 
-Check Path.name equality, capture bytes once, verify size then SHA, decode BytesIO as GeoParquet/Parquet by role, then verify row count, frozen complete schema and CRS/frame kind. Each failure is controlled. It returns a mutable frame from verified captured bytes; no post-read path check, atomic set, symlink guard or external source reconstruction.
+Check Path.name equality, capture bytes once, verify size then SHA, decode BytesIO as GeoParquet/Parquet by role, then verify row count, frozen complete schema and CRS/frame kind. Explicit mismatch guards raise BessPlanningFeatureParcelAggregationError; there is no enclosing catch for read_bytes, Parquet or schema/CRS-library errors. The public loader preserves aggregation errors and wraps other Exception values; direct helper calls do not have that translation guarantee. Returns a mutable frame from verified captured bytes; no post-read path check, atomic set, symlink guard or external source reconstruction.
 
 <a id="symbol-load-bess-planning-feature-parcel-aggregation-artifacts"></a>
 ### `landscout.stages.aggregate_bess_planning_feature_policy.load_bess_planning_feature_parcel_aggregation_artifacts`

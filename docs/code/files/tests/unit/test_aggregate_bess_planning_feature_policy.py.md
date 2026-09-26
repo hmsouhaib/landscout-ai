@@ -39,7 +39,7 @@ Constants/type aliases below are documented in addition to the original symbol d
 <a id="declaration-parcel-columns"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.PARCEL_COLUMNS`
 
-Source lines 45–75. Ordered29 appended parcel columns. Exact field meanings/dtypes/nulls are tabulated below and consumed by assignment, prefix extraction and validation.
+Source lines 45–75. Ordered29 appended parcel columns used by test assertions. Meanings, dtypes and null rules are in the production companion's [Appended column dictionary](../../../../../docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md#appended-column-dictionary), not in a local table here.
 
 ```python
 PARCEL_COLUMNS = (
@@ -133,7 +133,7 @@ Function, source lines 114–142.
 def test_aggregation_artifact_record_is_deeply_immutable_without_aliases() -> None:
 ```
 
-Construct record, save JSON dump, mutate caller-owned schema columns and CRS name, then assert retained tuple/name and dump unchanged. Assert immediate TypeError/AttributeError for mapping item, nested tuple append, CRS item and nested coordinate_system item. Tests these four operations and alias copies; not every conceivable Python escape or frame immutability.
+Construct the record, append caller_mutation to the caller-owned schema columns and add caller_mutation=True to the caller CRS mapping. Assert retained columns == ("geometry",), absence of that key in retained CRS, and model_dump(mode="json", warnings="error") equal to a fresh _aggregation_artifact_record_payload() result. There is no saved pre-mutation dump or CRS-name mutation. Assert immediate TypeError/AttributeError for mapping item, nested tuple append, CRS item and nested coordinate_system item. Tests these four operations and alias copies; not every conceivable Python escape or frame immutability.
 
 <a id="symbol--aggregation-fixture"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy._aggregation_fixture`
@@ -220,7 +220,7 @@ def _relation(
 ) -> dict[str, object]:
 ```
 
-Construct one relation from an imported physical application fixture, then substitute parcel/feature ID, relation type, policy status/confidence/priority and metrics. Default exact material constraint/high/30, AREA_OVERLAP, area 1e-6. LENGTH uses line donor; other kinds start from surface donor. Unresolved nulls decision fields; point metrics/counts are synthesized. Return dict, not validated physical overlay. Repeated calls and parametrization trigger synthetic setup.
+Construct one relation from an imported physical application fixture, then substitute parcel/feature ID, relation type, policy status/confidence/priority and metrics. Defaults are APPLIED_EXACT_POLICY, MATERIAL_REVIEW_REQUIRED, HIGH and 30, with AREA_OVERLAP and area 1e-6. LENGTH uses line donor; other kinds start from surface donor. Unresolved nulls decision fields; point metrics/counts are synthesized. Return dict, not validated physical overlay. Repeated calls and parametrization trigger synthetic setup.
 
 <a id="symbol--write-artifacts"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy._write_artifacts`
@@ -234,7 +234,7 @@ def _write_artifacts(
 ) -> tuple[Path, dict[str, Path], dict[str, object]]:
 ```
 
-Test-only writer: write index-preserving parcels.parquet and relations.parquet, capture each size/SHA/schema/count, build strict manifest from result scalars and ordered roles, write aggregation.json. Returns three paths. This fixture mutates tmp_path only; production has no corresponding writer API.
+Test-only writer: write index-preserving parcels.parquet and relations.parquet, capture each size/SHA/schema/count, build strict manifest from result scalars and ordered roles, write aggregation.json. Returns (manifest_path, paths, manifest): a Path, a dict[str, Path] keyed by PARCELS/RELATION_ASSESSMENTS, and a dict[str, object] manifest payload. These are three tuple elements, not three paths. This fixture mutates tmp_path only; production has no corresponding writer API.
 
 <a id="symbol--rehash-coordinated-result"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy._rehash_coordinated_result`
@@ -328,7 +328,7 @@ Function, source lines 587–611.
 def test_policy_unknown_is_exact_but_unresolved_controlling_overrides() -> None:
 ```
 
-Exact policy UNKNOWN/40/LOW aggregates normally; adding an unresolved controlling row beside MATERIAL_REVIEW_REQUIRED/30 yields unresolved state, all three decision nulls and deferred/unresolved roles. Distinguishes exact UNKNOWN from unresolved official code pair; private builder/envelope only.
+Exact policy UNKNOWN/40/LOW aggregates normally; adding an unresolved controlling row beside MATERIAL_REVIEW_REQUIRED/30 yields unresolved state, all three decision nulls, unresolved-ID JSON and deferred/unresolved roles. Distinguishes exact UNKNOWN from an unresolved official code pair. _build_from_relations exercises the private builder and its internal guards, not the aggregation _validate_result_envelope in this scenario.
 
 <a id="symbol-test-every-positive-relation-type-controls-without-threshold"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_every_positive_relation_type_controls_without_threshold`
@@ -672,7 +672,7 @@ Function, source lines 947–960.
 def test_valid_repeated_status_and_priority_mapping_selects_every_exact_match() -> None:
 ```
 
-Two exact MATERIAL_REVIEW_REQUIRED/30 rows A/B both selected; assert both sorted IDs and selected count2. Confirms repeated identical mapping accepted, unlike ambiguous bijection.
+Two exact MATERIAL_REVIEW_REQUIRED/30 rows A/B are both selected; assert selected count 2 and the two SELECTED_CONTROLLING roles. This test has no selected-ID JSON assertion. Confirms repeated identical mapping accepted, unlike ambiguous bijection; sorted selected-ID JSON is asserted separately by test_exact_relations_select_configured_max_priority_and_lowest_confidence.
 
 <a id="symbol-test-duplicate-parcel-feature-identity-is-rejected-for-every-role"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_duplicate_parcel_feature_identity_is_rejected_for_every_role`
@@ -853,7 +853,7 @@ Function, source lines 1138–1154.
 def test_document_wide_repeated_mapping_and_unresolved_rows_are_valid() -> None:
 ```
 
-Two repeated MATERIAL_REVIEW_REQUIRED/30 exact rows plus one unresolved on three parcels: local envelope succeeds and only total relation count3 is asserted. Does not assert all per-parcel states in this test.
+Three relations on two parcels: PARCEL-1/A and PARCEL-2/B,U, with two repeated MATERIAL_REVIEW_REQUIRED/30 exact rows and one unresolved row. _build_from_relations calls the private builder and its guards, not the aggregation envelope validator. The sole explicit assertion is len(result.relation_assessments) == 3; no per-parcel state assertion is made here.
 
 <a id="symbol-test-complete-five-status-policy-mapping-is-globally-valid"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_complete_five_status_policy_mapping_is_globally_valid`
@@ -1258,7 +1258,7 @@ def test_artifact_manifest_corruption_is_rejected(
 ) -> None:
 ```
 
-Nineteen manifest lambdas: versions, roles/count/order, filename/path/duplication, size, SHA, row count, schema, CRS, geospatial flag or extra key. Adapter-load must fail. First guard differs: Pydantic type/literal/after-model, upstream locks, filename, size, SHA, decoded row/schema/CRS. This broad test does not prove one particular branch per mutation.
+Nineteen manifest lambdas: manifest schema 2; application hash schema 1/3/999; remove a role record, append EXTRA or append a duplicate record; wrong, duplicate or absolute filename; size 1; mismatched or malformed SHA; row count 999; wrong schema index_names; null or wrong CRS; geospatial=False; extra unknown key. None permutes the two otherwise-valid records, so this is not direct record-order regression coverage. Adapter-load must fail. First guard differs: Pydantic type/literal/after-model, upstream locks, filename, size, SHA, decoded row/schema/CRS. This broad test does not prove one particular branch per mutation.
 
 Exact parametrization (setup may execute at collection):
 
@@ -1308,7 +1308,7 @@ def test_aggregation_manifest_uses_strict_json_before_artifact_read(
 ) -> None:
 ```
 
-Write four invalid manifest texts (duplicate key, NaN, Infinity, non-object list), count artifact Path.read_bytes and pd.read_parquet. Valid synthetic upstream permits manifest parse; strict JSON fails with both counters0. Manifest read itself is allowed and not counted as artifact read.
+Write four invalid manifest texts (duplicate key, NaN, Infinity, non-object list). The counted_bytes Path.read_bytes spy and counted pd.read_parquet forbidden-read sentinel share one artifact_reads counter. Valid synthetic upstream permits manifest parse; strict JSON fails and the test asserts artifact_reads == 0. The manifest read delegates without incrementing this counter; an artifact decode would increment it and raise AssertionError immediately.
 
 Exact parametrization (setup may execute at collection):
 
@@ -1334,7 +1334,7 @@ Function, source lines 1735–1739.
     def counted_bytes(path: Path) -> bytes:
 ```
 
-Intercept Path.read_bytes; increment only when self is parcel/relation path, delegate original read. Manifest can still be read. Parent requires zero artifact captures.
+Intercept Path.read_bytes; increment the shared artifact_reads only when path is a parcel/relation artifact, then delegate original_read_bytes(path). Manifest reading is allowed without incrementing the counter. The pd.read_parquet sentinel shares this counter; the parent asserts zero.
 
 <a id="symbol-test-aggregation-manifest-uses-strict-json-before-artifact-read-counted"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_aggregation_manifest_uses_strict_json_before_artifact_read.counted`
@@ -1345,7 +1345,7 @@ Function, source lines 1741–1744.
     def counted(*args: object, **kwargs: object) -> object:
 ```
 
-Count pd.read_parquet calls then delegate saved reader; parent requires zero, so no decode occurred. No claims about total GeoPandas calls beyond the manifest guard.
+Forbidden-read sentinel installed for pd.read_parquet: increment shared artifact_reads, then immediately raise AssertionError("Artifact read preceded strict manifest validation"). Does not delegate to any saved reader. The parent requires the same counter shared with counted_bytes to remain zero; inspect_read in the separate captured-bytes replacement test is the delegating reader.
 
 <a id="symbol-test-aggregation-physical-replacement-is-rejected"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_aggregation_physical_replacement_is_rejected`
@@ -1500,7 +1500,7 @@ Function, source lines 1935–1950.
 def test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams() -> None:
 ```
 
-Inspect actual production loader signature for five required parameter names and existence of application envelope validator. No artifact execution here; test wrapper optional defaults are not production compatibility.
+Inspect the actual production loader signature and assert its ordered five parameter names plus existence of the application-envelope validator. The test does not inspect parameter defaults or separately assert requiredness; that is evident in the production signature. No artifact execution here; the test wrapper optional defaults are not production compatibility.
 
 <a id="symbol-test-source-bound-aggregation-loader-accepts-only-supplied-upstreams"></a>
 ### `tests.unit.test_aggregate_bess_planning_feature_policy.test_source_bound_aggregation_loader_accepts_only_supplied_upstreams`
