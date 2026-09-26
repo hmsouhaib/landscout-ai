@@ -1,0 +1,236 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R8
+
+Audit documentaire regroupé de l’agrégation parcellaire BESS/CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : fcf618ca6f569db35dd0f5b55cbca986393451ea
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique et taille du lot
+
+Terminer la documentation d’UNE unité fonctionnelle complète : l’agrégation des relations BESS/CNIG vers les parcelles, avec ses contrats de chargement d’artefacts et ses tests.
+
+Les quatre unités à réconcilier sont :
+
+src/landscout/stages/aggregate_bess_planning_feature_policy.py
+
+tests/unit/test_aggregate_bess_planning_feature_policy.py
+
+docs/code/files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md
+
+docs/code/files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md
+
+Les deux fichiers Python doivent rester strictement inchangés. Les seules corrections de contenu concernent leurs compagnons et les preuves documentaires autorisées ci-dessous.
+
+Ce regroupement remplace le découpage systématique fichier par fichier : il ne diminue ni la lecture réelle ni la précision des preuves. Un seul ticket reste actif. Ne pas élargir à tout le pipeline planning, ni recommencer les lots R3–R7 approuvés.
+
+Souhaib décide du produit. ChatGPT demeure reviewer/architecte en lecture seule et auteur des tickets. Codex implémente et publie dans le périmètre autorisé ; il ne s’accorde pas une approbation indépendante.
+
+1. Reçu fourni de revue indépendante R7
+
+Cette section est une déclaration fournie par le reviewer ChatGPT. L’archiver comme telle, sans la convertir en exécution Codex, signature cryptographique ou approbation fonctionnelle.
+
+Verdict : APPROVED — périmètre documentaire R7 uniquement. Aucun correctif R7.1 n’est requis avant R8.
+
+Commit examiné : fcf618ca6f569db35dd0f5b55cbca986393451ea.
+Parent : 43b8f1161415089feb1d2a03caa949bf602e5659.
+Message : docs: audit Muret planning structure configuration reference.
+La comparaison Git indépendante retrouve un descendant direct et les six chemins documentaires annoncés. La branche recovery pointe sur ce commit et main demeure inchangé. La propreté du checkout Windows n’est pas attestée par cette lecture distante.
+
+Le reviewer a lu le module propriétaire structure_planning_regulation.py intégralement, lignes 1–2512, et ses tests unitaires, lignes 1–1646. Il a comparé les sections explicatives et valeurs du compagnon à ces sources, lu les helpers de normalisation et d’immutabilité, le ticket/les reçus disponibles et le diff des deux lignes propriétaires. Il n’a pas réalisé un nouvel audit global du dépôt ou de tous les helpers amont.
+
+Les explications contrôlées sont fidèles : schéma 2 distinct du suffixe v1, modèles stricts et collections figées, cinq comparaisons de verrou après validation de l’index, filtrage positionnel des en-têtes/pieds, conservation des records, regex case-sensitive sans flags ajoutés sur la ligne brute stripée, ambiguïtés sans premier gagnant, titres multilignes, aliases exacts/cycles/cibles/dominance, AUfo→AUf0 comme couple explicite et non substitution générale o/0, recherche littérale token/longest_match par thème et fragment, tie-break par ordre configuré, offsets caractères et contexte normalisé, reconstruction en mémoire distincte de la validation physique GPU/PDF, contenu des hashes et limites des tests.
+
+Recalcul indépendant isolé réellement exécuté sous Linux, Python 3.13.5/PyYAML 6.0.3 : transfert du YAML via Base64 du connecteur GitHub, vérification préalable de l’OID Git puis calcul des comptes et de la sérialisation canonique lue dans le code. Résultats :
+
+OID : 77d73d96066a0b4a8ee18c4de3bf24d07a1aacf5.
+
+2 287 octets, 101 LF, zéro CR, LF final.
+
+SHA256 brut : 74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a.
+
+SHA256 canonique : 13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a.
+
+10 champs racine, 5 verrous, 4 champs layout, 4 regex de titres, 2 regex d’en-tête, zéro regex de pied ; 17 aliases ; 13 thèmes/30 termes ; 68 valeurs terminales dont 2 listes vides ; aucun null.
+
+Ce calcul N’A PAS exécuté le loader applicatif, les modèles Pydantic, pytest, la structure, les validations GPU/EP/PDF ou un renderer. Il ne certifie pas les bytes du checkout Windows. Les contrôles exhaustifs des liens/ancres/snapshots/106 fichiers protégés et 286 chemins hors périmètre restent l’exécution locale rapportée.
+
+Le reçu R7 distingue correctement le candidat contrôlé et le commit final : l’auditeur complet a fini avec completed=true, exit 1, 10 273 constats. Après ce run, deux points terminaux ont été supprimés dans les lignes SHA/basis du compagnon ; sa ligne propriétaire a été rehashée et le reçu complété. Les trois chemins ont un delta décrit et des contrôles ciblés, pas une prétendue seconde exécution globale ni un total final recalculé. Le reviewer a lu les en-têtes finaux sans les points ; il n’a pas relancé l’auditeur complet.
+
+Les deux unités R7 sont acceptées dans leur périmètre. Clôture enregistrée : 79/245 fichiers, 1 594/4 769 symboles, 166 fichiers et 3 175 symboles restants. L’approbation ajoute zéro unité. Le registre global reste non fusionné. Dernière frontière fonctionnelle approuvée : 7F.1B.4. La revue sémantique exhaustive 7F.1C.1 demeure en attente.
+
+Préserver A-001..A-004, les cinq limites de preuve historiques, R3-T01..04, OPEN R5-D01, cold-start/rendu/validation globale finale. Le présent verdict ne les clôture pas.
+
+Conserver le reçu R7 avec son PENDING historique. Enregistrer le verdict successoral dans CURRENT_STATE en citant cette section archivée.
+
+2. Reprise, état Git et préservation
+
+Lire AGENTS, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT et le reçu R7. Consulter l’autorité des 106 fichiers protégés et les deux exceptions EOL historiques.
+
+Avant modification, établir la racine, branche, HEAD, index/worktree, éventuelle opération Git, référence de suivi et vraie référence distante. Exiger les SHA ci-dessus, arbre/index propre et absence de conflit/opération en cours. Une référence de suivi seule n’est pas une interrogation serveur.
+
+Si l’état diffère, préserver et expliquer ; aucun reset, restore, clean, stash, amend, rebase, squash ou merge automatique. Lors d’une reprise interrompue de CE ticket, identifier ses propres changements sans recommencer ni les effacer.
+
+Uniquement après une erreur de propriété effectivement constatée, l’exception Git déjà autorisée par commande et chemin exact peut être employée : git -c safe.directory=C:/souhaib/landscout-ai .... Aucune confiance globale, ACL, sécurité Windows ou dépendance modifiée.
+
+Comparer avant/après les 106 fichiers protégés et tous les chemins hors périmètre au départ enregistré. Recalculer le nombre exact hors périmètre, ne pas recopier celui de R7. Préserver le YAML écrit R6 et le ticket RESUME avec leurs bases Git/checkout distinctes, ainsi que les 13 observations whitespace héritées.
+
+3. Propriétaires et périmètre d’écriture
+
+Retrouver les quatre unités par chemin exact dans la matrice originale et tous les fragments. Le prochain NOT_READ signalé est le compagnon source d’agrégation ; cela ne prouve pas que les trois autres unités ont le même statut ou le même propriétaire.
+
+Réutiliser les lectures/preuves existantes. Pour une unité déjà clôturée, ne pas effacer sa revue, ne pas la compter à nouveau et ne pas la rouvrir artificiellement. Pour une unité READ, clôturer seulement après comparaison sémantique complète et mise à jour de ses preuves. En cas de doublon, réconcilier explicitement la propriété au lieu de doubler les comptes.
+
+Écritures autorisées :
+
+les deux compagnons d’agrégation ;
+
+le ou les fragments propriétaires, uniquement les quatre lignes concernées et leurs symboles/preuves ;
+
+nouveau reçu docs/code/audit/R8_BESS_CNIG_AGGREGATION.md ;
+
+archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R8.txt ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md ;
+
+docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS peut recevoir uniquement un nouveau constat concret démontré, non dupliqué, avec symbole/reproduction/portée exacte. Un manque de preuve de test n’est pas automatiquement un défaut de production.
+
+Interdits : toute modification Python, test, configuration, auditeur, dépendance, archive antérieure, donnée, cache, artefact réel, autre compagnon. Pas de merge/régénération globale de coverage.json ou de matrice. Aucun nouveau checker permanent.
+
+4. Lecture complète et explications par symbole
+
+Lire entièrement les deux fichiers Python et toutes les explications des deux compagnons. Comparer les snapshots répétés à une source déjà lue ; ne pas les compter comme preuve que la prose est exacte.
+
+Pour chaque fonction/méthode/classe/constante/export/fixture/test réellement recensé, documenter : rôle, signature et propriétaire exacts, entrées/sorties, champs/unités/nulls/dtypes, algorithme et ordre des gardes, effets de bord, erreurs, dépendances/callers et limites des assertions. L’AST sert à inventorier, pas à attribuer automatiquement CHECKED.
+
+Suivre les helpers communs et appels amont/aval nécessaires, en consignant leurs plages. Leur lecture ne clôture pas leurs autres unités. Ne relire une dépendance déjà revue que dans la mesure nécessaire à ce contrat.
+
+Vérifier notamment les fixtures importées depuis test_apply_bess_planning_feature_policy : c’est du support de tests du dépôt, pas un paquet tiers. Distinguer la configuration source-locked actuelle des substitutions synthétiques. Lire les usages de _LAST_SOURCE_PARCELS et _LAST_APPLICATION_RESULT au lieu de les traiter comme des entrées de production.
+
+5. Contrats métier techniques à tracer sans les changer
+
+Retrouver dans l’implémentation et expliquer :
+
+relations déterminantes AREA_OVERLAP, LENGTH_OVERLAP, INSIDE versus contexte TOUCH_ONLY, BOUNDARY_TOUCH ;
+
+les quatre états d’agrégation ;
+
+sélection du statut et de sa priorité, égalités et correspondance statut/priorité ;
+
+effet d’un code déterminant non résolu ; ne pas le confondre avec UNKNOWN d’une entrée exacte ;
+
+confiance LOWEST_CONFIDENCE_FOR_SELECTED_STATUS et domaine exact des relations qui y contribuent ;
+
+rôles de relations sélectionnées, de moindre priorité, différées, non résolues ou de contexte ;
+
+parcelle sans relation versus contacts seulement ; nulls, compteurs et JSON d’identifiants ;
+
+conservation de toutes les parcelles, colonnes antérieures, index/ordre/géométrie/CRS selon les contrôles réels ;
+
+revue humaine, absence d’interprétation locale, de conclusion juridique, de rejet et de score.
+
+Les exemples du compagnon doivent dériver des branches et des tests. Ne créer aucun seuil de distance/aire, classement ou nouvelle politique. Ne remplacer aucune règle applicative pour la faire correspondre à la documentation.
+
+6. API, provenance, artefacts et hashes
+
+L’en-tête actuel expose six noms publics, à vérifier dans les deux all concernés : manifest, erreur, résultat, agrégateur, lecteur d’artefacts, validateur. Ne déclarer pas public un modèle importable uniquement parce que les tests l’importent.
+
+Versions repérées à confirmer : résultat d’agrégation 1, manifest 1, application amont 2. Ne transposer ni les schémas CNIG 2/5, ni la politique de zonage écrite 5.
+
+Tracer séparément chaque chemin : builder/validateur source-complet, contrôles d’enveloppe, lecture d’artefacts. Déterminer les objets réellement reçus, données physiquement relues, bytes capturées, validateur propriétaire appelé, nombre d’appels et ordre des contrôles. Une identité textuelle ou un hash auto-recalculé ne doit pas être décrit comme une preuve physique supplémentaire.
+
+Documenter complètement les contrats des manifests et records : rôles PARCELS/RELATION_ASSESSMENTS, nom portable de fichier, taille/hash, schéma de frame, CRS et types, nulls, validation/freeze JSON, conversions et exactitude de la représentation retenue. Distinguer modèles profondément figés et frames mutables du résultat.
+
+Lire les vérifications de chemin/fichier/Parquet et les copies en mémoire : ne pas promettre de snapshot immuable, protection TOCTOU, zéro relecture ou atomicité que le code n’effectue pas. Ne pas inventer un writer public parce qu’un loader existe. Préciser quels effets de fichier relèvent seulement des fixtures.
+
+Pour chaque hash, indiquer le payload exact, domaine, listes/tri, colonnes sélectionnées, dtypes/index/CRS/géométrie inclus ou exclus, composantes/identité globale, taille des unités et handling des types spéciaux. Aucun transfert des formules R5/R6/R7 sans lecture. Les noms de domaine sont des chaînes de données, pas des fonctions Python manquantes.
+
+7. Tests : assertions effectives, pas titres
+
+Lire chaque test avec les helpers effectivement appelés. Distinguer fichier physique synthétique, simple frame forgée, stub/no-op, mock, appel privé, vraie API, hash périmé, rehash cohérent et reconstruction depuis les sources.
+
+Pour chaque scénario, identifier la première garde qui peut interrompre l’exécution. Une exception large n’isole pas automatiquement la règle annoncée par le nom. Conserver les valeurs littérales exactes, familles, types de géométrie, quantités et chemins réellement employés.
+
+Détailler les parcours connus à vérifier : choix de priorité/confiance, codes non résolus, contacts de frontière, préservation des parcelles, immutabilité imbriquée, mutations coordonnées de sorties, identité amont, chargement d’artefacts et schémas/bytes falsifiés.
+
+Ne supprimer aucune limite connue et ne corriger aucun test dans ce ticket. En cas de défaut concret, documenter la preuve et l’impact avec statut ouvert.
+
+8. Validation autorisée, bornée
+
+Après les lectures et corrections, une exécution ciblée du fichier de tests EXISTANT est autorisée dans l’environnement verrouillé déjà installé, sans changement de code/test ni installation :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r8-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run pytest -q tests/unit/test_aggregate_bess_planning_feature_policy.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R8 focused pytest failed: $code" }
+
+Une autre invocation équivalente via l’interpréteur existant est admise si uv nécessite une installation ; ne pas altérer l’environnement. Capturer la commande réellement exécutée, collecte/counts, warnings, skips/xfails et code final après nettoyage. Ne pas injecter de monkeypatch externe ou masquer les warnings. Pas de retries silencieux. Un échec reste une preuve, pas une autorisation de modifier le code. Préserver et rapporter un blocage plutôt que forcer la réussite.
+
+Seules les fixtures synthétiques du test peuvent créer des fichiers temporaires. Aucun run réel Muret/GPU/EP, nouvelle lecture des snapshots officiels, recherche juridique, pipeline complet ou suite applicative complète n’est demandé. Aucune exécution applicative supplémentaire pour recalculer des résultats réels.
+
+Les comparaisons AST/textes/hashes/Markdown/JSON en mémoire sont permises et distinctes des tests. Les scripts temporaires restent hors Git.
+
+9. Contrôles documentaires communs au lot
+
+Contrôler en un passage final les deux compagnons et leurs entrées propriétaires : tous les symboles, signatures, plages et ancres. Chaque ID doit être unique par document ; chaque mapping doit viser le bon titre qualifié, pas seulement une chaîne existante. Préfixer explicitement les symboles privés si nécessaire. Vérifier liens entrants et liens relatifs, fences et tableaux.
+
+Vérifier les SHA et snapshots complets avec une base explicite Git/index/checkout. Préserver les fins de ligne sources ; aucun remplacement automatique. Comparer notes propriétaires et prose au même source/test. Une signature/snapshot exacte n’établit pas à elle seule la fidélité de l’explication.
+
+Un renderer déjà installé peut être utilisé sans installation. Sinon rendu PENDING ; ne pas appeler un contrôle syntaxique une validation visuelle. Ne pas multiplier les reçus de la même vérification.
+
+10. Registre, audit INDEX et candidat final
+
+Partir de 79/245 fichiers et 1 594/4 769 symboles clôturés, à réconcilier depuis la source de vérité dédupliquée. Publier avant/après pour les quatre unités et leurs symboles. Le gain réel peut être inférieur à quatre fichiers si certaines unités étaient déjà clôturées. Ne pas supposer ni forcer un total de 83 ; ne pas compter les nouveaux reçus/tickets dans le dénominateur initial.
+
+Conserver la distinction inventaire, lecture, vérification sémantique, publication et revue indépendante. Les approbations R7 et R8 ne créent aucun nouveau symbole.
+
+Après staging explicite et contrôles locaux, un seul audit complet de l’INDEX avec l’auditeur inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r8-candidate.stdout.txt
+
+Conserver stdout complet, completed/exit, métriques et manifeste. Comparer les constats complets pertinents, pas seulement leur nombre. Les 10 273 de R7 portent sur son candidat pré-correction : ne pas en faire une référence faussement finale. Les trois deltas finaux R7 sont explicités dans son reçu. Ne pas modifier auditeur/coverage pour masquer les erreurs ou gonfler les statuts.
+
+Exit 1 avec completed=true est compatible avec un audit global PARTIAL ; exit 2, timeout ou interruption ne sont pas une exécution aboutie. Les domaines littéraux de hash peuvent rester signalés, à expliquer factuellement.
+
+Idéalement, compléter uniquement le reçu après ce run, puis vérifier son delta exact. Si un autre fichier est corrigé à la suite d’un constat, identifier chaque changement, appliquer les contrôles ciblés appropriés et nommer précisément ce qui n’était pas dans le candidat exécuté. Ne pas déclarer le commit final byte-identique à ce candidat. Aucun bouclage pour faire figurer le reçu dans sa propre preuve.
+
+11. Publication, arrêt et rapport
+
+Publier seulement si les unités annoncées sont réellement terminées et les preuves cohérentes ; sinon préserver et rapporter PARTIAL avec le premier élément exact restant.
+
+Stage uniquement les chemins autorisés explicitement. Pas de git add global, -a, amend, squash, merge, PR, force-push, push main ou suppression de branche.
+
+Message : docs: audit BESS CNIG parcel aggregation reference
+Push : git push origin recovery/docs-continuity-1-partial
+
+Vérifier SHA final, index/worktree propre, suivi et vrai serveur concordants ; main inchangé. Ne pas écrire un futur self-SHA dans le reçu.
+
+Rapport :
+
+départ/final/main, chemins et propriétaires ;
+
+plages réellement lues et limites ;
+
+chaque unité/symbole avant/après et progression dédupliquée ;
+
+principales contradictions corrigées et éventuels constats ouverts ;
+
+modèles/API/algorithmes/artefacts/hashes documentés ;
+
+test ciblé : commande/counts/warnings/code final réel ;
+
+snapshots/ancres/liens/préservation/EOL/rendu ;
+
+auditeur/candidat/manifest/delta final ;
+
+réserves restantes et prochain groupe identifié, non commencé.
+
+Libellé : DOCS.CONTINUITY.1.R8 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Pas de prochain développement fonctionnel ni de deuxième lot documentaire automatique.
