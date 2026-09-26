@@ -128,13 +128,38 @@
       "source_sha256": "74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a",
       "documentation_path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
       "role": "configuration",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R7: structure_planning_regulation.py fully read; exact loader/public builder/validators/fragments/config hash; selected index, normalization, immutable serialization and downstream BESS boundaries. No dependency closure."
+      ],
+      "contract_review": [
+        "R7: all 68 exact terminal values including two empty lists; 17 exact aliases, 13 topics/30 ordered terms, six regexes; local/root validation, frozen mappings/tuples, five document locks, positional filtering, lossless retained-record partition, exact/case-sensitive mapping, token/longest-match, character offsets, canonical payloads and frame-metadata exclusions."
+      ],
+      "test_references": [
+        "tests/unit/test_structure_planning_regulation.py:1-1646 (entire file, not executed)",
+        "tests/unit/test_deep_immutability.py:300-481 (loaded real YAML/hash/aliasing, not executed)",
+        "tests/integration/test_gpu_planning_end_to_end.py:1-409 (synthetic physical chain, not executed)",
+        "tests/unit/test_index_planning_regulation.py:1-351,648-710 (fixtures and normalization/raw spans, not executed)"
+      ],
       "symbols": [],
-      "findings": []
+      "findings": [],
+      "r7_prior_evidence": {
+        "path": "configs/planning/muret_plu_structure.yaml",
+        "source_sha256": "74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a",
+        "documentation_path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
+        "role": "configuration",
+        "read_complete": false,
+        "status": "NOT_READ",
+        "imports_exports_callers_reviewed": [],
+        "contract_review": [],
+        "test_references": [],
+        "symbols": [],
+        "findings": []
+      },
+      "r7_source_sha256_basis": "git-content",
+      "r7_receipt": "docs/code/audit/R7_PLU_STRUCTURE_CONFIGURATION.md",
+      "r7_review_status": "PENDING"
     },
     {
       "path": "configs/sources/gpu_fr.yaml",
@@ -297,16 +322,43 @@
     },
     {
       "path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
-      "source_sha256": "ba08020dc36c2f693714389b8afed5aeb6eb2f895ef1625e1ea456af4d064c3c",
+      "source_sha256": "fb911458c9f65d30f0c4668850e154d418efdb12dd1caeacb03f7b038a402bf8",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R7: structure_planning_regulation.py fully read; exact loader/public builder/validators/fragments/config hash; selected index, normalization, immutable serialization and downstream BESS boundaries. No dependency closure."
+      ],
+      "contract_review": [
+        "R7: all 68 exact terminal values including two empty lists; 17 exact aliases, 13 topics/30 ordered terms, six regexes; local/root validation, frozen mappings/tuples, five document locks, positional filtering, lossless retained-record partition, exact/case-sensitive mapping, token/longest-match, character offsets, canonical payloads and frame-metadata exclusions."
+      ],
+      "test_references": [
+        "tests/unit/test_structure_planning_regulation.py:1-1646 (entire file, not executed)",
+        "tests/unit/test_deep_immutability.py:300-481 (loaded real YAML/hash/aliasing, not executed)",
+        "tests/integration/test_gpu_planning_end_to_end.py:1-409 (synthetic physical chain, not executed)",
+        "tests/unit/test_index_planning_regulation.py:1-351,648-710 (fixtures and normalization/raw spans, not executed)"
+      ],
       "symbols": [],
-      "findings": []
+      "findings": [
+        "R7 corrected stale dict declarations/missing serializers, omitted empty values, generic/cross-policy prose, unclear lock/reconstruction/hash/test scopes and false mixed-EOL wording. No application defect established."
+      ],
+      "r7_prior_evidence": {
+        "path": "docs/code/files/configs/planning/muret_plu_structure.yaml.md",
+        "source_sha256": "ba08020dc36c2f693714389b8afed5aeb6eb2f895ef1625e1ea456af4d064c3c",
+        "documentation_path": null,
+        "role": "companion",
+        "read_complete": false,
+        "status": "NOT_READ",
+        "imports_exports_callers_reviewed": [],
+        "contract_review": [],
+        "test_references": [],
+        "symbols": [],
+        "findings": []
+      },
+      "r7_source_sha256_basis": "git-content",
+      "r7_receipt": "docs/code/audit/R7_PLU_STRUCTURE_CONFIGURATION.md",
+      "r7_review_status": "PENDING"
     },
     {
       "path": "docs/code/files/configs/sources/gpu_fr.yaml.md",

@@ -1,0 +1,211 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R7
+
+Audit documentaire de la configuration de structure du PLU de Muret
+
+Dépôt : C:\souhaib\landscout-ai / hmsouhaib/landscout-ai
+Branche de travail : recovery/docs-continuity-1-partial
+HEAD de départ requis : 43b8f1161415089feb1d2a03caa949bf602e5659
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Un seul objectif
+
+Lire et auditer la documentation de ces deux unités uniquement :
+
+configs/planning/muret_plu_structure.yaml ;
+
+docs/code/files/configs/planning/muret_plu_structure.yaml.md.
+
+Corriger le compagnon et les preuves de revue correspondantes pour qu'un humain ou une nouvelle IA comprenne la grammaire effectivement configurée, son traitement par le code et les limites de ses tests. Ne modifier ni le YAML ni les implémentations/tests. Ne recommencer aucun lot approuvé. Ne pas commencer l'unité suivante après publication.
+
+ChatGPT est le reviewer en lecture seule et l'auteur des tickets ; Codex réalise les modifications autorisées. Une publication ou un compte rendu Codex ne constitue pas une approbation indépendante. L'objectif global reste la continuité documentaire vérifiable de LandScout, pas une génération mécanique de prose ou de statuts CHECKED.
+
+1. Reçu fourni de la revue indépendante R6
+
+Cette section est la déclaration du reviewer ChatGPT fournie avec le ticket. L'archiver comme telle : ce n'est ni une nouvelle exécution Codex, ni une signature cryptographique, ni un verdict inféré de la proximité des commits.
+
+Verdict : APPROVED — périmètre documentaire R6 uniquement. Aucun correctif R6.1 préalable à R7 n'est demandé.
+
+Commit examiné : 43b8f1161415089feb1d2a03caa949bf602e5659.
+Parent : 86be69fe05f2ec27cd528c05200db3ad63176cc9.
+Message : docs: audit BESS written zoning policy configuration reference.
+
+La comparaison Git indépendante retrouve un descendant direct et les six chemins documentaires annoncés. La branche distante de récupération pointe sur ce commit et main reste au SHA indiqué en tête. Le checkout Windows propre, l'index et la référence locale de suivi ne sont pas attestés par la lecture de GitHub.
+
+Le reviewer a confronté les sections explicatives du compagnon au YAML, au module propriétaire interpret_bess_zoning.py de 2 394 lignes, aux corps de tests/fixtures concernés dans test_interpret_bess_zoning.py et aux 409 lignes du test d'intégration GPU. Il a aussi lu les frontières amont pertinentes de revalidation du zonage et de reconstruction des fragments, le reçu R6, CURRENT_STATE et le diff des deux lignes propriétaires. Cette revue est celle de la fidélité documentaire, pas une nouvelle approbation applicative ou juridique de toutes les fonctions consultées.
+
+Les explications contrôlées sont fidèles : champs requis/defaults et tuples de modèles figés ; offsets en caractères Python et hashes UTF-8 ; distinction petite citation / occurrence de règle complète ; unicité/réutilisation et contrôle des chevauchements ; quatre formes de route et rôles compatibles ; CONTEXT_ONLY exclu des liens décisionnels ; complétude bornée aux articles configurés ; ordre du contrôle GPU, de la résolution de politique, des validations index/structure et des six verrous ; propagation jusqu'aux statuts parcellaires, conflits conservés et contacts sans aire exclus des décisions ; modèle figé distinct des DataFrames mutables ; contenu des hashes et reconstruction indépendante distincte d'une comparaison à soi-même.
+
+Les associations UP/AUp sont décrites comme les valeurs actuelles de la politique : UP associe restriction et exception, AUp exception et condition générale d'infrastructure ; leurs clauses ICPE restent contextuelles. Aucune appartenance d'un BESS à ces catégories n'est prouvée par ce dossier. Les autres routes sont expliquées sans nouvelle lecture du droit ou du PDF original.
+
+Les limites de tests sont correctement préservées : les fixtures unitaires neutralisent la revalidation physique GPU ; l'intégration utilise un vrai ZIP/GPKG/PDF synthétique mais une politique UNKNOWN/LOW sans preuve décisionnelle. Les assertions de configuration Muret ne constituent pas une validation des 28 occurrences contre le PDF. Le bras du test de mapping qui transmet la fonction fixture valid_result est documenté sans lui attribuer une preuve de comparaison finale qu'il n'isole pas.
+
+Aucune exécution indépendante R6 de pytest, du loader, de l'interpréteur, de l'auditeur, d'une chaîne GPU/EP ou d'un rendu Markdown n'a été effectuée par ChatGPT. Le contrôle mécanique des 655 cellules, des 104 valeurs récapitulatives, des cinq signatures, de tous les liens/ancres/snapshots et des 106/284 fichiers protégés/hors périmètre reste l'exécution locale rapportée dans le reçu. Aucun nouveau calcul indépendant des hashes complets du YAML/checkout/modèle ni attestation de la copie Windows n'est revendiqué.
+
+Identités conservées selon les bases explicitement documentées et le reçu local :
+
+OID Git YAML : a8a1f2d8e5fb04107a3e46de2b67cb140cafa38d ;
+
+Git : 46 384 octets, 723 LF, zéro CR, SHA256 c736ea8901997f4852fd1f72a3f6f34282452f18dcd9abc0ccbce8255adaad45 ;
+
+checkout historique : 47 039 octets, 655 CRLF et 68 LF isolés, SHA256 879d50627c063bb10096950d004cf4d4e446ff04ef9a1178b3e3fb28e2ffdae3 ;
+
+modèle canonique : ef1f7cd0f5589e9a07428d25cd2b1a844e7cd49fb6db359951eb6c812c767586.
+
+Ces bases ne sont pas interchangeables. Ne pas réécrire le YAML pour harmoniser ses fins de ligne. R5-D01 reste une réserve documentaire faible et non bloquante sur un AUTRE fichier, non corrigée par R6 ni autorisée à réparation dans R7.
+
+Le reçu local rapporte un audit INDEX terminé, completed=true, exit 1 et 10 271 constats, sur un candidat identifié. Six nouvelles références qualifiées sont des chaînes littérales de domaines de hash ; les autres deltas expliquent le net +5. Cela n'établit ni six fonctions manquantes ni un audit global propre. Le reçu complété après l'exécution n'est pas rétroactivement le candidat contrôlé. Ces sorties n'ont pas été réexécutées indépendamment.
+
+Les deux unités R6 sont acceptées dans leur périmètre documentaire. Clôture enregistrée : 77/245 fichiers, 1 594/4 769 symboles ; 168 fichiers et 3 175 symboles restants. Le verdict ajoute zéro unité. A-001..A-004, cinq limites historiques, R3-T01..04, R5-D01, cold-start/rendu/validation globale finale et revue sémantique 7F.1C.1 restent ouverts ou en attente. Dernière frontière fonctionnelle approuvée : 7F.1B.4. Aucune progression fonctionnelle n'est autorisée ici.
+
+Conserver le reçu R6 et son PENDING historique. Enregistrer le présent verdict successoral et ses limites dans CURRENT_STATE, avec un lien vers cette section archivée, sans réécrire les reçus antérieurs.
+
+2. Reprise et définition de prêt
+
+Lire AGENTS.md, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R6 et les autorités de préservation. Résoudre la racine réelle, la branche, l'arbre/index, les opérations Git en cours et les références locales/de suivi/distantes réelles.
+
+Exiger le HEAD de départ et main ci-dessus, un arbre/index propre et aucune opération Git en cours avant la première modification. Une référence de suivi n'est pas une interrogation serveur. En cas de divergence, préserver le travail et rapporter la situation ; pas de reset, restore, clean, stash, amend, rebase ou fusion automatique. En reprise du même ticket, reconnaître ses changements identifiés au lieu de recommencer.
+
+En cas d'échec de propriété Git effectivement reproduit, seule l'exception par commande et chemin exact déjà autorisée peut être employée : git -c safe.directory=C:/souhaib/landscout-ai .... Aucun wildcard, changement persistant, ACL, protection Windows, installation ou reconfiguration de dépendance.
+
+3. Périmètre d'écriture
+
+Écritures autorisées :
+
+docs/code/files/configs/planning/muret_plu_structure.yaml.md ;
+
+fragment propriétaire réellement constaté, uniquement les deux lignes R7 et leurs preuves ;
+
+nouveau reçu docs/code/audit/R7_PLU_STRUCTURE_CONFIGURATION.md ;
+
+archive exacte du ticket reçu docs/project/tickets/DOCS.CONTINUITY.1.R7.txt ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md ;
+
+docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS ne peut changer que pour un nouveau constat concret démontré, nécessaire à conserver, sans doublon ni correction applicative. Une lacune de test ne devient pas automatiquement un défaut de production.
+
+Vérifier le propriétaire dans la matrice originale et tous les fragments ; le diff R6 situe les lignes suivantes dans planning.json, mais ne prouve pas à lui seul l'absence d'un doublon. Préserver les anciennes données de revue. Ne clôturer aucune dépendance par simple lecture. Ne fusionner ni régénérer coverage.json, la matrice ou les autres fragments.
+
+Interdits : YAML, sources, tests, auditeur et ses tests, dépendances, cache/artefacts/données, anciens reçus/tickets, compagnons approuvés R4/R5/R6. Aucun nouveau checker durable. Les éventuels scripts de contrôle temporaires restent hors Git et ne modifient pas les sources.
+
+4. Repérage de la configuration — à confirmer
+
+OID Git observé : 77d73d96066a0b4a8ee18c4de3bf24d07a1aacf5.
+L'ancien compagnon affiche le SHA256 74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a : vérifier sa base, ne pas la supposer.
+
+schéma 2 ; structure_profile muret_plu_20240215_v1 ;
+
+cinq champs document_lock, dont le contenu des pages et le profil de normalisation ;
+
+quatre champs document_layout ; début page 1, sommaire vide, continuation maximale 2, preuve thématique du sommaire false ;
+
+quatre familles heading_patterns, deux familles ignored_patterns ;
+
+aliases explicites, notamment AUfo → AUf0 : lettre o dans la source, chiffre zéro dans la cible ;
+
+dictionnaire de thèmes/termes littéraux ; politique token / longest_match ; contexte configuré 80 ;
+
+propriétaire src/landscout/stages/structure_planning_regulation.py ;
+
+loader réel load_planning_regulation_structure_config(path: str | Path) -> PlanningRegulationStructureConfig ;
+
+helper de hash _config_sha256(config: PlanningRegulationStructureConfig) -> str.
+
+Ce fichier décrit une grammaire documentaire et des recherches littérales. Il ne constitue ni la politique de zonage R6, ni un classificateur juridique ou une autorisation BESS. Le suffixe v1 du nom n'est pas le numéro de schéma.
+
+5. Lecture complète et contenu attendu
+
+Lire le YAML entier et toutes les explications/valeurs du compagnon. Les blocs répétés peuvent être comparés mécaniquement à une source déjà lue ; ne pas remplacer la revue sémantique par un inventaire AST.
+
+Lire les modèles, loader, validateurs, normalisation, reconnaissance des titres, sections, aliases, preuves thématiques et hashes dans le propriétaire, jusqu'au corps complet quand nécessaire. Lire les helpers effectivement appelés et les tests pertinents avec leurs fixtures/assertions. Consigner précisément les plages lues et non lues ; cette lecture ne clôture pas ces autres unités.
+
+A. Inventaire exact et modèles
+
+Dénombrer les champs et toutes les valeurs depuis la configuration réelle, en comptant explicitement les listes vides. Pour chaque champ : représentation YAML, valeur exacte, type retenu, requis/default/nullabilité, domaine/bornes, validations, transformations éventuelles, consommateurs, erreurs et incidence sur les hashes. Toutes les regex, tous les aliases et tous les termes doivent être présents, pas uniquement des exemples.
+
+Distinguer les contraintes locales des modèles imbriqués de celles du modèle complet : stricte intégralité, booléens, ordres/uniqueness, captures nommées et cycles. Décrire la conversion des listes en tuples et des mappings en objets figés, les serializers et la reconstruction des modèles fournis ; résultats DataFrame mutables ≠ configuration profondément figée. Ne pas réintroduire les anciens paragraphes génériques « voir le validator » à la place des règles.
+
+B. Verrous, pages et contenu indexé
+
+Décrire les cinq comparaisons exactes du verrou et leur ordre par rapport à la validation de l'index. Forme correcte d'un SHA ≠ preuve des pages ≠ réouverture du PDF original. Le loader seul ne vérifie pas un index qu'il ne reçoit pas.
+
+Expliquer body_start_page, table_of_contents_pages, max_heading_continuation_lines, include_table_of_contents_in_topic_evidence et les différences entre valeur configurée, défaut et plage permise. Tracer l'effet sur les records, exclusions, sections et preuves. Une liste vide de sommaire ne prouve pas l'absence réelle de sommaire dans le document.
+
+C. Regex et reconnaissance
+
+Pour chaque expression configurée, expliquer ancrages, captures, classes, séparateurs et effet observable. Déterminer dans le code les flags, le mode de recherche et le texte réellement testé ; ne pas déduire les comportements de la regex isolée sans son appel.
+
+Séparer : compilabilité, captures nommées requises, doublons exacts, réutilisation entre groupes et conflit de correspondances au runtime. Expliquer les titres sur plusieurs lignes, limite de continuation, en-têtes/pieds ignorés, numéros d'article et bornes de sections. Un terme ou titre trouvé n'est pas une décision sur l'usage du sol.
+
+Ne pas remplacer les regex, « améliorer » leurs alphabets ou réécrire leurs escapes. Conserver la différence entre le scalaire YAML, la chaîne Python décodée et l'affichage Markdown/JSON.
+
+D. Aliases de zones
+
+Afficher chaque couple exact et tracer la stratégie réellement utilisée : résolution exacte, alias configuré, parcours éventuel, contrôles des cycles/cibles et statuts des cas non résolus ou ambigus. Ne pas inventer un fallback par préfixe, normalisation de casse ou substitution générale o/0.
+
+Décrire explicitement le couple AUfo → AUf0. Une grammaire de capture de titre et une table d'alias sont deux opérations distinctes. Les labels GPU bruts, labels capturés et labels résolus ne doivent pas être confondus. Lire les tests de chaînes/cycles/ambiguïtés pour qualifier leur véritable couverture.
+
+E. Recherche thématique et positions
+
+Décrire les termes exacts, leur normalisation via le propriétaire de l'index, les bornes token et la résolution longest_match. Déterminer et expliquer l'ordre réel, les égalités, chevauchements et périmètres des recherches ; ne pas inventer de relation entre thèmes à partir des seules fréquences.
+
+Documenter occurrence_count, positions normalisées/brutes, contexte de 80, unités et conventions de borne d'après les corps de code. Préserver les apostrophes et accents des valeurs et distinguer texte brut, recherche normalisée et contexte affiché.
+
+Présence d'un terme ≠ règle applicable, preuve juridique, classification ICPE, autorisation, interdiction ou statut de parcelle. L'absence de correspondance n'établit pas l'absence d'une contrainte réelle.
+
+F. API, sorties et hashes
+
+Recopier les signatures réellement utiles : loader, constructeur de structure, validateurs et fonctions de fragments selon le module. Tracer index/zones/relations/config → sections/zone_mapping/topic_evidence et les usages ultérieurs dans le zonage écrit. Identifier où la validation est locale, fondée sur reconstruction ou déléguée, et quels fichiers sont réellement relus.
+
+Distinguer SHA du YAML Git, éventuelle différence du checkout, hash du modèle complet et identités des résultats/frames/records/fragments. _config_sha256 sérialise la configuration JSON sous le domaine landscout.planning_regulation.structure_config ; vérifier les tris de clés de thèmes et la préservation de l'ordre des termes/listes dans le code, sans transposer la formule R5 ou R6.
+
+Ne pas inventer un hash de liste entries ni une règle de source-version fixe empruntée à un autre module. Décrire les vrais champs de payload, géométries éventuelles, nulls, types spéciaux et métadonnées de frame réellement incluses/exclues. Les domaines de hash sont des chaînes de données, pas des fonctions Python manquantes.
+
+G. Preuves de tests
+
+Distinguer chargement d'un fichier réel, index auto-construit, fragments synthétiques, no-op/mocks, chaîne physique synthétique, appel privé, rehash cohérent et comparaison à un résultat reconstruit. Lire les assertions, pas seulement les noms. Ne pas attribuer aux tests unitaires une réouverture de PDF ou une validation officielle qu'ils ne font pas.
+
+Conserver les limites des tests et les gardes anticipées qui peuvent empêcher l'assertion annoncée d'isoler le contrôle voulu. Ne pas ajouter ni modifier de tests sous ce ticket documentaire.
+
+6. Contrôles et exécution autorisée
+
+Un seul appel au loader EXISTANT de cette configuration est autorisé, dans l'environnement déjà installé et avec un garde réseau, pour relever types/comptes et calculer _config_sha256. Aucun paquet installé, aucune modification d'environnement. Conserver commande, exit et portée exacte. Un échec doit être expliqué sans modifier les données ou relancer silencieusement jusqu'à réussite.
+
+Comparaisons mécaniques de textes, hashes, regex et valeurs en mémoire permises ; elles ne constituent pas un passage du pipeline de structure. Ne pas exécuter pytest, structure_planning_regulation, index_planning_regulation, l'interpréteur BESS, leurs validations physiques, un pipeline GPU/EP, une lecture du PDF source ou une production d'artefacts. Ne pas fabriquer un contexte pour faire correspondre les verrous. Aucune recherche juridique ou acquisition de sources officielles.
+
+Comparer toutes les cellules, valeurs vides comprises, aux données exactes ; signatures à leur définition propriétaire ; snapshots et hash à leur base Git/checkout/index nommée. L'exception EOL R6 et celle du ticket RESUME restent inchangées : ne pas les appliquer automatiquement au fichier R7. Mesurer ses octets avant de choisir le format de snapshot.
+
+Vérifier JSON strict, tables/fences, liens, unicité des IDs explicites et des ancres de titres ; compter les occurrences, pas seulement les ensembles. Vérifier les ancres entrantes et la bonne destination symbolique. Un renderer déjà présent peut être utilisé sans installation/upload ; sinon rendu visuel PENDING. Ne pas appeler un check de syntaxe « rendu réussi ».
+
+Reprendre les 106 fichiers protégés depuis leur autorité et tous les chemins hors périmètre contre le départ Git et checkout. Recalculer leurs nombres réels. Préserver les deux exceptions EOL et les 13 signalements whitespace hérités. Nouveau delta propre ; aucune réécriture des archives pour nettoyer le cumul.
+
+7. Clôture bornée et audit INDEX
+
+Départ enregistré : 77/245 fichiers, 1 594/4 769 symboles. Réconcilier les identités originales de façon dédupliquée. Si les deux seules lignes R7 sont bien encore NOT_READ et sont entièrement revues, l'attendu est 79/245 fichiers, 1 594/4 769 symboles, soit 166 fichiers / 3 175 symboles restants. Ne pas forcer ces chiffres si les preuves divergent. Lire des dépendances ne clôture aucun symbole. Le reçu d'approbation R6 ajoute zéro unité.
+
+Après revue et staging EXPLICITE du périmètre, un seul auditeur INDEX inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r7-candidate.stdout.txt
+
+Conserver le stdout complet et le manifeste précis du candidat. Rapporter completed, exit, phases/métriques et changements de constats par rapport à R6 ; ne pas seulement comparer deux totaux. La base R6 est 10 271 constats avec six chaînes de domaine de hash faussement lues comme références qualifiées. Cela ne fixe pas artificiellement le nombre R7.
+
+Exit 1 avec completed=true peut refléter l'audit global toujours partiel ; ce n'est pas un audit propre. Exit 2/timeout/interruption ne constitue pas un contrôle terminé. Ne modifier ni auditeur ni coverage pour masquer les constats. Si seul le reçu est complété ensuite, vérifier séparément cette différence EXACTE de manifeste et les bytes/liens/fences finaux ; pas de seconde exécution globale pour inclure récursivement son propre compte rendu.
+
+8. Publication et arrêt
+
+Enregistrer l'approbation R6 successoralement dans CURRENT_STATE, sans changer les anciens reçus ou leurs PENDING historiques. Conserver tous les constats et validations en attente. R7 reste review PENDING jusqu'à décision indépendante.
+
+Aucun git add global, commit-all, amend, reset, rebase, squash, merge, PR, force-push, push main ou suppression de branche. Stage seulement les chemins relus explicitement. Publier seulement si le périmètre R7 est terminé et les vérifications sont cohérentes :
+
+git commit -m "docs: audit Muret planning structure configuration reference"
+git push origin recovery/docs-continuity-1-partial
+
+Résoudre ensuite le SHA final ; ne pas intégrer un futur self-SHA au reçu. Vérifier arbre/index propre, SHA local/de suivi/distant réel concordants et main inchangé. Identifier le prochain élément réel sans le commencer. En cas de blocage, préserver le travail et nommer les champs/preuves encore ouverts, sans prétendre que R7 ou l'audit global est terminé.
+
+Rapport final : SHA départ/final/main, chemins, propriétaire/deux transitions/progression, plages réellement lues et limites, exécution unique/hashes/types/comptes, préservation/EOL/valeurs/liens/IDs/rendu, éventuels constats concrets, résultat de l'auditeur/manifeste/delta final, réserves ouvertes, prochain élément non commencé.
+
+Libellé de réussite bornée :
+DOCS.CONTINUITY.1.R7 completed — global audit PARTIAL; review pending.
+
+Puis STOP. Aucun nouveau développement fonctionnel ni autre lot documentaire automatique.

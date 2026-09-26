@@ -2,570 +2,448 @@
 
 ## File identity
 
-- Repository path: `configs/planning/muret_plu_structure.yaml`
-- File type: YAML checked-in configuration/policy/source lock
-- Responsibility: Defines deterministic Muret regulation layout, heading grammar, zone aliases, and topic-evidence terms.
+- Repository path: `configs/planning/muret_plu_structure.yaml`.
+- File type: human-authored YAML documentary grammar, not a BESS policy.
+- Source SHA256 basis: `git-content`
 - Source SHA256: `74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a`
+- Git blob OID: `77d73d96066a0b4a8ee18c4de3bf24d07a1aacf5`.
+- Git and R7 checkout: identical 2,287 UTF-8 bytes, 101 LF, zero CR, final LF.
+- Canonical validated-model SHA256: `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`; this is not the raw-file digest.
 
-## 1. Purpose
+The [R7 receipt](../../../audit/R7_PLU_STRUCTURE_CONFIGURATION.md) records the one offline loader call, byte checks, read ranges and limitations. The YAML is unchanged. The old raw digest/snapshots were already correct; the old model declaration and generic explanatory text were not a reliable account of the current boundary.
 
-Defines deterministic Muret regulation layout, heading grammar, zone aliases, and topic-evidence terms.
+## 1. Purpose and boundary
 
-## 2. Position in LandScout architecture
+This file configures how indexed Muret PLU text is partitioned into factual headings/sections, how exact source-zone labels map to chapters, and which literal thematic terms are reported. It does not decide land-use eligibility. `muret_plu_20240215_v1` is a profile identifier, not schema version 1: the supported configuration schema is **2**.
 
-The exact YAML bytes are parsed by `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` into `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig`. Runtime consumers include `structure_planning_regulation`.
+A heading match, alias, topic count or source hash proves neither legal applicability nor a BESS permission/prohibition. An ICPE term is not an ICPE classification. A missing term does not prove absence of a real constraint. No scoring, ranking, parcel rejection, owner/contact logic, new PDF interpretation or official-source acquisition occurs in this configuration audit.
 
-## 3. Imports and dependencies
+## 2. Owner and data flow
 
-Not applicable to YAML. Python/Pydantic consumers are named above and reproduced below.
+The owner is [structure_planning_regulation.py](../../../../../src/landscout/stages/structure_planning_regulation.py), with [its technical companion](../../src/landscout/stages/structure_planning_regulation.py.md). Its loader returns `PlanningRegulationStructureConfig`. The high-level API is also re-exported by `landscout.stages`.
 
-## 4. Contract taxonomy
+`PlanningRegulationIndex` + zone catalog + zoning intersections + this config produce `PlanningRegulationStructureResult`: three ordinary mutable DataFrames, `sections`, `zone_mapping` and `topic_evidence`, inside a frozen dataclass carrying lineage and hashes. A frozen result envelope is not a deeply immutable frame.
 
-Every row below is a configuration field/list leaf. It is not a DataFrame column unless a consuming stage explicitly copies it into a documented result schema.
+Downstream [interpret_bess_zoning.py](../../../../../src/landscout/stages/interpret_bess_zoning.py) receives those inputs plus parcels, a GPU planning document and a **separate** written-zoning policy. It physically revalidates zoning first, rebuilds/validates the factual structure and fragments, then applies its own locks, required-article completeness and evidence routes. Required article IDs and BESS outcomes are not fields in this YAML. See the separately audited [written-zoning policy](muret_bess_zoning_policy.yaml.md); its approval does not approve this companion.
 
-| Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
-|---|---|---|---|---|---|
-| `schema_version` | `2` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required supported schema integer; accepted versions are pinned by the owning Literal/validator | Selects the strict configuration schema; unsupported versions are rejected. | `structure_planning_regulation` |
-| `structure_profile` | `"muret_plu_20240215_v1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `structure profile` under the exact parent path `<root>`. | `structure_planning_regulation` |
-| `document_lock.document_id` | `"33edb4c9f6943c88d8d92518bff20bec"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `document id` under the exact parent path `document_lock`. | `structure_planning_regulation` |
-| `document_lock.pdf_sha256` | `"5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; canonical lowercase SHA256 where the owning model uses CanonicalSha256; required/nullability follows the exact model field | Binds the exact bytes or canonical component named by `pdf_sha256`. | `structure_planning_regulation` |
-| `document_lock.pages_content_sha256` | `"928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; canonical lowercase SHA256 where the owning model uses CanonicalSha256; required/nullability follows the exact model field | Binds the exact bytes or canonical component named by `pages_content_sha256`. | `structure_planning_regulation` |
-| `document_lock.index_content_sha256` | `"6a0009228ca17128c0a8bb329d9c2277a1b6638708a67b913b72ee93063e42cd"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; canonical lowercase SHA256 where the owning model uses CanonicalSha256; required/nullability follows the exact model field | Binds the exact bytes or canonical component named by `index_content_sha256`. | `structure_planning_regulation` |
-| `document_lock.normalization_profile` | `"fr_literal_v1"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `normalization profile` under the exact parent path `document_lock`. | `structure_planning_regulation` |
-| `document_layout.body_start_page` | `1` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `body start page` under the exact parent path `document_layout`. | `structure_planning_regulation` |
-| `document_layout.max_heading_continuation_lines` | `2` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `max heading continuation lines` under the exact parent path `document_layout`. | `structure_planning_regulation` |
-| `document_layout.include_table_of_contents_in_topic_evidence` | `false` | `bool` | source-declared default is `False`; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; required Boolean at this checked-in path unless the exact model declares a default/optional field | Enables/disables the exact include table of contents in topic evidence behavior; Boolean coercion rules belong to the consuming model. | `structure_planning_regulation` |
-| `heading_patterns.zone_chapter[0]` | `"^ZONE\\s+(?P<label>[A-Za-z]+(?:\\s*0)?)\\s*$"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `heading_patterns.zone_chapter`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `heading_patterns.article[0]` | `"^ARTICLE\\s+(?P<zone>[A-Za-z]+(?:\\s*0)?)\\s+(?P<number>\\d+(?:\\.\\d+)?)\\s*[-–—]\\s*(?P<title>.*)$"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `heading_patterns.article`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `heading_patterns.general_section[0]` | `"^ARTICLE\\s+(?P<number>\\d+(?:\\.\\d+)?)\\s*[-–—]\\s*(?P<title>.*)$"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `heading_patterns.general_section`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `heading_patterns.continuation[0]` | `"^[^a-z]*[A-ZÀ-ÖØ-ÞŒ][^a-z]*$"` | `str` | default/default-factory is reproduced in the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `heading_patterns.continuation`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `ignored_patterns.page_headers[0]` | `"^Muret-12ème modification du PLU$"` | `str` | default/default-factory is reproduced in the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `ignored_patterns.page_headers`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `ignored_patterns.page_headers[1]` | `"^\\d+$"` | `str` | default/default-factory is reproduced in the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `ignored_patterns.page_headers`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `zone_aliases.UAa` | `"UA"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UAa` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UAb` | `"UA"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UAb` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UBa` | `"UB"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UBa` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UBb` | `"UB"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UBb` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UFa` | `"UF"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UFa` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UFc` | `"UF"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UFc` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.UFd` | `"UF"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `UFd` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUa` | `"AU"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUa` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUfa` | `"AUf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUfa` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUfb` | `"AUf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUfb` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUfc` | `"AUf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUfc` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUfd` | `"AUf"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUfd` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.AUfo` | `"AUf0"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `AUfo` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.NL` | `"N"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `NL` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.Ne` | `"N"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `Ne` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.Nh` | `"N"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `Nh` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `zone_aliases.Nr` | `"N"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `Nr` under the exact parent path `zone_aliases`. | `structure_planning_regulation` |
-| `topics.destination_and_use[0]` | `"occupation du sol"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.destination_and_use`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.destination_and_use[1]` | `"utilisation du sol"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.destination_and_use`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.destination_and_use[2]` | `"destination"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.destination_and_use`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.public_interest_equipment[0]` | `"équipement public"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.public_interest_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.public_interest_equipment[1]` | `"équipement d'intérêt collectif"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.public_interest_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.public_interest_equipment[2]` | `"service public"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.public_interest_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.public_interest_equipment[3]` | `"intérêt collectif"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.public_interest_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.technical_equipment[0]` | `"ouvrage technique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.technical_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.technical_equipment[1]` | `"installations techniques"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.technical_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.technical_equipment[2]` | `"locaux techniques"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.technical_equipment`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.energy[0]` | `"énergie"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.energy`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.electricity[0]` | `"électricité"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.electricity`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.electricity[1]` | `"électrique"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.electricity`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.transformer[0]` | `"transformateur"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.transformer`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.classified_installation[0]` | `"installation classée"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.classified_installation`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.classified_installation[1]` | `"installations classées"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.classified_installation`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.classified_installation[2]` | `"ICPE"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.classified_installation`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.risk[0]` | `"risque"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.risk`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.risk[1]` | `"risques"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.risk`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.nuisance[0]` | `"nuisance"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.nuisance`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.nuisance[1]` | `"nuisances"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.nuisance`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.fire_safety[0]` | `"incendie"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.fire_safety`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.fire_safety[1]` | `"défense contre l'incendie"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.fire_safety`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.access[0]` | `"accès"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.access`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.access[1]` | `"desserte"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.access`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.setbacks[0]` | `"recul"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.setbacks`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.setbacks[1]` | `"distance minimale"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.setbacks`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.setbacks[2]` | `"implantation"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.setbacks`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.networks[0]` | `"réseau"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.networks`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topics.networks[1]` | `"réseaux"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `topics.networks`; order and uniqueness are validated/consumed where required. | `structure_planning_regulation` |
-| `topic_match_policy.boundary_mode` | `"token"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `boundary mode` under the exact parent path `topic_match_policy`. | `structure_planning_regulation` |
-| `topic_match_policy.overlap_resolution` | `"longest_match"` | `str` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `overlap resolution` under the exact parent path `topic_match_policy`. | `structure_planning_regulation` |
-| `topic_context_characters` | `80` | `int` | required by the owning source declaration; Annotated/Field/StringConstraints metadata and validators are reproduced as deterministic source below; integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `topic context characters` under the exact parent path `<root>`. | `structure_planning_regulation` |
+## 3. Loading, immutable models and field contracts
 
-## STEP 7F.1A.4 dependent-model refresh
+`load_planning_regulation_structure_config` constructs `Path(path)`, reads bytes and calls [loads_strict_yaml](../../../../../src/landscout/common/strict_yaml.py). Paths are relative to the caller's working directory unless absolute; there is no default config path or adjacent-file discovery. The safe YAML loader requires UTF-8 and rejects duplicate keys at every depth, including after merge flattening. The root must be a mapping.
 
-- The YAML bytes and checked-in values are unchanged. STEP 7F.1A.4 changes their owning validation/authority boundary through `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config`; section 5 now embeds the exact current owning model sources and qualified consumers.
-- Decision-input models are frozen/deeply immutable where their current source declares that contract; trust-bearing YAML is decoded through the shared duplicate-rejecting loader where the owning loader source shows that call.
-- No configured policy meaning, source identity, threshold, artifact schema, or output schema is changed by this dependent documentation refresh.
+All six concrete config models inherit `_StrictConfigModel` with `extra="forbid", frozen=True`. Missing required fields, null for any field, unknown keys, wrong literals and scalar coercions prohibited by `StrictStr`/`StrictInt`/`StrictBool` fail validation. Strict integers exclude booleans, strings and floats. Lists in YAML become ordered tuples, not sorted sets. Root mappings become independently copied `FrozenDict` values through [freeze_mapping](../../../../../src/landscout/common/immutable_mapping.py); nested term lists become tuples. No caller-owned backing dictionary is retained. Mutation through mapping operations or field assignment fails.
 
-## 5. Classes / models / dataclasses
+`zone_aliases` is declared `Mapping[StrictStr, StrictStr]` and `topics` is `Mapping[StrictStr, tuple[StrictStr, ...]]`, **not dict fields**. Serializers return fresh ordinary dictionaries; JSON topic serialization returns fresh lists while Python mode retains immutable tuple values. These detached serialization products are not aliases for mutation of the retained config. `_resolved_config` reconstructs an incoming model from `model_dump(mode="python")` and validates it again; passing a frozen instance or an unchecked `model_copy(update=...)` does not bypass this boundary. A path is reloaded instead.
 
-- Exact checked-in configuration SHA256 remains `74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a`; its values are unchanged by STEP 7F.1A.4.
-- Authoritative loader/config boundary: `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config`.
-- Owning Python module: `landscout.stages.structure_planning_regulation`.
-- The owning model declarations below are refreshed from the current source so frozen/deeply immutable fields, strict serialization, exact domains, validators, and internal metadata schemas cannot remain stale merely because the YAML bytes did not change.
+| Field/family | Required/default and retained type | Validation, transformation and use |
+|---|---|---|
+| `schema_version` | Required strict integer | Root accepts exactly 2. It is copied into result lineage and hashed. |
+| `structure_profile` | Required strict string, nonempty | Root requires equality with its stripped value; no trimming is performed. Exact profile appears in all output frames and hashes. |
+| `document_lock` | Required `DocumentLockConfig`, five required strings | Nested model requires nonempty document/profile strings and three lowercase 64-hex SHA strings. Root additionally checks document ID and normalization profile for nonempty exact stripped equality. This is not a document-ID-format or profile-enum validator. |
+| `document_layout` | Required `DocumentLayoutConfig` | Four fields below; checks on real indexed page existence occur later, not in the loader. |
+| `body_start_page` | Required strict integer ≥1 | First page eligible for structural heading recognition and body extraction-error gating; does not discard preceding records/topic text. Configured 1. |
+| `table_of_contents_pages` | Optional tuple of strict integers, default `()` | Positive, unique, ascending; validator compares with sorted unique pages but never sorts the input. Configured YAML `[]` becomes `()`. |
+| `max_heading_continuation_lines` | Required strict integer, 0..10 inclusive | Maximum extra lines after a non-zone heading, same source page. Configured 2, not a default. |
+| `include_table_of_contents_in_topic_evidence` | Optional strict Boolean, default `False` | Configured false; suppresses thematic rows on declared TOC pages without dropping their retained records/sections. |
+| `heading_patterns` | Required `HeadingPatternsConfig` | `zone_chapter`, `article`, `general_section` required nonempty tuples of strict strings. `continuation` defaults to `()`. Nested model checks types/lengths; root performs regex/exactness/capture checks. |
+| `ignored_patterns` | Required `IgnoredPatternsConfig` | `page_headers` and `page_footers` each default to `()`; root validates their member strings/regexes. The enclosing object itself has no default. |
+| `zone_aliases` | Required immutable mapping; empty mapping allowed | Both keys and targets nonempty exact strings; root rejects cycles including self-cycles. It does not require terminal targets to be present in an index it has not received. |
+| `topics` | Required immutable mapping of tuple terms | Root requires ≥1 topic and ≥1 term per topic. Topic names and terms nonempty/exact. Every term normalizes nonempty; duplicate normalized terms rejected **within** each topic, not across topics. |
+| `topic_match_policy` | Required `TopicMatchPolicyConfig` | Both fields required; only `boundary_mode="token"` and `overlap_resolution="longest_match"`. Derived `identifier` is `token_longest_match`, not another YAML field. |
+| `topic_context_characters` | Required strict integer ≥0, no upper bound in this model | Configured 80 normalized Python characters on each side of the first retained match, clipped to the section/page fragment. Included in the model hash. |
 
-### `_StrictConfigModel`
+All fields participate in the complete model hash. Nested model construction alone is not equivalent to the root's regex, exact-string, alias-cycle or normalized-term checks. The local SHA shape is not physical proof of the indexed pages.
 
-**Source purpose:** Defines `_StrictConfigModel`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+## 4. Exact configuration values
 
-- Exact decorators: none.
-- Exact bases: `BaseModel`.
+Ten root fields; five locks; four layout fields; four heading families containing four regexes; two ignored families containing two header regexes and zero footer regexes; 17 aliases; 13 topics / 30 terms; two match-policy fields. **68 terminal values**: 61 strings, four integers, one Boolean and two empty arrays; no nulls. Keys, list order, apostrophes, accents and case below are literal. JSON strings use doubled backslashes to display a single decoded regex backslash; the exact YAML snapshot retains its original single-quoted regex scalars.
 
-**Fields and model attributes**
+| Exact YAML path | Exact decoded value as JSON | Retained leaf type |
+|---|---|---|
+| `schema_version` | `2` | `int` |
+| `structure_profile` | `"muret_plu_20240215_v1"` | `str` |
+| `document_lock.document_id` | `"33edb4c9f6943c88d8d92518bff20bec"` | `str` |
+| `document_lock.pdf_sha256` | `"5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb"` | `str` |
+| `document_lock.pages_content_sha256` | `"928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9"` | `str` |
+| `document_lock.index_content_sha256` | `"6a0009228ca17128c0a8bb329d9c2277a1b6638708a67b913b72ee93063e42cd"` | `str` |
+| `document_lock.normalization_profile` | `"fr_literal_v1"` | `str` |
+| `document_layout.body_start_page` | `1` | `int` |
+| `document_layout.table_of_contents_pages` | `[]` | `tuple (empty)` |
+| `document_layout.max_heading_continuation_lines` | `2` | `int` |
+| `document_layout.include_table_of_contents_in_topic_evidence` | `false` | `bool` |
+| `heading_patterns.zone_chapter[0]` | `"^ZONE\\s+(?P<label>[A-Za-z]+(?:\\s*0)?)\\s*$"` | `str` |
+| `heading_patterns.article[0]` | `"^ARTICLE\\s+(?P<zone>[A-Za-z]+(?:\\s*0)?)\\s+(?P<number>\\d+(?:\\.\\d+)?)\\s*[-–—]\\s*(?P<title>.*)$"` | `str` |
+| `heading_patterns.general_section[0]` | `"^ARTICLE\\s+(?P<number>\\d+(?:\\.\\d+)?)\\s*[-–—]\\s*(?P<title>.*)$"` | `str` |
+| `heading_patterns.continuation[0]` | `"^[^a-z]*[A-ZÀ-ÖØ-ÞŒ][^a-z]*$"` | `str` |
+| `ignored_patterns.page_headers[0]` | `"^Muret-12ème modification du PLU$"` | `str` |
+| `ignored_patterns.page_headers[1]` | `"^\\d+$"` | `str` |
+| `ignored_patterns.page_footers` | `[]` | `tuple (empty)` |
+| `zone_aliases.UAa` | `"UA"` | `str` |
+| `zone_aliases.UAb` | `"UA"` | `str` |
+| `zone_aliases.UBa` | `"UB"` | `str` |
+| `zone_aliases.UBb` | `"UB"` | `str` |
+| `zone_aliases.UFa` | `"UF"` | `str` |
+| `zone_aliases.UFc` | `"UF"` | `str` |
+| `zone_aliases.UFd` | `"UF"` | `str` |
+| `zone_aliases.AUa` | `"AU"` | `str` |
+| `zone_aliases.AUfa` | `"AUf"` | `str` |
+| `zone_aliases.AUfb` | `"AUf"` | `str` |
+| `zone_aliases.AUfc` | `"AUf"` | `str` |
+| `zone_aliases.AUfd` | `"AUf"` | `str` |
+| `zone_aliases.AUfo` | `"AUf0"` | `str` |
+| `zone_aliases.NL` | `"N"` | `str` |
+| `zone_aliases.Ne` | `"N"` | `str` |
+| `zone_aliases.Nh` | `"N"` | `str` |
+| `zone_aliases.Nr` | `"N"` | `str` |
+| `topics.destination_and_use[0]` | `"occupation du sol"` | `str` |
+| `topics.destination_and_use[1]` | `"utilisation du sol"` | `str` |
+| `topics.destination_and_use[2]` | `"destination"` | `str` |
+| `topics.public_interest_equipment[0]` | `"équipement public"` | `str` |
+| `topics.public_interest_equipment[1]` | `"équipement d'intérêt collectif"` | `str` |
+| `topics.public_interest_equipment[2]` | `"service public"` | `str` |
+| `topics.public_interest_equipment[3]` | `"intérêt collectif"` | `str` |
+| `topics.technical_equipment[0]` | `"ouvrage technique"` | `str` |
+| `topics.technical_equipment[1]` | `"installations techniques"` | `str` |
+| `topics.technical_equipment[2]` | `"locaux techniques"` | `str` |
+| `topics.energy[0]` | `"énergie"` | `str` |
+| `topics.electricity[0]` | `"électricité"` | `str` |
+| `topics.electricity[1]` | `"électrique"` | `str` |
+| `topics.transformer[0]` | `"transformateur"` | `str` |
+| `topics.classified_installation[0]` | `"installation classée"` | `str` |
+| `topics.classified_installation[1]` | `"installations classées"` | `str` |
+| `topics.classified_installation[2]` | `"ICPE"` | `str` |
+| `topics.risk[0]` | `"risque"` | `str` |
+| `topics.risk[1]` | `"risques"` | `str` |
+| `topics.nuisance[0]` | `"nuisance"` | `str` |
+| `topics.nuisance[1]` | `"nuisances"` | `str` |
+| `topics.fire_safety[0]` | `"incendie"` | `str` |
+| `topics.fire_safety[1]` | `"défense contre l'incendie"` | `str` |
+| `topics.access[0]` | `"accès"` | `str` |
+| `topics.access[1]` | `"desserte"` | `str` |
+| `topics.setbacks[0]` | `"recul"` | `str` |
+| `topics.setbacks[1]` | `"distance minimale"` | `str` |
+| `topics.setbacks[2]` | `"implantation"` | `str` |
+| `topics.networks[0]` | `"réseau"` | `str` |
+| `topics.networks[1]` | `"réseaux"` | `str` |
+| `topic_match_policy.boundary_mode` | `"token"` | `str` |
+| `topic_match_policy.overlap_resolution` | `"longest_match"` | `str` |
+| `topic_context_characters` | `80` | `int` |
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `model_config` | `inferred from assignment` | `ConfigDict(extra="forbid", frozen=True)` | `model_config = ConfigDict(extra="forbid", frozen=True)` |
+## 5. Document locks and retained pages
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+After resolving/revalidating config, `_validate_document_lock` first calls `validate_planning_regulation_index(index)`. That validator checks index metadata, supported normalization/schema versions, page order/count, extraction status, raw/normalized text, character counts and all page/pages/index hashes in memory. It does **not** reopen the PDF.
 
-**Qualified consumers**
+The five exact comparisons then run in this order: index `document_id` against the lock; `pdf_sha256`; `pages_content_sha256`; `index_content_sha256`; `search_normalization_profile` against `normalization_profile`. Any mismatch raises `PlanningRegulationStructureError`. There is no sixth archive lock in this YAML; archive lineage is carried by the index and checked against zoning inputs.
 
-- No conservative direct repository consumer was found.
+Next, the body start and every TOC page must be real indexed page numbers. Any page at/after body start, outside the configured TOC set, with extraction status `ERROR` stops processing. A successfully extracted blank `EMPTY` page remains valid. The loader alone receives no index and performs none of these equalities or existence checks. A correctly shaped lock/hash is not evidence that current physical PDF bytes were read.
 
-**Exact class source**
+`_line_records` visits all indexed pages in their validated order, splits raw text with `splitlines()` and applies positional header/footer filtering. The first nonblank line must fullmatch a header pattern before a leading run of matching headers and blanks is removed; symmetrically the last nonblank line must fullmatch a footer before a trailing run is removed. Matching text inside the body is preserved. With the configured empty footer list, no footer removal is enabled; the numeric regex is a **header** rule here, not a universal page-number deletion rule.
 
-```python
-class _StrictConfigModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-```
+Remaining raw lines, including blanks, retain their original page/line numbers and receive sequential `RECORD-000001` IDs. No records at all fails. Before-body and TOC records remain; only their heading eligibility differs. Empty configured TOC pages prove no declared exclusion, not that the real document has no table of contents.
 
-### `DocumentLockConfig`
+## 6. Exact regex behavior
 
-**Source purpose:** Defines `DocumentLockConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+All six regexes are compiled with `re.compile(pattern)` and **no added flags**: case-sensitive Unicode behavior, no IGNORECASE/MULTILINE/DOTALL. Both ignored patterns and structural/continuation patterns use `fullmatch` on the raw line's `strip()` value. Search normalization is used for output fields and topics, not before title classification. Anchors below therefore supplement whole-string matching. In these expressions `\s` and `\d` have Python's Unicode meanings, whereas `[A-Za-z]` is the literal ASCII alphabet.
 
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
+| Configured member | Meaning of the exact expression shown in section 4 |
+|---|---|
+| `heading_patterns.zone_chapter[0]` | Literal uppercase `ZONE`, ≥1 whitespace, named `label` of ≥1 ASCII letters followed optionally by whitespace and exactly the digit `0`; optional trailing whitespace. No other numeric suffix. Captured label whitespace is removed by `_canonical_chapter_label`. |
+| `heading_patterns.article[0]` | Literal uppercase `ARTICLE`; named `zone` with the same letter/optional-zero grammar; whitespace then named `number` of digits, optionally a dot and further digits; optional whitespace around one hyphen/en dash/em dash; named `title` captures the remaining text, including an initially empty title. |
+| `heading_patterns.general_section[0]` | Same article-number, separator and title grammar without a zone capture between `ARTICLE` and the number. It yields GENERAL rather than a zone ARTICLE. |
+| `heading_patterns.continuation[0]` | Whole line without ASCII lowercase `a-z`, containing at least one character in `A-ZÀ-ÖØ-ÞŒ`. Other characters are allowed by the two negated classes. This is **not** a Unicode-wide “uppercase only” test: e.g. lowercase accented letters are not excluded by `[^a-z]`. |
+| `ignored_patterns.page_headers[0]` | Exact case/accent/hyphen/spaces of `Muret-12ème modification du PLU` after border stripping; no generic Muret/header heuristic. |
+| `ignored_patterns.page_headers[1]` | One or more Unicode decimal digits only after border stripping; no punctuation or sign. It acts only within an eligible leading header run. |
 
-**Fields and model attributes**
+Root validation first rejects exact duplicates **within each** of the six lists, empty/whitespace-padded strings and uncompilable regexes. It separately rejects an identical regex reused across the three structural groups (ZONE_CHAPTER, GENERAL, ARTICLE). Continuation/header/footer reuse across different groups is not covered by that structural cross-group check. Every structural pattern must contain the required named capture keys: `label`; `zone, number, title`; or `number, title` respectively. Presence of a capture name does not prove that a custom pattern always captures a nonempty usable value.
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `document_id` | `StrictStr` | `Field(min_length=1)` | `document_id: StrictStr = Field(min_length=1)` |
-| `pdf_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
-| `pages_content_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
-| `index_content_sha256` | `StrictStr` | `Field(pattern=r"^[0-9a-f]{64}$")` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` |
-| `normalization_profile` | `StrictStr` | `Field(min_length=1)` | `normalization_profile: StrictStr = Field(min_length=1)` |
+At runtime `_classify_structural_heading` collects **all** matches, in zone/general/article group order and pattern order. Multiple matches fail with record ID, page, line and category/pattern indexes; there is no first-match policy winner. Different valid expressions can overlap even though they pass the exact-duplicate check.
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+For GENERAL/ARTICLE headings only, up to two extra contiguous nonblank lines on the same page can be consumed. A continuation candidate is first checked against all structural regexes: another heading stops continuation; ambiguous structural matches raise rather than being swallowed. It must then match a continuation regex. Zero allowed continuation lines means no extra line; zone-chapter headings never continue. `heading_raw` joins original lines by LF; normalized heading is separately derived. The title joins stripped captured title and continuation lines with spaces, then strips; an empty final title becomes None and is rejected by the later GENERAL/ARTICLE section contract.
 
-**Qualified consumers**
+Article numbers remain captured strings (including any decimal syntax), not integers or required-article completeness judgments. Chapter labels remove captured whitespace. The builder compares an ARTICLE's captured zone to the active chapter with `casefold()` and retains the chapter spelling; this local parent check is distinct from the case-sensitive GPU-label mapping below.
 
-- No conservative direct repository consumer was found.
+## 7. Section partition and page fragments
 
-**Exact class source**
+`_section_starts` builds boundaries at recognized headings and at contiguous configured TOC blocks; TOC sections are forced OTHER. Nonempty prefix text becomes OTHER; ordinary blank prefixes/gaps attach to the next actual heading, trailing blank records to the preceding section. Explicit blank TOC blocks remain OTHER even if blank-only (a following blank tail can join them). Empty pages with no retained lines do not manufacture a record. Source records form a lossless, ordered partition **after positional filtering**, not a byte-for-byte copy of the whole original PDF or its original newline separators.
 
-```python
-class DocumentLockConfig(_StrictConfigModel):
-    document_id: StrictStr = Field(min_length=1)
-    pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
-    pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
-    index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
-    normalization_profile: StrictStr = Field(min_length=1)
-```
+Sections have sequential `SECTION-0001` IDs. ZONE_CHAPTER opens the active chapter; ARTICLE must have a preceding chapter and matching captured zone; GENERAL clears the active chapter; OTHER itself has no parent/zone/article fields. Chapter/OTHER article fields are null. ARTICLE and GENERAL require nonempty article number/title in final validation. No new chapter-title semantics or legal conclusion is inferred.
 
-### `DocumentLayoutConfig`
+Each section retains raw text joined by LF, separately normalized text, Python-character count, inclusive first/last record IDs, record count/hash, source pages in ascending unique order, heading, nullable parent/zone/article information and lineage. The page fragment for each section/page joins that section's retained lines on that page by LF. Fragment offsets later used by policy refer to this reconstructed text, not PDF file-byte offsets.
 
-**Source purpose:** Defines `DocumentLayoutConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+Self-validation checks exact frame column order, nonempty sections, sequential IDs, known/in-order pages, source-record partition without omission/duplication, raw/normalized text and counts, row/record/lineage hashes and parent semantics. Reconstruction subsequently compares the expected values independently; a coordinated outer rehash is not source authority.
 
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
+## 8. Exact aliases, mapping and counts
 
-**Fields and model attributes**
+All 17 literal alias pairs are listed in section 4 and the snapshot. They are not fuzzy prefixes or case-normalization instructions. In particular `AUfo → AUf0` maps source lowercase letter **o** to target digit **0** for this **one exact key**; it does not enable a general o/0 substitution. Heading grammar capture, captured-label whitespace removal and source-label resolution are separate operations. Raw GPU labels are required exact nonempty strings and are not stripped or rewritten.
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `body_start_page` | `StrictInt` | `Field(ge=1)` | `body_start_page: StrictInt = Field(ge=1)` |
-| `table_of_contents_pages` | `tuple[StrictInt, ...]` | `()` | `table_of_contents_pages: tuple[StrictInt, ...] = ()` |
-| `max_heading_continuation_lines` | `StrictInt` | `Field(ge=0, le=10)` | `max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)` |
-| `include_table_of_contents_in_topic_evidence` | `StrictBool` | `False` | `include_table_of_contents_in_topic_evidence: StrictBool = False` |
+For each sorted distinct raw label in the supplied zone catalog, `_build_zone_mapping` first counts chapters with exactly that label. One yields EXACT / EXACT_HEADING, same label and section ID. More than one yields AMBIGUOUS / AMBIGUOUS with no resolved label or section. Only zero exact chapters allows traversal of the explicit alias mapping to its final non-key target; cycles are rejected by root validation and guarded again during traversal. One target chapter yields CONFIG_ALIAS / CONFIG_ALIAS; several yield AMBIGUOUS with the final target label but no matched section. No key, or no chapter at the terminal target, yields UNMAPPED / NONE with null resolved label/section. An exact match takes priority over any configured alias.
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
+The loader does not validate that all aliases are used or targets exist in a future document. No fallback by prefix, casefold, spelling similarity, general zero replacement or implicit parent-zone family exists in this mapping.
 
-**Qualified consumers**
+Per-label counts are: catalog polygons; distinct candidate parcels; all candidate intersection rows (including TOUCH_ONLY); and dominant candidates. Dominance uses only positive areas, stable ordering by parcel ID, descending intersection area, then ascending planning-zone ID, and keeps one row per parcel. Any dominant label not EXACT/CONFIG_ALIAS aborts. Non-dominant unresolved labels stay explicit. Counts must satisfy dominant ≤ parcels ≤ intersections; polygon count is positive. These counts are factual coverage, not scores.
 
-- value/type reference: `landscout.stages.structure_planning_regulation::DocumentLayoutConfig._validate_pages` via `DocumentLayoutConfig`
+## 9. Literal topics, ordering and character positions
 
-**Exact class source**
+The terms in section 4 are literal strings, not regexes. The index and structure use the same [planning_text.py](../../../../../src/landscout/common/planning_text.py) functions under `fr_literal_v1`: NFKD decomposition, combining-mark removal, case folding, œ/æ expansion, configured apostrophe/dash unification, soft-hyphen removal with raw-span retention, whitespace collapse and removal of leading/trailing search whitespace. Raw text and exact configured terms remain separately available; accents/apostrophe typography in displayed raw context are not overwritten.
 
-```python
-class DocumentLayoutConfig(_StrictConfigModel):
-    body_start_page: StrictInt = Field(ge=1)
-    table_of_contents_pages: tuple[StrictInt, ...] = ()
-    max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)
-    include_table_of_contents_in_topic_evidence: StrictBool = False
+For each topic in **sorted topic-key order**, then each section in source order, then each page fragment, `_literal_topic_matches` scans each normalized term using `str.find` with the next cursor at start+1. Both outer neighbors must be absent or neither alphanumeric (`isalnum()`) nor underscore. Thus `risque` does not match inside `risques` or `dérisque`. It is not linguistic stemming or a whole-word library.
 
-    @model_validator(mode="after")
-    def _validate_pages(self) -> DocumentLayoutConfig:
-        pages = self.table_of_contents_pages
-        if any(page < 1 for page in pages) or tuple(sorted(set(pages))) != pages:
-            raise ValueError(
-                "table_of_contents_pages must contain unique ascending positive integers"
-            )
-        return self
-```
+Overlap competition is only among terms **within that one topic and one section/page fragment**. Candidates sort by descending normalized length, then configured term index, then start position. Greedy selection rejects any strict interval overlap with an already selected candidate; adjacent spans may coexist. Selected matches are finally ordered by start and term index. Equal-length overlap uses configured term order, not alphabetic spelling; different topics do not suppress each other.
 
-### `HeadingPatternsConfig`
+Output rows are emitted in topic-key, section, page and **configured term** order. A row exists only when that term retains at least one match, with `occurrence_count` counting those retained nonoverlapping matches in that section/page, not across the document. The row stores the first retained occurrence. Searches do not cross page or section boundaries. Declared TOC fragments are skipped when the flag is false; pre-body OTHER text is not automatically excluded.
 
-**Source purpose:** Defines `HeadingPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+Scope is purely section-derived: GENERAL → GENERAL_RULE; ZONE_CHAPTER or ARTICLE → ZONE_SPECIFIC_RULE; OTHER → OTHER_TEXT. These labels identify location, not applicability.
 
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
+`first_match_normalized_start/end` and `first_match_raw_start/end` are zero-based **Python character offsets, half-open [start,end)**, relative to the normalized/raw section-page fragment. They are neither UTF-8 byte offsets nor whole-PDF/page-global offsets. The raw mapping takes the first normalized character's raw start and last matched character's raw end. Normalization expansions and combining characters mean raw and normalized lengths need not agree.
 
-**Fields and model attributes**
+Configured context 80 expands from the first match by at most 80 normalized characters on **each** side, clipped to that fragment. `normalized_context` is the normalized slice; `raw_context` is the exact raw substring spanning it, via the mapping. Eighty does not mean 80 raw bytes/characters or a fixed total snippet length. Evidence validation reruns matching and verifies counts, positions, scope, contexts, section/page ownership, term policy, uniqueness and lineage.
 
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `zone_chapter` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)` |
-| `article` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `article: tuple[StrictStr, ...] = Field(min_length=1)` |
-| `general_section` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `general_section: tuple[StrictStr, ...] = Field(min_length=1)` |
-| `continuation` | `tuple[StrictStr, ...]` | `()` | `continuation: tuple[StrictStr, ...] = ()` |
+## 10. Public APIs and revalidation
 
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
-
-**Qualified consumers**
-
-- No conservative direct repository consumer was found.
-
-**Exact class source**
+These signatures are copied from the owner, not guessed CLI interfaces:
 
 ```python
-class HeadingPatternsConfig(_StrictConfigModel):
-    zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)
-    article: tuple[StrictStr, ...] = Field(min_length=1)
-    general_section: tuple[StrictStr, ...] = Field(min_length=1)
-    continuation: tuple[StrictStr, ...] = ()
+def load_planning_regulation_structure_config(
+    path: str | Path,
+) -> PlanningRegulationStructureConfig:
 ```
-
-### `IgnoredPatternsConfig`
-
-**Source purpose:** Defines `IgnoredPatternsConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
-
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
-
-**Fields and model attributes**
-
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `page_headers` | `tuple[StrictStr, ...]` | `()` | `page_headers: tuple[StrictStr, ...] = ()` |
-| `page_footers` | `tuple[StrictStr, ...]` | `()` | `page_footers: tuple[StrictStr, ...] = ()` |
-
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
-
-**Qualified consumers**
-
-- No conservative direct repository consumer was found.
-
-**Exact class source**
 
 ```python
-class IgnoredPatternsConfig(_StrictConfigModel):
-    page_headers: tuple[StrictStr, ...] = ()
-    page_footers: tuple[StrictStr, ...] = ()
+def structure_planning_regulation(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+) -> PlanningRegulationStructureResult:
 ```
-
-### `TopicMatchPolicyConfig`
-
-**Source purpose:** Defines `TopicMatchPolicyConfig`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
-
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
-
-**Fields and model attributes**
-
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `boundary_mode` | `Literal['token']` | `required` | `boundary_mode: Literal["token"]` |
-| `overlap_resolution` | `Literal['longest_match']` | `required` | `overlap_resolution: Literal["longest_match"]` |
-
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
-
-**Qualified consumers**
-
-- No conservative direct repository consumer was found.
-
-**Exact class source**
 
 ```python
-class TopicMatchPolicyConfig(_StrictConfigModel):
-    boundary_mode: Literal["token"]
-    overlap_resolution: Literal["longest_match"]
-
-    @property
-    def identifier(self) -> str:
-        return f"{self.boundary_mode}_{self.overlap_resolution}"
+def validate_planning_regulation_structure(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> None:
 ```
-
-### `PlanningRegulationStructureConfig`
-
-**Source purpose:** Strict, document-locked grammar for one factual regulation structure.
-
-- Exact decorators: none.
-- Exact bases: `_StrictConfigModel`.
-
-**Fields and model attributes**
-
-| Field | Annotation/kind | Default or assignment | Exact declaration |
-|---|---|---|---|
-| `schema_version` | `StrictInt` | `required` | `schema_version: StrictInt` |
-| `structure_profile` | `StrictStr` | `Field(min_length=1)` | `structure_profile: StrictStr = Field(min_length=1)` |
-| `document_lock` | `DocumentLockConfig` | `required` | `document_lock: DocumentLockConfig` |
-| `document_layout` | `DocumentLayoutConfig` | `required` | `document_layout: DocumentLayoutConfig` |
-| `heading_patterns` | `HeadingPatternsConfig` | `required` | `heading_patterns: HeadingPatternsConfig` |
-| `ignored_patterns` | `IgnoredPatternsConfig` | `required` | `ignored_patterns: IgnoredPatternsConfig` |
-| `zone_aliases` | `dict[StrictStr, StrictStr]` | `required` | `zone_aliases: dict[StrictStr, StrictStr]` |
-| `topics` | `dict[StrictStr, tuple[StrictStr, ...]]` | `required` | `topics: dict[StrictStr, tuple[StrictStr, ...]]` |
-| `topic_match_policy` | `TopicMatchPolicyConfig` | `required` | `topic_match_policy: TopicMatchPolicyConfig` |
-| `topic_context_characters` | `StrictInt` | `Field(ge=0)` | `topic_context_characters: StrictInt = Field(ge=0)` |
-
-Field meaning is owned by this class, its exact annotation/default, validators/methods, and qualified consumers; no field is promoted to a frame column or business conclusion merely from its name.
-
-**Qualified consumers**
-
-- public re-export: `landscout.stages::<module>` via `from landscout.stages.structure_planning_regulation import (
-    PlanningRegulationStructureConfig,
-    PlanningRegulationStructureError,
-    PlanningRegulationStructureResult,
-    load_planning_regulation_structure_config,
-    planning_regulation_section_page_fragments,
-    structure_planning_regulation,
-    validate_planning_regulation_structure,
-    validate_planning_regulation_structure_with_fragments,
-)`
-- import: `landscout.stages.interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
-    PlanningRegulationStructureConfig,
-    PlanningRegulationStructureError,
-    PlanningRegulationStructureResult,
-    validate_planning_regulation_structure_with_fragments,
-)`
-- value/type reference: `landscout.stages.interpret_bess_zoning::_build_result` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.interpret_bess_zoning::validate_bess_zoning_precheck` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.interpret_bess_zoning::interpret_bess_zoning` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::PlanningRegulationStructureConfig._validate_grammar` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::load_planning_regulation_structure_config` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_config_sha256` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_validate_document_lock` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_line_records` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_heading_events` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_section_starts` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_build_sections` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_build_zone_mapping` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_build_topic_evidence` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_validate_sections` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_validate_zone_mapping` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_validate_topic_evidence` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_build_structure_result` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_validate_result_self` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::_resolved_config` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure_with_fragments` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::validate_planning_regulation_structure` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::planning_regulation_section_page_fragments` via `PlanningRegulationStructureConfig`
-- value/type reference: `landscout.stages.structure_planning_regulation::structure_planning_regulation` via `PlanningRegulationStructureConfig`
-- import: `tests.integration.test_gpu_planning_end_to_end::<module>` via `from landscout.stages.structure_planning_regulation import (
-    PlanningRegulationStructureConfig,
-    PlanningRegulationStructureResult,
-    structure_planning_regulation,
-)`
-- value/type reference: `tests.integration.test_gpu_planning_end_to_end::_structure_config` via `PlanningRegulationStructureConfig`
-- import: `tests.unit.test_interpret_bess_zoning::<module>` via `from landscout.stages.structure_planning_regulation import (
-    PlanningRegulationStructureConfig,
-    planning_regulation_section_page_fragments,
-    structure_planning_regulation,
-)`
-- value/type reference: `tests.unit.test_interpret_bess_zoning::_structure_config` via `PlanningRegulationStructureConfig`
-- import: `tests.unit.test_structure_planning_regulation::<module>` via `from landscout.stages.structure_planning_regulation import (
-    SECTION_HASH_SCHEMA_VERSION,
-    STRUCTURE_MANIFEST_SCHEMA_VERSION,
-    PlanningRegulationStructureConfig,
-    PlanningRegulationStructureError,
-    _heading_events,
-    _line_records,
-    _literal_topic_matches,
-    _result_with_hashes,
-    _section_content_sha256,
-    load_planning_regulation_structure_config,
-    structure_planning_regulation,
-    validate_planning_regulation_structure,
-    validate_planning_regulation_structure_with_fragments,
-)`
-- value/type reference: `tests.unit.test_structure_planning_regulation::_config` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_old_and_unknown_config_schema_versions_are_rejected` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_topic_evidence_flag_rejects_boolean_coercion` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_topic_evidence_flag_accepts_exact_booleans` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_evidence_scope_is_derived_from_exact_section_type` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_only_prefix_is_preserved_in_first_actual_section` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::_structure_with_document_layout` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_heading_patterns_require_mandatory_named_captures` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_optional_pattern_lists_may_be_empty` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::_config_with_structural_patterns` via `PlanningRegulationStructureConfig`
-- value/type reference: `tests.unit.test_structure_planning_regulation::test_identical_structural_regex_across_groups_is_rejected_by_config` via `PlanningRegulationStructureConfig`
-
-**Exact class source**
 
 ```python
-class PlanningRegulationStructureConfig(_StrictConfigModel):
-    """Strict, document-locked grammar for one factual regulation structure."""
-
-    schema_version: StrictInt
-    structure_profile: StrictStr = Field(min_length=1)
-    document_lock: DocumentLockConfig
-    document_layout: DocumentLayoutConfig
-    heading_patterns: HeadingPatternsConfig
-    ignored_patterns: IgnoredPatternsConfig
-    zone_aliases: dict[StrictStr, StrictStr]
-    topics: dict[StrictStr, tuple[StrictStr, ...]]
-    topic_match_policy: TopicMatchPolicyConfig
-    topic_context_characters: StrictInt = Field(ge=0)
-
-    @model_validator(mode="after")
-    def _validate_grammar(self) -> PlanningRegulationStructureConfig:
-        if self.schema_version != _SUPPORTED_CONFIG_SCHEMA_VERSION:
-            raise ValueError(
-                f"unsupported structure config schema: {self.schema_version}"
-            )
-        _exact_config_string(self.structure_profile, "structure_profile")
-        _exact_config_string(self.document_lock.document_id, "document_id")
-        _exact_config_string(
-            self.document_lock.normalization_profile,
-            "normalization_profile",
-        )
-        pattern_groups = (
-            self.heading_patterns.zone_chapter,
-            self.heading_patterns.article,
-            self.heading_patterns.general_section,
-            self.heading_patterns.continuation,
-            self.ignored_patterns.page_headers,
-            self.ignored_patterns.page_footers,
-        )
-        for patterns in pattern_groups:
-            if len(set(patterns)) != len(patterns):
-                raise ValueError("regular-expression patterns must be unique")
-            for pattern in patterns:
-                _exact_config_string(pattern, "regular-expression pattern")
-                try:
-                    re.compile(pattern)
-                except re.error as error:
-                    raise ValueError(
-                        f"invalid regular expression: {pattern}"
-                    ) from error
-        structural_pattern_owners: dict[str, str] = {}
-        for category, patterns in (
-            ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
-            ("GENERAL", self.heading_patterns.general_section),
-            ("ARTICLE", self.heading_patterns.article),
-        ):
-            for pattern in patterns:
-                previous = structural_pattern_owners.get(pattern)
-                if previous is not None:
-                    raise ValueError(
-                        "identical structural heading regex is reused across "
-                        f"groups {previous} and {category}"
-                    )
-                structural_pattern_owners[pattern] = category
-        required_captures = (
-            (self.heading_patterns.zone_chapter, {"label"}, "zone chapter"),
-            (
-                self.heading_patterns.article,
-                {"zone", "number", "title"},
-                "zone article",
-            ),
-            (
-                self.heading_patterns.general_section,
-                {"number", "title"},
-                "general section",
-            ),
-        )
-        for patterns, required, label in required_captures:
-            for pattern in patterns:
-                missing = required.difference(re.compile(pattern).groupindex)
-                if missing:
-                    raise ValueError(
-                        f"{label} pattern lacks named captures: {sorted(missing)}"
-                    )
-        for alias, target in self.zone_aliases.items():
-            _exact_config_string(alias, "zone alias")
-            _exact_config_string(target, "zone alias target")
-        _validate_alias_cycles(self.zone_aliases)
-        if not self.topics:
-            raise ValueError("topics must not be empty")
-        for topic in sorted(self.topics):
-            terms = self.topics[topic]
-            _exact_config_string(topic, "topic")
-            if not terms:
-                raise ValueError(f"topic {topic!r} must contain literal terms")
-            normalized: set[str] = set()
-            for term in terms:
-                _exact_config_string(term, "topic search term")
-                normalized_term = _normalize_search_text(term)
-                if not normalized_term or normalized_term in normalized:
-                    raise ValueError(
-                        f"topic {topic!r} contains duplicate normalized terms"
-                    )
-                normalized.add(normalized_term)
-        object.__setattr__(self, "zone_aliases", freeze_mapping(self.zone_aliases))
-        object.__setattr__(self, "topics", freeze_mapping(self.topics))
-        return self
+def validate_planning_regulation_structure_with_fragments(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> pd.DataFrame:
 ```
 
-## 6. Functions and methods
+```python
+def planning_regulation_section_page_fragments(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> pd.DataFrame:
+```
 
-Loader: `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, exact validation, and any hashing actually performed by that loader.
+```python
+def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
+```
 
-## 7. Data contracts
+```python
+def _resolved_config(
+    config: PlanningRegulationStructureConfig | str | Path,
+) -> PlanningRegulationStructureConfig:
+```
 
-This file supplies configuration/policy/source identity. It does not itself create a frame. Any fields copied into output rows are documented by the consuming stage's canonical frame schema.
+The builder resolves config, validates the index/locks/layout, checks/copies factual zoning inputs, builds all components, then calls the public validator, which reconstructs them again. `validate_planning_regulation_structure_with_fragments` resolves config, repeats the input checks, rebuilds expected result/records/fragments, validates the supplied envelope and compares it with the reconstruction before returning fragments. The no-return validator delegates to it. The fragment wrapper also delegates; it is not an unchecked slicing shortcut.
 
-## 8. Interfaces
+The zoning-input boundary here requires DataFrames and selected identity/lineage/metric columns, unique catalog IDs and parcel/zone pairs, catalog-reference agreement and AREA_OVERLAP/TOUCH_ONLY area consistency. Areas are finite nonnegative real values, booleans rejected; intersection area is copied as float64. Optional parcel/zone upper areas, when supplied, must be finite/nonnegative and obey the shared tolerance `max(1e-6, reference_area * 1e-12)`. This code does not compute/reproject geometry or reread a GPU source.
 
-Runtime consumers: `structure_planning_regulation`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
+This structure API reconstructs against **supplied validated in-memory inputs**. It does not accept a GPU document, reopen the original PDF, prove the zone catalog against a physical layer, or reread all source files. Config path input causes a YAML read; model input causes reconstruction only. PDF opening belongs to `index_planning_regulation` when creating an index. Physical GPU zoning revalidation belongs to the separate downstream `validate_normalized_planning_zoning_inputs` call; that boundary delegates extraction/layer revalidation and rebuilds/exact-compares zoning facts. Do not transfer its physical authority to the structure-only API.
 
-## 9. Error handling
+Self-validation is distinct from `_compare_expected_result`. The latter compares all 16 scalar lineage/hash fields and canonical records in the three exact column schemas, in row order. It does not compare DataFrame index labels, dtypes, attrs, CRS or geometry metadata. The returned frames are not sealed against later mutation; validation must be used again at a trust boundary.
 
-The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
+## 11. Canonical hashes and output schemas
 
-## 10. Side effects
+`_config_sha256` hashes the complete `model_dump(mode="json")` under this payload, explicitly rebuilding topics in sorted key order while preserving each term list:
 
-Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: none; this loader parses/validates configuration values but does not hash this file's bytes.
+```json
+{"domain":"landscout.planning_regulation.structure_config","config":"<complete validated model JSON object, not this placeholder string>"}
+```
 
-## 11. Security / trust boundaries
+The displayed placeholder explains payload shape only; it is not a runnable fixture. Canonical serialization recursively handles Mapping keys as strings, tuples/lists/NumPy arrays as arrays, NumPy scalars via `item()`, None/pd.NA and float NaN as null. Strings/integers/finite floats/booleans retain JSON values. Unsupported objects raise; infinities are rejected by `allow_nan=False`. JSON uses `ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":")` then UTF-8 and SHA256. No Python repr, memory address or mapping insertion order enters the digest.
 
-A configured URL/provider/hash is a source lock or provenance input. Physical authority requires the consuming source adapter's safe transport and byte/source revalidation.
+The config hash is independent of YAML quoting/comments/formatting and mapping insertion order, but **not** list/term order. Sorted topic keys also govern evidence traversal, so reversing topic-key insertion order preserves outputs and hashes; reversing equally long overlapping terms can change both. No schema/hash migration occurs in R7 because no model, value or algorithm changes.
 
-## 12. GIS / CRS rules
+Distinct payloads in the owner (domain strings are data, not qualified Python functions):
 
-Only explicit CRS fields impose GIS rules; configured storage/calculation CRS values are policy/configuration, not an implicit reprojection of data.
+| Identity | Exact payload content and ordering |
+|---|---|
+| Raw YAML SHA256 / Git OID | SHA256 of file bytes for documentation; Git's blob OID is a different object identity. Neither is computed by the runtime loader. |
+| Config SHA256 | Domain above plus complete validated JSON model; all ten root fields included. No hash of an `entries` list exists. |
+| Input catalog/relations | `_input_frame_sha256`: `domain`, ordered `columns` array, selected `rows` as records in frame row order. Catalog selects the five identity/lineage columns; relations select eight required fields plus present optional upper-area fields in fixed optional order. Domain literals below. |
+| Retained records | `domain`, `section_hash_schema_version=3`, `records` array. Each record contains `record_id, page_number, page_line_number, raw_text`; source order retained. Used for full retained text and each section's subset. |
+| Section row | `domain`, `section_hash_schema_version=3`, `section` object containing all SECTION_COLUMNS except `section_content_sha256` itself. Parent/zone/article nulls and the subset-record hash are included. |
+| Three output-frame hashes | `domain`, all 12 shared envelope fields listed below, and selected `rows`. No separate output `columns` key is inserted by `_frame_hash`; each role uses its exact predefined columns. |
+| Complete structure hash | `domain` plus the same 12 shared fields and `sections_content_sha256, zone_map_content_sha256, topic_evidence_content_sha256`. Does not include its own hash. |
+| Section/page fragment hash | Plain SHA256 of `raw_text.encode("utf-8")` only; not canonical JSON, not the whole fragment row or geometry. Fragment rows also carry lineage and the structure-result hash separately. |
 
-## 13. Provenance rules
+The 12 shared frame/result envelope fields are exactly `section_hash_schema_version, document_id, archive_sha256, pdf_sha256, index_content_sha256, structure_profile, structure_config_schema_version, structure_config_sha256, zones_content_sha256, zoning_intersection_hash_columns, zoning_intersections_content_sha256, source_records_sha256`.
 
-The companion's Source SHA256 binds this checked-in file for documentation fidelity; that documentation digest is not attributed to the runtime loader. Source identities remain textual until the adapter validates physical bytes/content.
+The canonical domain literals are:
 
-## 14. Business meaning
+```text
+landscout.planning_regulation.structure_config
+landscout.planning_regulation.zones_input
+landscout.planning_regulation.intersections_input
+landscout.planning_regulation.source_records
+landscout.planning_regulation.section
+landscout.planning_regulation.sections
+landscout.planning_regulation.zone_map
+landscout.planning_regulation.topic_evidence
+landscout.planning_regulation.structure_result
+```
 
-Thresholds and outcomes are policy/configuration values. They are never relabeled as measured geometry or legal conclusions.
+Selected column arrays are copied from owner constants below. Catalog/relations may contain extra columns, but these input hashes omit extra fields, geometry, CRS, index labels, dtype metadata and attrs. No CRS field in this YAML imposes a reprojection. Output hashes likewise include selected row values, not frame metadata. The complete result binds input identities and frame identities, not a fresh physical-source read.
 
-## 15. Explicit non-goals
+```json
+{
+  "_ZONE_INPUT_COLUMNS": [
+    "planning_zone_id",
+    "source_zone_id",
+    "zone_label_raw",
+    "source_document_id",
+    "source_archive_sha256"
+  ],
+  "_REQUIRED_INTERSECTION_INPUT_COLUMNS": [
+    "parcel_id",
+    "planning_zone_id",
+    "source_zone_id",
+    "zone_label_raw",
+    "relation_type",
+    "intersection_area_m2",
+    "source_document_id",
+    "source_archive_sha256"
+  ],
+  "_OPTIONAL_INTERSECTION_INPUT_COLUMNS": [
+    "parcel_metric_area_m2",
+    "zone_area_m2"
+  ],
+  "SECTION_COLUMNS": [
+    "section_id",
+    "parent_section_id",
+    "section_type",
+    "heading_raw",
+    "heading_normalized",
+    "zone_chapter_label",
+    "article_number_raw",
+    "article_title_raw",
+    "start_record_id",
+    "end_record_id",
+    "source_record_count",
+    "source_records_sha256",
+    "start_page",
+    "end_page",
+    "page_numbers",
+    "raw_text",
+    "normalized_text",
+    "character_count",
+    "section_content_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_profile"
+  ],
+  "ZONE_MAPPING_COLUMNS": [
+    "source_zone_label_raw",
+    "resolved_zone_chapter_label",
+    "mapping_status",
+    "mapping_method",
+    "matched_section_id",
+    "zone_polygon_count",
+    "candidate_parcel_count",
+    "candidate_intersection_count",
+    "dominant_candidate_count",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_profile"
+  ],
+  "TOPIC_EVIDENCE_COLUMNS": [
+    "topic",
+    "search_term",
+    "normalized_search_term",
+    "match_policy",
+    "section_id",
+    "evidence_scope",
+    "zone_chapter_label",
+    "article_number_raw",
+    "page_number",
+    "occurrence_count",
+    "first_match_normalized_start",
+    "first_match_normalized_end",
+    "first_match_raw_start",
+    "first_match_raw_end",
+    "raw_context",
+    "normalized_context",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_profile"
+  ]
+}
+```
 
-- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
+`SECTION_HASH_SCHEMA_VERSION=3` governs section/record/frame identities; `STRUCTURE_MANIFEST_SCHEMA_VERSION=4` is declared by this owner but not inserted into `_structure_result_content_sha256`. Configuration schema remains 2. Do not infer a fixed source-version rule from unrelated CNIG or road modules.
 
-## 16. Tests
+## 12. Errors, I/O and business meaning
 
-The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior only where the runtime source actually computes a hash.
+The loader preserves existing `PlanningRegulationStructureError`; strict YAML errors are translated with their message; other path/read/model exceptions become `Planning structure configuration is invalid` with the cause retained. Direct model validation raises Pydantic ValueError/ValidationError rather than the loader's wrapper.
 
-## 17. Change impact
+Public build/validation wrappers preserve structure errors and wrap unexpected exceptions (including upstream index-validation failures) in controlled structure errors. Runtime failures include no retained text/no matched body headings, invalid parent/zone relationship, ambiguous structural matches, unresolved dominant labels, inconsistent record partition, fabricated topic contexts and hash drift. A later error is not proof of which earlier guard a broad test isolated.
 
-Any YAML byte/value change requires policy/source review, consumer tests, generated artifacts where applicable, this companion SHA update, and only those runtime hashes whose documented algorithm actually includes these bytes or validated values.
+Loader I/O is only reading the supplied YAML. It does not hash file bytes, read the PDF/GPKG, access the network, write artifacts or create frames. The explicit private hash call made in R7 observes the loaded model, not a produced structure. Structure construction/validation copies input frames and computes factual text/metric checks and hashes in memory; it does not perform a new spatial overlay.
 
-## 18. Complete readable configuration and authoritative raw-byte snapshot
+Topics such as access, setbacks, classified installations or public-interest equipment remain text-search categories. Exact aliases are documentary mappings, not zoning-law equivalences. No term's presence or absence settles ICPE applicability, road access, infrastructure eligibility, a legal right, authorization, prohibition or parcel suitability.
 
-### Complete readable YAML
+## 13. Test evidence and its limits
 
-The following is the complete decoded UTF-8 configuration with line endings normalized to LF for stable Markdown display. Every character and logical line is present, but this readable fence is not the authority for original CR/LF byte positions.
+Read evidence, **not tests rerun under R7**:
+
+| Test source / exact test or group | What its actual body establishes, and limits |
+|---|---|
+| [test_structure_planning_regulation.py](../../../../../tests/unit/test_structure_planning_regulation.py), helpers `_index, _config, _zones, _intersections, valid_result, _validate` | Index pages and hashes are self-constructed from synthetic strings with dummy source lineage. Zones/relations are plain DataFrames without physical geometry. No PDF/GPU reread is possible here; no no-op physical monkeypatch is needed because structure's API does not call that boundary. |
+| `test_structure_schema_versions_are_explicit` and old/unknown schema tests | Config 2, section hash 3, manifest constant 4; incompatible config/result versions rejected on synthetic inputs. |
+| TOC Boolean/page tests and five `test_document_lock_mismatch_is_rejected` parameters | Strict Boolean rejection/acceptance, real indexed page references, blank indexed TOC acceptance and each lock mismatch. The forged TOC page zero can fail model revalidation before the missing-page guard; broad exception is not isolated proof of that later branch. |
+| `test_invalid_regex_and_unknown_yaml_field_are_controlled` | Writes one temporary YAML containing **both** an invalid regex and an extra root field; controlled loader failure, not independent isolation of both errors. Duplicate alias-key test separately asserts duplicate-YAML message; cycle test writes A→B→A. |
+| Deterministic structure / parent and multi-page / exact-alias tests | Sequential sections, ignored synthetic TOC heading, one U chapter, correct parent and pages (3,4), U EXACT, Ua CONFIG_ALIAS, X/UX UNMAPPED, duplicate Z AMBIGUOUS. No general prefix fallback. |
+| `test_alias_chain_resolves_to_final_configured_target` | Model copy with Ua→Urban→U is reconstructed at public boundary and resolves to U. Does not validate every real alias against Muret's original PDF. |
+| Header/footer, blank prefix/gap/tail and TOC-block tests | Actual retained line numbering; matching interior text preserved; explicit multi-block/blank TOC sections; flag toggles TOC topic evidence without changing sections/mapping. Synthetic footer regex differs from this YAML's empty footer list. |
+| Named-capture, optional-list and ambiguous-heading tests | Missing captures, empty optional lists, exact cross-group duplicate rejection, two zone/article regex matches and cross-category ambiguity. Diagnostic assertions include record/page/line/pattern indexes and avoid raw heading text. Ambiguous continuation candidate and changed grammar validator fail while rebuilding, before comparison of final results. |
+| `test_normal_muret_compatible_grammar_remains_deterministic` | Calls synthetic `_config(_index())` twice and compares frames/hash. Despite its name, it does **not** load this checked-in YAML. |
+| Topic scope, reversed topic keys, equal-length overlap and `test_token_boundary_and_longest_match_policy` | Four exact section→scope mappings; sorted topic traversal/hash equality despite reversed key insertion; term-order tie behavior in private helper and built synthetic result; accented French singular/plural, nested expressions and token neighbors. They do not establish legal relationships among topics. |
+| Source-record/parent/mapping/topic/input mutation and hash tests | Reject mismatched schemas, record partition, unknown pages, source-zone IDs, optional metric changes, counts, contexts and hash fields. The test named coordinated-frame mutation inserts `"f"*64` as the outer digest, not a coherently recomputed hash; the section-row mutation recomputes only the row hash and already violates retained raw-text equality. Parent mutations leave row hashes stale, allowing that earlier check to intercept before parent semantics. |
+| `test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` | Recomputes all exposed frame/result hashes via the private helper after fabricating context. Public validator rejects against retained text; its broad assertion does not specifically isolate the final expected-frame comparison because topic self-validation checks context first. |
+| `test_source_complete_validator_rejects_post_build_source_change` | Changes aliases, topics, headings, coherent zone/source-ID references, area or relation and rejects old result. These are supplied in-memory facts/config changes, not on-disk source mutations. `test_inputs_are_not_mutated` compares the original pages/zones/intersections afterward. |
+| [test_deep_immutability.py](../../../../../tests/unit/test_deep_immutability.py): recursive loaded-family walk; mapping-operation matrix; nested-input aliases; canonical hash test | Loads this real YAML. Traverses retained nested values; rejects mapping assignment/update/setdefault/pop/deletion/clear/union/backing replacement; mutates detached input alias/term lists after reconstruction and checks model isolation. The fixed config-hash expectation is `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`. Tuple mutation-operation matrix itself uses scan AOI, not each structure tuple. |
+| [test_index_planning_regulation.py](../../../../../tests/unit/test_index_planning_regulation.py): `test_french_literal_normalization, test_raw_context_preserves_source_typography, test_zero_context_preserves_complete_raw_unicode_span` | Direct common-normalizer cases plus search tests with a fake PdfReader over synthetic PDF bytes and a temporary physical zoning source. They cover accents, combining marks, ligatures, apostrophes, soft hyphens and raw substrings. Search is the index helper, not an execution of this exact structure grammar. |
+| [test_gpu_planning_end_to_end.py](../../../../../tests/integration/test_gpu_planning_end_to_end.py), all four tests | Builds real synthetic ZIP/GPKG/PDF, runs real indexing/structure/zoning and public BESS validation without mocking physical zoning. Its grammar is a small synthetic profile, continuation limit 0, one factual term; policy is UNKNOWN/LOW with empty evidence/routes. Checks success/preserved parcel fact, physical dataset mutation, config hash mutation and missing article 2. Not the real Muret grammar, 30-term coverage or approval of official PDF content. |
+
+No pytest was executed in this documentary ticket. The one offline real-YAML loader/hash observation and exhaustive value/snapshot comparisons are separately recorded in the receipt. No untested branch is silently called tested, and a test-evidence limitation alone is not promoted to a production defect.
+
+## 14. Change impact and review limits
+
+Changing any grammar, alias, layout, lock, topic or order requires separate authority and review. Consider canonical config hashes and all downstream record/section/mapping/topic/result identities; BESS policy's structure lock may require deliberate revalidation. Raw-only formatting changes affect the documentation byte binding, not necessarily the model hash. R7 changes neither, regenerates no artifact and gives no functional approval.
+
+Review is confined to this YAML and companion. Dependency reading closes no other file/symbol. The [receipt](../../../audit/R7_PLU_STRUCTURE_CONFIGURATION.md) names full versus partial source/test ranges; no original PDF, real GPU layer or legal source was opened. Static links/tables/fences are not visual rendering; rendering remains PENDING.
+
+## 15. Complete exact YAML snapshot
+
+This UTF-8 fence reproduces the Git and current checkout bytes exactly, including final LF. Both have only LF line endings; **there are no mixed CRLF/LF positions in this file**. The separate historic R6 YAML and RESUME-ticket exceptions remain untouched.
 
 ```yaml
 schema_version: 2
@@ -669,54 +547,4 @@ topic_match_policy:
   overlap_resolution: "longest_match"
 
 topic_context_characters: 80
-```
-
-### Authoritative raw-byte payload
-
-- Raw byte length: `2287`.
-- Raw SHA256: `74bf407441b66cde62efda581fbbb7df0d27b9d2148b210b7749ddf61b1b763a` (identical to **File identity**).
-- Encoding: RFC 4648 Base64, wrapped for display only. Decoding the concatenated payload reproduces every original byte, including mixed CRLF/LF positions.
-
-```text
-c2NoZW1hX3ZlcnNpb246IDIKc3RydWN0dXJlX3Byb2ZpbGU6ICJtdXJldF9wbHVfMjAyNDAyMTVf
-djEiCgpkb2N1bWVudF9sb2NrOgogIGRvY3VtZW50X2lkOiAiMzNlZGI0YzlmNjk0M2M4OGQ4ZDky
-NTE4YmZmMjBiZWMiCiAgcGRmX3NoYTI1NjogIjUzNThlYmFkNmIwY2RhNmRlNjgxYmEzNTM2ZTI5
-YjhiNjI5MWZiNzAxYzdkMzcxMWY0ZWUxZDZmZGI4NWM2ZmIiCiAgcGFnZXNfY29udGVudF9zaGEy
-NTY6ICI5MjhlN2U1OWM0NWUyN2MzOGUzOWQzZjI4ZjNlYjEwYmQyNTkwODg2NDE2ZGY1N2VmYzRh
-YzhlNWQ4OTAxZWM5IgogIGluZGV4X2NvbnRlbnRfc2hhMjU2OiAiNmEwMDA5MjI4Y2ExNzEyOGMw
-YThiYjMyOWQ5YzIyNzdhMWI2NjM4NzA4YTY3YjkxM2I3MmVlOTMwNjNlNDJjZCIKICBub3JtYWxp
-emF0aW9uX3Byb2ZpbGU6ICJmcl9saXRlcmFsX3YxIgoKZG9jdW1lbnRfbGF5b3V0OgogIGJvZHlf
-c3RhcnRfcGFnZTogMQogIHRhYmxlX29mX2NvbnRlbnRzX3BhZ2VzOiBbXQogIG1heF9oZWFkaW5n
-X2NvbnRpbnVhdGlvbl9saW5lczogMgogIGluY2x1ZGVfdGFibGVfb2ZfY29udGVudHNfaW5fdG9w
-aWNfZXZpZGVuY2U6IGZhbHNlCgpoZWFkaW5nX3BhdHRlcm5zOgogIHpvbmVfY2hhcHRlcjoKICAg
-IC0gJ15aT05FXHMrKD9QPGxhYmVsPltBLVphLXpdKyg/OlxzKjApPylccyokJwogIGFydGljbGU6
-CiAgICAtICdeQVJUSUNMRVxzKyg/UDx6b25lPltBLVphLXpdKyg/OlxzKjApPylccysoP1A8bnVt
-YmVyPlxkKyg/OlwuXGQrKT8pXHMqWy3igJPigJRdXHMqKD9QPHRpdGxlPi4qKSQnCiAgZ2VuZXJh
-bF9zZWN0aW9uOgogICAgLSAnXkFSVElDTEVccysoP1A8bnVtYmVyPlxkKyg/OlwuXGQrKT8pXHMq
-Wy3igJPigJRdXHMqKD9QPHRpdGxlPi4qKSQnCiAgY29udGludWF0aW9uOgogICAgLSAnXlteYS16
-XSpbQS1aw4Atw5bDmC3DnsWSXVteYS16XSokJwoKaWdub3JlZF9wYXR0ZXJuczoKICBwYWdlX2hl
-YWRlcnM6CiAgICAtICdeTXVyZXQtMTLDqG1lIG1vZGlmaWNhdGlvbiBkdSBQTFUkJwogICAgLSAn
-XlxkKyQnCiAgcGFnZV9mb290ZXJzOiBbXQoKem9uZV9hbGlhc2VzOgogIFVBYTogIlVBIgogIFVB
-YjogIlVBIgogIFVCYTogIlVCIgogIFVCYjogIlVCIgogIFVGYTogIlVGIgogIFVGYzogIlVGIgog
-IFVGZDogIlVGIgogIEFVYTogIkFVIgogIEFVZmE6ICJBVWYiCiAgQVVmYjogIkFVZiIKICBBVWZj
-OiAiQVVmIgogIEFVZmQ6ICJBVWYiCiAgQVVmbzogIkFVZjAiCiAgTkw6ICJOIgogIE5lOiAiTiIK
-ICBOaDogIk4iCiAgTnI6ICJOIgoKdG9waWNzOgogIGRlc3RpbmF0aW9uX2FuZF91c2U6CiAgICAt
-ICJvY2N1cGF0aW9uIGR1IHNvbCIKICAgIC0gInV0aWxpc2F0aW9uIGR1IHNvbCIKICAgIC0gImRl
-c3RpbmF0aW9uIgogIHB1YmxpY19pbnRlcmVzdF9lcXVpcG1lbnQ6CiAgICAtICLDqXF1aXBlbWVu
-dCBwdWJsaWMiCiAgICAtICLDqXF1aXBlbWVudCBkJ2ludMOpcsOqdCBjb2xsZWN0aWYiCiAgICAt
-ICJzZXJ2aWNlIHB1YmxpYyIKICAgIC0gImludMOpcsOqdCBjb2xsZWN0aWYiCiAgdGVjaG5pY2Fs
-X2VxdWlwbWVudDoKICAgIC0gIm91dnJhZ2UgdGVjaG5pcXVlIgogICAgLSAiaW5zdGFsbGF0aW9u
-cyB0ZWNobmlxdWVzIgogICAgLSAibG9jYXV4IHRlY2huaXF1ZXMiCiAgZW5lcmd5OgogICAgLSAi
-w6luZXJnaWUiCiAgZWxlY3RyaWNpdHk6CiAgICAtICLDqWxlY3RyaWNpdMOpIgogICAgLSAiw6ls
-ZWN0cmlxdWUiCiAgdHJhbnNmb3JtZXI6CiAgICAtICJ0cmFuc2Zvcm1hdGV1ciIKICBjbGFzc2lm
-aWVkX2luc3RhbGxhdGlvbjoKICAgIC0gImluc3RhbGxhdGlvbiBjbGFzc8OpZSIKICAgIC0gImlu
-c3RhbGxhdGlvbnMgY2xhc3PDqWVzIgogICAgLSAiSUNQRSIKICByaXNrOgogICAgLSAicmlzcXVl
-IgogICAgLSAicmlzcXVlcyIKICBudWlzYW5jZToKICAgIC0gIm51aXNhbmNlIgogICAgLSAibnVp
-c2FuY2VzIgogIGZpcmVfc2FmZXR5OgogICAgLSAiaW5jZW5kaWUiCiAgICAtICJkw6lmZW5zZSBj
-b250cmUgbCdpbmNlbmRpZSIKICBhY2Nlc3M6CiAgICAtICJhY2PDqHMiCiAgICAtICJkZXNzZXJ0
-ZSIKICBzZXRiYWNrczoKICAgIC0gInJlY3VsIgogICAgLSAiZGlzdGFuY2UgbWluaW1hbGUiCiAg
-ICAtICJpbXBsYW50YXRpb24iCiAgbmV0d29ya3M6CiAgICAtICJyw6lzZWF1IgogICAgLSAicsOp
-c2VhdXgiCgp0b3BpY19tYXRjaF9wb2xpY3k6CiAgYm91bmRhcnlfbW9kZTogInRva2VuIgogIG92
-ZXJsYXBfcmVzb2x1dGlvbjogImxvbmdlc3RfbWF0Y2giCgp0b3BpY19jb250ZXh0X2NoYXJhY3Rl
-cnM6IDgwCg==
 ```
