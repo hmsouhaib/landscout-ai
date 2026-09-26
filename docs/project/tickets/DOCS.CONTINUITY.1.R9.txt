@@ -1,0 +1,261 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R9
+
+Audit documentaire regroupé de l’application de la politique BESS/CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : 05d6ffce1726774be5b956080323e92f43aef825
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique : une unité fonctionnelle, pas un nouveau développement
+
+Terminer l’audit documentaire du composant qui propage la politique BESS/CNIG déjà compilée aux objets et à leurs relations. Lire ensemble son implémentation, ses tests et leurs compagnons ; corriger uniquement les documents.
+
+Quatre unités à réconcilier :
+
+src/landscout/stages/apply_bess_planning_feature_policy.py
+
+tests/unit/test_apply_bess_planning_feature_policy.py
+
+docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md
+
+docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md
+
+Les deux Python sont protégés : aucune modification de comportement, test, import ou formatage. Les configurations, dépendances et snapshots réels sont également inchangés.
+
+Le lot d’agrégation R8 + R8.1 est maintenant approuvé dans son périmètre documentaire. Ne pas le recommencer. L’application et l’agrégation sont deux composants différents : R9 documente une propagation aux objets/relations, pas une sélection de statut par parcelle.
+
+Souhaib décide du produit. ChatGPT reste reviewer/architecte en lecture seule et auteur de tickets. Codex modifie et publie uniquement le périmètre autorisé, puis s’arrête. Un ticket à la fois ; aucun résultat Codex ni label CHECKED ne remplace la revue indépendante.
+
+1. Reçu fourni de revue indépendante R8.1
+
+Cette section est la déclaration du reviewer ChatGPT. L’archiver comme telle ; ce n’est ni un résultat d’exécution Codex, ni une signature cryptographique, ni un certificat automatique de fidélité.
+
+Verdict : APPROVED — correctif documentaire R8.1 uniquement. Aucun R8.2 préalable n’est demandé. Le lot d’agrégation R8, tel que corrigé par R8.1, est accepté dans ce périmètre ; cela n’approuve pas globalement tout LandScout.
+
+Commit examiné : 05d6ffce1726774be5b956080323e92f43aef825.
+Parent : e5279b1a7486afb973f4404d94a4bd3dd4f56483.
+Message : docs: correct aggregation reference fidelity.
+
+La comparaison Git indépendante retrouve un descendant direct et sept chemins documentaires. Les références distantes consultées conservent main inchangé. La propreté du checkout Windows et de son index n’est pas attestée par ces lectures distantes.
+
+Le reviewer a confronté les paragraphes corrigés et les notes propriétaires consultées aux corps, appels et assertions concernés des fichiers inchangés. La lecture complète R8 est réutilisée pour les sections non modifiées ; il ne prétend pas avoir recommencé un audit intégral du dépôt ou de tous les modules amont.
+
+Les 17 constats R8-D01..17 sont corrigés dans le périmètre contrôlé :
+
+D01/D02 : ordre (parcels, assessments) et retour (manifest_path, paths, manifest) décrits avec leurs types réels.
+
+D03/D04/D05 : ValueError local, erreurs explicites du helper de lecture et traduction par le loader public distingués ; aucune promesse générique de wrapping dans tous les helpers.
+
+D06 : création de valeurs locales figées, contrôles, puis affectations au modèle.
+
+D07 : digest applicatif amont de _ApplicationLineage distinct du digest complet d’agrégation.
+
+D08 : sentinelle Parquet levant AssertionError, spy Path.read_bytes déléguant, un seul compteur partagé ; absence de délégation inventée.
+
+D09 : mutations réelles caller_mutation et comparaison à un nouveau payload, sans dump sauvegardé ni modification du nom de CRS fictifs.
+
+D10/D11/D12 : assertions réellement présentes, trois relations sur deux parcelles, builder privé non confondu avec un appel à l’enveloppe d’agrégation.
+
+D13/D14 : aucune permutation de deux records valides dans les dix-neuf mutations ; noms de paramètres inspectés sans test de leurs valeurs par défaut.
+
+D15/D16/D17 : valeur par défaut exacte, lien vers le vrai dictionnaire des colonnes, garde d’un identifiant distincte de la validation amont de toutes les relations.
+
+Les notices voisines de classe d’erreur, de digest de résultat/manifest et des callbacks ont été qualifiées sans supprimer les bonnes limites R8 : confiance des seules relations sélectionnées, code non résolu versus UNKNOWN exact, trois chemins de validation, limites de provenance du loader léger et captured bytes versus état ultérieur du chemin.
+
+Métadonnées des blobs Python inchangés consultées :
+
+agrégation source : affad41097bbe253b002158c35537160d3846029 ;
+
+agrégation tests : 4a07d0f7f9a856dd8820cce917e7b9011e5c8ad4.
+
+Aucune exécution indépendante de pytest, d’un import/loader applicatif, du pipeline GPU/EP, de l’auditeur INDEX ou d’un renderer n’a été faite dans cette revue. Les contrôles exhaustifs de 198 mappings, snapshots/SHA, 106 fichiers protégés et 289 chemins hors périmètre restent les exécutions locales rapportées, non réattestées intégralement.
+
+Les 182 passes / 463,30 s / exit 0 sont le résultat historique R8, pas une nouvelle exécution R8.1. L’auditeur R8.1 rapporte 10 267 constats, exit 1 / completed=true, manifeste candidat 8d504302ebacbc12c80c92de80ac2c926c5df2e938885d136de762570b46b3b8. Le reçu seul a été complété ensuite ; le final n’est pas déclaré identique au candidat et aucun second run global n’est inventé.
+
+Clôture enregistrée inchangée : 83/245 fichiers, 1 792/4 769 symboles ; 162 fichiers / 2 977 symboles restants. L’approbation R8.1 ajoute zéro unité. Les statuts du registre global non fusionné ne sont pas artificiellement mis à jour.
+
+Préserver A-001..A-004, les cinq limites de preuve historiques, R3-T01..04, OPEN R5-D01, acceptation cold-start/rendu/validation finale et revue sémantique exhaustive 7F.1C.1. Dernière frontière fonctionnelle approuvée : 7F.1B.4. Les anciens reçus restent historiques avec leurs PENDING ; enregistrer ce verdict successoral dans CURRENT_STATE en référençant cette section.
+
+2. État de départ et sauvegarde des acquis
+
+Lire AGENTS.md, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT et le reçu R8.1. Consulter l’autorité des fichiers protégés et les deux exceptions EOL.
+
+Établir racine réelle, branche, HEAD, index/worktree, opération Git en cours, référence de suivi et référence distante réelle. Exiger le HEAD ci-dessus, main inchangé et arbre/index propre. Une référence de suivi locale n’est pas une interrogation serveur.
+
+Si l’état diffère, préserver et décrire ; pas de reset, restore, clean, stash, rebase, amend, squash ou merge automatique. En reprise interrompue du même R9, identifier ses propres modifications et son avancement au lieu de l’effacer ou recommencer.
+
+Après une erreur de propriété effectivement constatée seulement, l’exception par commande pour le chemin exact reste autorisée : git -c safe.directory=C:/souhaib/landscout-ai .... Aucune confiance globale, ACL, désactivation de sécurité ou modification d’environnement.
+
+Comparer avant/après les 106 fichiers protégés et tous les chemins initiaux hors périmètre. Recalculer leurs nombres, sans reprendre ceux de R8.1. Conserver les bases Git/checkout des exceptions historiques du YAML de zonage écrit et du ticket RESUME, ainsi que les 13 observations whitespace héritées. Aucune normalisation EOL des sources.
+
+3. Propriété des unités et écritures autorisées
+
+Retrouver les quatre unités par chemin exact dans la matrice originale et tous les fragments. Ne pas déduire leur statut ou leur propriétaire d’un voisin ou de leur ordre lexical. Réutiliser les anciennes lectures, références et éventuels brouillons.
+
+Une unité déjà clôturée ne gagne pas un nouveau crédit. Une unité READ n’est clôturée qu’après la comparaison sémantique manquante. Réconcilier explicitement les doublons ou intentions de transfert non matérialisées ; conserver l’historique sans dupliquer inutilement des milliers de lignes.
+
+Écritures autorisées :
+
+les deux compagnons d’application ;
+
+le ou les fragments propriétaires, uniquement les quatre lignes R9 et leurs symboles/notes/fingerprints ;
+
+docs/code/audit/R9_BESS_CNIG_APPLICATION.md (nouveau reçu) ;
+
+docs/project/tickets/DOCS.CONTINUITY.1.R9.txt (archive exacte de l’instruction effectivement reçue, sans prétendre qu’une version reformattée a les mêmes bytes) ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md ;
+
+docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS n’est autorisé que pour un nouveau constat concret, sourcé, non dupliqué. Une limite de preuve des tests n’est pas automatiquement un bug applicatif. Ne pas réparer A-001..A-004 ou R5-D01 dans ce lot.
+
+Interdits : source/test/config/auditeur/dépendance, autre compagnon, artefact réel, ancien ticket/reçu, merge/régénération globale de coverage.json ou matrice, nouveau checker permanent, CI/PR, scoring ou fonctionnalité EP.
+
+4. Lecture complète et documentation par symbole
+
+Lire intégralement les deux Python et les explications existantes des deux compagnons. Les snapshots déjà identiques peuvent être comparés mécaniquement après lecture de leur source ; leur exactitude n’est pas une validation sémantique de la prose.
+
+Pour chaque symbole effectivement recensé, expliquer rôle, propriétaire, signature, paramètres/retours, champs, unités, nulls/dtypes, ordre des gardes, erreurs locales et wrappers, copies/mutations, accès fichiers, dépendances et callers. Documenter aussi imports, constantes et exports sans gonfler le dénominateur historique.
+
+L’AST sert à inventorier et localiser, pas à attribuer CHECKED. Une même appellation dans deux modules ne justifie pas de copier l’algorithme, les types de retour ou les exceptions. Utiliser les lignes du source comme justification de chaque description.
+
+Lire les helpers et consommateurs nécessaires en bornant leurs plages. La lecture d’une dépendance ne clôture pas automatiquement son unité. R5 décrit déjà la configuration de politique et R8/R8.1 l’agrégateur : consulter leurs contrats approuvés, sans les réauditer globalement ou les réécrire.
+
+5. Frontière métier : propagation exacte, pas agrégation parcellaire
+
+Retrouver et documenter le parcours effectif des objets codés et de la politique compilée vers :
+
+surface_features, line_features, point_features, relations.
+
+Vérifier dans les corps : clés de rapprochement, identité family/type/subtype, ensembles de codes couverts, textes officiels, règle d’application exacte, traitement du code non résolu et distinction avec UNKNOWN configuré. Aucun fallback, règle légale ou seuil ne doit être inventé par la documentation.
+
+Décrire les suffixes ajoutés, leur ordre, leurs dtypes/nulls, les préfixes factuels préservés, le rôle de l’identifiant objet, l’accord relation/objet et la validation des objets sans aucune relation. Lire précisément les règles de métriques surface/ligne/point et l’usage de la tolérance technique, sans les transposer à partir de l’agrégateur.
+
+Le scope repéré est FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY. Ce composant ne calcule pas le statut global d’une parcelle, n’agrège pas les priorités/confiances par parcelle et ne fait pas de scoring. Les flags doivent être décrits à leur propre niveau, notamment parcel_status_aggregated=False, contrairement à l’agrégation R8.
+
+Conserver la différence entre absence de code résolu, absence de relation et absence réelle de contrainte. Le texte local n’est pas une interprétation juridique implicite. Aucun classement environnemental, Natura 2000 ou ZNIEFF n’est introduit.
+
+6. API et chemins de confiance distincts
+
+Repères lus pour préparer le ticket, à vérifier au même commit et expliquer sans extrapoler :
+
+Sept noms dans le __all__ du module, dont le validateur d’enveloppe public. Vérifier leur réexport dans landscout.stages ; ne pas compter le record importable comme public s’il est absent des listes.
+
+Schéma de hash du résultat 2 et schéma du manifest 2, pas 1/1 comme l’agrégation.
+
+Builder public avec dix entrées ; validateur complet avec ces entrées et le résultat ; validateur d’enveloppe à une entrée.
+
+Loader public à sept arguments : cinq chemins (manifest, surfaces, lignes, points, relations), puis coded_result et policy_result. Ce n’est pas le loader d’agrégation à cinq arguments.
+
+Quatre rôles d’artefact : SURFACE_FEATURES, LINE_FEATURES, POINT_FEATURES, RELATIONS.
+
+Tracer séparément :
+
+Le builder : propriétaire de validation source appelé, construction, contrôle d’enveloppe, retour.
+
+Le validateur complet : contrôles locaux, locks, validation source, reconstruction et comparaison exacte.
+
+Le validateur d’enveloppe public : son appel réel au helper et ses limites ; ne pas lui attribuer un try/except global ou un accès GPU absent.
+
+Le loader : contrôles des deux enveloppes amont et de leur compatibilité AVANT le manifest, locks, lecture des quatre artefacts, contrôle du résultat et comparaison à la reconstruction depuis les objets fournis.
+
+Distinguer garde de type/format, cohérence interne, concordance des identités et revalidation physique des sources. Compter les appels au niveau réellement instrumenté. Un unique appel à un propriétaire ne prouve pas un seul read de fichier ni une seule passe interne.
+
+Les définitions actuellement lues comprennent une comparaison non vide et exacte des ensembles de codes policy/dictionary dans _validate_coded_policy_compatibility, mais cela ne dispense pas de documenter les autres contrôles. Ne pas annoncer de vérification physique du GPU dans le loader léger si celui-ci ne reçoit pas ces sources.
+
+7. Modèles, artefacts et hashes
+
+Documenter intégralement résultats, manifests et records : fields requis/nullables, Literal/Strict*, validations après parsing, copies/freeze JSON et serialisation. Distinguer immutabilité des métadonnées et frames mutables. Pour chaque ordre « freeze, validate, assign », suivre le code réel.
+
+Lire les erreurs locales : un ValueError n’est pas nécessairement déjà la classe applicative. Attribuer correctement les conversions Pydantic, gardes explicites, lecteurs tiers et wrappers publics. Les mêmes noms privés que dans R8 ne garantissent pas les mêmes corps.
+
+Décrire la validation des noms portables, ordre/unicité des rôles et fichiers, taille/SHA, schéma frame et CRS, et la lecture Parquet depuis les bytes capturées. Ne pas promettre root containment, rejet de symlinks, postcondition de chemin, snapshot atomique ou writer public sans code correspondant.
+
+Pour chaque digest : payload exact, domaine, versions, clés triées versus ordre des listes, colonnes/index/dtypes/CRS/géométries inclus ou exclus, types spéciaux et nulls. Distinguer identités propagées, recalculées et raw-byte hash du Parquet. Ne pas importer les formules du résultat d’agrégation ou de la politique YAML.
+
+Toute réutilisation des contrats communs doit nommer leur propriétaire réel. Les domaines de hash restent des chaînes de données, pas des fonctions Python à inventer.
+
+8. Tests : prévenir les erreurs documentaires déjà rencontrées
+
+Lire chaque test avec le chemin de ses fixtures jusqu’aux assertions. Le module de test possède un adapter du même nom que le loader public et les globals _LAST_CODED_RESULT / _LAST_POLICY_RESULT : expliquer leurs valeurs, substitutions, side effects et limites à partir du corps.
+
+L’adapter observé remplace les deux upstreams si l’un manque, puis délègue au vrai loader. Ne pas lui copier le fallback « unknown feature » de l’adapter d’agrégation R8 : ce fallback n’est pas visible dans le corps lu pour R9. Vérifier le fichier final avant toute affirmation.
+
+Les imports depuis test_bess_planning_feature_policy et test_resolve_planning_feature_codes sont des helpers du dépôt, pas des paquets tiers. Distinguer politique checked-in et politique synthétique, frame forgée et fichier physique synthétique, acquisition réelle et enveloppe fabriquée.
+
+Pour chaque scénario, consigner la première garde possible et l’assertion effectivement présente. Ne pas :
+
+attribuer une assertion d’IDs triés à un test qui ne vérifie que les rôles ;
+
+annoncer un appel d’enveloppe parce qu’un builder privé a été utilisé ;
+
+appeler « trois chemins » un tuple Path/dict/dict ;
+
+décrire une sentinelle comme un spy déléguant ;
+
+faire d’un contrôle de noms de paramètres un contrôle de leurs valeurs par défaut ;
+
+compter plusieurs fois une fixture ou une lecture comme autant de validations physiques indépendantes.
+
+Vérifier notamment propagation des décisions/nulls, objets sans relation, accord objet/relation, mutations coordonnées/rehashées, paramètres Z/M et géométries réelles des fixtures, dtypes/CRS, artefacts altérés, locks et arrêt avant I/O. Une broad raises peut masquer une garde anticipée ; la noter sans modifier le test. Une preuve absente ici peut exister dans un autre test précisément référencé.
+
+9. Exécution bornée autorisée
+
+Après la lecture et la correction documentaire, une seule exécution du fichier de tests EXISTANT est autorisée dans l’environnement installé, sans import/monkeypatch externe ou modification des tests :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r9-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_apply_bess_planning_feature_policy.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R9 focused pytest failed: $code" }
+
+Capturer collecte/counts, warnings, skips/xfails et exit après nettoyage. Ne pas forcer un nombre tiré d’un ancien journal. Ne pas faire de retries silencieux. En cas de blocage/échec : préserver, qualifier et rapporter ; pas d’autorisation de réparer l’application ou l’environnement.
+
+Les fixtures peuvent produire leurs fichiers synthétiques temporaires. Aucun accès aux vrais snapshots Muret/GPU/EP, téléchargement, recherche juridique, pipeline réel ou full pytest n’est demandé. Ne pas faire de recalcul réel supplémentaire pour enrichir le reçu.
+
+Les analyses AST/texte/hash/Markdown/JSON hors import applicatif sont permises. Les scripts temporaires restent hors Git. Pas de uv sync, installation, linter appliquant un formatage ou mise à jour du lock.
+
+10. Contrôles groupés avant publication
+
+Relier chaque symbole recensé à une section qualifiée unique, avec signature et plage correctes. Vérifier retours, exceptions, appels et assertions manuellement avant le contrôle mécanique. Les en-têtes de hash/basis doivent suivre exactement le format reconnu par l’auditeur, sans ponctuation terminale parasite.
+
+Vérifier les snapshots complets et SHA avec base Git/index/checkout explicite, les liens entrants/sortants et leurs bonnes destinations, Unicode, tables, fences et toutes les occurrences d’IDs. Ne pas seulement convertir les IDs en set et perdre leurs doublons. Conserver toutes les preuves antérieures pertinentes.
+
+Un renderer déjà disponible peut servir ; sinon rendu PENDING, sans installation. Un contrôle de syntaxe n’est pas une approbation visuelle.
+
+Comparer les 106 fichiers protégés et les chemins hors périmètre contre le départ. Nouveau diff propre, cumul historique conservé et explicitement distingué.
+
+11. Progression, candidat INDEX et reçu final
+
+Départ : 83/245 fichiers et 1 792/4 769 symboles clôturés. Réconcilier les quatre unités et leurs vrais statuts/nombres de symboles. Le gain peut être inférieur à quatre unités ; ne pas forcer 87 ni un nombre de symboles à l’avance. La lecture des dépendances et la réception du verdict R8.1 n’ajoutent aucun crédit.
+
+Ne pas fusionner la matrice ou coverage.json dans ce lot. Préserver statut global PARTIAL, anciens constats et distinction entre clôture locale, publication et revue indépendante.
+
+Après staging EXPLICITE et contrôles ciblés, une seule exécution du plein auditeur INDEX inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r9-candidate.stdout.txt
+
+Conserver stdout complet, manifeste path/mode/OID, completed, exit, métriques et différences de constats par rapport au candidat R8.1. Les 10 267 constats antérieurs ne sont ni une cible ni une certification sémantique. Exit 1 / completed=true peut être cohérent avec PARTIAL ; timeout/interruption/exit 2 ne constituent pas un audit terminé.
+
+Ne pas modifier l’auditeur ou les statuts pour masquer un écart. Compléter idéalement le reçu seul après le run puis vérifier son delta exact. Si un autre fichier change, identifier précisément ses bytes et contrôles postérieurs. Ne pas prétendre avoir audité le commit final si seul un candidat différent a été exécuté ; pas de boucle auto-référentielle pour inclure le reçu dans sa propre preuve.
+
+12. Publication et arrêt
+
+Autorisation de publication seulement si ce lot est réellement terminé ; sinon préserver et retourner PARTIAL avec la première unité/preuve exacte inachevée.
+
+Stage uniquement les chemins relus explicitement. Aucun git add global, commit -a, amend, reset, rebase, squash, merge, PR, force-push, push main ou suppression de branche.
+
+git commit -m "docs: audit BESS CNIG policy application reference"
+git push origin recovery/docs-continuity-1-partial
+
+Résoudre ensuite SHA final, index/worktree propre, référence de suivi et vrai serveur ; vérifier main inchangé. Ne pas inventer le futur SHA du reçu.
+
+Rapport final : départ/final/main, chemins/propriétaires, plages réellement lues et limites, transitions des quatre unités et symboles, contradictions corrigées, API/versions/models/algorithmes/hashes documentés, tests réellement exécutés, snapshots/mappings/préservation/rendu, auditeur et manifests/delta final, constats ouverts et prochain groupe identifié sans le commencer.
+
+Libellé : DOCS.CONTINUITY.1.R9 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Aucun autre ticket documentaire ni développement fonctionnel automatique.
