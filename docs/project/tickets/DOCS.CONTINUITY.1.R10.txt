@@ -1,0 +1,237 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R10
+
+Audit documentaire regroupé du compilateur de politique BESS/CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt GitHub : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : d169023696c2a6c228d90c04fcab13441aac61fc
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Un objectif et quatre unités cohérentes
+
+Clôturer la comparaison documentaire du compilateur BESS/CNIG, de ses tests et de leurs deux compagnons, sans développer ou corriger l'application :
+
+src/landscout/stages/bess_planning_feature_policy.py
+
+tests/unit/test_bess_planning_feature_policy.py
+
+docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md
+
+docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md
+
+Les deux Python restent strictement inchangés. R5 a déjà documenté la configuration YAML ; R8/R8.1 l'agrégation ; R9/R9.1 l'application. Réutiliser ces acquis et leurs limites, sans rouvrir leurs compagnons ou ajouter un second objectif.
+
+LandScout reste un moteur BESS-first d'origination et de préanalyse, Muret un terrain d'essai. Compiler une table de politique n'est ni l'appliquer aux objets, ni agréger des décisions parcellaires, ni produire une autorisation juridique. Les inconnues restent inconnues. La proximité et les indices ne deviennent pas des preuves de capacité, d'accès légal ou d'autorisation.
+
+Souhaib décide du produit. ChatGPT demeure reviewer/architecte et auteur de tickets, en lecture seule. Codex réalise les modifications autorisées, publie sur recovery puis s'arrête. Un ticket à la fois ; un journal Codex, un SHA ou un statut CHECKED ne remplace pas la revue indépendante.
+
+1. Reçu fourni de revue indépendante R9.1
+
+Cette section est la déclaration du reviewer ChatGPT à archiver comme telle. Ce n'est ni une exécution Codex, ni une signature cryptographique, ni une certification globale.
+
+Verdict : APPROVED — correctif documentaire R9.1. Aucun R9.2 préalable. Le lot application R9 tel que corrigé par R9.1 est accepté dans ce périmètre documentaire.
+
+Commit examiné : d169023696c2a6c228d90c04fcab13441aac61fc.
+
+Parent : 99465475a479a765941b6d20cbade0cf570186ab.
+
+Message : docs: correct policy application reference fidelity.
+
+Tree renvoyé par GitHub : 9d7bb2283be6214f0589f600a19a1822ecf42507.
+
+La comparaison distante retrouve un descendant direct et les sept fichiers documentaires autorisés. Main reste inchangé. Cela n'atteste pas la propreté du checkout Windows ni les fichiers locaux ignorés.
+
+Revue du delta : comparaison des notices modifiées, du diff des notes propriétaires, des fonctions/helpers/appels et assertions concernés. La lecture complète R9 est réutilisée pour les parties inchangées ; pas de nouvelle revue complète de tous les modules.
+
+D01 : objet sans relation, modification du seul source_archive_sha256 à "f" * 64, reseal, erreur du validateur complet et compteur du propriétaire source à zéro ; document et ID inchangés.
+
+D02 : ligne XYZ horizontale, vrai dictionnaire [kind] et KeyError pour une clé chaîne absente, sans inventer un test d'entrée inconnue.
+
+D03 : official_legal_reference vers object et official_code_label vers category, non des codes ou un statut.
+
+D04 : assertions directes == de la fixture ordinaire, sans preuve supplémentaire de null-safe/unresolved dans ce test.
+
+D05 : _policy_values copie le statut fourni ; le caller le choisit ; row=None commande les six nulls décisionnels.
+
+D06 : capture, remplacement du chemin, retour des bytes initiales, décodage ; aucune postcondition de chemin ajoutée.
+
+D07 : contraste générique avec une « fixture R8 deux parcelles/trois relations » supprimé ; le helper R8 d'agrégation partage bien la fixture d'application.
+
+Contrairement à la lecture complète du registre bloquée lors de R9, le petit diff R9.1 rend accessibles les notes modifiées. Les corrections pertinentes sont aussi présentes dans ces notes. Cela ne constitue pas un nouvel audit intégral de planning.json.
+
+OIDs Python consultés, inchangés : application 3d542b089b9763f4ed1b212e1253a9fe87c865ac ; tests 5c2fed792f0df5b1fd9b95417dafcda6c3094eca. Pas de nouveau recalcul indépendant complet de leurs SHA256.
+
+Aucun pytest, import/loader/compilateur applicatif, pipeline GPU/EP, auditeur INDEX, rendu visuel ou reproduction runtime n'a été exécuté par le reviewer R9.1. Aucun contrôle indépendant exhaustif des 219 mappings, snapshots, SHA de compagnons, 106 fichiers protégés ou 293 chemins hors périmètre n'est revendiqué.
+
+Les 221 passes / 184,49 s / exit 0 sont historiques R9. Les 10 263 constats / exit 1 / completed=true sont l'exécution locale R9.1 sur son candidat, manifeste 66f02e7d9a69e1a9ceb55f975047f24e0d5fa13a9494931191af9e46a457514b. Le reçu seul est complété ensuite ; le final n'est pas déclaré byte-identique au candidat. Les sept diagnostics d'exports disparus avaient été corrigés dans le delta final R9, pas par une nouvelle amélioration R9.1.
+
+Clôture enregistrée inchangée : 87/245 fichiers et 2 011/4 769 symboles ; 158 fichiers / 2 758 symboles ouverts. L'acceptation de R9.1 n'ajoute aucun crédit.
+
+Enregistrer ce verdict successoral dans CURRENT_STATE par référence à cette section, sans réécrire les anciens reçus R9/R9.1 et leurs PENDING historiques. Préserver A-001..A-004, les cinq limites historiques, R3-T01..04, R9-T01..04, OPEN R5-D01, acceptation du cold-start, rendu/finalisation globale et revue sémantique exhaustive 7F.1C.1. Dernière frontière fonctionnelle approuvée : 7F.1B.4, avec sa lacune de reçu original conservée.
+
+2. Reprise, propriété et préservation
+
+Lire AGENTS, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R9.1 et l'autorité de préservation. Retrouver les quatre chemins exacts dans la matrice originale et tous les fragments. Un ordre lexical ne prouve pas la propriété ; une intention de transfert non matérialisée n'est pas un second propriétaire.
+
+Avant édition, vérifier racine réelle, branche, HEAD, index/worktree propre, opérations Git, suivi et vraie référence serveur. Exiger la base ci-dessus et main inchangé. Si reprise interrompue de CE ticket, préserver ses modifications et reprendre son premier point inachevé. Ne pas reset/restore/clean/stash/rebase/amend/squash/merge pour forcer la base.
+
+L'exception safe.directory n'est permise qu'après une erreur effective, pour une commande et le chemin exact déjà autorisé. Aucun wildcard, confiance persistante, changement d'ACL, désactivation de sécurité ou réparation d'environnement.
+
+OIDs repérés au départ, à vérifier contre Git :
+
+Fichier
+
+OID Git
+
+Compilateur
+
+e9b3f5dd3664b7e710ad47fbc07691e3d5829bd2
+
+Tests du compilateur
+
+1cc0c9f48c17efcbf6d780dcd521ffe7d80d83da
+
+Recalculer les SHA256 nécessaires selon la base Git/index/checkout nommée. Comparer les 106 fichiers protégés et tous les chemins initiaux hors périmètre ; ne pas recopier un ancien compte. Conserver les deux exceptions EOL et les 13 observations whitespace héritées, sans normaliser les archives ou le YAML.
+
+3. Périmètre d'écriture
+
+Autorisation limitée à :
+
+deux compagnons du compilateur et de ses tests ;
+
+fragment(s) propriétaire(s), uniquement les quatre unités R10 et leurs notes/statuts/fingerprints/provenance ;
+
+nouveau docs/code/audit/R10_BESS_CNIG_COMPILER.md ;
+
+nouvelle archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R10.txt de l'instruction effectivement reçue ;
+
+docs/code/audit/DOCUMENTATION_AUDIT.md ;
+
+docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS est autorisé seulement pour un nouveau constat concret, prouvé et non dupliqué. Ne pas y déclarer automatiquement un bug à partir d'une limite de test. Les anciens constats ne sont pas réparés ici, notamment A-004 et R5-D01.
+
+Interdits : Python/tests/YAML/dépendances/auditeur, autres compagnons, anciens tickets/reçus, artefacts réels, nouveau checker permanent, fusion/régénération globale de coverage.json ou de la matrice, CI/PR, fonctionnalités/scoring/normalisation EP.
+
+4. Lecture complète et rédaction vérifiable
+
+Lire entièrement les deux Python et les explications des deux compagnons. Réutiliser les travaux préparatoires existants après comparaison ; ne pas refaire à l'aveugle une génération de milliers de lignes. Une répétition exacte de code peut être vérifiée mécaniquement après lecture de sa source, mais son SHA ne prouve pas l'exactitude de la prose.
+
+Pour chaque fonction, classe, champ et callback recensé : propriétaire qualifié, signature, paramètres/retours réels, unités, dtypes/nulls, algorithme, ordre des contrôles, exceptions locales/wrappers, copies/mutations et I/O effectifs. Les imports, constantes et exports doivent être expliqués sans gonfler le dénominateur original. Une analyse AST inventorie et localise ; elle ne donne pas de statut de fidélité.
+
+Vérifier ensemble notice, note propriétaire et corps réel. Ne pas recopier une description depuis application/agrégation à cause d'un nom de helper commun. Écrire des phrases lisibles et complètes, avec espaces autour des nombres ; éviter les résumés télégraphiques illisibles et les promesses génériques « all errors handled ».
+
+Les lectures de strict_yaml, strict_json, immutable_mapping, artifact_paths, frame_integrity, resolve_planning_feature_codes et des consommateurs sont bornées aux contrats nécessaires. Noter les plages réellement lues ; aucune clôture automatique de dépendance. R5/R8/R9 restent des références déjà approuvées dans leurs périmètres, pas des lots à réécrire.
+
+5. Contrat métier du compilateur
+
+Documenter le chemin : configuration de politique + résultat CNIG vérifié → table de politique par triplet exact. Distinguer la déclaration métier, les textes officiels du dictionnaire, les textes attendus dans la configuration et la validation de leur concordance.
+
+Repères lus pour préparer le ticket, à revérifier dans le module complet :
+
+neuf noms dans __all__, avec leur réexport réel à vérifier ;
+
+schéma configuration 1, hash résultat 1, manifeste 2 ; ce n'est pas 2/2 de R9 ;
+
+scope OFFICIAL_CNIG_CODE_MEANING_ONLY ; cinq statuts et trois confiances ;
+
+sept verrous entre configuration et résultat CNIG ;
+
+exactitude du triplet famille/type/sous-type, zéros initiaux, contrôles missing/extra, doublons et textes/nulls ;
+
+table de 21 colonnes : priorité int64, trois flags bool, autres colonnes str ; distinguer des suffixes à priorité nullable Int64 de l'application ;
+
+résultat avec 14 scalaires et une table mutable, sans catalogues géométriques de sortie ni parcelles ;
+
+modèles figés et mapping de priorités détaché/figé : expliquer le mécanisme réellement utilisé, pas celui d'un autre modèle JSON.
+
+Expliquer où un ordre est imposé et où il est seulement conservé. Une table localement cohérente n'est pas nécessairement une politique complète pour le dictionnaire courant ; identifier le propriétaire de chaque vérification. Ne pas attribuer à l'enveloppe la comparaison avec une configuration/dictionnaire qu'elle ne reçoit pas.
+
+Aucune interprétation juridique nouvelle, aucun recalibrage de priorité/confiance, aucun fallback, aucune règle BESS/ICPE automatique. La compilation ne propage pas encore la décision à chaque objet et n'agrège pas de priorité par parcelle.
+
+6. API et ordre effectif des frontières
+
+Expliquer séparément les chemins, à partir des corps :
+
+Loader/résolution de configuration : lecture/décodage strict, modèles, reconstruction éventuelle d'un modèle fourni, erreurs, hash des entrées et du modèle complet.
+
+Compilateur public : neuf entrées ; résoudre la configuration → comparer les sept locks → valider les sources via le propriétaire CNIG → construire → contrôler l'enveloppe → retourner.
+
+Validateur complet : ces neuf entrées plus résultat ; enveloppe locale d'abord, puis configuration/locks/source/reconstruction/comparaisons.
+
+Validateur public d'enveloppe : une entrée ; il possède réellement un wrapper broad Exception, contrairement au wrapper d'application R9. Ne pas copier cette ancienne absence de wrapper.
+
+Loader d'artefacts : deux chemins, Parquet puis manifeste, aucun coded_result/policy_result requis. Strict JSON/modèle, nom, capture bytes, taille/SHA, lecture BytesIO, lignes/schéma, reconstruction de l'objet et validation locale. Il ne refait pas un contrôle source-complet et ne possède pas le contrat sept-arguments de R9.
+
+Distinguer appel unique à un propriétaire et nombre de lectures/passes internes. Retours, paramètres requis, types stricts, equality versus exact-type et erreurs doivent correspondre à chaque fonction locale. Aucun writer public, snapshot atomique, containment de répertoire, rejet de symlink ou postcondition de chemin ne doit être inventé.
+
+7. Modèles et engagements de contenu
+
+Documenter tous les modèles, y compris le schéma de table et le manifeste : champs requis/nullables, Literal/Strict*, mapping/tuple, validations et sérialisation. Une dataclass figée n'est pas une table immuable ; une annotation n'est pas une validation à la construction.
+
+Pour chaque digest : octets d'origine ou contenu canonique, payload exact, domaine, versions, métadonnées, index/colonnes/dtypes/valeurs, ordre des listes versus tri des clés, nulls et types supportés. Différencier hash des entrées YAML, hash de configuration, hash de table, résultat complet et SHA brut Parquet. Les identités source propagées ne sont pas recalculées par magie.
+
+Relire en particulier les coercitions contrôlées, références textuelles et littéraux nulls. A-004 existe déjà : toute similarité dans ce module doit être reliée au constat existant avec portée exacte, pas renommée automatiquement A-005 ni réparée. Les exemples sans preuve runtime doivent être explicitement déduits du corps, pas marqués « test exécuté ».
+
+8. Tests : documentation par assertion réelle
+
+Lire chaque test jusqu'à ses fixtures, mutations, instrumentations et assertions. Vérifier les imports de helpers du dépôt, les constantes de la configuration checked-in et les contextes synthétiques. Une reconstruction privée d'identités Muret ne signifie pas une validation des fichiers physiques Muret.
+
+Décrire exactement : colonne/valeur modifiée, objet référencé ou non, frame/fichier réel ou forgé, recalcul des hashes, chemin privé/public appelé, premier rejet possible et assertions effectives. Identifier le rôle de chaque callback : spy déléguant, no-op compteur ou sentinelle levant une exception. Pas de faux décompte d'I/O, de mutabilité, d'exception ou d'ordre.
+
+Une regex de message large peut accepter plusieurs gardes ; un nom de test ne prouve pas toutes les propriétés qu'il suggère. Ne pas attribuer des tests de null-safe, defaults de signature, permutation, reconstruction physique ou capture de bytes inexistants. Conserver les preuves positives et distinguer limites de couverture et défauts applicatifs.
+
+Aucune nouvelle assertion ou fixture n'est autorisée. Un défaut applicatif découvert doit être consigné avec sa preuve/limite et réservé à un ticket séparé, sans transformer cette mission en correction métier.
+
+9. Une exécution ciblée, sans installation ni boucle
+
+Après lecture et correction documentaire, exécuter une seule fois le fichier EXISTANT dans l'environnement installé :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r10-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_bess_planning_feature_policy.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R10 focused pytest failed: $code" }
+
+Capturer le résultat et l'exit après nettoyage, warnings/skips/xfails compris. Ne pas fixer d'avance le nombre depuis un ancien journal. Pas de retries silencieux ; en cas de blocage, préserver/qualifier/rapporter sans réparer code ou environnement.
+
+Les fichiers synthétiques des fixtures sont autorisés. Pas de vrai cache GPU/EP/Muret, téléchargement, nouveau recalcul réel, full pytest, recherche juridique, uv sync/installation ou changement de dépendance. Les vérifications de texte/AST/hash/JSON/Markdown sans import applicatif sont permises ; outils temporaires hors Git.
+
+10. Clôture locale et contrôle final
+
+Avant staging, rapprocher manuellement chaque explication et sa note du comportement ; puis contrôler mécaniquement toutes les identités qualifiées, signatures/plages et ancres uniques. Comparer des occurrences, pas seulement un set d'IDs. Vérifier liens entrants/sortants et destinations exactes, tableaux/fences/Unicode, en-têtes SHA/basis et snapshots complets selon la base nommée.
+
+Ne pas afficher une approbation visuelle si seul un parseur Markdown a été utilisé. Renderer existant seulement ; sinon PENDING, sans nouvelle dépendance.
+
+Réconcilier les quatre unités et leurs vrais statuts initiaux. Départ enregistré : 87/245 fichiers et 2 011/4 769 symboles. Une unité déjà clôturée ne gagne rien ; un READ exige sa comparaison manquante. Aucun gain pour déclarations, dépendances, reçus, tickets ou réception de l'approbation R9.1. Ne pas imposer 91 fichiers ou un nombre arbitraire de symboles.
+
+Conserver historiques/provenances sans recopier inutilement des milliers de lignes de notes. Pas de fusion globale de coverage ou matrice pour réduire artificiellement les diagnostics. Global PARTIAL et toutes les réserves existantes restent explicites.
+
+11. Un seul audit INDEX et un reçu sans circularité
+
+Préparer les documents et vérifier les exports sous la forme réellement attendue par l'auditeur AVANT le run. Stage explicitement les chemins relus. Une seule exécution complète du checker inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r10-candidate.stdout.txt 2> C:\souhaib\r10-candidate.stderr.txt
+
+Conserver stdout/stderr, manifeste path/mode/OID, métriques, completed et exit. Comparer les constats complets au candidat R9.1 avec ses limites : 10 263 appartient à son exécution pré-complétion de reçu ; ce n'est ni une cible ni une certification sémantique.
+
+Exit 1/completed=true peut rester cohérent avec PARTIAL. Exit 2/timeout/interruption n'est pas un audit terminé. Ne pas modifier l'auditeur ou les statuts pour obtenir artificiellement zéro.
+
+Compléter idéalement le seul reçu ensuite et vérifier son delta exact. Si d'autres bytes changent, les identifier et contrôler précisément sans déclarer final=candidat. Pas de deuxième audit fictif, de total final inventé, ni de boucle pour inclure le reçu dans sa propre preuve.
+
+12. Publication et arrêt
+
+Publier uniquement lorsque ce lot est réellement terminé ; sinon conserver le travail et retourner PARTIAL avec le premier point inachevé précis. Aucun commit global aveugle, amend, rebase, merge, PR, force-push ou push vers main.
+
+git commit -m "docs: audit BESS CNIG policy compiler reference"
+git push origin recovery/docs-continuity-1-partial
+
+Avant commit : liste exacte du diff, fichiers protégés et hors périmètre inchangés, nouveau diff propre, cumul historique distingué. Stage explicite seulement. Après publication : résoudre le SHA réel, vérifier arbre/index propre, suivi/vrai serveur concordants et main inchangé. Aucun futur self-SHA dans le reçu.
+
+Rapport final : départ/final/main, chemins/propriétaires, plages lues, transitions dédupliquées, explications/corrections et limites, API/versions/algorithmes/hashes, tests réellement exécutés, contrôles de forme et de préservation, auditeur/candidat/delta final, réserves conservées et prochain groupe identifié sans démarrage.
+
+Libellé : DOCS.CONTINUITY.1.R10 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Aucun R11 ou développement fonctionnel automatique.

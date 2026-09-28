@@ -648,19 +648,49 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
-      "source_sha256": "40d2d245c20621cb0bc74e84aa5603dda602288b4feb445d802fd5558601b91c",
+      "source_sha256": "f4d748ef9027a06274ad099518d41ee3fde8171fa61ce269ee90eef0904d0bea",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R10 complete compiler/test and unique companion prose read; nine actual exports/reexports, bounded common/CNIG source-owner and test-fixture/consumer contracts inspected. See R10 receipt for exact ranges. No dependency closure."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R10 manual source/assertion comparison: versions 1/1/2, seven locks, nine/ten/one/two-input boundaries, exact triple completeness/text agreement, 21-column schema, frozen config versus mutable result table, canonical versus raw-byte hashes.",
+        "Only these four units belong to planning.json in original matrix and all fragments. Unmaterialized transfer retained as compact prior evidence; no duplicate closure or global merge.",
+        "R10-T01..04 distinguish pinned values, mutation attempt, raw/decoder counters, earlier schema rejection and captured bytes without path postcondition. Existing A-004 similarity is source deduction, not new runtime finding; no A-005.",
+        "Local closure only; independent R10 review pending and global audit PARTIAL. Python/tests/YAML and approved earlier companions unchanged."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py"
+      ],
       "symbols": [],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r10_prior_evidence": {
+        "commit": "d169023696c2a6c228d90c04fcab13441aac61fc",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+        "row_without_symbols": {
+          "path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+          "source_sha256": "40d2d245c20621cb0bc74e84aa5603dda602288b4feb445d802fd5558601b91c",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 0,
+        "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "symbol_history": "All original symbols NOT_READ, null anchors and empty notes. Exact prior arrays remain in named commit/fragment; identities/ranges/signature fingerprints are retained. Transfer intention had no materialized counterpart."
+      },
+      "r10_source_sha256_basis": "git-content"
     },
     {
       "path": "docs/code/files/src/landscout/stages/enrich_planning_features.py.md",
@@ -940,19 +970,49 @@
     },
     {
       "path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
-      "source_sha256": "f3ed3aff4c0771eacb1927a2287d22cd4b7dbedf69e2ec77b2a10a98c45f279f",
+      "source_sha256": "3c5089fb50751ee74d177e4b6ae443fce667d7ec66a1a932e2687b4b8c7af818",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R10 complete compiler/test and unique companion prose read; nine actual exports/reexports, bounded common/CNIG source-owner and test-fixture/consumer contracts inspected. See R10 receipt for exact ranges. No dependency closure."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R10 manual source/assertion comparison: versions 1/1/2, seven locks, nine/ten/one/two-input boundaries, exact triple completeness/text agreement, 21-column schema, frozen config versus mutable result table, canonical versus raw-byte hashes.",
+        "Only these four units belong to planning.json in original matrix and all fragments. Unmaterialized transfer retained as compact prior evidence; no duplicate closure or global merge.",
+        "R10-T01..04 distinguish pinned values, mutation attempt, raw/decoder counters, earlier schema rejection and captured bytes without path postcondition. Existing A-004 similarity is source deduction, not new runtime finding; no A-005.",
+        "Local closure only; independent R10 review pending and global audit PARTIAL. Python/tests/YAML and approved earlier companions unchanged."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py"
+      ],
       "symbols": [],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r10_prior_evidence": {
+        "commit": "d169023696c2a6c228d90c04fcab13441aac61fc",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+        "row_without_symbols": {
+          "path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+          "source_sha256": "f3ed3aff4c0771eacb1927a2287d22cd4b7dbedf69e2ec77b2a10a98c45f279f",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 0,
+        "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "symbol_history": "All original symbols NOT_READ, null anchors and empty notes. Exact prior arrays remain in named commit/fragment; identities/ranges/signature fingerprints are retained. Transfer intention had no materialized counterpart."
+      },
+      "r10_source_sha256_basis": "git-content"
     },
     {
       "path": "docs/code/files/tests/unit/test_enrich_planning_features.py.md",
@@ -8873,13 +8933,20 @@
       "source_sha256": "9568f12e7f70c8e7d06b105020d486e285d0a2eef2a0eee5a266d5c1a7d545dd",
       "documentation_path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
       "role": "source",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R10 complete compiler/test and unique companion prose read; nine actual exports/reexports, bounded common/CNIG source-owner and test-fixture/consumer contracts inspected. See R10 receipt for exact ranges. No dependency closure."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R10 manual source/assertion comparison: versions 1/1/2, seven locks, nine/ten/one/two-input boundaries, exact triple completeness/text agreement, 21-column schema, frozen config versus mutable result table, canonical versus raw-byte hashes.",
+        "Only these four units belong to planning.json in original matrix and all fragments. Unmaterialized transfer retained as compact prior evidence; no duplicate closure or global merge.",
+        "R10-T01..04 distinguish pinned values, mutation attempt, raw/decoder counters, earlier schema rejection and captured bytes without path postcondition. Existing A-004 similarity is source deduction, not new runtime finding; no A-005.",
+        "Local closure only; independent R10 review pending and global audit PARTIAL. Python/tests/YAML and approved earlier companions unchanged."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py"
+      ],
       "symbols": [
         {
           "qualified_name": "BessPlanningFeaturePolicyError",
@@ -8887,10 +8954,14 @@
           "start_line": 145,
           "end_line": 146,
           "signature_sha256": "b74a5e6aa68fffaada8ae052186af31ed6c4d7904a028d8c10a1bb2451396827",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyerror",
+          "review_notes": [
+            "ValueError subclass for controlled policy failures. Model validators raise ValueError (reported by Pydantic as ValidationError); public loaders/builders translate their failures at the boundaries below. No I/O in this class."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_StrictPolicyModel",
@@ -8898,10 +8969,14 @@
           "start_line": 149,
           "end_line": 150,
           "signature_sha256": "b3d331afc7731ce083f2db327b720c0f038fab2eea0c5056d773050f17764bb3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--strictpolicymodel",
+          "review_notes": [
+            "Shared Pydantic base sets extra=\"forbid\" and frozen=True. Field-specific strictness is in annotations; this class alone does not deeply freeze arbitrary frames or mutable collections. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature",
@@ -8909,10 +8984,14 @@
           "start_line": 153,
           "end_line": 160,
           "signature_sha256": "de95d095ff5cd1a51a99d61df023d54c1fd3dbe3bac63c6a0d113d136155e455",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature",
+          "review_notes": [
+            "Five required persisted schema fields. Tuple annotations copy ordered sequences of strict strings (index names also permit None). No custom validator enforces lengths or the canonical policy schema here: artifact loader compares actual signature, then envelope compares the canonical constant. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature.columns",
@@ -8920,10 +8999,14 @@
           "start_line": 156,
           "end_line": 156,
           "signature_sha256": "10cbe7f90472fc752f92e81c947aa6e6d45ac427ecdeb7c6d253a86ab52d8fdc",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature-columns",
+          "review_notes": [
+            "Ordered strict column names; tuple conversion does not itself enforce the policy column list. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature.dtypes",
@@ -8931,10 +9014,14 @@
           "start_line": 157,
           "end_line": 157,
           "signature_sha256": "6e465c627158189d88c029801da989e3dac0733e3914370fd308b39db40d3ed0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature-dtypes",
+          "review_notes": [
+            "Ordered strict dtype labels parallel to columns by convention; no length check in this model. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature.index_class",
@@ -8942,10 +9029,14 @@
           "start_line": 158,
           "end_line": 158,
           "signature_sha256": "190561973f1d2ef7f617bf6262827b096c266bf4978d3139d5ad388920059096",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature-index-class",
+          "review_notes": [
+            "Strict persisted class-name string; canonical result requires pandas.Index later. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature.index_names",
@@ -8953,10 +9044,14 @@
           "start_line": 159,
           "end_line": 159,
           "signature_sha256": "fcc4db971104aa4098a3e45d6828b4d79e24e2d6df06ca1741f5ffbb0142764c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature-index-names",
+          "review_notes": [
+            "Ordered tuple of strict strings or None; canonical result requires [None] in JSON form. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyTableSchemaSignature.index_level_dtypes",
@@ -8964,10 +9059,14 @@
           "start_line": 160,
           "end_line": 160,
           "signature_sha256": "977067e77ba7b3e7a8fb1cb27c2ca3a22eca3cf9d4a9d54c4c9913cb0fbcc23d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policytableschemasignature-index-level-dtypes",
+          "review_notes": [
+            "Ordered strict index dtype labels; canonical result requires [\"int64\"] later. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_exact_string",
@@ -8975,10 +9074,14 @@
           "start_line": 163,
           "end_line": 168,
           "signature_sha256": "28d87ada72de830933824826c12097a3a88855728d2e18bc55dadc3a4b2b01ee",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--exact-string",
+          "review_notes": [
+            "Return the same value if isinstance(value, str), nonempty and exactly equal to strip(); otherwise raise ValueError labelled by caller. No trimming, normalization, null-literal filtering, copying or I/O. Used by models and row/envelope guards."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_optional_exact_string",
@@ -8986,10 +9089,14 @@
           "start_line": 171,
           "end_line": 174,
           "signature_sha256": "7b7413ec88582d4547d84c3386cac9cf48d9439654833fbfcda43b15be206c4c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--optional-exact-string",
+          "review_notes": [
+            "Return None only for value is None; otherwise delegate to _exact_string. Non-None non-string values fail there. Required nullable fields are not optional constructor arguments. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_sha256_string",
@@ -8997,10 +9104,14 @@
           "start_line": 177,
           "end_line": 181,
           "signature_sha256": "d6b63ab0d250a5638f54bd37a274ee9fdb6c26f71a712bce4c18d41924eb0455",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--sha256-string",
+          "review_notes": [
+            "Validate exact nonempty text then fullmatch lowercase 64-hex syntax; return unchanged string or raise ValueError. It checks syntax, not content bytes or authenticity. No hashing or I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock",
@@ -9008,10 +9119,14 @@
           "start_line": 184,
           "end_line": 209,
           "signature_sha256": "2857f3df960c93ac2bdf42aa05950a3b1876899f61c2a580530c2df7f3071d39",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock",
+          "review_notes": [
+            "Frozen seven-field source identity declaration. Strings/digests and positive strict integer versions are validated; this model alone permits positive versions other than 2/5. _validate_source_lock compares to coded_result; result and manifest impose supported versions. No source reads here."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.document_id",
@@ -9019,10 +9134,14 @@
           "start_line": 185,
           "end_line": 185,
           "signature_sha256": "c079dab49b1e93e3d1cb6b8b72f39e5f72d9c73cdb15e6bb5fb9ec9f48684bdf",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-document-id",
+          "review_notes": [
+            "Exact nonempty source document lock compared to coded source_document_id. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.archive_sha256",
@@ -9030,10 +9149,14 @@
           "start_line": 186,
           "end_line": 186,
           "signature_sha256": "294c6fc52c4ecdc59fe4dc07e52b5332cb17a72404b846ad2e79bc8c9a1843c4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-archive-sha256",
+          "review_notes": [
+            "Lowercase 64-hex archive lock compared to coded source_archive_sha256; not bytes read here. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.cnig_profile",
@@ -9041,10 +9164,14 @@
           "start_line": 187,
           "end_line": 187,
           "signature_sha256": "e778a147ed08005e704242e3047677d66eaa553ca53721e8ab2114b44a54324e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-cnig-profile",
+          "review_notes": [
+            "Exact nonempty CNIG profile identity, propagated from coded.profile or compared to it by the lock guard. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.cnig_profile_schema_version",
@@ -9052,10 +9179,14 @@
           "start_line": 188,
           "end_line": 188,
           "signature_sha256": "e24ab2bd41ac928b92bd6c827c55124646d41458242df5842df6f2e339bb81a3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-cnig-profile-schema-version",
+          "review_notes": [
+            "CNIG profile version: source lock requires a positive exact int; result envelope/manifest require exact 2. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.cnig_profile_sha256",
@@ -9063,10 +9194,14 @@
           "start_line": 189,
           "end_line": 189,
           "signature_sha256": "baa88fc221e8489659c35e4e3ede56528e388a7289a827985056a532c9d0ae4c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-cnig-profile-sha256",
+          "review_notes": [
+            "Lowercase 64-hex canonical CNIG profile identity, propagated/compared, not recomputed here. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.cnig_result_hash_schema_version",
@@ -9074,10 +9209,14 @@
           "start_line": 190,
           "end_line": 190,
           "signature_sha256": "7b460edaf46fa35182a3a238f984086afc5480b08c7e04a4420471a0761e2ab1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-cnig-result-hash-schema-version",
+          "review_notes": [
+            "CNIG result hash version: positive exact int in lock, exact 5 in result envelope/manifest. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock.cnig_complete_result_content_sha256",
@@ -9085,10 +9224,14 @@
           "start_line": 191,
           "end_line": 191,
           "signature_sha256": "e42533bb137a5664c112a0b6a081a0a965bb16490b7ab951ecf6f53ab60301f5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock-cnig-complete-result-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex upstream complete-result commitment; lock comparison and full CNIG validation are distinct checks. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicySourceLock._validate_lock",
@@ -9096,10 +9239,14 @@
           "start_line": 194,
           "end_line": 209,
           "signature_sha256": "299d3f5962256bb00bb5fcf739c508a5ad3ca20142aaac480d6f69f7b52dfd8d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policysourcelock--validate-lock",
+          "review_notes": [
+            "After field validation, check document text, archive SHA syntax, CNIG profile text and both CNIG digest strings; then require exact positive int for the two versions. Return self or ValueError through Pydantic. No mutation, hash recomputation or I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry",
@@ -9107,10 +9254,14 @@
           "start_line": 212,
           "end_line": 242,
           "signature_sha256": "9bc557a5f66d50925f1bd80e2ce3544ce98e6ad9398ea383eca3a3848d148248",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry",
+          "review_notes": [
+            "Frozen declaration for one exact family/type/subtype pair, three expected official-text fields and five decision fields: status, confidence, rationale, required human action and limitations. Priority is derived from the config mapping, not stored in this model. Required nullable expected references have no default. Domain literals and strict scalar annotations precede text/code checks. No dictionary lookup or I/O at construction."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.feature_family",
@@ -9118,10 +9269,14 @@
           "start_line": 213,
           "end_line": 213,
           "signature_sha256": "d57d5bf4caaa3ba564b0ce20c0947ea07ae2b0346a426f298a9b1c4adbd5f894",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-feature-family",
+          "review_notes": [
+            "Literal PRESCRIPTION or INFORMATION; first component of exact pair namespace. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.type_code",
@@ -9129,10 +9284,14 @@
           "start_line": 214,
           "end_line": 214,
           "signature_sha256": "2e71efdec78ecfb0dc3300c6fdb52d29499ee0bd0b53809de88e1ee552193319",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-type-code",
+          "review_notes": [
+            "Strict string matching exactly two ASCII digits; no numeric coercion or lost leading zeroes. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.subtype_code",
@@ -9140,10 +9299,14 @@
           "start_line": 215,
           "end_line": 215,
           "signature_sha256": "b0a33df8e98d2a59fe2611c04f4e6d2f17cd090197ebfd4c3e55ce6c34af5df4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-subtype-code",
+          "review_notes": [
+            "Strict string matching exactly two ASCII digits; second code component, not a fallback key. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.expected_official_label",
@@ -9151,10 +9314,14 @@
           "start_line": 216,
           "end_line": 216,
           "signature_sha256": "e65ffcc3ba526fcb505295907378dcd4d1a03902492b621a3cda5822b42618fe",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-expected-official-label",
+          "review_notes": [
+            "Required exact nonempty expected label; later equality checked against dictionary official_label. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.expected_legal_reference",
@@ -9162,10 +9329,14 @@
           "start_line": 217,
           "end_line": 217,
           "signature_sha256": "c83b48481de1e600d489c8cc4e2bcf84ac9d83e8ef287df3e367c33c6133830f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-expected-legal-reference",
+          "review_notes": [
+            "Required but nullable expected legal reference; None or exact nonempty text. Literal-null strings are not excluded at model level; see A-004 boundary discussion. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.expected_regulation_reference",
@@ -9173,10 +9344,14 @@
           "start_line": 218,
           "end_line": 218,
           "signature_sha256": "09e0a6feca1b428513a270dbf924105b0b3c4908e1bd49776f19ece4aa7fc122",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-expected-regulation-reference",
+          "review_notes": [
+            "Required but nullable expected regulation/annex reference; None or exact nonempty text, later null-safe compared to dictionary regulation_or_annex_reference. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.precheck_status",
@@ -9184,10 +9359,14 @@
           "start_line": 219,
           "end_line": 219,
           "signature_sha256": "bd6e991335abda038116e0df159024ca0517c338b24e7364e10ceddc9eaea9ca",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-precheck-status",
+          "review_notes": [
+            "One of five declared precheck status literals; not a legal authorization/prohibition. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.confidence",
@@ -9195,10 +9374,14 @@
           "start_line": 220,
           "end_line": 220,
           "signature_sha256": "f62c2eae8ea9c0bf3206e4ab9190ab056c61fc912c70430438a869a50cac8457",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-confidence",
+          "review_notes": [
+            "One of HIGH, MEDIUM, LOW; copied policy evidence, not estimated from geometry. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.rationale",
@@ -9206,10 +9389,14 @@
           "start_line": 221,
           "end_line": 221,
           "signature_sha256": "b1d30c8f020af94b60e9f763e87e6b2df6c082ae27f2dffd088fff9f32e8fd40",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-rationale",
+          "review_notes": [
+            "Exact nonempty policy explanation, copied unchanged into table. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.required_human_action",
@@ -9217,10 +9404,14 @@
           "start_line": 222,
           "end_line": 222,
           "signature_sha256": "440883d577d2e52a1c07e2df2de3744d96a3829d8e070bcd70907fa5327c5044",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-required-human-action",
+          "review_notes": [
+            "Exact nonempty human-review action text, not an automated approval. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry.limitations",
@@ -9228,10 +9419,14 @@
           "start_line": 223,
           "end_line": 223,
           "signature_sha256": "54e9b4ffff9968a5fe15256c09346668eb393dd2123c492fd835ed603fc6c0f5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry-limitations",
+          "review_notes": [
+            "Exact nonempty policy limitation text retained in the compiled row. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "PolicyEntry._validate_entry",
@@ -9239,10 +9434,14 @@
           "start_line": 226,
           "end_line": 242,
           "signature_sha256": "e7ddbb04c168bec416f2efaae1cd44b0103379fd4ef5c989319ffafa1ed9660b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-policyentry--validate-entry",
+          "review_notes": [
+            "Check both full two-ASCII-digit codes; validate exact label, nullable expected references, rationale, required action and limitations in that order. Return self; invalid fields raise ValueError through Pydantic. Does not trim or interpret text, compare dictionary meanings, or reject textual-null reference literals. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_canonical_json_sha256",
@@ -9250,10 +9449,14 @@
           "start_line": 245,
           "end_line": 258,
           "signature_sha256": "d8d0de11c8be688bb1ac5784decab5b6ebfc0ac538149571cb68f43639589275",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-json-sha256",
+          "review_notes": [
+            "Serialize any supplied JSON-compatible value using the canonical options in the digest section, encode UTF-8 and return hex SHA256. Translate TypeError/ValueError to BessPlanningFeaturePolicyError with cause; other failures are left to callers. No disk/network I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_entries_sha256",
@@ -9261,10 +9464,14 @@
           "start_line": 261,
           "end_line": 262,
           "signature_sha256": "7f3678c89bbdea6a592241f652b695b76431b618d103b67bbff2bc4ad49e918b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-entries-sha256",
+          "review_notes": [
+            "Convert entries, in existing tuple order, to a list of model_dump(mode=\"json\") objects and hash canonically. No sorting or raw YAML read; serializer errors propagate to caller."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig",
@@ -9272,10 +9479,14 @@
           "start_line": 265,
           "end_line": 335,
           "signature_sha256": "55823d0dbf0604400a0d77c618eeb82b2a1e183fd9a198bf31b9775b54522c76",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig",
+          "review_notes": [
+            "Frozen source-locked policy model, schema 1. Ordered entries are a tuple of frozen models, lock is frozen, status_priority becomes a copied FrozenDict via freeze_mapping. All ten fields are required. Completeness against a dictionary is not a model check; even an empty tuple with a consistent entry digest can pass this model, but a compiled empty table cannot pass the result envelope."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.schema_version",
@@ -9283,10 +9494,14 @@
           "start_line": 266,
           "end_line": 266,
           "signature_sha256": "1d849c8e8dc5c32176612b98b8b5bd5e9fdd837bd65cc0758f134f9b84dce3b5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-schema-version",
+          "review_notes": [
+            "Exact schema version 1 for configuration. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.profile",
@@ -9294,10 +9509,14 @@
           "start_line": 267,
           "end_line": 267,
           "signature_sha256": "56df80aaf34d998d87115ac50a010bf1d5fca7ff7bc6d8acae67a77c5b3d9308",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-profile",
+          "review_notes": [
+            "Exact nonempty policy profile name; config hash includes it, but name alone does not pin payload. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.policy_scope",
@@ -9305,10 +9524,14 @@
           "start_line": 268,
           "end_line": 268,
           "signature_sha256": "0149c439d3096fda42f6af43bfeee4465292a656a2b8e62c19d9bad0c8aa70f1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-policy-scope",
+          "review_notes": [
+            "Scope OFFICIAL_CNIG_CODE_MEANING_ONLY; literal in config/manifest and equality checked in result envelope. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.local_feature_text_interpreted",
@@ -9316,10 +9539,14 @@
           "start_line": 269,
           "end_line": 269,
           "signature_sha256": "bb2caf6ad6269276397c1b3e0c20e0ba660b1e93de80aeaf2ceea1a7352f94ec",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-local-feature-text-interpreted",
+          "review_notes": [
+            "Strict boolean required to be False; no interpretation of local feature text. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.local_regulation_content_interpreted",
@@ -9327,10 +9554,14 @@
           "start_line": 270,
           "end_line": 270,
           "signature_sha256": "603478172ad0c74ad07877c7f46e97adca701c3ee44b4c83482f677c647da909",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-local-regulation-content-interpreted",
+          "review_notes": [
+            "Strict boolean required to be False; no local regulation-content interpretation. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.legal_conclusion_produced",
@@ -9338,10 +9569,14 @@
           "start_line": 271,
           "end_line": 271,
           "signature_sha256": "f5ea86511f3f3f46d9eaad809bc461e6ccac8eea903e3e83a9f30db7467d5dbd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-legal-conclusion-produced",
+          "review_notes": [
+            "Strict boolean required to be False; precheck evidence is not a legal conclusion. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.source_lock",
@@ -9349,10 +9584,14 @@
           "start_line": 272,
           "end_line": 272,
           "signature_sha256": "77da8f1e51110eca4ef9ce66a7b035608cf9f121486006c340b627c8a388faf7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-source-lock",
+          "review_notes": [
+            "Required frozen PolicySourceLock containing seven declared source identity/version/hash locks. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.status_priority",
@@ -9360,10 +9599,14 @@
           "start_line": 273,
           "end_line": 273,
           "signature_sha256": "6d67b6bc4a5e20d55f8fe67030339134289f46ab67461d9f186e7eca4cb59898",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-status-priority",
+          "review_notes": [
+            "Mapping from all five status literals to unique strict positive integers. Validator detaches/freezes with freeze_mapping; serializer returns a fresh dict. No ranking across parcels is computed here. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.canonical_policy_entries_sha256",
@@ -9371,10 +9614,14 @@
           "start_line": 274,
           "end_line": 274,
           "signature_sha256": "25d052bd61775db149f3a8a7b36bc6d7a2239fbf512046c8300f3db3e3fbf671",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-canonical-policy-entries-sha256",
+          "review_notes": [
+            "Declared lowercase 64-hex ordered canonical entry-list digest; model validator recomputes it, not a raw YAML checksum. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig.entries",
@@ -9382,10 +9629,14 @@
           "start_line": 275,
           "end_line": 275,
           "signature_sha256": "af1832b8cadc5526bf86577bb5b18cb08eae714e3c0ee348a15f76919cf05110",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig-entries",
+          "review_notes": [
+            "Ordered tuple of frozen PolicyEntry objects. Unique triples must already be lexicographically sorted; digest includes order. Dictionary completeness is a later builder check. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig._serialize_status_priority",
@@ -9393,10 +9644,14 @@
           "start_line": 278,
           "end_line": 281,
           "signature_sha256": "be5c7a4ad71ea20db02f35273e2d5d580defa72c709a664d4a6641c29055aa81",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig--serialize-status-priority",
+          "review_notes": [
+            "Pydantic field serializer receives Mapping and returns a new dict of the same key/value pairs. This detached serialization value keeps canonical JSON shape stable; it is not an alias allowing priority mutation. No I/O or validation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyConfig._validate_policy",
@@ -9404,10 +9659,14 @@
           "start_line": 284,
           "end_line": 335,
           "signature_sha256": "2587da15781295dec7d22e624719ef747e4f0794afd411f7b1c7e2de69ab40f5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyconfig--validate-policy",
+          "review_notes": [
+            "After fields: exact schema 1, exact profile, supported scope, three flags identity-False; all five status keys; exact positive and unique integer priorities; duplicate triples; already-sorted triple order; entry digest syntax and recomputation. Only then assign freeze_mapping(status_priority) using object.__setattr__, and return self. ValueError becomes Pydantic ValidationError; canonical hashing can raise the policy error. Reading values() is an in-memory mapping operation, not filesystem access."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "load_bess_planning_feature_policy_config",
@@ -9415,10 +9674,14 @@
           "start_line": 338,
           "end_line": 355,
           "signature_sha256": "7fac7f9da7f719f37a001cb9d81536ddd114e121e25d3b70e117a789e0d2e1d3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-load-bess-planning-feature-policy-config",
+          "review_notes": [
+            "Read Path(path).read_bytes, decode via duplicate-rejecting strict YAML, require top-level Mapping, then model_validate; return frozen config. Preserve policy errors; translate StrictYamlError with its text and cause; wrap other Exception (including file/model failures) as a policy configuration error. Only config bytes are read, no source reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_resolved_policy_config",
@@ -9426,10 +9689,14 @@
           "start_line": 358,
           "end_line": 369,
           "signature_sha256": "4279b858eac5a69dc0ee0e56d3bbc21ceadc871f80dcdefd7e3561e5d60493f0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--resolved-policy-config",
+          "review_notes": [
+            "For an isinstance config (subclasses included), dump mode=\"python\" with warnings=\"error\" and reconstruct through model_validate; wrap any Exception as invalid in-memory policy. Otherwise use the file loader. Does not trust model_copy/model_construct merely because the class matches. Returns a validated config, without mutating supplied model."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_sha256",
@@ -9437,10 +9704,14 @@
           "start_line": 372,
           "end_line": 373,
           "signature_sha256": "3fb8a187e4470a5d80eb24f6c276d9ee87524646423cf2c60faa540aaceedc29",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-sha256",
+          "review_notes": [
+            "Hash complete config.model_dump(mode=\"json\") canonically, including entry list and entry digest; return lowercase SHA. No raw-file identity, no I/O and no additional validation here."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult",
@@ -9448,10 +9719,14 @@
           "start_line": 377,
           "end_line": 394,
           "signature_sha256": "9e501161ddb35caf6f35cf6589ef537ee5a84a36a380300f9fe374df68c8d6f7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult",
+          "review_notes": [
+            "Frozen dataclass envelope of 14 scalars plus one mutable policy_table. All are required; constructor annotations do not validate them. Freezing prevents field reassignment, not DataFrame mutation. Builders return a new table and validators can detect altered schema/content; this is not immediate deep table immutability despite the original docstring wording."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_schema_version",
@@ -9459,10 +9734,14 @@
           "start_line": 380,
           "end_line": 380,
           "signature_sha256": "a5b8d1b25cc87359c480e35d6972432899a09b66c20872291f963ce2e36851d1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-schema-version",
+          "review_notes": [
+            "Policy/config schema version, exact 1 at validated result/manifest boundary. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.result_hash_schema_version",
@@ -9470,10 +9749,14 @@
           "start_line": 381,
           "end_line": 381,
           "signature_sha256": "2ebbf139515689782e6a394d0511d8d91ba585e6fd6da0c3e13c0d6d0c7c56f6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-result-hash-schema-version",
+          "review_notes": [
+            "Canonical result hash version, exact 1 at validated result/manifest boundary. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_profile",
@@ -9481,10 +9764,14 @@
           "start_line": 382,
           "end_line": 382,
           "signature_sha256": "6dedd0c046eb335b97130f239079545339a84f5271310d6b33bb2395dfc7834a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-profile",
+          "review_notes": [
+            "Exact nonempty profile identity propagated from config.profile. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_scope",
@@ -9492,10 +9779,14 @@
           "start_line": 383,
           "end_line": 383,
           "signature_sha256": "6b8305befb9b9938454f05cb59c670ac79e3c325b42553d145879cf0b5e27f6c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-scope",
+          "review_notes": [
+            "Scope OFFICIAL_CNIG_CODE_MEANING_ONLY; literal in config/manifest and equality checked in result envelope. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_sha256",
@@ -9503,10 +9794,14 @@
           "start_line": 384,
           "end_line": 384,
           "signature_sha256": "4b6162b49819253f7039e5fa900b6d411a659cbd7e76c5f6154558e097322ee9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-sha256",
+          "review_notes": [
+            "Lowercase 64-hex digest of the complete validated config’s canonical JSON; propagated to each row. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.source_document_id",
@@ -9514,10 +9809,14 @@
           "start_line": 385,
           "end_line": 385,
           "signature_sha256": "e8b9ac5447859cd5b22678db79c2079678fe95a1ed06f581ce0485b2fcef6974",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-source-document-id",
+          "review_notes": [
+            "Exact nonempty identity propagated from coded result, not a physical source proof by itself. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.source_archive_sha256",
@@ -9525,10 +9824,14 @@
           "start_line": 386,
           "end_line": 386,
           "signature_sha256": "5df6fd5a50a2ea9916110e5b07552bddc4477f640230e2c607fc674a8579d4f8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-source-archive-sha256",
+          "review_notes": [
+            "Lowercase 64-hex upstream archive identity propagated from coded result; not recomputed by policy table hashing. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.cnig_profile",
@@ -9536,10 +9839,14 @@
           "start_line": 387,
           "end_line": 387,
           "signature_sha256": "bf0c954a12f580ff58f00af22967daff3632bec07ff97a9496e10d1dfa96c99f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-cnig-profile",
+          "review_notes": [
+            "Exact nonempty CNIG profile identity, propagated from coded.profile or compared to it by the lock guard. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.cnig_profile_schema_version",
@@ -9547,10 +9854,14 @@
           "start_line": 388,
           "end_line": 388,
           "signature_sha256": "ac6d3fd01165bb02b0a10fb401db4dbac9d48054efc174a586555fa6a3535595",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-cnig-profile-schema-version",
+          "review_notes": [
+            "CNIG profile version: source lock requires a positive exact int; result envelope/manifest require exact 2. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.cnig_profile_sha256",
@@ -9558,10 +9869,14 @@
           "start_line": 389,
           "end_line": 389,
           "signature_sha256": "66c2b93d0171bbeb2fa15985f530bad5f5ca645d63cd26712c4d9cb59e7e4570",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-cnig-profile-sha256",
+          "review_notes": [
+            "Lowercase 64-hex canonical CNIG profile identity, propagated/compared, not recomputed here. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.cnig_result_hash_schema_version",
@@ -9569,10 +9884,14 @@
           "start_line": 390,
           "end_line": 390,
           "signature_sha256": "7164d29f25d467291f7f2cc1f900bda6108058692d76694ba93ffcc5ebebef4c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-cnig-result-hash-schema-version",
+          "review_notes": [
+            "CNIG result hash version: positive exact int in lock, exact 5 in result envelope/manifest. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.cnig_complete_result_content_sha256",
@@ -9580,10 +9899,14 @@
           "start_line": 391,
           "end_line": 391,
           "signature_sha256": "c23dab9f5a4f2b8a342b113b6cb12960278362e724f063d057479a41cd075348",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-cnig-complete-result-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex upstream complete-result commitment; lock comparison and full CNIG validation are distinct checks. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_table_content_sha256",
@@ -9591,10 +9914,14 @@
           "start_line": 392,
           "end_line": 392,
           "signature_sha256": "2d07ea0312dabb79aff8876a32e727d351bffe63dea78277f12a3f5fa49bbb5e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-table-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex table-domain commitment to metadata and ordered frame payload; recomputed at envelope validation. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.complete_result_content_sha256",
@@ -9602,10 +9929,14 @@
           "start_line": 393,
           "end_line": 393,
           "signature_sha256": "d02884ba91dfb419d4de54ce7cf8be6378c588bf9b5d0af1e1d1ca71cdd0f70e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-complete-result-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex result-domain commitment to metadata and table digest; recomputed at envelope validation. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyResult.policy_table",
@@ -9613,10 +9944,14 @@
           "start_line": 394,
           "end_line": 394,
           "signature_sha256": "1eac323bb3503a1dbc18655eaf2dd038b18b39bc26996eab55375c0a77a92319",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyresult-policy-table",
+          "review_notes": [
+            "Mutable non-geospatial DataFrame holding 21 columns. Schema, nonempty rows, triple order, domains, lineage and hashes are validated at result boundaries, not by dataclass construction. Required dataclass field, no default or constructor validation; field assignment is frozen, table content is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest",
@@ -9624,10 +9959,14 @@
           "start_line": 397,
           "end_line": 479,
           "signature_sha256": "2c74f2041cd40dab1f8594b48d18b85a9ef9d497403bdc520339b9a71dc74825",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest",
+          "review_notes": [
+            "Frozen Pydantic physical/local envelope: schema 2, kind literal, 14 result scalars, one portable Parquet basename, row count, byte size, raw-byte SHA and nested immutable schema signature. All required. It binds claims; reading/comparing physical bytes and reconstructing local result occur later in the loader. No source completeness or I/O in model validation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.schema_version",
@@ -9635,10 +9974,14 @@
           "start_line": 400,
           "end_line": 400,
           "signature_sha256": "1d849c8e8dc5c32176612b98b8b5bd5e9fdd837bd65cc0758f134f9b84dce3b5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-schema-version",
+          "review_notes": [
+            "Exact manifest schema version 2. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.artifact_kind",
@@ -9646,10 +9989,14 @@
           "start_line": 401,
           "end_line": 401,
           "signature_sha256": "64357f6293a041de21299b73d01c12a538d39a4a8b831ffca5821c481b21da52",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-artifact-kind",
+          "review_notes": [
+            "Literal BESS_CNIG_FEATURE_POLICY_RESULT identifies this manifest family. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_schema_version",
@@ -9657,10 +10004,14 @@
           "start_line": 402,
           "end_line": 402,
           "signature_sha256": "3460a7badf9f3c61f7108814a953c7d4d80651fa24ca7b8d9bf70b9cb8212415",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-schema-version",
+          "review_notes": [
+            "Policy/config schema version, exact 1 at validated result/manifest boundary. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.result_hash_schema_version",
@@ -9668,10 +10019,14 @@
           "start_line": 403,
           "end_line": 403,
           "signature_sha256": "5238de5cf0a40d118e04f245fb9d3e122a5ca588e0ed1bc79e7d65af6ec6060c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-result-hash-schema-version",
+          "review_notes": [
+            "Canonical result hash version, exact 1 at validated result/manifest boundary. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_profile",
@@ -9679,10 +10034,14 @@
           "start_line": 404,
           "end_line": 404,
           "signature_sha256": "9e5451b9b56cf60cfe264bd7524d50b96221e2d613b90abdaa1d880aa0534ac7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-profile",
+          "review_notes": [
+            "Exact nonempty profile identity propagated from config.profile. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_scope",
@@ -9690,10 +10049,14 @@
           "start_line": 405,
           "end_line": 405,
           "signature_sha256": "0149c439d3096fda42f6af43bfeee4465292a656a2b8e62c19d9bad0c8aa70f1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-scope",
+          "review_notes": [
+            "Scope OFFICIAL_CNIG_CODE_MEANING_ONLY; literal in config/manifest and equality checked in result envelope. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_sha256",
@@ -9701,10 +10064,14 @@
           "start_line": 406,
           "end_line": 406,
           "signature_sha256": "b481a0369869c372adf5eea24390d6a3015cf104a763803c0e9e5a5f41dcdbc8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-sha256",
+          "review_notes": [
+            "Lowercase 64-hex digest of the complete validated config’s canonical JSON; propagated to each row. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.source_document_id",
@@ -9712,10 +10079,14 @@
           "start_line": 407,
           "end_line": 407,
           "signature_sha256": "ed86986109507220d00a7575a31047a89c1ae999946231e9aa29ce3d505b346a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-source-document-id",
+          "review_notes": [
+            "Exact nonempty identity propagated from coded result, not a physical source proof by itself. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.source_archive_sha256",
@@ -9723,10 +10094,14 @@
           "start_line": 408,
           "end_line": 408,
           "signature_sha256": "720af10879d5be385ca847de48d953215ed8e27d3a51a3fdab7c46b9bf0cd7a8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-source-archive-sha256",
+          "review_notes": [
+            "Lowercase 64-hex upstream archive identity propagated from coded result; not recomputed by policy table hashing. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.cnig_profile",
@@ -9734,10 +10109,14 @@
           "start_line": 409,
           "end_line": 409,
           "signature_sha256": "e778a147ed08005e704242e3047677d66eaa553ca53721e8ab2114b44a54324e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-cnig-profile",
+          "review_notes": [
+            "Exact nonempty CNIG profile identity, propagated from coded.profile or compared to it by the lock guard. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.cnig_profile_schema_version",
@@ -9745,10 +10124,14 @@
           "start_line": 410,
           "end_line": 410,
           "signature_sha256": "e24ab2bd41ac928b92bd6c827c55124646d41458242df5842df6f2e339bb81a3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-cnig-profile-schema-version",
+          "review_notes": [
+            "CNIG profile version: source lock requires a positive exact int; result envelope/manifest require exact 2. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.cnig_profile_sha256",
@@ -9756,10 +10139,14 @@
           "start_line": 411,
           "end_line": 411,
           "signature_sha256": "baa88fc221e8489659c35e4e3ede56528e388a7289a827985056a532c9d0ae4c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-cnig-profile-sha256",
+          "review_notes": [
+            "Lowercase 64-hex canonical CNIG profile identity, propagated/compared, not recomputed here. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.cnig_result_hash_schema_version",
@@ -9767,10 +10154,14 @@
           "start_line": 412,
           "end_line": 412,
           "signature_sha256": "7b460edaf46fa35182a3a238f984086afc5480b08c7e04a4420471a0761e2ab1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-cnig-result-hash-schema-version",
+          "review_notes": [
+            "CNIG result hash version: positive exact int in lock, exact 5 in result envelope/manifest. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.cnig_complete_result_content_sha256",
@@ -9778,10 +10169,14 @@
           "start_line": 413,
           "end_line": 413,
           "signature_sha256": "e42533bb137a5664c112a0b6a081a0a965bb16490b7ab951ecf6f53ab60301f5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-cnig-complete-result-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex upstream complete-result commitment; lock comparison and full CNIG validation are distinct checks. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_table_content_sha256",
@@ -9789,10 +10184,14 @@
           "start_line": 414,
           "end_line": 414,
           "signature_sha256": "3a62d33425063c1c300681b258ea1a01741a5076166560162f51bf5fea66076d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-table-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex table-domain commitment to metadata and ordered frame payload; recomputed at envelope validation. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.complete_result_content_sha256",
@@ -9800,10 +10199,14 @@
           "start_line": 415,
           "end_line": 415,
           "signature_sha256": "67aabbb3e6f380bf9459e9f5927d37177b8f4a2e150d5a06fcb979717db9894f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-complete-result-content-sha256",
+          "review_notes": [
+            "Lowercase 64-hex result-domain commitment to metadata and table digest; recomputed at envelope validation. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.parquet_filename",
@@ -9811,10 +10214,14 @@
           "start_line": 416,
           "end_line": 416,
           "signature_sha256": "c8c63c3cfe693a3987336ddd79a246fcc6a8505007b0b508851809d87b7fb7f1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-parquet-filename",
+          "review_notes": [
+            "Strict portable Parquet basename; common guard excludes paths, separators, reserved Windows device names/control characters/forbidden characters and requires .parquet. Loader separately compares it to supplied path.name. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.parquet_row_count",
@@ -9822,10 +10229,14 @@
           "start_line": 417,
           "end_line": 417,
           "signature_sha256": "46d599cad3b4e7c7204c4706f8217382899176e330f610c88e59285b85efa7c3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-parquet-row-count",
+          "review_notes": [
+            "Strict nonnegative integer count, no unit beyond rows. Loader compares actual rows; local result rejects zero-row table even though manifest model allows zero. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.parquet_size_bytes",
@@ -9833,10 +10244,14 @@
           "start_line": 418,
           "end_line": 418,
           "signature_sha256": "65e4cd97962bd3c6b0b010bd3571a8453a01f053c82f5bf256b64e35670a8626",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-parquet-size-bytes",
+          "review_notes": [
+            "Strict positive integer physical byte count; loader compares captured length before parsing. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.parquet_sha256",
@@ -9844,10 +10259,14 @@
           "start_line": 419,
           "end_line": 419,
           "signature_sha256": "a59d88de5a52d0065df167d9ad62a6cdecc3ba87525c360a96daa9694276755c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-parquet-sha256",
+          "review_notes": [
+            "Lowercase 64-hex raw Parquet byte digest; loader compares the captured bytes, distinct from canonical table hash. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest.policy_table_schema_signature",
@@ -9855,10 +10274,14 @@
           "start_line": 420,
           "end_line": 420,
           "signature_sha256": "8279981a0cee237538acc49169df631a50850fbf5ed184f336164ecc86d00df6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest-policy-table-schema-signature",
+          "review_notes": [
+            "Frozen nested PolicyTableSchemaSignature; loader compares actual schema, then local envelope compares canonical schema constant. Required field with no default. Annotation below governs Pydantic parsing; inherited extra-field rejection and freezing apply. No field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "BessPlanningFeaturePolicyArtifactManifest._validate_manifest",
@@ -9866,10 +10289,14 @@
           "start_line": 423,
           "end_line": 479,
           "signature_sha256": "728a3a367a490f9f88194cfb7cfac24b882d32f59f42c8795d33085c26502f35",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-bessplanningfeaturepolicyartifactmanifest--validate-manifest",
+          "review_notes": [
+            "Require exact ints for manifest/policy/result versions 2/1/1 and CNIG 2/5, three exact identity strings, seven SHA syntax checks, nonnegative row count and strictly positive byte size, then portable filename. Return self or ValueError (Pydantic ValidationError). Does not assert canonical table content, nonempty actual table or physical SHA equality; those are loader/envelope checks."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_null_value",
@@ -9877,10 +10304,14 @@
           "start_line": 482,
           "end_line": 491,
           "signature_sha256": "7e241d3a840c3099f9bad55b5329404208d5ac6a09daf1e35899958bb7083c0c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--null-value",
+          "review_notes": [
+            "Return None for None/pd.NA, or scalar bool/np.bool_ true returned by pd.isna. Catch TypeError/ValueError from pd.isna and return original; non-scalar masks do not become truth values. Otherwise preserve value. No mutation or I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_null_safe_equal",
@@ -9888,10 +10319,14 @@
           "start_line": 494,
           "end_line": 502,
           "signature_sha256": "7a0dc2522de10ef547c8d5199a821d14b479f37cdb59560756092fc341a05611",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--null-safe-equal",
+          "review_notes": [
+            "Normalize both sides with _null_value. If either is None, require both None; otherwise return bool(left == right), returning False for TypeError/ValueError. Used for expected dictionary references; not a general recursive comparison. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_canonical_value",
@@ -9899,10 +10334,14 @@
           "start_line": 505,
           "end_line": 528,
           "signature_sha256": "a1dd92a7e0f8c820b459437f3e8193c3a8ca6f478f66977e3acba5e0206817fb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-value",
+          "review_notes": [
+            "Canonicalize one frame scalar in the exact null/date/NumPy/bool/integer/finite-real/string order described above. Unsupported types or nonfinite real values not already recognized as missing raise policy error. Returns JSON-compatible scalar, never mutates value or handles geometry. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_frame_payload",
@@ -9910,10 +10349,14 @@
           "start_line": 531,
           "end_line": 539,
           "signature_sha256": "0c950259030b7696e99fdb8383a85866ab8373b015f03a4dd54b1c58ef1f1d77",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--frame-payload",
+          "review_notes": [
+            "Return a new dict of deterministic schema signature, ordered canonical index values and ordered rows from itertuples(index=False, name=None). No row sorting, index normalization or frame mutation; canonical scalar failures propagate. Used by table hash and full reconstruction comparison, not physical serialization."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validate_source_lock",
@@ -9921,10 +10364,14 @@
           "start_line": 542,
           "end_line": 572,
           "signature_sha256": "8aef9da7cb3e4b38e46383fcaa8015329a5ffa9fc2f446a7cd50a647fa69f94f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-source-lock",
+          "review_notes": [
+            "Compare the seven configured identity/version/hash values to coded result attributes using !=, in document/archive/profile/profile-schema/profile-hash/result-schema/complete-hash order. First mismatch raises policy error; success returns None. No file reads, type-exact coded validation or hash recomputation; full CNIG validation follows at public source boundaries."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_dictionary_by_pair",
@@ -9932,10 +10379,14 @@
           "start_line": 575,
           "end_line": 591,
           "signature_sha256": "8fdac3203ad5c080037bbd28d56e9fdcb1d1b796fc2c106f7b924bd1535291d1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--dictionary-by-pair",
+          "review_notes": [
+            "Read code_dictionary.to_dict(\"records\"), form three-part keys using str on family/codes, reject duplicate keys and return a new key-to-row dict. Assumes previously validated CNIG content; not itself a canonical dtype/text/source validator. No input mutation or disk I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validate_policy_completeness",
@@ -9943,10 +10394,14 @@
           "start_line": 594,
           "end_line": 630,
           "signature_sha256": "48fa6d0ccd5fc4cb6993c853da5f6687eed93b8a3782a77ff587105a09af4d7d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-policy-completeness",
+          "review_notes": [
+            "Build dictionary lookup, compare config entry keys with dictionary keys, reject sorted missing keys first and extras second. For every entry require exact expected label equality, then null-safe legal and regulation reference equality. Return lookup. No type-only or cross-family fallback, no local regulation interpretation and no I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_table",
@@ -9954,10 +10409,14 @@
           "start_line": 633,
           "end_line": 698,
           "signature_sha256": "ac32178b27a7830868ce184e3b6a79c5fe1c37e845898eb7d7234eb4ad44cdbd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-table",
+          "review_notes": [
+            "For each already-ordered config entry, copy triple from entry and official label/references from dictionary and decisions/priority/flags from config; append policy/CNIG identity fields. Create a new DataFrame with the exact 21 columns, convert 17 string columns with pd.array(dtype=\"str\"), then priority with astype(\"int64\") and three flags with astype(\"bool\") and replace its index with a plain Pandas Index copy. True missing references remain missing. No source frame mutation, geometry output or disk I/O; casting errors propagate."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_component_metadata",
@@ -9965,10 +10424,14 @@
           "start_line": 701,
           "end_line": 717,
           "signature_sha256": "99d372c0f66ddfc1eac90ba38fc71c70ab875e64c998384c72cafc6788b433c4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--component-metadata",
+          "review_notes": [
+            "Return a new dict of the 12 named scalar identities/versions/scope in source order, excluding table and its two computed digests. No validation, coercion, source hashing or I/O; used by both result digest helpers."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_table_sha256",
@@ -9976,10 +10439,14 @@
           "start_line": 720,
           "end_line": 727,
           "signature_sha256": "205b966512b59184e00f515d36167811b86bd1769f38d8cf6535a3b818ba66dc",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-table-sha256",
+          "review_notes": [
+            "Return canonical SHA of table domain + 12 metadata entries + frame payload. Commits ordered schema/index/rows, not Parquet bytes; no validation beyond called serializers and no I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_complete_result_sha256",
@@ -9987,10 +10454,14 @@
           "start_line": 730,
           "end_line": 737,
           "signature_sha256": "f57d53e72c41f67baf6c17bac89003da8f111498c001c0707d6190f0b1da72a6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--complete-result-sha256",
+          "review_notes": [
+            "Return canonical SHA of result domain + same metadata + policy_table_content_sha256. Does not embed the complete hash itself or directly duplicate table payload. No physical I/O or independent source verification."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_result_with_hashes",
@@ -9998,10 +10469,14 @@
           "start_line": 740,
           "end_line": 749,
           "signature_sha256": "c4679d3c2c56e4b00b575f1aced4733811743dd16afa75ec9940f730640a7eff",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--result-with-hashes",
+          "review_notes": [
+            "dataclasses.replace first installs table hash, then complete hash calculated from that component result. Return a new frozen envelope sharing the same mutable table; does not validate semantics or copy the table. Tests use this private resealing helper to isolate guards."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validate_policy_table_rows",
@@ -10009,10 +10484,14 @@
           "start_line": 752,
           "end_line": 851,
           "signature_sha256": "d95dca112a7eba4ead2cb0a706f7247e395f3ab3b9b4f85612ade53511946e6b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-policy-table-rows",
+          "review_notes": [
+            "Iterate record copies: family and exact codes, duplicate triple, exact label/rationale/action/limitations, nullable references (reject textual-null literals), status/confidence, exact positive priority and bidirectional status/priority consistency among present rows, scope equality, three flags identity-False, five row/envelope lineage equalities. Finally require sorted triple order. Returns None or explicit policy errors, wrapping exact-string ValueError locally. No expected config/dictionary argument, no completeness/source comparison or I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_build_result",
@@ -10020,10 +10499,14 @@
           "start_line": 854,
           "end_line": 879,
           "signature_sha256": "feb4de0e67b5572c74dc4f2c907a97dcec97e3e4dd546fe7ccb90f045a27e287",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--build-result",
+          "review_notes": [
+            "Private builder checks dictionary completeness/text agreement, hashes config, builds fresh table, propagates coded identities/versions, installs empty computed hashes and calls _result_with_hashes. It does NOT resolve/revalidate config, compare source locks or invoke the CNIG source owner itself. No physical reads; public callers own those preceding checks."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validate_result_envelope",
@@ -10031,10 +10514,14 @@
           "start_line": 882,
           "end_line": 940,
           "signature_sha256": "3e84dbaea2055505e29b2fc0dfd38ca7628f3b7882e7acd2cab462ce9086486f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-result-envelope",
+          "review_notes": [
+            "Require exact result type (subclasses rejected), exact integer versions 1/1 and CNIG 2/5, supported scope, exact identity text; then a DataFrame instance that is not GeoDataFrame, no duplicate columns, exact ordered columns and schema, nonempty table, scalar SHA syntax, intrinsic row checks, and recomputed table/complete hash equality. Return None. Local helper can leak unexpected exceptions; public wrapper below controls them. Does not receive config/dictionary, so locally valid one-row subsets can pass. No I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "validate_bess_planning_feature_policy_result_envelope",
@@ -10042,10 +10529,14 @@
           "start_line": 943,
           "end_line": 955,
           "signature_sha256": "643311ab2f34a2971ae6306a207176160012ee2d3d1b307c46fc72473d1f7f1c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-validate-bess-planning-feature-policy-result-envelope",
+          "review_notes": [
+            "One required result, None return on valid local envelope. Call private envelope, preserve explicit policy errors and wrap every other Exception as a policy envelope error with cause. No source/config reload, reconstruction or disk I/O. This wrapper genuinely exists here, unlike the application wrapper."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "load_bess_planning_feature_policy_artifacts",
@@ -10053,10 +10544,14 @@
           "start_line": 958,
           "end_line": 1004,
           "signature_sha256": "78dbe247850d3acb596a8de65e68b9836cda5812f655e916eaa988693867d14e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-load-bess-planning-feature-policy-artifacts",
+          "review_notes": [
+            "Two required str-or-Path parameters, Parquet then manifest. Read strict JSON object from manifest bytes and validate model; compare declared filename to parquet.name; capture parquet.read_bytes once, compare len and SHA; pd.read_parquet(BytesIO(captured)); compare rows and schema to model_dump(mode=\"json\"); reconstruct 14 scalars plus table, then private local envelope. Return result; preserve policy errors and wrap other Exception with cause. No source-complete validation, writer, containment, symlink rejection, atomic snapshot or live-path postcondition."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validate_coded_source",
@@ -10064,10 +10559,14 @@
           "start_line": 1007,
           "end_line": 1031,
           "signature_sha256": "1445b2646a37ca187ed421c445b03b99d23cdf14e6963afaa7c6f95534a45217",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-coded-source",
+          "review_notes": [
+            "Forward eight required source/profile/result inputs once to validate_planning_feature_code_result. Catch any Exception from that owner and chain a Source-complete CNIG policy error; return None. It does not count or collapse the owner’s internal physical reads/rebuilds. No independent local table mutation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "compile_bess_planning_feature_policy",
@@ -10075,10 +10574,14 @@
           "start_line": 1034,
           "end_line": 1068,
           "signature_sha256": "2ee35e81d9ced919963244aebfe1d17a200a4983c7c2d2181e298b99ed2821a2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-compile-bess-planning-feature-policy",
+          "review_notes": [
+            "Nine required inputs. Resolve policy config, compare seven source locks, invoke full CNIG owner through _validate_coded_source, build new policy result, validate local envelope, return result. Preserve explicit policy errors and broadly wrap other Exception with cause. A policy path reads YAML; delegated owner can reread/rebuild factual sources. No policy application to features/relations/parcels or scoring."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "validate_bess_planning_feature_policy_result",
@@ -10086,14 +10589,41 @@
           "start_line": 1071,
           "end_line": 1114,
           "signature_sha256": "c93af2a2ee777ecd96a692cab5c455cfdf373d86cfa86654821b890855abc5d3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-validate-bess-planning-feature-policy-result",
+          "review_notes": [
+            "Ten required inputs: compiler inputs then result. Validate result envelope BEFORE config resolution/locks/source owner; build expected result from those validated inputs; compare all 14 named scalars then frame payload equality. Return None or controlled policy error; other Exception wrapped with cause. Rejects coordinated but false table/hash content through source reconstruction; no mutation or publication."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         }
       ],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r10_prior_evidence": {
+        "commit": "d169023696c2a6c228d90c04fcab13441aac61fc",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "src/landscout/stages/bess_planning_feature_policy.py",
+        "row_without_symbols": {
+          "path": "src/landscout/stages/bess_planning_feature_policy.py",
+          "source_sha256": "9568f12e7f70c8e7d06b105020d486e285d0a2eef2a0eee5a266d5c1a7d545dd",
+          "documentation_path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
+          "role": "source",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 110,
+        "symbols_canonical_json_sha256": "1919f67791cb7658d7a567679c515f618b9ecdb6014acb8cf7eca508509f566e",
+        "symbol_history": "All original symbols NOT_READ, null anchors and empty notes. Exact prior arrays remain in named commit/fragment; identities/ranges/signature fingerprints are retained. Transfer intention had no materialized counterpart."
+      },
+      "r10_source_sha256_basis": "git-content"
     },
     {
       "path": "src/landscout/stages/enrich_planning_features.py",
@@ -21636,13 +22166,20 @@
       "source_sha256": "49d02758c7dd407fe95e10340c0b80d7da71cb9d39b27aac18f5cfacca9888d8",
       "documentation_path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
       "role": "test",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R10 complete compiler/test and unique companion prose read; nine actual exports/reexports, bounded common/CNIG source-owner and test-fixture/consumer contracts inspected. See R10 receipt for exact ranges. No dependency closure."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R10 manual source/assertion comparison: versions 1/1/2, seven locks, nine/ten/one/two-input boundaries, exact triple completeness/text agreement, 21-column schema, frozen config versus mutable result table, canonical versus raw-byte hashes.",
+        "Only these four units belong to planning.json in original matrix and all fragments. Unmaterialized transfer retained as compact prior evidence; no duplicate closure or global merge.",
+        "R10-T01..04 distinguish pinned values, mutation attempt, raw/decoder counters, earlier schema rejection and captured bytes without path postcondition. Existing A-004 similarity is source deduction, not new runtime finding; no A-005.",
+        "Local closure only; independent R10 review pending and global audit PARTIAL. Python/tests/YAML and approved earlier companions unchanged."
+      ],
+      "test_references": [
+        "tests/unit/test_bess_planning_feature_policy.py"
+      ],
       "symbols": [
         {
           "qualified_name": "_canonical_sha256",
@@ -21650,10 +22187,14 @@
           "start_line": 86,
           "end_line": 95,
           "signature_sha256": "afb1ef77db4c216b691e2b044807d6c255124e323f53a110210270e448cb920d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-sha256",
+          "review_notes": [
+            "Test-only canonical JSON SHA helper: UTF-8, sorted keys, compact separators, non-ASCII retained and NaN disallowed. Returns digest; no controlled-error wrapper or disk I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_entry",
@@ -21661,10 +22202,14 @@
           "start_line": 98,
           "end_line": 119,
           "signature_sha256": "29fc6f53645b9d7e07f8328765b570d2dc61e32892593b2f76273165d0a9fa3a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-entry",
+          "review_notes": [
+            "Convert one dictionary row object and integer position into a synthetic entry dict; cycle statuses by STATUS_PRIORITIES insertion order and confidence by position modulo 3. Missing official references become None using pd.isna. Copy official label/codes and add synthetic rationale/action/limitations. No source validation or file I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_compiled_fixture",
@@ -21672,10 +22217,14 @@
           "start_line": 122,
           "end_line": 134,
           "signature_sha256": "6291c2c4a32644fb8880d6635d8525d1ac269e91a9c5408fa074c92482d8392a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--compiled-fixture",
+          "review_notes": [
+            "Obtain seven _integration_inputs values, publicly resolve CNIG, validate synthetic policy payload and publicly compile it. Return (inputs, coded, config, result). This transitively creates/reads synthetic GPKGs and factual intersections; not real Muret acquisition or a no-I/O fixture."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_policy_payload",
@@ -21683,10 +22232,14 @@
           "start_line": 137,
           "end_line": 165,
           "signature_sha256": "0d549bf32c2a6abac3fec7f5b55ba171bc280cba459c60055d2ac340631e567a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--policy-payload",
+          "review_notes": [
+            "Return synthetic schema-1 config dict with seven locks from coded, copied priority dict, entries in dictionary iteration order, and canonical entry digest. inputs parameter is unused. Does not validate the dict or sort entries; no direct I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_validated_config",
@@ -21694,10 +22247,14 @@
           "start_line": 168,
           "end_line": 172,
           "signature_sha256": "38f9e8a5d71a672f4415179492d618962b305a945c1539db894af34bc5128d50",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validated-config",
+          "review_notes": [
+            "Assert payload entries is list; MUTATE supplied payload canonical_policy_entries_sha256 to recomputed value, then model_validate and return config. Used after deliberate test changes; no file I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_artifact_manifest",
@@ -21705,10 +22262,14 @@
           "start_line": 175,
           "end_line": 195,
           "signature_sha256": "5528bc0498194b8e01091388666859de0a44942898985d4abe505a27a61906aa",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--artifact-manifest",
+          "review_notes": [
+            "Introspect result dataclass fields except table, combine with schema/kind, filename, row count, stat size, raw read_bytes SHA and deterministic schema signature. Returns mutable dict. stat/read are separate test operations, not atomic snapshot proof."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_write_artifacts",
@@ -21716,10 +22277,14 @@
           "start_line": 198,
           "end_line": 210,
           "signature_sha256": "a879557168fb149dae34a98445dfdf061d7d03095697d89ed7eb6ea75ca5f95d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--write-artifacts",
+          "review_notes": [
+            "Write result table to policy.parquet with index=True; construct manifest and write sorted indented UTF-8 JSON with final newline to policy.json. Return (Parquet Path, manifest Path, mutable manifest dict). Test-only writer, no production export promise."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_checked_in_policy_result",
@@ -21727,10 +22292,14 @@
           "start_line": 213,
           "end_line": 241,
           "signature_sha256": "752e5c4c679a6370e6eadc61cd59144753faaddcdb9afab59151cc5853e9da7f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--checked-in-policy-result",
+          "review_notes": [
+            "Create synthetic physical inputs and publicly resolve them; load checked-in Muret policy and CNIG profile. Replace coded profile/source/version/hash identities with policy lock values and code dictionary with private _dictionary output, then call private policy _build_result. It bypasses the public compiler’s source-lock/CNIG source validation for those forged identities; no physical Muret validation or rehash of complete coded result is asserted."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status",
@@ -21738,10 +22307,14 @@
           "start_line": 244,
           "end_line": 259,
           "signature_sha256": "24f07a69dd967dfd0a1f6e1209c6db1f20760807fcb50256103c300d884482c7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-valid-exact-policy-compiles-without-applying-feature-or-parcel-status",
+          "review_notes": [
+            "Compile synthetic fixture and call full validator. Assert policy/result versions 1/1, scope, table row count equals dictionary length, no parcel_id/feature_id/relation_type columns, and all three flags False. No parcel decision or production Muret source proof."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_checked_in_policy_pins_all_twelve_exact_muret_decisions",
@@ -21749,10 +22322,14 @@
           "start_line": 262,
           "end_line": 280,
           "signature_sha256": "4768460dbdc0b6e95b9b811b3b7ac6af66cf107beeac711fb2fec0dc93aa1c6e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-checked-in-policy-pins-all-twelve-exact-muret-decisions",
+          "review_notes": [
+            "Load checked-in YAML and compare all 12 triple-to-(status,confidence) declarations with EXPECTED_MURET_DECISIONS, exact priority mapping, scope and False flags; specifically retain PRESCRIPTION 15/00 and 15/01, and assert both code lengths are 2 for every key. This reads policy only, not physical Muret data."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_checked_in_policy_complete_snapshot_is_immutable",
@@ -21760,10 +22337,14 @@
           "start_line": 283,
           "end_line": 298,
           "signature_sha256": "88940ce15f9d0b38e1f76f60e5a01d7f13fc0ad1a0db1c8fc270444e81d74a26",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-checked-in-policy-complete-snapshot-is-immutable",
+          "review_notes": [
+            "Load checked-in YAML; assert schema 1, exact profile, scope, three False flags, complete source-lock dict, priorities, declared and independently test-helper-recomputed entry digest, and complete config hash. Despite title, no mutation is attempted: this pins values, not every in-place mutation operation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_checked_in_compiled_policy_result_hashes_are_pinned",
@@ -21771,10 +22352,14 @@
           "start_line": 301,
           "end_line": 304,
           "signature_sha256": "adc8192e1f537bb5b513953832c4cd29b1550e3a063f240f5f2cb98adee93486",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-checked-in-compiled-policy-result-hashes-are-pinned",
+          "review_notes": [
+            "Use _checked_in_policy_result private reconstruction and assert exact table and complete hashes against constants. Proves deterministic private compilation of those identities, not public acceptance of physical Muret sources."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_profile_v1_snapshot_detects_policy_text_drift",
@@ -21782,10 +22367,14 @@
           "start_line": 311,
           "end_line": 320,
           "signature_sha256": "e375ed17de2107572a83d815192e39f10fafebaaca5bb81c3e8a80d08f59b54e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-profile-v1-snapshot-detects-policy-text-drift",
+          "review_notes": [
+            "For rationale, required_human_action or limitations, append \" Changed.\" to first checked-in entry; recompute entry digest and validate. Assert profile unchanged but policy hash differs from the pinned hash. Modified config is accepted, not rejected by a profile-name pin."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_profile_v1_snapshot_detects_source_lock_drift",
@@ -21793,10 +22382,14 @@
           "start_line": 323,
           "end_line": 331,
           "signature_sha256": "7cfabd120c7a745ee434a6b9919e0053ea00c46afa82f55be6c7c607ce8f0029",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-profile-v1-snapshot-detects-source-lock-drift",
+          "review_notes": [
+            "Change only checked-in payload source_lock.document_id to another-document, validate config, and assert same profile with different/unpinned full hash. No source-complete compiler call for this modified config."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_pandas_is_a_direct_bounded_runtime_dependency",
@@ -21804,10 +22397,14 @@
           "start_line": 334,
           "end_line": 338,
           "signature_sha256": "58e46b591b4106cc83159aa09be71c84ebf6d11d73dea602b9e9646f35b1c240",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-pandas-is-a-direct-bounded-runtime-dependency",
+          "review_notes": [
+            "Read pyproject.toml using tomllib and assert project dependencies contain pandas>=3.0,<4. This checks declaration, not installed Pandas version or resolver behavior."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_information_9900_official_references_remain_missing",
@@ -21815,10 +22412,14 @@
           "start_line": 341,
           "end_line": 349,
           "signature_sha256": "9cf445c19421fc3d1f555791b66b580f768d2e9b23b36056e60d0ab1acf6a2c6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-information-9900-official-references-remain-missing",
+          "review_notes": [
+            "Compile ordinary synthetic fixture; select INFORMATION 99/00 and assert both official reference cells are pd.isna. No string replacement and no full null-domain test here."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_null_reference_literal_is_rejected_by_local_envelope",
@@ -21826,10 +22427,14 @@
           "start_line": 363,
           "end_line": 378,
           "signature_sha256": "0cac18f67c42c13c7dcf6a705efee598b58b4658e031fdb0219cedfffea76b1b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-null-reference-literal-is-rejected-by-local-envelope",
+          "review_notes": [
+            "Six cases: change INFORMATION 99/00 legal or regulation reference to \"None\", \"nan\" or \"<NA>\" on a copied table, reseal table/complete hashes privately, then expect private local-envelope policy error matching reference/null/missing. This isolates intrinsic references from stale hashes; not model-level rejection."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_source_lock_mismatch_is_rejected",
@@ -21837,10 +22442,14 @@
           "start_line": 393,
           "end_line": 398,
           "signature_sha256": "6a97fd7a52f899359ee3be95b4a851f78d78366bcce1b80e8d76b57b371c1525",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-source-lock-mismatch-is-rejected",
+          "review_notes": [
+            "Seven cases forge one lock through model_copy (document, archive SHA, profile, profile schema, profile SHA, result schema, complete SHA), then model_copy config and call public compiler. Expect controlled error matching lock/source/CNIG; no counter asserts a physical-read total."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_missing_policy_pair_is_rejected",
@@ -21848,10 +22457,14 @@
           "start_line": 401,
           "end_line": 410,
           "signature_sha256": "f19738788b0e0019671b24fce60998410b297538cc861c7c6398fb13e7bbefca",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-missing-policy-pair-is-rejected",
+          "review_notes": [
+            "Pop last synthetic entry, recompute entry hash/model-validate, call public compiler and expect missing/pair error. This is incomplete dictionary coverage despite a coherent config hash."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_extra_policy_pair_is_rejected_without_type_fallback",
@@ -21859,10 +22472,14 @@
           "start_line": 413,
           "end_line": 436,
           "signature_sha256": "d60631111b9a36e4e58ef9c959d09adef596ee826ef6b90dba9c301adcbb72d6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-extra-policy-pair-is-rejected-without-type-fallback",
+          "review_notes": [
+            "Clone last entry as INFORMATION 98/00 with new label and None references, append and sort triples, reseal config, then public compile expects extra/pair. No fallback to an existing type is allowed; original input fixture is otherwise unchanged."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_policy_pair_is_rejected",
@@ -21870,10 +22487,14 @@
           "start_line": 439,
           "end_line": 448,
           "signature_sha256": "b6bbbeef87ca4d1531b835ad3c8639dde88a186c810a6c13d943c3359a98c1a2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-policy-pair-is-rejected",
+          "review_notes": [
+            "Append a copy of first entry, recompute digest and expect model ValidationError duplicate/pair. Duplicate guard precedes order checking; no compiler call for invalid config."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_prescription_information_code_spaces_remain_separate",
@@ -21881,10 +22502,14 @@
           "start_line": 451,
           "end_line": 463,
           "signature_sha256": "011d3a5c2ace9d84fd17af1c94ff7f8fc75d0e45c86a38f99b9f688fad9690c2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-prescription-information-code-spaces-remain-separate",
+          "review_notes": [
+            "Change first entry family to PRESCRIPTION, sort and reseal/validate config, then compiler expects missing/extra/pair. Exact family matters; missing check can reject before extra. Not an exhaustive proof over every cross-family combination."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_official_meaning_mismatch_is_rejected",
@@ -21892,10 +22517,14 @@
           "start_line": 474,
           "end_line": 487,
           "signature_sha256": "b1ef0d7f3956d6e9c2ca622293e2b0d55c0340b15f90a7fa247631f82b0db123",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-official-meaning-mismatch-is-rejected",
+          "review_notes": [
+            "Three cases alter first expected label, legal reference or regulation reference to stated wrong text; reseal config then public compiler expects corresponding label/legal/regulation error. Dictionary content is not mutated."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_invalid_or_legal_conclusion_status_is_rejected",
@@ -21903,10 +22532,14 @@
           "start_line": 491,
           "end_line": 500,
           "signature_sha256": "292d6b2f9202bd48fa92919e641495a0b0b3df7da014425d27429363133d3bd0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-invalid-or-legal-conclusion-status-is-rejected",
+          "review_notes": [
+            "ALLOWED, FORBIDDEN and PROHIBITED replace first entry status; entry hash updated; config model raises ValidationError. This validates literal vocabulary, not legal correctness of policy meanings."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_invalid_confidence_is_rejected",
@@ -21914,10 +22547,14 @@
           "start_line": 503,
           "end_line": 512,
           "signature_sha256": "13a5610c2dfa775590a51169830c8fb07a2559895bc1f04240ad93baf1c4350a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-invalid-confidence-is-rejected",
+          "review_notes": [
+            "Set first confidence to CERTAIN, update entry digest and expect config ValidationError. No policy compiler or source mutation is exercised after that failure."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_status_priority_contract_is_strict",
@@ -21925,10 +22562,14 @@
           "start_line": 516,
           "end_line": 533,
           "signature_sha256": "542c5f2a58529e9d3841b396b78f876f7324a7d67b88784a69d57c26bb8a396e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-status-priority-contract-is-strict",
+          "review_notes": [
+            "Five payload changes to UNKNOWN priority: duplicate 50, missing key, zero, bool True or string \"40\". Config model must raise ValidationError matching priority/integer. Tests mapping domain/strict values, not all possible integers."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_status_priority_mapping_is_deeply_immutable",
@@ -21936,10 +22577,14 @@
           "start_line": 536,
           "end_line": 543,
           "signature_sha256": "1f7419d7975c9ac7e44a478a75c09ff54f0a70b5198f3ca168e14a8a5eab767d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-status-priority-mapping-is-deeply-immutable",
+          "review_notes": [
+            "Save model_dump(mode=\"python\"), attempt status_priority[\"UNKNOWN\"]=999, require immediate TypeError matching frozen mapping and unchanged dump. This single item-assignment regression is not a test of all mapping operations or caller-input aliases."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_yaml_key_is_rejected",
@@ -21947,10 +22592,14 @@
           "start_line": 546,
           "end_line": 550,
           "signature_sha256": "0ddc89c39b3f9a483acbcc0849b410038eacfc1935b0adffeae9d72dea34f8ef",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-yaml-key-is-rejected",
+          "review_notes": [
+            "Write a temporary YAML file repeating schema_version: 1 and call config loader; expect policy error Duplicate YAML. Parsing fails before model completeness, with no real network/source input."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_unknown_yaml_field_is_rejected",
@@ -21958,10 +22607,14 @@
           "start_line": 553,
           "end_line": 559,
           "signature_sha256": "ad228c4dfd9f9f5b4e7f06dc8aedb0c757f02ed4ee69dabdce23b574ef9f4789",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-unknown-yaml-field-is-rejected",
+          "review_notes": [
+            "Add unknown_field to synthetic payload then directly model_validate, expecting ValidationError. Despite title, no YAML file is loaded in this test."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_noncanonical_whitespace_is_rejected",
@@ -21969,10 +22622,14 @@
           "start_line": 562,
           "end_line": 571,
           "signature_sha256": "d93552cdeb58cf5714f91977c0e509e131e20fe1864c3d3ddcc18ee97d9cc8d0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-noncanonical-whitespace-is-rejected",
+          "review_notes": [
+            "Set first rationale to leading-whitespace text, update entry hash and require config ValidationError matching whitespace/exact. Guard rejects, does not strip."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_malformed_sha256_is_rejected",
@@ -21980,10 +22637,14 @@
           "start_line": 574,
           "end_line": 580,
           "signature_sha256": "9038a5445fc35feccb9ca36b8edb679e51af1538173a991acc5de2be30a241f6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-malformed-sha256-is-rejected",
+          "review_notes": [
+            "Replace canonical_policy_entries_sha256 with NOT-A-SHA in synthetic payload and expect model ValidationError SHA256. Tests syntax, not forged valid-format checksum."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_in_memory_config_is_revalidated_before_compilation",
@@ -21991,10 +22652,14 @@
           "start_line": 583,
           "end_line": 587,
           "signature_sha256": "8e2c1bd21c5f3f97594ead8e17285a7f1dd26ddd1b104fcee4f61d129a44faf4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-in-memory-config-is-revalidated-before-compilation",
+          "review_notes": [
+            "model_copy config with entry digest \"f\" * 64, then public compile must reject in-memory/canonical. This bypassed-model-validation fixture tests boundary reconstruction; no valid entry rehash is supplied."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_entries_require_deterministic_order",
@@ -22002,10 +22667,14 @@
           "start_line": 590,
           "end_line": 599,
           "signature_sha256": "4aaea586bf2d6a673389c134026a320afd77b951f170e499f6e9cc7ebec0fe7f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-entries-require-deterministic-order",
+          "review_notes": [
+            "Reverse entry list and recompute digest; model_validate rejects order. Hash consistency does not make noncanonical ordering acceptable."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_table_is_sorted_and_preserves_leading_zero_codes",
@@ -22013,10 +22682,14 @@
           "start_line": 602,
           "end_line": 612,
           "signature_sha256": "cf63d4f6f71593e652ba9e17a00e5cdc256b34fdbecc0694944435f4bfb53e10",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-table-is-sorted-and-preserves-leading-zero-codes",
+          "review_notes": [
+            "Extract compiled triple tuples, assert equality to sorted tuples and both code string lengths equal 2. It does not independently inspect every code’s digit syntax here."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_table_mutation_is_rejected",
@@ -22024,10 +22697,14 @@
           "start_line": 615,
           "end_line": 622,
           "signature_sha256": "0c2d3b0a4a22e552630bef2e2ac53130a22ca9a2b7b557640233c33bf540a2d8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-table-mutation-is-rejected",
+          "review_notes": [
+            "Copy compiled table, set first precheck_status to UNKNOWN without changing priority or hashes, and call full validator expecting hash/table/rebuilt error. The local status-priority consistency guard can fail before hash comparison; broad regex does not identify only one guard."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_coordinated_policy_table_and_hash_mutation_is_rejected",
@@ -22035,10 +22712,14 @@
           "start_line": 625,
           "end_line": 634,
           "signature_sha256": "4398aaeed14e3044c328ccefa9675f8601e855bd6575f9a40988d60413375fdd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-coordinated-policy-table-and-hash-mutation-is-rejected",
+          "review_notes": [
+            "Copy table, replace first rationale with \"Coordinated but false rationale.\", privately recompute both result hashes and call full validator; expect table/rebuilt mismatch. Source reconstruction, not stale digest alone, rejects this otherwise coherent altered text."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_persisted_parquet_and_json_readback_is_source_complete",
@@ -22046,10 +22727,14 @@
           "start_line": 637,
           "end_line": 654,
           "signature_sha256": "e360a0150907f59f299e45aa11f26bcae51be7238ad39d6f9a3085d22f1205ca",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-persisted-parquet-and-json-readback-is-source-complete",
+          "review_notes": [
+            "Write synthetic fixture artifacts, load through two-path LOCAL loader, assert_frame_equal including dtype and true missing INFORMATION 99/00 legal AND regulation references, THEN separately invoke full source validator with inputs/coded/config. The test’s combined path is source-complete; loader alone is not."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_manifest_model_is_strict_and_frozen",
@@ -22057,10 +22742,14 @@
           "start_line": 657,
           "end_line": 670,
           "signature_sha256": "7eaae08092876ac567b7673efe1fe33157c7d6cd4787be21fbbdeaf14cb1bd4e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-manifest-model-is-strict-and-frozen",
+          "review_notes": [
+            "Write synthetic artifacts, model_validate manifest, assert versions/kind/filename, then require ValidationError on assigning parquet_row_count=0. Does not attempt every field/nested mutation or input-alias operation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_rejects_manifest_mismatch",
@@ -22068,10 +22757,14 @@
           "start_line": 693,
           "end_line": 708,
           "signature_sha256": "5b733ba74df3f3a3c1981a4ade3d5ed9a12246c27563112319d448d1438db3d8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-rejects-manifest-mismatch",
+          "review_notes": [
+            "Ten parametrized callbacks mutate the manifest dict: schema 1, extra field, other basename, row count 999, byte size 999, raw SHA f*64, index_names changed, table hash f*64, complete hash f*64, or missing policy_profile. Rewrite JSON and call local loader expecting case regex. Callbacks mutate, do not spy/delegate; first failing stage varies from model to schema/hash."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_uses_strict_json_before_parquet_read",
@@ -22079,10 +22772,14 @@
           "start_line": 721,
           "end_line": 743,
           "signature_sha256": "71a3a460341b3fc8366a6cdc963d4f677ea783a913aa930f6a883899b98a0f8a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-uses-strict-json-before-parquet-read",
+          "review_notes": [
+            "Four invalid manifest texts: duplicate schema key, NaN, Infinity, array. Replace pd.read_parquet with raising counted sentinel; loader raises controlled strict-JSON error and parquet_reads stays 0. This instruments decoder calls, NOT raw Parquet Path.read_bytes."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_uses_strict_json_before_parquet_read.counted",
@@ -22090,10 +22787,14 @@
           "start_line": 732,
           "end_line": 735,
           "signature_sha256": "d84d813820eef3bd54ece02b91828bf5e16d0af764fa0e18cc07e6ea08856ad7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-uses-strict-json-before-parquet-read-counted",
+          "review_notes": [
+            "Nested sentinel increments parquet_reads then raises AssertionError if called; no delegation or successful return despite object annotation. Parent proves zero decoder calls after invalid JSON, not a file-read count."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_rejects_parquet_replacement",
@@ -22101,10 +22802,14 @@
           "start_line": 746,
           "end_line": 752,
           "signature_sha256": "b5f8697cc0eefca6be7f51e103b5a72a36c8c8287eebed9877ac8d9b1405f8a2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-rejects-parquet-replacement",
+          "review_notes": [
+            "Append b\"changed\" to actual test Parquet while retaining old manifest; local loader must reject size/SHA/hash. Size mismatch can reject first; this is pre-load byte corruption, not a mid-read race."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_parses_the_exact_verified_parquet_bytes",
@@ -22112,10 +22817,14 @@
           "start_line": 755,
           "end_line": 804,
           "signature_sha256": "1b91d27d58c262a2947696987c53e8215238678350f7e3082bad1194f08cd736",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-parses-the-exact-verified-parquet-bytes",
+          "review_notes": [
+            "Capture verified bytes, produce a different gzip Parquet, then patch Path.read_bytes to replace the path AFTER capturing original bytes. Observe read_parquet input, require replacement occurred, parsed_payloads exactly [(\"buffer\", verified_bytes)] and frame equality. Historical _file_sha256 trap is installed with raising=False but production has no such helper. Proves captured-byte parsing, not final live-path equality or atomic fileset."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_parses_the_exact_verified_parquet_bytes.replace_after_byte_read",
@@ -22123,10 +22832,14 @@
           "start_line": 772,
           "end_line": 778,
           "signature_sha256": "b6c94d39457c6cce7edcf3ed28995c3e4f07b4b77937dbe5a546fb163b9a6bd3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-parses-the-exact-verified-parquet-bytes-replace-after-byte-read",
+          "review_notes": [
+            "Delegate original_read_bytes first, replace only the target path once with replacement bytes, then return the initially captured payload. Counter flag tracks replacement. No source validation or post-read path check."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_parses_the_exact_verified_parquet_bytes.old_hash_then_replace",
@@ -22134,10 +22847,14 @@
           "start_line": 780,
           "end_line": 786,
           "signature_sha256": "539e736dad287a3789825502ac746c7110b09389f182b2d4febc6add6468dbef",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-parses-the-exact-verified-parquet-bytes-old-hash-then-replace",
+          "review_notes": [
+            "Historical trap callback would read original bytes, replace target path once, and return SHA of captured payload. Installed on nonexistent _file_sha256 via raising=False; no assertion proves it is called and current loader never calls it."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_artifact_loader_parses_the_exact_verified_parquet_bytes.observed_read_parquet",
@@ -22145,10 +22862,14 @@
           "start_line": 788,
           "end_line": 796,
           "signature_sha256": "42247aa9a9aff0a9b3b3d4670e84805c0c5632786f8cfd99991fa9b041aee804",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-artifact-loader-parses-the-exact-verified-parquet-bytes-observed-read-parquet",
+          "review_notes": [
+            "Delegating spy records buffer.getvalue for BytesIO, otherwise original bytes from the path, then returns original_read_parquet(source,*args,**kwargs). Parent asserts exactly one buffer containing initially verified bytes."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_locally_invalid_result_fast_fails_before_source_validation",
@@ -22156,10 +22877,14 @@
           "start_line": 807,
           "end_line": 834,
           "signature_sha256": "27593266ceb8d4c51b07b42da0d26db8f0f0b8a3ea40a746e00ece65d23aa768",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-locally-invalid-result-fast-fails-before-source-validation",
+          "review_notes": [
+            "After valid fixture setup, replace CNIG owner with no-op counter. Full validator sees object(), policy schema 2, dropped confidence column, bad table hash or bad complete hash and raises type/schema/hash/result; cumulative calls remains 0. Does not count setup source work or internal I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_locally_invalid_result_fast_fails_before_source_validation.counted",
@@ -22167,10 +22892,14 @@
           "start_line": 814,
           "end_line": 816,
           "signature_sha256": "b3e2ca2d7c2617d16ba538202b566303f1b9646659dd0f35b8c7c2b0356dee3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-locally-invalid-result-fast-fails-before-source-validation-counted",
+          "review_notes": [
+            "Nested no-op counter increments calls and implicitly returns None; does not delegate or raise. Parent’s invalid-envelope loop must never reach it."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_compiler_wrong_source_lock_fast_fails_before_source_validation",
@@ -22178,10 +22907,14 @@
           "start_line": 837,
           "end_line": 855,
           "signature_sha256": "5e2f3510ee9ae295a3bdb61e399ca3ee996c30ea74b261343c22300a8c8bd4a7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-compiler-wrong-source-lock-fast-fails-before-source-validation",
+          "review_notes": [
+            "After fixture setup, forge config document lock only, patch CNIG owner with no-op counter, public compile rejects lock/document and calls == 0. This tests lock ordering, not every lock field’s I/O behavior."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_compiler_wrong_source_lock_fast_fails_before_source_validation.counted",
@@ -22189,10 +22922,14 @@
           "start_line": 844,
           "end_line": 846,
           "signature_sha256": "b3e2ca2d7c2617d16ba538202b566303f1b9646659dd0f35b8c7c2b0356dee3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-compiler-wrong-source-lock-fast-fails-before-source-validation-counted",
+          "review_notes": [
+            "Nested no-op CNIG counter increments calls and returns None implicitly. No delegation/rejection; parent asserts it was not reached."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_forged_matching_lock_still_runs_source_complete_validation",
@@ -22200,10 +22937,14 @@
           "start_line": 858,
           "end_line": 881,
           "signature_sha256": "bbbc49a7629509d7f3c916a66269b6dffa2ecb105bcc295d961c50f1cd8dce6d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-forged-matching-lock-still-runs-source-complete-validation",
+          "review_notes": [
+            "Forge coded source_document_id AND config lock.document_id to \"forged-document\" without resealing coded hashes/rows. The delegating CNIG spy is reached once; compiler raises Source-complete/source. That owner can reject its local lineage/hash envelope before physical reconstruction; the test proves invocation, not a completed physical rebuild or a disk-read count."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_forged_matching_lock_still_runs_source_complete_validation.counted",
@@ -22211,10 +22952,14 @@
           "start_line": 866,
           "end_line": 869,
           "signature_sha256": "b3e2ca2d7c2617d16ba538202b566303f1b9646659dd0f35b8c7c2b0356dee3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-forged-matching-lock-still-runs-source-complete-validation-counted",
+          "review_notes": [
+            "Delegating spy increments calls then invokes saved actual CNIG validator; parent expects that real owner to reject. Count is owner invocations, not disk reads."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_compiler_and_public_validator_invoke_source_complete_coding_validation",
@@ -22222,10 +22967,14 @@
           "start_line": 884,
           "end_line": 905,
           "signature_sha256": "804f1a93f1b58ecf292a56fa3e662e8301223387b196a50409e86dcc4ea02948",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-compiler-and-public-validator-invoke-source-complete-coding-validation",
+          "review_notes": [
+            "Build synthetic inputs/coded/config before patch; delegating CNIG spy sees calls == 1 after public compile and calls == 2 after full validator. This is one invocation per operation, not one internal physical pass."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_compiler_and_public_validator_invoke_source_complete_coding_validation.counted",
@@ -22233,10 +22982,14 @@
           "start_line": 896,
           "end_line": 899,
           "signature_sha256": "b3e2ca2d7c2617d16ba538202b566303f1b9646659dd0f35b8c7c2b0356dee3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-compiler-and-public-validator-invoke-source-complete-coding-validation-counted",
+          "review_notes": [
+            "Delegating spy increments shared calls and executes actual(*args,**kwargs), implicitly returning None. No exception suppression or fabricated source validity."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_public_policy_api_exports_only_stable_symbols",
@@ -22244,10 +22997,14 @@
           "start_line": 908,
           "end_line": 924,
           "signature_sha256": "c5162e5ee4928c486fe555b081f7d41c71bac465125daac6cef996b221728ed8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-public-policy-api-exports-only-stable-symbols",
+          "review_notes": [
+            "Assert module __all__ equals exact nine-name set, package includes those names with identical objects, and _canonical_sha256/_lookup are not in module exports. Does not test default arguments or prohibit every private importable name."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator",
@@ -22255,10 +23012,14 @@
           "start_line": 927,
           "end_line": 935,
           "signature_sha256": "37c4b3bc9297c3c80b500f7a2ffb1a721a9b6d1bc736184a807bc46069170cf8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-step-7d-5b-2b-5-exposes-lightweight-policy-result-validator",
+          "review_notes": [
+            "Assert envelope API exists, accept valid fixture locally, replace complete hash with 64 zeroes and expect hash error. No source-owner call-count instrumentation in this test."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_manifest_rejects_nonportable_parquet_filename",
@@ -22266,10 +23027,14 @@
           "start_line": 977,
           "end_line": 985,
           "signature_sha256": "f2742787ffc14526926d2706f15f0e7ddf636f777db8dc90f48295829fe988b0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-manifest-rejects-nonportable-parquet-filename",
+          "review_notes": [
+            "34 parametrized absolute/traversal/separator/Windows-device/colon/forbidden/control-character names replace manifest basename. Model validation must raise ValueError filename/basename/portable; Pydantic ValidationError is a ValueError subclass. No loader containment or symlink test."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_shared_filename_contract_rejects_superscript_windows_devices",
@@ -22277,10 +23042,14 @@
           "start_line": 999,
           "end_line": 1003,
           "signature_sha256": "0b66a153d78210acd359565bb70a49009ae06253256b18fe9d0cd63c64b312e9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-shared-filename-contract-rejects-superscript-windows-devices",
+          "review_notes": [
+            "Six mixed-case COM/LPT superscript 1/2/3 basenames directly hit common portable-name guard and expect ValueError reserved/basename/portable. No artifact reads."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_manifest_rejects_unsupported_cnig_source_schema",
@@ -22288,10 +23057,14 @@
           "start_line": 1020,
           "end_line": 1030,
           "signature_sha256": "19de1dede5647a24f5b269b29ed31d89b093eb77e0bf34d5557a1d942bcb5081",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-manifest-rejects-unsupported-cnig-source-schema",
+          "review_notes": [
+            "Nine invalid CNIG profile/result version assignments to manifest dict; model_validate raises ValidationError CNIG/cnig/schema/version. Exact supported versions are 2/5; result version 2 is not among these nine cases."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_artifact_loader_rejects_source_schema_before_parquet_read",
@@ -22299,10 +23072,14 @@
           "start_line": 1047,
           "end_line": 1080,
           "signature_sha256": "afe23f7344085c18528545ccba088d717b3168a52e301d777e9132e4a5121dc3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-artifact-loader-rejects-source-schema-before-parquet-read",
+          "review_notes": [
+            "Same nine unsupported source-version JSON mutations. Path.read_bytes spy permits manifest but counts/raises on Parquet, and pd.read_parquet sentinel counts/raises. Local loader rejects with controlled schema error and calls == {\"bytes\":0,\"parse\":0}. Unlike strict-JSON test, both raw read and parser are instrumented."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_artifact_loader_rejects_source_schema_before_parquet_read.byte_read",
@@ -22310,10 +23087,14 @@
           "start_line": 1063,
           "end_line": 1067,
           "signature_sha256": "47e1ef30f3dfdfc9034a7f380a8407befbfa6c94f1b85a1a1ed3bb2c301c7b76",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-artifact-loader-rejects-source-schema-before-parquet-read-byte-read",
+          "review_notes": [
+            "For target Parquet increment calls[\"bytes\"] and raise AssertionError; for other paths delegate original_read_bytes. Thus manifest reads remain real, target data read must not occur."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_artifact_loader_rejects_source_schema_before_parquet_read.parse",
@@ -22321,10 +23102,14 @@
           "start_line": 1069,
           "end_line": 1071,
           "signature_sha256": "2cbbadaf38cc7d0f15f816b58327c55fda1a0ec22bd4be276d9d52a98684c185",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-artifact-loader-rejects-source-schema-before-parquet-read-parse",
+          "review_notes": [
+            "Always increment calls[\"parse\"] and raise AssertionError, no delegation or successful DataFrame return. Parent requires zero calls."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_rehash_policy_table",
@@ -22332,10 +23117,14 @@
           "start_line": 1083,
           "end_line": 1087,
           "signature_sha256": "b636d7331d86a1b4228bb9d55e3ece9160bebeec494d4b0d8ef6ffac988ea17d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--rehash-policy-table",
+          "review_notes": [
+            "Replace result table reference and call private _result_with_hashes; return newly sealed envelope, sharing supplied mutable table. No intrinsic or source validation, no I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "_canonical_empty_policy_result",
@@ -22343,10 +23132,14 @@
           "start_line": 1090,
           "end_line": 1095,
           "signature_sha256": "20c8d6ba1cc710b6578eb4048dec1b3803ca10c795043121453b6db61c557c71",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-empty-policy-result",
+          "review_notes": [
+            "Take copied zero-row slice preserving columns/dtypes, assign empty plain int64 Index, then privately reseal. Returns syntactically coherent empty table result for the nonempty regression, not a valid policy."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_rejects_canonical_empty_policy_table",
@@ -22354,10 +23147,14 @@
           "start_line": 1098,
           "end_line": 1105,
           "signature_sha256": "0542dfeab217d87683ef126bdbb21fbc8302bf84934ac7a5f2230b192fa51ba7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-rejects-canonical-empty-policy-table",
+          "review_notes": [
+            "Build typed zero-row/resealed result using helper and require public envelope policy/table/empty/entry error. Empty guard, not stale hash or changed schema, is targeted."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_accepts_one_exact_policy_row",
@@ -22365,10 +23162,14 @@
           "start_line": 1108,
           "end_line": 1114,
           "signature_sha256": "f2469468cc040ba5dbd16ef258d68d5ff0e965ab0753e5c3263a22518a95cbca",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-accepts-one-exact-policy-row",
+          "review_notes": [
+            "Copy first row, assign plain int64 index [0], reseal hashes and require local public envelope success. Does not call full validator; acceptance proves local coherence, not dictionary completeness."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_accepts_current_twelve_row_snapshot",
@@ -22376,10 +23177,14 @@
           "start_line": 1117,
           "end_line": 1121,
           "signature_sha256": "f9d773f477e96c9cdf572e1a14a8a44fdd0af817aa6b16c018ca4dbaaf7b7227",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-accepts-current-twelve-row-snapshot",
+          "review_notes": [
+            "Use private checked-in reconstruction, assert 12 rows and local envelope success. No source-complete physical Muret validation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_requires_cnig_profile_schema_two",
@@ -22387,10 +23192,14 @@
           "start_line": 1125,
           "end_line": 1132,
           "signature_sha256": "d12bd59dcf443b9ade641739f22965b2fadef8c648cdf2183b4631c40ee7b7a1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-requires-cnig-profile-schema-two",
+          "review_notes": [
+            "For versions 0,1,3,999 replace CNIG profile version, reseal hashes and expect public envelope schema error. Coherent hashes cannot permit unsupported versions."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_requires_cnig_result_schema_five",
@@ -22398,10 +23207,14 @@
           "start_line": 1136,
           "end_line": 1143,
           "signature_sha256": "e6cc23a98deda167ef580af7e3689967a6e977e54a81f8f225eb8e49c1225b70",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-requires-cnig-result-schema-five",
+          "review_notes": [
+            "For versions 0,1,2,4,6,999 replace CNIG result version, reseal hashes and expect public envelope CNIG result/schema error."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_validates_every_intrinsic_row_contract",
@@ -22409,10 +23222,14 @@
           "start_line": 1168,
           "end_line": 1222,
           "signature_sha256": "88ee84f891978567c8a7157e7f101f09fe7810e24707cb2aa5a10bcc0882b44f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-validates-every-intrinsic-row-contract",
+          "review_notes": [
+            "Seventeen copied-table/resealed mutations: duplicate triple at distinct indices; reverse row order; type_code=\"1\"; AUTHORIZED status; CERTAIN confidence; zero/negative priority; bool priority using object dtype; one status/two priorities; two statuses/one priority; OTHER_SCOPE; local_feature_text_interpreted=True; policy SHA a*64; other CNIG profile; CNIG profile SHA a*64; CNIG result SHA a*64; legal reference \"None\". Broad policy/pair/order/code/status/confidence/priority/scope/flag/CNIG/null/schema regex permits different first guards. The bool case fails schema before row priority type; name does not prove exhaustive intrinsic coverage."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1",
@@ -22420,10 +23237,14 @@
           "start_line": 1225,
           "end_line": 1235,
           "signature_sha256": "1a45d98b15a67a1e79441f95b002141818121167caeda221e077241376490480",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-requires-exact-type-and-accepts-valid-schema-v1",
+          "review_notes": [
+            "Construct a DerivedPolicyResult subclass using valid result.__dict__, require public envelope type/result rejection, then accept the exact base instance. Tests exact-type boundary, not runtime validation on dataclass construction."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1.DerivedPolicyResult",
@@ -22431,10 +23252,14 @@
           "start_line": 1229,
           "end_line": 1230,
           "signature_sha256": "f9900fa18d6184d37b61d2cb794e07550ac1d6ef340cb5176f97f6d5f326a73a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-requires-exact-type-and-accepts-valid-schema-v1-derivedpolicyresult",
+          "review_notes": [
+            "Empty nested subclass of result dataclass, constructed only to prove exact-type rejection. No methods, fields, I/O or independent validation."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         },
         {
           "qualified_name": "test_policy_envelope_controls_malformed_result_type",
@@ -22442,14 +23267,41 @@
           "start_line": 1239,
           "end_line": 1242,
           "signature_sha256": "530650e8857a847c5720a1764c853f824ca3fa75dedd1e53e9f29f9b102c63f8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-policy-envelope-controls-malformed-result-type",
+          "review_notes": [
+            "Parametrized None and object() must raise controlled BessPlanningFeaturePolicyError at public envelope. No injected unexpected exception or broad-wrapper branch is independently instrumented."
+          ],
+          "test_references": [
+            "tests/unit/test_bess_planning_feature_policy.py"
+          ]
         }
       ],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r10_prior_evidence": {
+        "commit": "d169023696c2a6c228d90c04fcab13441aac61fc",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "tests/unit/test_bess_planning_feature_policy.py",
+        "row_without_symbols": {
+          "path": "tests/unit/test_bess_planning_feature_policy.py",
+          "source_sha256": "49d02758c7dd407fe95e10340c0b80d7da71cb9d39b27aac18f5cfacca9888d8",
+          "documentation_path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
+          "role": "test",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 73,
+        "symbols_canonical_json_sha256": "6956c2f7bf5996ab9c5b66573d0ffa3fb2510f2101bc383e492f76c7febd351f",
+        "symbol_history": "All original symbols NOT_READ, null anchors and empty notes. Exact prior arrays remain in named commit/fragment; identities/ranges/signature fingerprints are retained. Transfer intention had no materialized counterpart."
+      },
+      "r10_source_sha256_basis": "git-content"
     },
     {
       "path": "tests/unit/test_enrich_planning_features.py",
