@@ -222,7 +222,7 @@ Source lines 437–470. Kind: function. Owner: `tests.unit.test_interpret_bess_z
 def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> None:
 ```
 
-Build and publicly validate synthetic result; assert six ordered nonparcel schemas and evidence schema, chapter/source/positive/parcel counts 2/3/5/4, versions 5/5, scopes, two routes/three links, touch count 1, selected lineage/profile, relation column tuple and source-label set. GPU gate bypassed; not a real-source run.
+Build and publicly validate synthetic result; assert the six ordered non-parcel table schemas, including evidence_catalog, chapter/source/positive/parcel counts 2/3/5/4, versions 5/5, scopes, two routes/three links, touch count 1, selected lineage/profile, relation column tuple and source-label set. GPU gate bypassed; not a real-source run.
 
 <a id="symbol-test-source-lock-mismatch-is-rejected"></a>
 ### `tests.unit.test_interpret_bess_zoning.test_source_lock_mismatch_is_rejected`

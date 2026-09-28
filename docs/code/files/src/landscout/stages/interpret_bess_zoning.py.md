@@ -1712,7 +1712,7 @@ def _validate_parcels(
 ) -> gpd.GeoDataFrame:
 ```
 
-Require GeoDataFrame, unique columns, 13 required factual names and no precheck-name collision; CRS and active geometry named geometry; exact unique parcel IDs; nonnull/nonempty/valid Polygon or MultiPolygon; five nonnegative Integral feature counts; both planning and planning-feature document/archive lineage pairs equal index. Return deep frame copy. CRS inspection errors are locally wrapped; other explicit guards use BessZoningPrecheckError. No local reprojection/repair/Z-or-M guard or spatial overlay.
+Require GeoDataFrame, unique columns, 12 required factual names and no precheck-name collision; CRS and active geometry named geometry; exact unique parcel IDs; nonnull/nonempty/valid Polygon or MultiPolygon; five nonnegative Integral feature counts; both planning and planning-feature document/archive lineage pairs equal index. Return deep frame copy. CRS inspection errors are locally wrapped; other explicit guards use BessZoningPrecheckError. No local reprojection/repair/Z-or-M guard or spatial overlay.
 
 <a id="symbol--validate-zones"></a>
 ### `landscout.stages.interpret_bess_zoning._validate_zones`

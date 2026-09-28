@@ -767,7 +767,7 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/interpret_bess_zoning.py.md",
-      "source_sha256": "110c51ae447b798dec8be6fb901e21513e7fac5bad6d6c85fa9db5491b88850b",
+      "source_sha256": "ed9e0e791212527fdfc0b27eb3265f2eaa63c936f94e1e82bb761bfd07f52eb5",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -806,7 +806,8 @@
         "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty notes. Sole planning owner in original matrix/all fragments; no transferred_to or duplicate counterpart. Prior arrays retained in named commit."
       },
-      "r11_source_sha256_basis": "git-content"
+      "r11_source_sha256_basis": "git-content",
+      "r12_editorial_correction": "R12 only: exact authorized R11-D01/D02 paragraph and actual matching owner note corrected against unchanged source. All other prose/source snapshots/signatures/anchors/statuses retained; zero closure credit. Supplied R11 approval and pending independent R12 delta review distinguished in R12 receipt."
     },
     {
       "path": "docs/code/files/src/landscout/stages/planning_overlay.py.md",
@@ -826,19 +827,49 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
-      "source_sha256": "1d6cd6f4f7cd948aca4f146bb40b046f8f21325b0492ecf0024eab624fa6111a",
+      "source_sha256": "c92ebe294927e5dfe44f9091b4223a3a77b5cf98ff57850c952f4fca57e60821",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R12 full source/tests/old companion prose read; seven exports/reexports and actual dependency/consumer ranges inspected; see receipt. No dependency closure credit."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R12: exact offline triple resolution, profile2/result5, canonical display text and hashes, ten-column dictionary/seven-column suffix, source-complete versus local envelope paths, 24 result fields/five mutable frames.",
+        "Four sole-owner NOT_READ rows close without matrix/coverage merge or transfer counterpart; prior intent archived compactly. Two R11 editorial corrections add zero.",
+        "R12-T01..05 preserve bounded test proof: no cross-family collision, sentinel versus delegate counts, possible earlier guards/stale hashes, shape-only assertions and synthetic/offline/nonmutation limits. Existing A-003/A-004 not duplicated or repaired.",
+        "Local documentation complete; independent R12 review pending, global PARTIAL and all previous application/EP/cold-start/visual reservations retained."
+      ],
+      "test_references": [
+        "tests/unit/test_resolve_planning_feature_codes.py"
+      ],
       "symbols": [],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r12_prior_evidence": {
+        "commit": "fa3e2132ed314ee6f62f62612b017d71e08c0f34",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+        "row_without_symbols": {
+          "path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+          "source_sha256": "1d6cd6f4f7cd948aca4f146bb40b046f8f21325b0492ecf0024eab624fa6111a",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 0,
+        "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "symbol_history": "Original NOT_READ/null anchors/empty notes retained in named commit. Sole actual planning owner; transferred_to was an unmaterialized intention, no counterpart or duplicate credit."
+      },
+      "r12_source_sha256_basis": "git-content"
     },
     {
       "path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
@@ -1155,7 +1186,7 @@
     },
     {
       "path": "docs/code/files/tests/unit/test_interpret_bess_zoning.py.md",
-      "source_sha256": "b6986b59005c68924b48567999238836f37e47df87709de48852fa5b52e1a107",
+      "source_sha256": "d59cb6168d112fa35999671feadaca0330b4edd951eeb1b944d80ede16c62b5b",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -1194,23 +1225,54 @@
         "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty notes. Sole planning owner in original matrix/all fragments; no transferred_to or duplicate counterpart. Prior arrays retained in named commit."
       },
-      "r11_source_sha256_basis": "git-content"
+      "r11_source_sha256_basis": "git-content",
+      "r12_editorial_correction": "R12 only: exact authorized R11-D01/D02 paragraph and actual matching owner note corrected against unchanged source. All other prose/source snapshots/signatures/anchors/statuses retained; zero closure credit. Supplied R11 approval and pending independent R12 delta review distinguished in R12 receipt."
     },
     {
       "path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
-      "source_sha256": "c952f3d208602403b4ff263e0e91c8dd182c886b0f834c9378e670fecff7ecd3",
+      "source_sha256": "ecc33ab4d50955d55d873d6cd26ed832f183a958a2abae01c4e45140fdced079",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CORRECTED",
+      "imports_exports_callers_reviewed": [
+        "R12 full source/tests/old companion prose read; seven exports/reexports and actual dependency/consumer ranges inspected; see receipt. No dependency closure credit."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R12: exact offline triple resolution, profile2/result5, canonical display text and hashes, ten-column dictionary/seven-column suffix, source-complete versus local envelope paths, 24 result fields/five mutable frames.",
+        "Four sole-owner NOT_READ rows close without matrix/coverage merge or transfer counterpart; prior intent archived compactly. Two R11 editorial corrections add zero.",
+        "R12-T01..05 preserve bounded test proof: no cross-family collision, sentinel versus delegate counts, possible earlier guards/stale hashes, shape-only assertions and synthetic/offline/nonmutation limits. Existing A-003/A-004 not duplicated or repaired.",
+        "Local documentation complete; independent R12 review pending, global PARTIAL and all previous application/EP/cold-start/visual reservations retained."
+      ],
+      "test_references": [
+        "tests/unit/test_resolve_planning_feature_codes.py"
+      ],
       "symbols": [],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r12_prior_evidence": {
+        "commit": "fa3e2132ed314ee6f62f62612b017d71e08c0f34",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+        "row_without_symbols": {
+          "path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+          "source_sha256": "c952f3d208602403b4ff263e0e91c8dd182c886b0f834c9378e670fecff7ecd3",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 0,
+        "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "symbol_history": "Original NOT_READ/null anchors/empty notes retained in named commit. Sole actual planning owner; transferred_to was an unmaterialized intention, no counterpart or duplicate credit."
+      },
+      "r12_source_sha256_basis": "git-content"
     },
     {
       "path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
@@ -14867,7 +14929,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--validate-parcels",
           "review_notes": [
-            "Require GeoDataFrame, unique columns, 13 required factual names and no precheck-name collision; CRS and active geometry named geometry; exact unique parcel IDs; nonnull/nonempty/valid Polygon or MultiPolygon; five nonnegative Integral feature counts; both planning and planning-feature document/archive lineage pairs equal index. Return deep frame copy. CRS inspection errors are locally wrapped; other explicit guards use BessZoningPrecheckError. No local reprojection/repair/Z-or-M guard or spatial overlay."
+            "Require GeoDataFrame, unique columns, 12 required factual names and no precheck-name collision; CRS and active geometry named geometry; exact unique parcel IDs; nonnull/nonempty/valid Polygon or MultiPolygon; five nonnegative Integral feature counts; both planning and planning-feature document/archive lineage pairs equal index. Return deep frame copy. CRS inspection errors are locally wrapped; other explicit guards use BessZoningPrecheckError. No local reprojection/repair/Z-or-M guard or spatial overlay."
           ],
           "test_references": [
             "tests/unit/test_interpret_bess_zoning.py"
@@ -15308,13 +15370,20 @@
       "source_sha256": "cdb463f06cea6f58881681bca7e95e80b0770e69f4cdf3cc373329eca7bc0235",
       "documentation_path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
       "role": "source",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R12 full source/tests/old companion prose read; seven exports/reexports and actual dependency/consumer ranges inspected; see receipt. No dependency closure credit."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R12: exact offline triple resolution, profile2/result5, canonical display text and hashes, ten-column dictionary/seven-column suffix, source-complete versus local envelope paths, 24 result fields/five mutable frames.",
+        "Four sole-owner NOT_READ rows close without matrix/coverage merge or transfer counterpart; prior intent archived compactly. Two R11 editorial corrections add zero.",
+        "R12-T01..05 preserve bounded test proof: no cross-family collision, sentinel versus delegate counts, possible earlier guards/stale hashes, shape-only assertions and synthetic/offline/nonmutation limits. Existing A-003/A-004 not duplicated or repaired.",
+        "Local documentation complete; independent R12 review pending, global PARTIAL and all previous application/EP/cold-start/visual reservations retained."
+      ],
+      "test_references": [
+        "tests/unit/test_resolve_planning_feature_codes.py"
+      ],
       "symbols": [
         {
           "qualified_name": "PlanningFeatureCodeError",
@@ -15322,10 +15391,14 @@
           "start_line": 93,
           "end_line": 94,
           "signature_sha256": "0179738ba14f356883bfe4d0510c33a40c139ee1240ff69a1a09061fe838086c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecodeerror",
+          "review_notes": [
+            "ValueError subclass for unprovable factual code integrity; no custom initializer or fields. Explicit errors pass through the public wrappers. It is not a BESS policy exception."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_StrictModel",
@@ -15333,10 +15406,14 @@
           "start_line": 97,
           "end_line": 98,
           "signature_sha256": "c7d5a2581a6350c8216f4f809b4bd5d7c27a5eba0d4ffa369794e2d79f4906ba",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--strictmodel",
+          "review_notes": [
+            "Pydantic base with extra=\"forbid\" and frozen=True, not global strict=True. Strict scalar fields and frozen nested models/record tuples protect retained profile values; this does not freeze module-level schema dictionaries or result DataFrames."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_exact_string",
@@ -15344,10 +15421,14 @@
           "start_line": 101,
           "end_line": 104,
           "signature_sha256": "28d87ada72de830933824826c12097a3a88855728d2e18bc55dadc3a4b2b01ee",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--exact-string",
+          "review_notes": [
+            "Accept an isinstance(str) value only when nonempty and equal to strip(); return it unchanged or raise ValueError. No normalization or numeric coercion."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_canonical_official_text",
@@ -15355,10 +15436,14 @@
           "start_line": 107,
           "end_line": 108,
           "signature_sha256": "d83693395fa556a791081dcdd6d2245fdc78d45e7508e490400993a121963017",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-official-text",
+          "review_notes": [
+            "Return NFC-normalized text joined from split() whitespace fragments with single spaces. Pure string transformation; no local factual field mutation, legal lookup or I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_official_text",
@@ -15366,10 +15451,14 @@
           "start_line": 111,
           "end_line": 117,
           "signature_sha256": "920e7bccbd12798659789ee20f83de059e38e11736579f4fcc6b2eb421e66b14",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-official-text",
+          "review_notes": [
+            "First require an exact string, then equality with _canonical_official_text. Return unchanged text; ValueError if noncanonical. It tests that configured display text is already canonical, rather than silently cleaning it."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_optional_official_text",
@@ -15377,10 +15466,14 @@
           "start_line": 120,
           "end_line": 123,
           "signature_sha256": "c661ca0b9992a150446515e26a54591a5ffeadab64a66d476fbeab4c415a4150",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-optional-official-text",
+          "review_notes": [
+            "Return None unchanged; otherwise delegate to _validate_official_text. The optional annotation permits a null value, not omission of the owning required field. Textual null literals are not specially rejected here (existing A-004)."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "OfficialSourceUrls",
@@ -15388,10 +15481,14 @@
           "start_line": 126,
           "end_line": 140,
           "signature_sha256": "7d63a5f8638e76d84f45d1f1d3284b0af1257e5d61967f5ab48371e50072fb6c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-officialsourceurls",
+          "review_notes": [
+            "Two required StrictStr endpoints in a frozen model. The after-validator compares exact configured identities, not DNS, downloaded content or legal currency."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "OfficialSourceUrls.prescription",
@@ -15399,10 +15496,14 @@
           "start_line": 127,
           "end_line": 127,
           "signature_sha256": "acaa503efd6ab99bc1a3ce252ff1a7eda4c74b4c17bdd153d72e47e59787630c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-officialsourceurls-prescription",
+          "review_notes": [
+            "Required StrictStr equal to PRESCRIPTION_OFFICIAL_SOURCE_URL. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "OfficialSourceUrls.information",
@@ -15410,10 +15511,14 @@
           "start_line": 128,
           "end_line": 128,
           "signature_sha256": "62d0253dec4354420c0bbd12ccb7eb06200d2316cfb1a42d8aaf51e291f5adf2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-officialsourceurls-information",
+          "review_notes": [
+            "Required StrictStr equal to INFORMATION_OFFICIAL_SOURCE_URL. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "OfficialSourceUrls._validate_urls",
@@ -15421,10 +15526,14 @@
           "start_line": 131,
           "end_line": 140,
           "signature_sha256": "8c2d50728fa6949feb60f589ad32e343af0515aa7e2c87c765d3971876520c3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-officialsourceurls--validate-urls",
+          "review_notes": [
+            "Check prescription then information against their exact module endpoint constants; ValueError on any mismatch, return self otherwise. No URL normalization/network request; query, port, credentials, alternate host and fragments are not equivalent identities."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord",
@@ -15432,10 +15541,14 @@
           "start_line": 143,
           "end_line": 173,
           "signature_sha256": "93a27a94cb17af36a6dfd1753a974718eba7c398807a046582fc5826eef8cdc7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord",
+          "review_notes": [
+            "Seven required fields: closed family, two strict two-digit strings, canonical label, two required nullable canonical references and exact family URL. Frozen scalar record; no mapping retained and no default reference values."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.feature_family",
@@ -15443,10 +15556,14 @@
           "start_line": 144,
           "end_line": 144,
           "signature_sha256": "d57d5bf4caaa3ba564b0ce20c0947ea07ae2b0346a426f298a9b1c4adbd5f894",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-feature-family",
+          "review_notes": [
+            "Required Literal PRESCRIPTION or INFORMATION. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.type_code",
@@ -15454,10 +15571,14 @@
           "start_line": 145,
           "end_line": 145,
           "signature_sha256": "2e71efdec78ecfb0dc3300c6fdb52d29499ee0bd0b53809de88e1ee552193319",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-type-code",
+          "review_notes": [
+            "Required StrictStr of exactly two ASCII digits; leading zero preserved. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.subtype_code",
@@ -15465,10 +15586,14 @@
           "start_line": 146,
           "end_line": 146,
           "signature_sha256": "b0a33df8e98d2a59fe2611c04f4e6d2f17cd090197ebfd4c3e55ce6c34af5df4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-subtype-code",
+          "review_notes": [
+            "Required StrictStr of exactly two ASCII digits; 00 is an exact subtype, not wildcard. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.official_label",
@@ -15476,10 +15601,14 @@
           "start_line": 147,
           "end_line": 147,
           "signature_sha256": "590713ac69a7f32eb566a4217f06e0a797e4d70f354f0d33080cce376171be9a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-official-label",
+          "review_notes": [
+            "Required StrictStr, nonblank exact already-canonical display text. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.legal_reference",
@@ -15487,10 +15616,14 @@
           "start_line": 148,
           "end_line": 148,
           "signature_sha256": "53cd5557e14b157de97800805e416c9ac59de67d1f8300c991d0cb9e81d4a063",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-legal-reference",
+          "review_notes": [
+            "Required StrictStr-or-None; true null permitted, omission not defaulted. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.regulation_or_annex_reference",
@@ -15498,10 +15631,14 @@
           "start_line": 149,
           "end_line": 149,
           "signature_sha256": "dc962701685d1dc66bab3db52b115b457ff6c7debab1ebe8e9c6fdac181fea13",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-regulation-or-annex-reference",
+          "review_notes": [
+            "Required StrictStr-or-None; true null permitted, omission not defaulted. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord.official_source_url",
@@ -15509,10 +15646,14 @@
           "start_line": 150,
           "end_line": 150,
           "signature_sha256": "c7a63358794a711f7beab72b9b3c9e07e2a9c624d7504d105aac88d8f058397d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord-official-source-url",
+          "review_notes": [
+            "Required StrictStr exactly matching its family endpoint. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeRecord._validate_record",
@@ -15520,10 +15661,14 @@
           "start_line": 153,
           "end_line": 173,
           "signature_sha256": "9f5c445b25a2b9968f36d7906d4e33758d23ee9cb82e469594344261f60786f4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecoderecord--validate-record",
+          "review_notes": [
+            "Require type and subtype fullmatch ASCII [0-9]{2}; validate label and both optional references; select expected URL by family and compare exact identity. Return self, ValueError on failure. Does not infer meaning from prefixes or trim raw codes."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_record_payload",
@@ -15531,10 +15676,14 @@
           "start_line": 176,
           "end_line": 185,
           "signature_sha256": "9c0d3a885f41cfba5f671ad878493a4ce972bc0e05851c693bf2852aa4445bda",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--record-payload",
+          "review_notes": [
+            "Return a new seven-key dictionary of record declarations, retaining true null references. No lineage/profile/version added and no validation or I/O performed."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_canonical_json_sha256",
@@ -15542,10 +15691,14 @@
           "start_line": 188,
           "end_line": 201,
           "signature_sha256": "d8d0de11c8be688bb1ac5784decab5b6ebfc0ac538149571cb68f43639589275",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-json-sha256",
+          "review_notes": [
+            "JSON serialize supplied payload with ensure_ascii=False, allow_nan=False, sort_keys=True and compact separators, encode UTF-8, hash SHA256. Serialization exceptions become chained PlanningFeatureCodeError. Unlike _canonical_value, this helper does not first convert arbitrary geometry/NumPy objects."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_records_sha256",
@@ -15553,10 +15706,14 @@
           "start_line": 204,
           "end_line": 205,
           "signature_sha256": "7451f8351168136b4dd5047432996786c161973bd70b1c46d455b88b07529d99",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--records-sha256",
+          "review_notes": [
+            "Hash the ordered list of seven-field _record_payload outputs. No sorting or extra domain/version here; model validation separately requires canonical triple order. Not a raw YAML byte digest."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile",
@@ -15564,10 +15721,14 @@
           "start_line": 208,
           "end_line": 239,
           "signature_sha256": "54a3c237d7ce732de2095d328b8f46b7af01d49f3a612b457ee66343c821ccfb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile",
+          "review_notes": [
+            "Eight required fields in a frozen model: strict version/profile/hash, Literal standard/normalization, frozen endpoints, retrieval date and nonempty tuple of frozen records. Date follows Pydantic date validation (not StrictStr); input sequences become tuples preserving their order. No retained mutable input mapping."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.schema_version",
@@ -15575,10 +15736,14 @@
           "start_line": 211,
           "end_line": 211,
           "signature_sha256": "1d849c8e8dc5c32176612b98b8b5bd5e9fdd837bd65cc0758f134f9b84dce3b5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-schema-version",
+          "review_notes": [
+            "Required StrictInt exactly 2. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.profile",
@@ -15586,10 +15751,14 @@
           "start_line": 212,
           "end_line": 212,
           "signature_sha256": "8025bfc11b966dd7b610e2aee169fcb9143240a725df186f26f32c8c4c44d7bc",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-profile",
+          "review_notes": [
+            "Required StrictStr nonempty and strip-invariant. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.standard_model",
@@ -15597,10 +15766,14 @@
           "start_line": 213,
           "end_line": 213,
           "signature_sha256": "043ab393fcf68d6af5f9e1f0e9b57bcd6640823411bb11d84bcdbf1ec9a13ca3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-standard-model",
+          "review_notes": [
+            "Required Literal CNIG PLU v2017. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.official_text_normalization",
@@ -15608,10 +15781,14 @@
           "start_line": 214,
           "end_line": 214,
           "signature_sha256": "c05a0915d4d8d1c40396964213b92675626773748d08b96083ab2a977f8c8ab0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-official-text-normalization",
+          "review_notes": [
+            "Required Literal GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.official_sources",
@@ -15619,10 +15796,14 @@
           "start_line": 215,
           "end_line": 215,
           "signature_sha256": "c73916aba07002c38281d48ef6fbc7080ad3a325de54accc86b2cd5030fb2d18",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-official-sources",
+          "review_notes": [
+            "Required frozen OfficialSourceUrls with two exact endpoints. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.retrieval_date",
@@ -15630,10 +15811,14 @@
           "start_line": 216,
           "end_line": 216,
           "signature_sha256": "d00165c29bca4cd44d03958e7d026feb2116a3eccdde90f9aa29543cfb8b5715",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-retrieval-date",
+          "review_notes": [
+            "Required date; serialized as JSON ISO date in profile digest. Configured metadata, not proof of a retrieval. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.canonical_records_sha256",
@@ -15641,10 +15826,14 @@
           "start_line": 217,
           "end_line": 217,
           "signature_sha256": "1e45fbc4e98f0f3cd0f8f7ad16fbe2e1d02b4ba6c31960b4545e4810eedb2874",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-canonical-records-sha256",
+          "review_notes": [
+            "Required StrictStr lowercase 64-hex SHA of ordered seven-field records. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile.records",
@@ -15652,10 +15841,14 @@
           "start_line": 218,
           "end_line": 218,
           "signature_sha256": "a5ee039e3d3779194e0f4a8bcf2074f4d4dea3e51bec69289c21f6fe34dba2b0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile-records",
+          "review_notes": [
+            "Required nonempty tuple of frozen CnigFeatureCodeRecord objects; unique sorted exact triples. YAML lists convert without reordering. Pydantic field validation applies; frozen retained value, no field-level I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "CnigFeatureCodeProfile._validate_profile",
@@ -15663,10 +15856,14 @@
           "start_line": 221,
           "end_line": 239,
           "signature_sha256": "e8a4c07cfe7dd9688ce25154e71f736b88026bd771967f1c0b097ecf3389fb83",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-cnigfeaturecodeprofile--validate-profile",
+          "review_notes": [
+            "After field/nested validation require schema 2, exact profile string, lowercase 64-hex records hash; form exact family/type/subtype triples, reject duplicates and nonlexicographic order, then compare recomputed ordered-record digest. Return self or ValueError. Does not sort declarations or acquire official sources."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "load_cnig_feature_code_profile",
@@ -15674,10 +15871,14 @@
           "start_line": 242,
           "end_line": 259,
           "signature_sha256": "606da20e27248fe0f7de325b2bac8d187f45f9bd156f3654a62e0f7e059b5fd2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-load-cnig-feature-code-profile",
+          "review_notes": [
+            "Required str-or-Path path: read bytes, decode with common.strict_yaml.loads_strict_yaml, require Mapping, model_validate and return profile. Preserve PlanningFeatureCodeError, wrap StrictYamlError with its message/cause, wrap other Exception as invalid profile. Filesystem read only; no default path or remote retrieval."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult",
@@ -15685,10 +15886,14 @@
           "start_line": 263,
           "end_line": 289,
           "signature_sha256": "629e1bd874f0df42fb768677fa8651317e3a294166d4eedaafa8ef56da507a94",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult",
+          "review_notes": [
+            "Frozen dataclass with 24 required fields: 19 scalars (two integers and 17 strings) plus five mutable tables (dictionary DataFrame, three feature GeoDataFrames and relations DataFrame). No constructor runtime validation or deep table immutability. Explicit validators establish integrity; no artifact manifest/loader/writer is defined here."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.result_hash_schema_version",
@@ -15696,10 +15901,14 @@
           "start_line": 266,
           "end_line": 266,
           "signature_sha256": "2ebbf139515689782e6a394d0511d8d91ba585e6fd6da0c3e13c0d6d0c7c56f6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-result-hash-schema-version",
+          "review_notes": [
+            "Integer version 5; envelope requires exact int, not bool. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.profile_schema_version",
@@ -15707,10 +15916,14 @@
           "start_line": 267,
           "end_line": 267,
           "signature_sha256": "3cf1860d3cd960d0f2d20fd4014ad12ad822eba39fb897b6d39ab8abaf1fc675",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-profile-schema-version",
+          "review_notes": [
+            "Integer version 2; envelope requires exact int, not bool. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.profile",
@@ -15718,10 +15931,14 @@
           "start_line": 268,
           "end_line": 268,
           "signature_sha256": "56dd2558e092ed6b4d9ad1e22c39e18001077ce0e29515e3a15ab4a2b83456ee",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-profile",
+          "review_notes": [
+            "Configured exact profile name. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.standard_model",
@@ -15729,10 +15946,14 @@
           "start_line": 269,
           "end_line": 269,
           "signature_sha256": "ee05c60e7bfbbfc3374c7fa9b6ec9c0794079620545f60fca20c4af708bbfb53",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-standard-model",
+          "review_notes": [
+            "Exact CNIG PLU v2017 standard. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.profile_sha256",
@@ -15740,10 +15961,14 @@
           "start_line": 270,
           "end_line": 270,
           "signature_sha256": "12ca5ec712a11b70b4d75450d4eb0200556f798a89fe938a74e03bf96679346d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-profile-sha256",
+          "review_notes": [
+            "Canonical JSON profile digest, not YAML byte digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.source_document_id",
@@ -15751,10 +15976,14 @@
           "start_line": 271,
           "end_line": 271,
           "signature_sha256": "e8b9ac5447859cd5b22678db79c2079678fe95a1ed06f581ce0485b2fcef6974",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-source-document-id",
+          "review_notes": [
+            "Exact source document identifier. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.source_archive_sha256",
@@ -15762,10 +15991,14 @@
           "start_line": 272,
           "end_line": 272,
           "signature_sha256": "5df6fd5a50a2ea9916110e5b07552bddc4477f640230e2c607fc674a8579d4f8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-source-archive-sha256",
+          "review_notes": [
+            "Propagated archive-byte identity; this field alone performs no byte verification. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.planning_document_context_sha256",
@@ -15773,10 +16006,14 @@
           "start_line": 273,
           "end_line": 273,
           "signature_sha256": "1975f909c2300a4ba5a3f8a01460a55d5a5bb146d5f47f8a8cc0ca2a84998970",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-planning-document-context-sha256",
+          "review_notes": [
+            "Recomputed in-memory source-document contextual payload digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.parcel_identity_input_sha256",
@@ -15784,10 +16021,14 @@
           "start_line": 274,
           "end_line": 274,
           "signature_sha256": "381ac1b298d53db7c2daab3f09038ece8eeddbab6c3077d4ad62523d87fc25ad",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-parcel-identity-input-sha256",
+          "review_notes": [
+            "Digest of parcel_id/geometry, original index and CRS, not every parcel column. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.normalized_catalogs_input_sha256",
@@ -15795,10 +16036,14 @@
           "start_line": 275,
           "end_line": 275,
           "signature_sha256": "c5f364592885c52ba4d3b6a53c3ec52fb9f8524f5da99f79c23ee091d0aaed57",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-normalized-catalogs-input-sha256",
+          "review_notes": [
+            "Digest of three complete factual catalog payloads. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.normalized_relations_input_sha256",
@@ -15806,10 +16051,14 @@
           "start_line": 276,
           "end_line": 276,
           "signature_sha256": "54de28a6b13dbe967b01046bebc7d5b405536fc9aeabd2175c11ec852dfce705",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-normalized-relations-input-sha256",
+          "review_notes": [
+            "Digest of supplied complete factual relation frame. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.gpu_related_source_files_sha256",
@@ -15817,10 +16066,14 @@
           "start_line": 277,
           "end_line": 277,
           "signature_sha256": "b8ee395981fbc67c786d21d46b08cc6377528acc43cbc69f112b401a78b77ec9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-gpu-related-source-files-sha256",
+          "review_notes": [
+            "Propagated shared factual-validation commitment to verified GPU-related source files/FIDs/metadata. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.expected_relations_content_sha256",
@@ -15828,10 +16081,14 @@
           "start_line": 278,
           "end_line": 278,
           "signature_sha256": "872594b40015b5719782af04d1bc1a7ee28c448c1ec1d97bb1b72ade431a656b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-expected-relations-content-sha256",
+          "review_notes": [
+            "Propagated shared factual-validation digest of relations rebuilt from geometry. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.code_dictionary_content_sha256",
@@ -15839,10 +16096,14 @@
           "start_line": 279,
           "end_line": 279,
           "signature_sha256": "b7371fa38aefbc92a14d338942fcb5fc7feb77be7afee1d4182b707ac10a6264",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-code-dictionary-content-sha256",
+          "review_notes": [
+            "Dictionary frame component digest, bound to common metadata. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.surface_features_content_sha256",
@@ -15850,10 +16111,14 @@
           "start_line": 280,
           "end_line": 280,
           "signature_sha256": "6da5985361f4806b67e3af95416eae7b32da868774e18bd233d45c39418efda1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-surface-features-content-sha256",
+          "review_notes": [
+            "Surface coded-frame component digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.line_features_content_sha256",
@@ -15861,10 +16126,14 @@
           "start_line": 281,
           "end_line": 281,
           "signature_sha256": "1d8feeda2db78b97ee3448c79b4f4cc300a408d8f82e45e83da9237566739744",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-line-features-content-sha256",
+          "review_notes": [
+            "Line coded-frame component digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.point_features_content_sha256",
@@ -15872,10 +16141,14 @@
           "start_line": 282,
           "end_line": 282,
           "signature_sha256": "801b4ccd00896c30df5b489ded0ceae0ae944a5cd18bc19b4b12a31a68f3c3dd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-point-features-content-sha256",
+          "review_notes": [
+            "Point coded-frame component digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.relations_content_sha256",
@@ -15883,10 +16156,14 @@
           "start_line": 283,
           "end_line": 283,
           "signature_sha256": "e2190cdacc848c1347471f28429576308abaa094c6e0cd8032d24723d6cbd92f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-relations-content-sha256",
+          "review_notes": [
+            "Coded relations component digest. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.complete_result_content_sha256",
@@ -15894,10 +16171,14 @@
           "start_line": 284,
           "end_line": 284,
           "signature_sha256": "d02884ba91dfb419d4de54ce7cf8be6378c588bf9b5d0af1e1d1ca71cdd0f70e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-complete-result-content-sha256",
+          "review_notes": [
+            "Complete result digest combining metadata and five component commitments. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.code_dictionary",
@@ -15905,10 +16186,14 @@
           "start_line": 285,
           "end_line": 285,
           "signature_sha256": "6b3a75df7dde0f551705defca214999a05d8eacb25c9f1525c3c8e6aa00ab480",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-code-dictionary",
+          "review_notes": [
+            "Mutable ten-column pd.DataFrame, all configured records including unused triples. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.surface_features",
@@ -15916,10 +16201,14 @@
           "start_line": 286,
           "end_line": 286,
           "signature_sha256": "98b1bf6020fb918d730d9ef04bcadc3b81c34ac142a757e8bf92742fd7253196",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-surface-features",
+          "review_notes": [
+            "Mutable coded SURFACE GeoDataFrame: factual 27 columns plus seven official fields. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.line_features",
@@ -15927,10 +16216,14 @@
           "start_line": 287,
           "end_line": 287,
           "signature_sha256": "0d3690554c2195254ddcd7c1d1efde2e7c8b991352d319ee8d012da6cb521776",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-line-features",
+          "review_notes": [
+            "Mutable coded LINE GeoDataFrame: factual 27 columns plus seven official fields. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.point_features",
@@ -15938,10 +16231,14 @@
           "start_line": 288,
           "end_line": 288,
           "signature_sha256": "8ddf4b6fefb5c18c8f5df075b7b8795f7c60e3e0b7d356cfb0db126285beb5e9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-point-features",
+          "review_notes": [
+            "Mutable coded POINT GeoDataFrame: factual 27 columns plus seven official fields. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "PlanningFeatureCodeResult.relations",
@@ -15949,10 +16246,14 @@
           "start_line": 289,
           "end_line": 289,
           "signature_sha256": "58fbae92e1f38605ac945bcdf5d1fb239d8601781a10d4f4e3e9549540ffad7f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-planningfeaturecoderesult-relations",
+          "review_notes": [
+            "Mutable pd.DataFrame: factual 28 columns plus seven official fields; no geometry column. Required dataclass constructor field; annotation is not runtime validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_resolved_profile",
@@ -15960,10 +16261,14 @@
           "start_line": 292,
           "end_line": 303,
           "signature_sha256": "0cfbbfb2ccd37e4710c4a51a15e5984f6f1e2d7646b101609419529949b07cc4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--resolved-profile",
+          "review_notes": [
+            "For an existing CnigFeatureCodeProfile, dump mode=\"python\", warnings=\"error\", then reconstruct via model_validate; any Exception becomes an invalid in-memory profile error. Otherwise call the path loader. Frozen supplied objects are not automatically trusted; model_construct/model_copy can bypass model guards before this boundary."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_profile_sha256",
@@ -15971,10 +16276,14 @@
           "start_line": 306,
           "end_line": 307,
           "signature_sha256": "19177612d875a23ef4d4a49f4317745205c532f558f87bc6990acb2f40451bc5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--profile-sha256",
+          "review_notes": [
+            "Hash profile.model_dump(mode=\"json\") as canonical JSON. Includes date, schema, endpoints, normalization, ordered records and their declared digest; not the source YAML bytes and not a fresh reconstruction here."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_strict_string",
@@ -15982,10 +16291,14 @@
           "start_line": 310,
           "end_line": 314,
           "signature_sha256": "d17a85b13a52009c058a875ca8f3e4130e23961af7c1593d298a227eb795fc3a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--strict-string",
+          "review_notes": [
+            "Require isinstance(str), nonempty and unchanged by strip(); raise PlanningFeatureCodeError or return original value. Factual scalar guard, no coercion or mutation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_planning_standard",
@@ -15993,10 +16306,14 @@
           "start_line": 317,
           "end_line": 331,
           "signature_sha256": "245839008609d57c2c140417006a63a7d0226c73efb28c08863baa347c4abeb9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--planning-standard",
+          "review_notes": [
+            "Require GpuPlanningDocument, gather extraction standard identifiers and nonnull metadata standard, deduplicate in encounter order and require exactly one; validate exact nonblank string and return it. It checks object metadata only; no source read or comparison to configured profile until caller."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validated_code_series",
@@ -16004,10 +16321,14 @@
           "start_line": 334,
           "end_line": 339,
           "signature_sha256": "599f01c20dabaa54eb189105e635023a638f62be694525d802159a5e3b04fd1f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validated-code-series",
+          "review_notes": [
+            "Visit tolist() and require each value a string fullmatching two ASCII digits; PlanningFeatureCodeError otherwise. Return None; accepts leading zeros, rejects null/numeric values, no fallback or mutation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_is_true_null",
@@ -16015,10 +16336,14 @@
           "start_line": 342,
           "end_line": 349,
           "signature_sha256": "707e1646af20e4be6c503322fced060d16e168694f1e92a653c95d33f2e5ec9e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--is-true-null",
+          "review_notes": [
+            "Recognize None and pd.NA; otherwise call pd.isna, treating TypeError/ValueError as false and accepting only a scalar bool/np.bool_ true result. Return bool, not array truth evaluation or recognition of literal null strings."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_null_safe_equal",
@@ -16026,10 +16351,14 @@
           "start_line": 352,
           "end_line": 357,
           "signature_sha256": "7a0dc2522de10ef547c8d5199a821d14b479f37cdb59560756092fc341a05611",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--null-safe-equal",
+          "review_notes": [
+            "If either operand is a true null, require both null; otherwise require identical Python types then equality. Used on scalar row values, not a general array comparator; no coercion, I/O or broad exception wrapper."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_nullable_official_value",
@@ -16037,10 +16366,14 @@
           "start_line": 360,
           "end_line": 368,
           "signature_sha256": "151a7d49c41c91cf435cee5d66f3d32ecec70a4f9eb16b88205ce62374df4a07",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-nullable-official-value",
+          "review_notes": [
+            "Allow true null; reject None/nan/<NA> literal text before delegating exact/canonical text validation. Delegated ValueError is translated to PlanningFeatureCodeError with cause. This is stricter on textual nulls than the record model (existing A-004)."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_code_dictionary",
@@ -16048,10 +16381,14 @@
           "start_line": 371,
           "end_line": 440,
           "signature_sha256": "741e09b8df448da8cc1b0649e7dac7b434ea3e606557840642cc26ca79d7e683",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-code-dictionary",
+          "review_notes": [
+            "Require exact pd.DataFrame (not subclass/GeoDataFrame), unique columns and complete deterministic signature: ten ordered str columns and unnamed plain int64 Index. Require nonempty rows, closed family, two-digit codes, unique triples, canonical label, nullable references, exact family URL and matching profile/hash/standard; require lexicographic triple order. Return triple-to-row dictionary. Local PlanningFeatureCodeError guards; caller public wrapper handles unexpected malformed objects. Does not reload profile or prove its full record set."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_coded_meaning_rows",
@@ -16059,10 +16396,14 @@
           "start_line": 443,
           "end_line": 529,
           "signature_sha256": "29ab9976140b9583f6c87d1c09b07c9e234d70612ab03dfaeb42cdb0438e48ae",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-coded-meaning-rows",
+          "review_notes": [
+            "Use the dictionary lookup already validated and supplied by the envelope owner. For each of three catalogs check exact family/codes/profile, then RESOLVED_OFFICIAL requires a dictionary triple and null-safe equality of four meaning fields; UNKNOWN_CODE_PAIR requires absent triple and four true-null meanings. Reject other statuses and missing/duplicate global feature IDs. For every relation find planning_feature_id, then compare family/raw codes and seven official columns with that feature. Return None. This is intrinsic row/dictionary consistency, not physical source or overlay reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_catalog_document_lineage",
@@ -16070,10 +16411,14 @@
           "start_line": 532,
           "end_line": 547,
           "signature_sha256": "cbc8975623af60717884c48622170da38349d0f9e56e9e9d0a8d2438e0fcffec",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-catalog-document-lineage",
+          "review_notes": [
+            "Check raw type/subtype code series; require every document ID, archive SHA and standard equal supplied source values; return deep frame copy. Series.eq(...).all() is equality, not file writing or hashing. PlanningFeatureCodeError on mismatch; no geometry change."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_dictionary",
@@ -16081,10 +16426,14 @@
           "start_line": 550,
           "end_line": 567,
           "signature_sha256": "13911588248c2f6b9471752fe032b4609488ae53201b3c8e57d0427af089bb60",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--dictionary",
+          "review_notes": [
+            "Build every configured record, including unused triples, with three profile lineage fields; cast ten columns to str arrays and create unnamed plain int64 Index from arange. Return mutable DataFrame in declared order; no sorting, lookup fallback or disk output."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_lookup",
@@ -16092,10 +16441,14 @@
           "start_line": 570,
           "end_line": 576,
           "signature_sha256": "048f21d4bcadff896380f90d6a1ccce36a7792f1caf40baa4713475295479e77",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--lookup",
+          "review_notes": [
+            "Create dict keyed by exact (feature_family, type_code, subtype_code) to record, preserving record identity. Relies on validated unique profile records; no type-only, prefix, wildcard-00 or alternative-family lookup."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_coded_catalog",
@@ -16103,10 +16456,14 @@
           "start_line": 579,
           "end_line": 610,
           "signature_sha256": "0dd40011b55dfd87f764617a1bcb66001f44f7cc6851900caa1b487f69065d00",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--coded-catalog",
+          "review_notes": [
+            "Deep-copy entire catalog, exact-triple lookup for every row, append seven str official fields. Known triples carry label/references/URL and RESOLVED_OFFICIAL; absent triples retain row with null meanings and UNKNOWN_CODE_PAIR; both carry profile/hash. Preserve factual columns, geometry, CRS, order and index values/name, converting index to plain pd.Index from copied array. No object is dropped for lack of parcel relation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_catalog_by_id",
@@ -16114,10 +16471,14 @@
           "start_line": 613,
           "end_line": 625,
           "signature_sha256": "d90cdce38f758e7fcf61b5688c40da1b67ff7b3d835825ccfb06d481f30a590c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--catalog-by-id",
+          "review_notes": [
+            "Build feature-ID-to-row mapping across all three coded catalogs; duplicate converted string ID raises PlanningFeatureCodeError. The local helper uses str() keys, while public input validation enforces actual identity strings. No spatial join."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_coded_relations",
@@ -16125,10 +16486,14 @@
           "start_line": 628,
           "end_line": 647,
           "signature_sha256": "125799e124a1a401378fb6599151a95609b10ec62515cd8420b5ac2c15755b75",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--coded-relations",
+          "review_notes": [
+            "Copy relations, require exact string planning_feature_id and resolve that ID in catalog mapping; unknown ID raises PlanningFeatureCodeError. Append seven official values from the matched feature, not a separate code-pair lookup; plain Index conversion retains values/name. All factual relation fields and order remain."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_canonical_value",
@@ -16136,10 +16501,14 @@
           "start_line": 650,
           "end_line": 684,
           "signature_sha256": "a1dd92a7e0f8c820b459437f3e8193c3a8ca6f478f66977e3acba5e0206817fb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-value",
+          "review_notes": [
+            "Convert geometry to WKB hex with include_srid=False; date/datetime/Timestamp to isoformat; NumPy scalar recursively via item; Mapping to string-keyed recursive dict; tuple/list/ndarray to list; None/pd.NA/scalar pd.isna true to None; bool unchanged; Integral to int; Real to finite float; str unchanged. Unsupported values and nonfinite numbers after null handling raise PlanningFeatureCodeError. NaN becomes null; date branch precedes null detection. No bytes support, explicit WKB dimension/byte order, geometry repair or new M/Z guarantee."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_frame_payload",
@@ -16147,10 +16516,14 @@
           "start_line": 687,
           "end_line": 696,
           "signature_sha256": "0c950259030b7696e99fdb8383a85866ab8373b015f03a4dd54b1c58ef1f1d77",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--frame-payload",
+          "review_notes": [
+            "Return deterministic schema signature, ordered canonical index values and row lists in actual column/row order. Schema helper includes column names/dtypes, full index class/names/level dtypes and GeoDataFrame active geometry/CRS JSON. No mutation, path I/O or independent validity/metric check."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_source_frame_sha256",
@@ -16158,10 +16531,14 @@
           "start_line": 699,
           "end_line": 706,
           "signature_sha256": "376979302d5c74cf7667b342a26949bc85db778469676687104caadfa85f10aa",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--source-frame-sha256",
+          "review_notes": [
+            "Hash {domain, result_hash_schema_version:5, frame:_frame_payload(frame)}. Domain argument distinguishes input roles; schema, row/index order and canonical values matter, not arbitrary Python repr."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_inspected_layer_payload",
@@ -16169,10 +16546,14 @@
           "start_line": 709,
           "end_line": 731,
           "signature_sha256": "65c713cf6f514be243df5b04a0f2cde21aa93c39d04741843cc30eb20f44436a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--inspected-layer-payload",
+          "review_notes": [
+            "Return exact logical/source-layer/driver strings, dataclass summary and source-frame hash of GeoDataFrame data under landscout.cnig_feature_codes.gpu_source_layer. Reject nongeospatial data; preserve own errors and wrap other Exception contextually. Hashes inspected in-memory data, not physical file bytes or full path."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_planning_document_context_sha256",
@@ -16180,10 +16561,14 @@
           "start_line": 734,
           "end_line": 777,
           "signature_sha256": "75bdfbe6b23c2331c1dd961f4148c21edbe8a0f6d78a8735d693fb153ee8e5ff",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--planning-document-context-sha256",
+          "review_notes": [
+            "Hash domain landscout.cnig_feature_codes.planning_document_input and version5; metadata asdict, archive filename/format/size/SHA, sorted standards, all spatial source-layer/driver pairs sorted, zoning inspected payload and related payloads sorted by logical name. Preserve own errors, wrap other Exception contextually. Absolute archive/cache paths are excluded. This recomputes a contextual commitment, not a physical archive read or legal check."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_parcel_identity_input_sha256",
@@ -16191,10 +16576,14 @@
           "start_line": 780,
           "end_line": 793,
           "signature_sha256": "faee4f042adeddc98fbd674c1eb8f3288a8d41b1395aaae107c8287bfb015fa5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--parcel-identity-input-sha256",
+          "review_notes": [
+            "Copy parcel_id plus geometry into GeoDataFrame retaining source index and CRS, then source-frame hash under landscout.cnig_feature_codes.parcel_identity_input. Other parcel facts are intentionally excluded; no distance/overlay computed here."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_normalized_catalogs_input_sha256",
@@ -16202,10 +16591,14 @@
           "start_line": 796,
           "end_line": 809,
           "signature_sha256": "3b7b89fba8161356f94f635e19f2a0c93cf0173fd0aaad961c0505e0aed0a5de",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--normalized-catalogs-input-sha256",
+          "review_notes": [
+            "Hash domain landscout.cnig_feature_codes.normalized_catalogs_input, version5 and ordered payloads for surface, line and point. Preserves each frame schema/index/order/geometry; no filtering or source file read."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_normalized_relations_input_sha256",
@@ -16213,10 +16606,14 @@
           "start_line": 812,
           "end_line": 815,
           "signature_sha256": "fb78d816d104ec04cb6ce5e9c7b2eee7ce443e1947f7f00a4610fc0e7da3dd5e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--normalized-relations-input-sha256",
+          "review_notes": [
+            "Source-frame hash of full normalized relations under landscout.cnig_feature_codes.normalized_relations_input; exact schema/index/order and all row values participate, not just identity pairs."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_component_metadata",
@@ -16224,10 +16621,14 @@
           "start_line": 818,
           "end_line": 833,
           "signature_sha256": "c599845064fdfe0d3f2c78b5f54a584206af4f15bf8f0c9a29a37f81ada517a8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--component-metadata",
+          "review_notes": [
+            "Return 13 propagated metadata items: result/profile versions, profile/standard/profile hash, document/archive and six source-input commitments. No I/O, recomputation or validation of those source hashes."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_frame_sha256",
@@ -16235,10 +16636,14 @@
           "start_line": 836,
           "end_line": 847,
           "signature_sha256": "2061a9651f13fed6d725ff141a651ace0d014924568484ccd957b47440c9babb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--frame-sha256",
+          "review_notes": [
+            "Hash component domain, common metadata and full frame payload. Used for dictionary, surface, line, point and relations with separate domains; changes to either source-binding commitment affect each component."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_complete_sha256",
@@ -16246,10 +16651,14 @@
           "start_line": 850,
           "end_line": 861,
           "signature_sha256": "ef2e57097b4a54cb27d36537f1ad6e5dc6fd2c9fa90dd8643b0cf488b54ad285",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--complete-sha256",
+          "review_notes": [
+            "Hash landscout.cnig_feature_codes.result with common metadata and five component hashes. It does not hash arbitrary dataclass repr or reread frames itself; _result_with_hashes first recomputes those five commitments."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_result_with_hashes",
@@ -16257,10 +16666,14 @@
           "start_line": 864,
           "end_line": 885,
           "signature_sha256": "e8ab4ee33683f85444f650edf9a76953fe2969f03a6d69bb9064064f17df69b6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--result-with-hashes",
+          "review_notes": [
+            "Compute five component hashes, dataclasses.replace to attach them, then second replace for complete digest. Returns new frozen envelope sharing the table objects; not semantic validation, source reread or proof that coherent changes are authorized."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_build_result",
@@ -16268,10 +16681,14 @@
           "start_line": 888,
           "end_line": 968,
           "signature_sha256": "66f294b194597fef9551a25ef65d97a464e3244f9adb1c79ad13ca34518e5ae7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--build-result",
+          "review_notes": [
+            "Seven required inputs plus optional factual_validation=None. Recheck standard; if validation absent call validate_normalized_planning_feature_inputs (ValueError translated), otherwise reuse supplied private validation object. Check/copy catalog lineage; hash profile; code three catalogs and relations; build dictionary; compute contextual, parcel, catalog and relation commitments; propagate GPU-files and expected-relations commitments; construct schema5 result then reseal. Conditional delegated physical I/O, no blanket no-I/O claim. It does not itself run final envelope check or reconstruct a supplied profile."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_validate_result_envelope",
@@ -16279,10 +16696,14 @@
           "start_line": 971,
           "end_line": 1039,
           "signature_sha256": "f66354451917909273c7cd36f3ac7a4b99d1bf537acd4b86d70ace8d48ac3b73",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--validate-result-envelope",
+          "review_notes": [
+            "Require exact result type, exact built-in int versions5/2 (not bool), standard, strict profile/document and lowercase SHA syntax for all hash fields. Validate dictionary; canonical coded feature/relations schemas; row/dictionary/ID meaning agreement; recompute five component and complete hashes and compare all six. Schema TypeError/ValueError are translated. Local validation only: no source/profile loading, physical reconstruction or proof of source completeness."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "validate_planning_feature_code_result_envelope",
@@ -16290,10 +16711,14 @@
           "start_line": 1042,
           "end_line": 1054,
           "signature_sha256": "f5e419e9df8a9807fc64a0aa06945149552b18dd4e2ee14a73375db651e71375",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-validate-planning-feature-code-result-envelope",
+          "review_notes": [
+            "One required result, return None. Call private envelope guard; preserve PlanningFeatureCodeError, wrap any other Exception as invalid coded-result envelope. Does not rebuild factual sources; used by downstream artifact validation, not itself an artifact loader."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_compare_frame",
@@ -16301,10 +16726,14 @@
           "start_line": 1057,
           "end_line": 1061,
           "signature_sha256": "d06acb6e9a1ae41b1ff2a082856233c54026cada40c8e9789e2e310e8c8243c0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--compare-frame",
+          "review_notes": [
+            "Compare canonicalized full frame payloads; mismatch raises PlanningFeatureCodeError with label. Schema/dtype/index class, values, ordering and geospatial metadata participate. No tolerance, source read or mutation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "validate_planning_feature_code_result",
@@ -16312,10 +16741,14 @@
           "start_line": 1064,
           "end_line": 1126,
           "signature_sha256": "c416ca118b8a3579a7cf717463c9d87dfee3f183504034f5cb31972aa9a335f5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-validate-planning-feature-code-result",
+          "review_notes": [
+            "Eight required positional-or-keyword inputs: seven source/profile inputs then result; return None. First intrinsic envelope, then resolve/revalidate profile, call builder without cached factual validation (therefore source-complete factual guard), compare 19 scalars and five frame payloads. Preserve own error; other Exception becomes safe-validation error. A malformed envelope can fail before any physical reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "resolve_planning_feature_codes",
@@ -16323,14 +16756,41 @@
           "start_line": 1129,
           "end_line": 1177,
           "signature_sha256": "817d466138e25c91325c5be1bdddeca4f64bee06d5deb276dd32322ec65d9dbf",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-resolve-planning-feature-codes",
+          "review_notes": [
+            "Seven required positional-or-keyword inputs. Resolve/revalidate profile first, compare planning standard, call shared factual validator once, pass returned validation into builder, then private envelope guard before return. Preserve own error, translate ValueError with contextual message, wrap other Exception safely. One shared validation invocation does not mean one physical file read; delegated GPU/overlay work is source-complete."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         }
       ],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r12_prior_evidence": {
+        "commit": "fa3e2132ed314ee6f62f62612b017d71e08c0f34",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "src/landscout/stages/resolve_planning_feature_codes.py",
+        "row_without_symbols": {
+          "path": "src/landscout/stages/resolve_planning_feature_codes.py",
+          "source_sha256": "cdb463f06cea6f58881681bca7e95e80b0770e69f4cdf3cc373329eca7bc0235",
+          "documentation_path": "docs/code/files/src/landscout/stages/resolve_planning_feature_codes.py.md",
+          "role": "source",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 92,
+        "symbols_canonical_json_sha256": "b54f9b403cabb53a2d026da48345f041912996ff14fcfa7c59b3d61435f24570",
+        "symbol_history": "Original NOT_READ/null anchors/empty notes retained in named commit. Sole actual planning owner; transferred_to was an unmaterialized intention, no counterpart or duplicate credit."
+      },
+      "r12_source_sha256_basis": "git-content"
     },
     {
       "path": "src/landscout/stages/structure_planning_regulation.py",
@@ -28798,7 +29258,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-valid-locked-policy-builds-complete-outputs",
           "review_notes": [
-            "Build and publicly validate synthetic result; assert six ordered nonparcel schemas and evidence schema, chapter/source/positive/parcel counts 2/3/5/4, versions 5/5, scopes, two routes/three links, touch count 1, selected lineage/profile, relation column tuple and source-label set. GPU gate bypassed; not a real-source run."
+            "Build and publicly validate synthetic result; assert the six ordered non-parcel table schemas, including evidence_catalog, chapter/source/positive/parcel counts 2/3/5/4, versions 5/5, scopes, two routes/three links, touch count 1, selected lineage/profile, relation column tuple and source-label set. GPU gate bypassed; not a real-source run."
           ],
           "test_references": [
             "tests/unit/test_interpret_bess_zoning.py"
@@ -30063,13 +30523,20 @@
       "source_sha256": "f089c7cf174ecf5fa745d5909f817884a6c9df6d52f0e53f8702a639106e574c",
       "documentation_path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
       "role": "test",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [
-        "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "R12 full source/tests/old companion prose read; seven exports/reexports and actual dependency/consumer ranges inspected; see receipt. No dependency closure credit."
       ],
-      "test_references": [],
+      "contract_review": [
+        "R12: exact offline triple resolution, profile2/result5, canonical display text and hashes, ten-column dictionary/seven-column suffix, source-complete versus local envelope paths, 24 result fields/five mutable frames.",
+        "Four sole-owner NOT_READ rows close without matrix/coverage merge or transfer counterpart; prior intent archived compactly. Two R11 editorial corrections add zero.",
+        "R12-T01..05 preserve bounded test proof: no cross-family collision, sentinel versus delegate counts, possible earlier guards/stale hashes, shape-only assertions and synthetic/offline/nonmutation limits. Existing A-003/A-004 not duplicated or repaired.",
+        "Local documentation complete; independent R12 review pending, global PARTIAL and all previous application/EP/cold-start/visual reservations retained."
+      ],
+      "test_references": [
+        "tests/unit/test_resolve_planning_feature_codes.py"
+      ],
       "symbols": [
         {
           "qualified_name": "_canonical_relation_schema",
@@ -30077,10 +30544,14 @@
           "start_line": 66,
           "end_line": 73,
           "signature_sha256": "b83bf1931dbe188c89ad7bceb8a55bbea54b4664e342336088f2f57ac72d810a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-relation-schema",
+          "review_notes": [
+            "Deep-copy supplied relation frame, cast each of 28 normalized columns using strict zip against declared dtypes, reset to canonical RangeIndex and return. No column deletion or validation beyond casting; intended fixture normalization, not public production validator."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_records_hash",
@@ -30088,10 +30559,14 @@
           "start_line": 81,
           "end_line": 93,
           "signature_sha256": "c397bbd3daeafc5fb0ee6a33968a17611bcb1ffb3ad999909a23e9663456c079",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--records-hash",
+          "review_notes": [
+            "Sort a new list by exact family/type/subtype, canonical JSON and SHA256. This fixture helper sorts, unlike production which requires declaration order already sorted; allow_nan=False. Does not mutate caller list."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_payload_hash",
@@ -30099,10 +30574,14 @@
           "start_line": 96,
           "end_line": 105,
           "signature_sha256": "52e2fc6688d3cf45e66fc1b29198eca1a4a08a0554504a41bf4d1333541cb066",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--payload-hash",
+          "review_notes": [
+            "Canonical JSON SHA256 with default=str for synthetic JSON-friendly payloads. This test helper is not the production arbitrary-value canonicalizer or raw-byte hash."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_record",
@@ -30110,10 +30589,14 @@
           "start_line": 108,
           "end_line": 122,
           "signature_sha256": "e43b8d6e4221eaf36627db8f31b8c9b0476fd7b684d179686a4201379d837c06",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--record",
+          "review_notes": [
+            "Construct seven-field mutable dict with supplied family/type/subtype/label, two None references and selected family endpoint. No model validation until fixture profile construction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_profile_payload",
@@ -30121,10 +30604,14 @@
           "start_line": 125,
           "end_line": 144,
           "signature_sha256": "3d0f3982c983f81f5357dcc9747cc2c773f4973810329436c64e8cc97c1a2b3e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--profile-payload",
+          "review_notes": [
+            "Create synthetic schema2 profile, date2026-08-12 and four sorted records: INFORMATION02/00,99/00 and PRESCRIPTION07/00,07/04; compute declared record hash. No official download."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_profile",
@@ -30132,10 +30619,14 @@
           "start_line": 147,
           "end_line": 148,
           "signature_sha256": "f9a4ac61e52c62585dc827c56fa6e33968917d50d3532f5dcf2bffcb4e62592a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--profile",
+          "review_notes": [
+            "Model-validate the synthetic profile payload and return frozen profile. Validation errors are not swallowed."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_physical_inventory",
@@ -30143,10 +30634,14 @@
           "start_line": 151,
           "end_line": 164,
           "signature_sha256": "91e04b54be2eda2bdf03a8b5dabd45af5e5fbfc86d1689fb81aba58f5c2b0f2d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--physical-inventory",
+          "review_notes": [
+            "Read every sorted regular file under root except extraction_manifest.json; record relative POSIX path, extension/size/SHA and spatial category. Returns tuple of file records; real synthetic file I/O, not official archive evidence."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_write_extraction_manifest",
@@ -30154,10 +30649,14 @@
           "start_line": 167,
           "end_line": 190,
           "signature_sha256": "14cb19fe07220cead4d0407e66c5dd1433acaf8681eaa2280e531401aeaecfef",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--write-extraction-manifest",
+          "review_notes": [
+            "Write schema2 extraction_manifest.json from archive SHA and inventory relative paths/sizes/hashes as compact sorted JSON UTF-8. Real synthetic filesystem write; no production extraction operation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_layer_summary",
@@ -30165,10 +30664,14 @@
           "start_line": 193,
           "end_line": 217,
           "signature_sha256": "ab8d0412d8a4a926f2100fec72fa226d5d8ccccade1f1c7eb6cdc897b67db34f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--layer-summary",
+          "review_notes": [
+            "Build GpuLayerSummary from actual frame counts/CRS/geometry and per-column dtype/null counts, with synthetic document/archive lineage. In-memory summary, not fresh physical verification."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_planning_document",
@@ -30176,10 +30679,14 @@
           "start_line": 220,
           "end_line": 336,
           "signature_sha256": "50b78d0f3eb06647207f9541d5b81c28bb449c13a430aa9218f6fee862fccb2b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--planning-document",
+          "review_notes": [
+            "Create fresh tempfile.mkdtemp(prefix=\"landscout-code-source-\") outside the explicit pytest basetemp; write and reread related GPKGs through Pyogrio, make references/summaries, write and reread synthetic ZONE_URBA, inventory and extraction manifest. Load checked-in GPU config, alter match tokens via dumped payload, revalidate/hash config, discover spatial references and return synthetic GpuPlanningDocument. Uses fictional archive metadata/path rather than archive acquisition. No helper cleanup is declared; no blanket all-files-under-basetemp claim."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_base_row",
@@ -30187,10 +30694,14 @@
           "start_line": 339,
           "end_line": 376,
           "signature_sha256": "c5aa3096653882234e851148fe872ffba8f0c21b183346b407a8bc8794ac9036",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--base-row",
+          "review_notes": [
+            "Return handwritten legacy normalized raw identity/lineage/text fields. Used by _legacy_inputs, not the active physical-source fixture chain; no file I/O."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_legacy_inputs",
@@ -30198,10 +30709,14 @@
           "start_line": 379,
           "end_line": 520,
           "signature_sha256": "641110c5050cb606079dce03dddae877e18781884b6b072cfe9c453e280469f0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--legacy-inputs",
+          "review_notes": [
+            "Construct handwritten catalogs and relations with custom indexes plus a zoning-only synthetic physical document and profile. This legacy six-item helper is not called by active _inputs, so its rows do not describe executed public-fixture coverage."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_mutated_profile",
@@ -30209,10 +30724,14 @@
           "start_line": 523,
           "end_line": 527,
           "signature_sha256": "2609877cb518484fb9c33f86f0ec80d786f06249501ce16c44b849e252b22cd6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--mutated-profile",
+          "review_notes": [
+            "Return profile.model_copy(update=changes), intentionally bypassing validation. The public resolver must reconstruct it; helper itself does not catch or assert errors."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_empty_catalog",
@@ -30220,10 +30739,14 @@
           "start_line": 530,
           "end_line": 535,
           "signature_sha256": "fbd3fecbd8c39bedee049193123acc61798c51afd8c24982091d35e1f145d287",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--empty-catalog",
+          "review_notes": [
+            "Call active _inputs then select requested kind and return empty copy; setup can create physical GPKGs even though returned frame is empty. Not a production empty-catalog API."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_integration_source_frame",
@@ -30231,10 +30754,14 @@
           "start_line": 538,
           "end_line": 560,
           "signature_sha256": "7c1cd9344824c0e7aa4a45b6a5aba55b3b03eab4af22a37a7a9b3d362ee5c129",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--integration-source-frame",
+          "review_notes": [
+            "Construct EPSG:2154 source GeoDataFrame with actual CNIG raw fields, supplied identifiers/geometries/codes and null TXT/NOMFIC/URLFIC. No write here; later document helper writes it."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_integration_layer",
@@ -30242,10 +30769,14 @@
           "start_line": 563,
           "end_line": 595,
           "signature_sha256": "66e0ae28a31910f8c6f6233d8721b80e86169a5c626ed3fbb000dd311d3d33d1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--integration-layer",
+          "review_notes": [
+            "Construct in-memory inspected layer/reference/summary from source frame, logical family and synthetic metadata. Subsequent _planning_document replaces with written/reread physical fixtures."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_integration_inputs",
@@ -30253,10 +30784,14 @@
           "start_line": 598,
           "end_line": 662,
           "signature_sha256": "d7b851c4fb66259c30b6556bcdf62c75eb781ec71ffd7b23ccf390ec90a16191",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--integration-inputs",
+          "review_notes": [
+            "Create four related layers (two surface features including off-parcel feature, one line, one point), fresh physical document, one synthetic parcel and run real intersect_parcels_with_gpu_planning_features. Return seven inputs including source-complete factual frames and profile. No real Muret/official archive processing."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_integration_parcels",
@@ -30264,10 +30799,14 @@
           "start_line": 665,
           "end_line": 671,
           "signature_sha256": "13946d30ccb8948ecad71ccd042e060a1e0c00aebe3e5e221b124fc7342fb37e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--integration-parcels",
+          "review_notes": [
+            "Return one EPSG:2154 square parcel area4m2 with parcel_id, existing_fact7 and index91 named parcel_row. New independent frame on each call."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_inputs",
@@ -30275,10 +30814,14 @@
           "start_line": 674,
           "end_line": 683,
           "signature_sha256": "38f837b2ee36f4c38a40076d3aeca67bd19014d9f6aa079711db8d3fccf29076",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--inputs",
+          "review_notes": [
+            "Call _integration_inputs, omit parcels and return legacy-shaped six-argument tuple. Despite historical helper naming, its catalogs/relations originate in real normalization of synthetic physical sources."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "resolve_planning_feature_codes",
@@ -30286,10 +30829,14 @@
           "start_line": 686,
           "end_line": 704,
           "signature_sha256": "bc968fdd020dcca23189c3f9e4e8411d09fcc5141004429c776f4f0a9f97c3e3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-resolve-planning-feature-codes",
+          "review_notes": [
+            "Test-local six-argument convenience wrapper inserts fresh _integration_parcels then calls aliased production resolver with seven arguments. Not the production owner or changed public signature."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "validate_planning_feature_code_result",
@@ -30297,10 +30844,14 @@
           "start_line": 707,
           "end_line": 725,
           "signature_sha256": "e9f0ff5d950d39055a24b96cc97df293e78c8fee4726e3445e8076bc3a31f8b6",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-validate-planning-feature-code-result",
+          "review_notes": [
+            "Test-local seven-argument wrapper inserts parcel fixture then invokes aliased eight-argument public full validator. Real source-complete validation is retained."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_exact_family_pair_resolution_and_leading_zeros",
@@ -30308,10 +30859,14 @@
           "start_line": 728,
           "end_line": 745,
           "signature_sha256": "725f647a234551a259bbd1225be92f16e9611c869836f9901ea3f3caa4c39f58",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-exact-family-pair-resolution-and-leading-zeros",
+          "review_notes": [
+            "Resolve active fixtures; assert two surface rows and selected surface raw07/00, configured label/status, and line subtype04/label. Point meaning is not asserted here. No wildcard or legal-status inference."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_no_type_only_or_cross_family_fallback_and_unknown_is_retained",
@@ -30319,10 +30874,14 @@
           "start_line": 748,
           "end_line": 768,
           "signature_sha256": "473b99c26026932ea91334c807a406b7ad96e59e09518ccc66362358a0677614",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-no-type-only-or-cross-family-fallback-and-unknown-is-retained",
+          "review_notes": [
+            "Remove PRESCRIPTION07/04 and INFORMATION99/00, reseal records digest and validate profile, resolve; assert line/point UNKNOWN, line null label and one retained row each. The fixture creates no same-pair competing family, so title does not prove inter-family collision handling (R4 limit retained)."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_in_memory_profile_model_copy_with_wrong_hash_is_revalidated",
@@ -30330,10 +30889,14 @@
           "start_line": 771,
           "end_line": 775,
           "signature_sha256": "9016366a5492db8e003c88cd7fa4fa0aae457cb7a4ea2808dc61102ce59456fd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-in-memory-profile-model-copy-with-wrong-hash-is-revalidated",
+          "review_notes": [
+            "Replace declared records digest by f*64 through unvalidated model_copy; resolver must raise profile/canonical error before factual reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_in_memory_profile_model_construct_with_invalid_schema_is_revalidated",
@@ -30341,10 +30904,14 @@
           "start_line": 778,
           "end_line": 786,
           "signature_sha256": "80a4b734109c20afa8f7960a3942ba301ef86255276b08c4db7be186624d94b7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-in-memory-profile-model-construct-with-invalid-schema-is-revalidated",
+          "review_notes": [
+            "Use model_construct with schema_version1 and otherwise profile values; public resolver rejects during supplied-profile reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_in_memory_profile_model_construct_with_duplicate_pair_is_revalidated",
@@ -30352,10 +30919,14 @@
           "start_line": 789,
           "end_line": 800,
           "signature_sha256": "53cb8a548fc97716255485802219392e4c67309d6fb5b0d7f8176ff77bed2e8f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-in-memory-profile-model-construct-with-duplicate-pair-is-revalidated",
+          "review_notes": [
+            "Append duplicate record through model_construct without recomputing the original records hash; public resolver must reject duplicate/profile. The duplicate guard precedes checksum comparison during profile reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_official_family_endpoints_require_exact_identity",
@@ -30363,10 +30934,14 @@
           "start_line": 827,
           "end_line": 838,
           "signature_sha256": "8bfa47ed184656214f01a2d007af33693344d496ed3d52c635bb0052a4ae7d87",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-official-family-endpoints-require-exact-identity",
+          "review_notes": [
+            "Ten parameter cases mutate family endpoint and all matching record URLs, then reseal record digest; model_validate must raise ValueError matching official/source/URL. Covers alternate path/query/port/credentials/host/family/fragment/trailing slash/http, not network safety or live endpoint availability."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_official_text_must_already_be_canonical",
@@ -30374,10 +30949,14 @@
           "start_line": 850,
           "end_line": 858,
           "signature_sha256": "c40eec3c9e15bfe09ab68bdd55d9097e870f3dbadca745932bda766fde57f655",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-official-text-must-already-be-canonical",
+          "review_notes": [
+            "Four cases mutate label double whitespace/decomposed accent, legal newline whitespace or leading annex space; reseal records digest; model_validate must reject canonical-text violation, not normalize accepted records."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_malformed_code_is_rejected",
@@ -30385,10 +30964,14 @@
           "start_line": 862,
           "end_line": 866,
           "signature_sha256": "fd59509dc4d3f721e8eab87aa74b35764a01727520c35a082a835d46c44bf98f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-malformed-code-is-rejected",
+          "review_notes": [
+            "Set first type_code to 1-digit, 3-digit, nonnumeric, leading/trailing space or integer1; no reseal. Broad ValueError expected; nested field/code validation can reject before record hash."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_pair_and_profile_hash_mutation_are_rejected",
@@ -30396,10 +30979,14 @@
           "start_line": 869,
           "end_line": 877,
           "signature_sha256": "91fd938fe66379964956bc6640c9549296306c0b6356926cfbe7b5e0164b7ba5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-pair-and-profile-hash-mutation-are-rejected",
+          "review_notes": [
+            "Two fresh payloads: append duplicate record without resealing and expect duplicate error; independently replace declared hash with f*64 and expect canonical error. Does not use public source reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_wrong_official_host_and_unknown_field_are_rejected",
@@ -30407,10 +30994,14 @@
           "start_line": 880,
           "end_line": 888,
           "signature_sha256": "5ed2e7a60edf3cc94b403f3d4b4e2717b2d6d8a35291496253620b418854ae1f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-wrong-official-host-and-unknown-field-are-rejected",
+          "review_notes": [
+            "Replace declared prescription endpoint with example.com and expect official/exact ValueError; separate payload adds semantic_policy and expects extra-field ValueError. Offline identity validation only."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_yaml_key_is_rejected",
@@ -30418,10 +31009,14 @@
           "start_line": 891,
           "end_line": 895,
           "signature_sha256": "0ddc89c39b3f9a483acbcc0849b410038eacfc1935b0adffeae9d72dea34f8ef",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-yaml-key-is-rejected",
+          "review_notes": [
+            "Write schema_version twice to tmp_path YAML, then loader must raise Duplicate YAML error before ordinary schema-version checking. Real local file read/write."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_wrong_planning_standard_is_rejected",
@@ -30429,10 +31024,14 @@
           "start_line": 898,
           "end_line": 902,
           "signature_sha256": "14bfae482bd12a55ecca4efad3e59f515ed7fba8f35269e06177ac07d7237660",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-wrong-planning-standard-is-rejected",
+          "review_notes": [
+            "Create synthetic physical document declaring v2022, then public resolver rejects standard mismatch before shared factual gate; file setup itself already wrote sources."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_catalogs_and_relations_are_preserved_and_inputs_immutable",
@@ -30440,10 +31039,14 @@
           "start_line": 905,
           "end_line": 923,
           "signature_sha256": "0691e6bbbb19cd8be9be14f07aa99cfc75fe718f32f0436cbabedeb850620186",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-catalogs-and-relations-are-preserved-and-inputs-immutable",
+          "review_notes": [
+            "Deep-copy four input frames before resolve; assert originals unchanged, output factual-column slices frame-equal including geometry, appended official suffix/dictionary order and index values preserved. Proves nonmutation by this call, not impossibility of mutating returned DataFrames."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_complete_normalized_catalog_schema_is_required",
@@ -30451,10 +31054,14 @@
           "start_line": 936,
           "end_line": 943,
           "signature_sha256": "c7186013d8cb21a5af64e30f8470156384b419c58dbdfdb4ac82c782f1ec47eb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-complete-normalized-catalog-schema-is-required",
+          "review_notes": [
+            "Five cases drop surface area/label/source_crs, line length or point member column. Resolve expects normalized/schema/column error; schema guard can fail before physical reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_unexpected_factual_catalog_column_is_rejected",
@@ -30462,10 +31069,14 @@
           "start_line": 946,
           "end_line": 952,
           "signature_sha256": "4fd6ca6e7fb51081a606b2d0f9e1b70b917cd3193807650260dad104f97e3fc0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-unexpected-factual-catalog-column-is-rejected",
+          "review_notes": [
+            "Add unexpected factual surface column; resolver must reject canonical schema rather than preserve an arbitrary extra input column."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_cnig_identity_provenance_is_exact",
@@ -30473,10 +31084,14 @@
           "start_line": 962,
           "end_line": 970,
           "signature_sha256": "4d31529a466a9bc0dffdf79ca812e9e9d5a8daf767caab164f28b21ecf3bc885",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-cnig-identity-provenance-is-exact",
+          "review_notes": [
+            "Mutate source_identity_kind to UNKNOWN_KIND or source_identity_field to LIB_IDINFO in surface; resolve rejects identity/provenance/normalized contract, without resealing any result."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_ogr_fid_provenance_is_restricted",
@@ -30484,10 +31099,14 @@
           "start_line": 980,
           "end_line": 997,
           "signature_sha256": "1ef47bb30f7a9af9f1bfb2666241ee3f68b7806198c6401dd882343bdd73553c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-ogr-fid-provenance-is-restricted",
+          "review_notes": [
+            "Two surface-row cases set OGR_FID provenance with wrong information scope or non-OGR source ID \"1\". Resolver rejects; no physical source mutation and no successful fallback acquisition here."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_source_feature_id_is_unique_inside_logical_layer",
@@ -30495,10 +31114,14 @@
           "start_line": 1000,
           "end_line": 1013,
           "signature_sha256": "7f026277886d3b37d2528aecf0e74e5cade332c57ae66573d91e03b93412e444",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-source-feature-id-is-unique-inside-logical-layer",
+          "review_notes": [
+            "Make second surface row reuse first source_feature_id and logical/family/identity metadata; resolver must reject source_feature_id/unique. Other deterministic identity consistency guards may also reject; no isolated collision proof beyond expected message."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_catalog_crs_must_be_canonical_epsg_2154",
@@ -30506,10 +31129,14 @@
           "start_line": 1016,
           "end_line": 1020,
           "signature_sha256": "4794104d6eb6b9fd1ec79c432e1af98be94371ce30ba65c4223e87c062de22db",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-catalog-crs-must-be-canonical-epsg-2154",
+          "review_notes": [
+            "Reproject supplied surface to4326 while physical fixture stays2154; resolve expects EPSG:2154/CRS error, not automatic repair."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_catalog_geometry_metrics_are_revalidated",
@@ -30517,10 +31144,14 @@
           "start_line": 1031,
           "end_line": 1041,
           "signature_sha256": "ab282c00c46a8ce07a0ebd785e291909b08e9082fa04db2396aa3ff9344ab571",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-catalog-geometry-metrics-are-revalidated",
+          "review_notes": [
+            "Set surface area99, line length99 or point members2 on supplied factual catalog; resolve rejects metric/area/length/member discrepancy against geometry."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_complete_relation_schema_is_required",
@@ -30528,10 +31159,14 @@
           "start_line": 1044,
           "end_line": 1048,
           "signature_sha256": "aacb0fc61b34173db0e79ef7a9481c263f9999a34a133547551ad36d89c8df36",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-complete-relation-schema-is-required",
+          "review_notes": [
+            "Drop intersection_length_m from factual relations; resolver rejects relation/schema/column before coding."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_unexpected_factual_relation_column_is_rejected",
@@ -30539,10 +31174,14 @@
           "start_line": 1051,
           "end_line": 1057,
           "signature_sha256": "288561146c86dfeb60df1279c7ed0206d893ae7ed586c98da321768d59d73cef",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-unexpected-factual-relation-column-is-rejected",
+          "review_notes": [
+            "Add extra factual relation metric column; resolver rejects relation/schema. Extra data is not a permitted source extension."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_cnig_resolver_invokes_shared_factual_contract",
@@ -30550,10 +31189,14 @@
           "start_line": 1060,
           "end_line": 1082,
           "signature_sha256": "131c2b66f4dec2ca057f1eb4aa454984eebe9ebe4e81d95642297e2133a742d3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-cnig-resolver-invokes-shared-factual-contract",
+          "review_notes": [
+            "Patch resolver-owned shared validator with raising sentinel; resolve active inputs must expose marker as PlanningFeatureCodeError and counter equals1. Sentinel does not delegate: this test proves invocation/wrapping, not execution of physical validation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_cnig_resolver_invokes_shared_factual_contract.reject_shared_contract",
@@ -30561,10 +31204,14 @@
           "start_line": 1068,
           "end_line": 1071,
           "signature_sha256": "37e7c4f8d9ffc8a1a8eb1d115598b022a52ba02d4d0f86fab6d2a7f6dba4dd4c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-cnig-resolver-invokes-shared-factual-contract-reject-shared-contract",
+          "review_notes": [
+            "Increment nonlocal calls then raise ValueError(\"shared factual contract marker\"). No return/delegation or source read in this callback; setup still creates physical fixtures."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_complete_relation_catalog_agreement_is_required",
@@ -30572,10 +31219,14 @@
           "start_line": 1094,
           "end_line": 1105,
           "signature_sha256": "5343c7f06734cbc2b05f12f643a776a19f02f5cf891cfa0fdf9f62ee4c486dfd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-complete-relation-catalog-agreement-is-required",
+          "review_notes": [
+            "Four relation mutations alter label_raw, source_validity_date_raw, regulation_filename_raw or feature_area_m2=3. Resolve rejects catalog/metric/normalized/feature share; broad match allows earlier metric failure rather than proving every final row-comparison path."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_surface_relation_metrics_are_revalidated",
@@ -30583,10 +31234,14 @@
           "start_line": 1117,
           "end_line": 1125,
           "signature_sha256": "bdacffe5414958175ce7b8a4daf441a30792d8a9ac2c2b6b81b97006e2bac142",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-surface-relation-metrics-are-revalidated",
+          "review_notes": [
+            "Set first surface relation area0, -1, infinity or parcel_share_pct99; resolve expects relation/metric/finite/percentage rejection. These are factual relation constraints, not suitability thresholds."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_line_relation_metrics_are_revalidated",
@@ -30594,10 +31249,14 @@
           "start_line": 1136,
           "end_line": 1143,
           "signature_sha256": "8e8c9a9409502184c09c19110c533d291a30f5cc7b4bf74cd0aee512f578656e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-line-relation-metrics-are-revalidated",
+          "review_notes": [
+            "Set line relation intersection_length_m0, relation_typeTOUCH_ONLY or source_line_length_m1; resolve rejects relation/length/catalog inconsistency. Type and metric guards can precede source reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_catalog_columns_are_rejected",
@@ -30605,10 +31264,14 @@
           "start_line": 1146,
           "end_line": 1153,
           "signature_sha256": "e81bdbe43eb0f969572bd03c775d3a811d90452127c94f2f228d641e8b82d776",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-catalog-columns-are-rejected",
+          "review_notes": [
+            "Duplicate label_raw column via concat; resolve rejects duplicate/columns. Does not test duplicate row identity."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_missing_catalog_crs_is_rejected",
@@ -30616,10 +31279,14 @@
           "start_line": 1156,
           "end_line": 1162,
           "signature_sha256": "aa031a6ba62e59968199f7675509eaebc1421ae5bcf55a52b2c746afb57e29f3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-missing-catalog-crs-is-rejected",
+          "review_notes": [
+            "Copy surface, clear CRS, resolve expects CRS error before coding."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_unparseable_catalog_crs_is_rejected",
@@ -30627,10 +31294,14 @@
           "start_line": 1165,
           "end_line": 1172,
           "signature_sha256": "44c4a0b2f8c8acedd6330640190bafe485ec5a3fd47c66ac0b9aa4106cf86895",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-unparseable-catalog-crs-is-rejected",
+          "review_notes": [
+            "Corrupt geometry array private _crs with invalid value; resolve controls CRS failure. This intentionally bypasses normal GeoPandas assignment, not supported input coercion."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_inactive_or_wrong_geometry_column_is_rejected",
@@ -30638,10 +31309,14 @@
           "start_line": 1175,
           "end_line": 1183,
           "signature_sha256": "8697c9a5285dabf6583b43bfb578cddfcc39251bf409a13eb354b5a47a6629b2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-inactive-or-wrong-geometry-column-is-rejected",
+          "review_notes": [
+            "Add alternate geometry and make it active; resolve expects geometry error. Extra-column schema rejection may occur before active-name-specific guard."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_surface_geometry_contract_is_enforced",
@@ -30649,10 +31324,14 @@
           "start_line": 1195,
           "end_line": 1205,
           "signature_sha256": "81437e7fc46bb47a4365af30e6f3b15093f8eb6cc6aa53cb1edf1714c5d82d1d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-surface-geometry-contract-is-enforced",
+          "review_notes": [
+            "Set first surface geometry to None, empty Polygon, self-crossing polygon or LineString; parametrized expected regex requires null/empty/invalid/type geometry rejection. Source fixtures unchanged; no repair expected."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_valid_multi_geometries_are_accepted",
@@ -30660,10 +31339,14 @@
           "start_line": 1216,
           "end_line": 1244,
           "signature_sha256": "23749045e74d51f31d85039a95fc8e63e0071b224c04339041244fb219d1490d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-valid-multi-geometries-are-accepted",
+          "review_notes": [
+            "For MultiPolygon/MultiLineString/MultiPoint replace actual source geometry, create fresh physical document and renormalize; resolver accepts and selected output geometry.equals(input) holds. Topological equality assertion is not WKB dimensional fidelity or exhaustive multi-geometry proof."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_catalog_semantic_and_string_contracts_are_enforced",
@@ -30671,10 +31354,14 @@
           "start_line": 1257,
           "end_line": 1268,
           "signature_sha256": "f729354887004c5da12d0599585c89aa0284e9e5b5eb44402f01bb0eedaf8c92",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-catalog-semantic-and-string-contracts-are-enforced",
+          "review_notes": [
+            "Five surface mutations: wrong geometry_kind/logical_layer/family, null identity kind, padded source_layer; resolve expects case-specific regex. Tests declared identity consistency, not semantic zoning interpretation."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_every_required_catalog_identity_is_an_exact_non_null_string",
@@ -30682,10 +31369,14 @@
           "start_line": 1284,
           "end_line": 1299,
           "signature_sha256": "b816141cddcf260a89125cfc2adec431b53b0f82666b3c12b4e03185092de297",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-every-required-catalog-identity-is-an-exact-non-null-string",
+          "review_notes": [
+            "Eight named surface identity fields are set to \" invalid \"; matching relation field updated when present. Resolve rejects exact string/non-empty. Despite title, this parameter set tests padded text, not null for all eight fields."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_line_and_point_geometry_types_are_enforced",
@@ -30693,10 +31384,14 @@
           "start_line": 1309,
           "end_line": 1326,
           "signature_sha256": "f368edde4383cfc6dc174cfc346264508bcd42c27a7016e91e345e0d3d402e37",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-line-and-point-geometry-types-are-enforced",
+          "review_notes": [
+            "Supply polygon for LINE or line for POINT; resolve rejects geometry/type before coding. No physical-source rewrite."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_planning_feature_ids_are_globally_unique_across_catalogs",
@@ -30704,10 +31399,14 @@
           "start_line": 1329,
           "end_line": 1338,
           "signature_sha256": "6eeeee589dbca46c29688fc9b6447ad8b4bdebc2c73d1da142ad7c9055034529",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-planning-feature-ids-are-globally-unique-across-catalogs",
+          "review_notes": [
+            "Replace line feature ID and matching relation ID with surface ID; resolve expects unique/catalog/deterministic. Deterministic per-row identity guard can reject before global uniqueness, so the message alternative does not isolate that guard."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_valid_empty_optional_catalogs_preserve_schema_and_crs",
@@ -30715,10 +31414,14 @@
           "start_line": 1341,
           "end_line": 1368,
           "signature_sha256": "ba29ca84f39f716b872e90119c797247ff6d4c3e94421ba46574079bd77b6c11",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-valid-empty-optional-catalogs-preserve-schema-and-crs",
+          "review_notes": [
+            "Remove line/point layers from a freshly written physical document and renormalize; resolve accepts optional empty outputs with EPSG2154, normalized base and official suffix columns. Not acceptance of arbitrary manually emptied source-bound inputs."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_relation_catalog_code_mismatch_is_rejected",
@@ -30726,10 +31429,14 @@
           "start_line": 1371,
           "end_line": 1382,
           "signature_sha256": "bf9449a058718f1772089750264832b928f64f4ffb7d00515dcc44c3b951e122",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-relation-catalog-code-mismatch-is-rejected",
+          "review_notes": [
+            "Change relation raw subtype relative to catalog; resolve must reject catalog disagreement. No result reseal."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_relation_columns_are_rejected",
@@ -30737,10 +31444,14 @@
           "start_line": 1385,
           "end_line": 1391,
           "signature_sha256": "02d66c2dc138c0d2ecd4aa9ad999a5ba02dac1cae97a4685dfea6e022ca578fe",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-relation-columns-are-rejected",
+          "review_notes": [
+            "Concat duplicate relation column then resolve; duplicate/columns expected before coding."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_relation_identity_must_be_an_exact_non_null_string",
@@ -30748,10 +31459,14 @@
           "start_line": 1396,
           "end_line": 1406,
           "signature_sha256": "8614d58caf00a7cede6ffb02197e9db61dd9cbd22e28876175fd679aca1845ba",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-relation-identity-must-be-an-exact-non-null-string",
+          "review_notes": [
+            "Cross product parcel_id/planning_feature_id with None or padded invalid text; resolve expects relation/exact-string error. Actual four cases, not arbitrary object coverage."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_duplicate_parcel_feature_relation_is_rejected",
@@ -30759,10 +31474,14 @@
           "start_line": 1409,
           "end_line": 1416,
           "signature_sha256": "7495212faf133a9a70984fc633cd8bf6f071200c75d45656ffdbf4f1ce84e2b0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-duplicate-parcel-feature-relation-is-rejected",
+          "review_notes": [
+            "Concat first relation again, canonicalize dtypes/index and resolve; unique/duplicate rejection. Canonical reset avoids an incidental index failure."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_unknown_relation_feature_id_is_rejected",
@@ -30770,10 +31489,14 @@
           "start_line": 1419,
           "end_line": 1426,
           "signature_sha256": "cb031a6bcd1ea1195cbc0f4515831afd1c0ac8c652fa3836dcc02d73f5af1cd7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-unknown-relation-feature-id-is-rejected",
+          "review_notes": [
+            "Replace relation feature ID with absent ID; resolver rejects unknown feature, no spatial fallback."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_relation_type_must_match_catalog_geometry_kind",
@@ -30781,10 +31504,14 @@
           "start_line": 1438,
           "end_line": 1499,
           "signature_sha256": "d94a87d6ae094e9a65a8ab2c223e1edc3c7e5d3dadcbb644d9f5e0ae30c3af59",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-relation-type-must-match-catalog-geometry-kind",
+          "review_notes": [
+            "Four bad kind/type combinations construct one relation using target feature identity/raw fields, clear metrics and populate kind-appropriate numbers, then canonicalize schema. Resolve must reject relation type/geometry; no claim to every invalid combination."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_valid_relation_types_are_retained",
@@ -30792,10 +31519,14 @@
           "start_line": 1513,
           "end_line": 1554,
           "signature_sha256": "c0e811b85738db6aeaacb6569a657039233df915aafb4bd6e40f5cb4e8f0603c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-valid-relation-types-are-retained",
+          "review_notes": [
+            "Six kind/type cases create physical geometries for SURFACE overlap/touch, LINE overlap/touch, POINT inside/boundary, normalize and resolve. Assert exact singleton relation-type list, not legal applicability or exhaustive geometry topology."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_coordinated_output_hash_mutation_is_rejected",
@@ -30803,10 +31534,14 @@
           "start_line": 1557,
           "end_line": 1564,
           "signature_sha256": "becd5f69aca22baa4098f4570e18cbd4d40af047bc58c66aa2507efe37407aa0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-coordinated-output-hash-mutation-is-rejected",
+          "review_notes": [
+            "Change coded surface official label to Mutated and recompute result hashes; full public validator raises rebuilt/meaning/dictionary. Intrinsic dictionary disagreement can reject before physical reconstruction; this does not prove coordinated dictionary/profile/source forgery is impossible."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_parquet_readback_passes_source_complete_validation",
@@ -30814,10 +31549,14 @@
           "start_line": 1567,
           "end_line": 1590,
           "signature_sha256": "caba8a72ee5298de02aa793dd2f4287fd259ddda4fa44beb36a683b3c629aa9f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-parquet-readback-passes-source-complete-validation",
+          "review_notes": [
+            "Write all five output tables with index=True under tmp_path; reread using pandas/GeoPandas, replace tables and invoke full validator with original sources/profile. Passing means no exception, not a production artifact manifest/loader test."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_record_order_must_be_deterministic",
@@ -30825,10 +31564,14 @@
           "start_line": 1593,
           "end_line": 1597,
           "signature_sha256": "22fb9ca0bfb9b6ac88df2bd2100eef6932886011b9612fefb6fc8c8b6ec3c672",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-record-order-must-be-deterministic",
+          "review_notes": [
+            "Reverse profile records without resealing hash; model validation must raise deterministic-order error before checksum comparison."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_yaml_snapshot_loads_strictly",
@@ -30836,10 +31579,14 @@
           "start_line": 1600,
           "end_line": 1604,
           "signature_sha256": "e1d49e0c21259c13f960efa40784ea26108b08b05fc62144abd7f6862232fa86",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-yaml-snapshot-loads-strictly",
+          "review_notes": [
+            "Dump synthetic profile payload as YAML to tmp_path; load and compare model equality with fixture profile. No network retrieval or checked-in byte-hash proof."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_stable_public_api_is_exported_from_module_and_stage_package",
@@ -30847,10 +31594,14 @@
           "start_line": 1607,
           "end_line": 1635,
           "signature_sha256": "9dde35d7937fe2b2871d09c07d881e5cb375f5633e4d915f16cd1b8090411ea7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-stable-public-api-is-exported-from-module-and-stage-package",
+          "review_notes": [
+            "Assert seven required names are subsets of module/package __all__, references identical, and five listed low-level names excluded. Does not assert exhaustive export equality, parameter defaults or invocation counts."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs",
@@ -30858,10 +31609,14 @@
           "start_line": 1638,
           "end_line": 1778,
           "signature_sha256": "f09a71aa4dc9b8219b81275eae098a656b5e0eba6569ca783f3bcf5e1d86e7e0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-checked-in-official-snapshot-is-complete-for-observed-muret-pairs",
+          "review_notes": [
+            "Load checked-in YAML; assert exact schema/profile/standard/normalization/date/endpoints, twelve ordered seven-field records and fixed records/profile digests. This locks configured snapshot content; it does not rerun Muret, retrieve official pages or certify legal currency. Existing A-003/A-004 remain."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_result_schema_versions_are_strict",
@@ -30869,10 +31624,14 @@
           "start_line": 1801,
           "end_line": 1807,
           "signature_sha256": "982902040ad4a56093011643489e64972e0488f6321e1fc84b516505c20afd33",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-result-schema-versions-are-strict",
+          "review_notes": [
+            "Fifteen invalid version field/value cases include bool, older/future numbers, float and numeric string. Replace frozen result scalar without resealing; full validator must reject schema version at envelope guard, not source reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_step_7d_3_1_output_integrates_with_public_coding_api",
@@ -30880,10 +31639,14 @@
           "start_line": 1810,
           "end_line": 1820,
           "signature_sha256": "638a1b45238f606ce0389bf3b095edb25fb11b17ea9215ac98a3c7d6b350c06f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-step-7d-3-1-output-integrates-with-public-coding-api",
+          "review_notes": [
+            "Call actual seven-argument resolver on physical synthetic normalization output; assert 2surface/1line/1point/2relations, versions and resolved surface status, then actual full validator. No official-source acquisition."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats",
@@ -30891,10 +31654,14 @@
           "start_line": 1823,
           "end_line": 1852,
           "signature_sha256": "c6b829dcf5096dbeef5371feb12137eee69b9f36ca36afc47e934ae3bfb0112b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-resolver-runs-heavy-factual-validation-once-and-public-validator-repeats",
+          "review_notes": [
+            "Create fixtures before spies; patch enrich owner batch physical validator and expected-relation builder with delegating counters. Real resolver yields1each, real full validator yields2each. Counts are owner invocations, not disk reads, source files or geometry operations."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats.counted_physical",
@@ -30902,10 +31669,14 @@
           "start_line": 1835,
           "end_line": 1837,
           "signature_sha256": "4065519899078331a881d3080a2492443a237a68137b8eeefd62efd05406a848",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-resolver-runs-heavy-factual-validation-once-and-public-validator-repeats-counted-physical",
+          "review_notes": [
+            "Increment physical counter then return original physical batch call with unchanged *args/**kwargs; genuine delegate, not no-op/sentinel."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats.counted_relations",
@@ -30913,10 +31684,14 @@
           "start_line": 1839,
           "end_line": 1841,
           "signature_sha256": "7678fc3dd66df86d97ec864a89ff902e65e11b413ce4d2fefd6ce13959b96e5d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-resolver-runs-heavy-factual-validation-once-and-public-validator-repeats-counted-relations",
+          "review_notes": [
+            "Increment relations counter then return original expected-relations builder with unchanged *args/**kwargs. Real geometry work still executes."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_coded_result_persists_all_source_input_hashes",
@@ -30924,10 +31699,14 @@
           "start_line": 1855,
           "end_line": 1868,
           "signature_sha256": "192df6d6c8653d565188a906c50692f5f30dd8cb1176bc0877da55c7b5022978",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-coded-result-persists-all-source-input-hashes",
+          "review_notes": [
+            "For six source commitments assert string, length64 and int(value,16) parses. Does not independently recompute digest contents or require lowercase in these assertions."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_source_input_hash_mutation_is_rejected",
@@ -30935,10 +31714,14 @@
           "start_line": 1882,
           "end_line": 1888,
           "signature_sha256": "ae9851c9d36d262a0fcd67d50bf6b410afceceb74877d0c9c852076e11e1c384",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-source-input-hash-mutation-is-rejected",
+          "review_notes": [
+            "Replace each of six source hashes with f*64, without resealing components, then full validator expects hash/rebuilt/source error. Local hash inconsistency is sufficient; not isolated proof of source-rebuild rejection for coherent forgery."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_gpu_related_source_hash_is_deterministic_across_cache_roots",
@@ -30946,10 +31729,14 @@
           "start_line": 1891,
           "end_line": 1933,
           "signature_sha256": "072e2f9ccfdf5dd78e6460099393b42721cc06eaa79d6d7432af4dac0971a3fe",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-gpu-related-source-hash-is-deterministic-across-cache-roots",
+          "review_notes": [
+            "Copy synthetic extraction tree to tmp_path, rebase references/extraction and resolve both sources; assert only gpu_related_source_files_sha256 equal. Real copied files/manifests are read; not proof all contextual/result hashes are root-independent."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_gpu_related_source_hash_is_deterministic_across_cache_roots.relocated_reference",
@@ -30957,10 +31744,14 @@
           "start_line": 1900,
           "end_line": 1904,
           "signature_sha256": "7f62930c53680a7c76be65801976403737d65a8fadb064067b55e5cf46fbd6b9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-gpu-related-source-hash-is-deterministic-across-cache-roots-relocated-reference",
+          "review_notes": [
+            "Replace only dataset_path using old-root-relative path under copied root; no file copy inside this nested helper. Outer test performs copytree."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_source_binding_hashes_bind_every_component_hash",
@@ -30968,10 +31759,14 @@
           "start_line": 1940,
           "end_line": 1951,
           "signature_sha256": "35add5b5859977b3065f9845853cfab5359a04edb11bba9810a15c51ce14c7dd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-source-binding-hashes-bind-every-component-hash",
+          "review_notes": [
+            "Replace GPU-files or expected-relations digest and reseal result; assert all five component hashes and complete hash differ. No validator call; proves hash dependency, not source authority."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_parcel_source_change_invalidates_coded_result",
@@ -30979,10 +31774,14 @@
           "start_line": 1954,
           "end_line": 1961,
           "signature_sha256": "e70ba15961b541727b5ab6bfad485948e3976da06c8430f348ff752f1231e8b4",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-parcel-source-change-invalidates-coded-result",
+          "review_notes": [
+            "Rename parcel ID in source input then full validator rejects parcel/source/rebuilt. Existing relations may reference unknown parcel before final source-hash comparison."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_gpu_document_context_change_invalidates_coded_result",
@@ -30990,10 +31789,14 @@
           "start_line": 1964,
           "end_line": 1978,
           "signature_sha256": "cd143791bcf2a309e8e4114fab41f585ddc9a301884b63e9590f27456e69913c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-gpu-document-context-change-invalidates-coded-result",
+          "review_notes": [
+            "Replace document metadata provider while keeping result/source catalogs; full validator rejects document/source/rebuilt. Factual provider agreement may fail before an isolated context-digest comparison."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_normalized_catalog_change_invalidates_coded_result_even_when_coherent",
@@ -31001,10 +31804,14 @@
           "start_line": 1981,
           "end_line": 1996,
           "signature_sha256": "8040e314ed087e8b4f7b742015ba3fffbc45957c58aecd9579f64243689d59ed",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-normalized-catalog-change-invalidates-coded-result-even-when-coherent",
+          "review_notes": [
+            "Change surface label_raw and matching relation label coherently, leave physical source unchanged; full validator rejects normalized/source/rebuilt. Tests source-backed factual comparison, not only internal relation/catalog agreement."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_normalized_relation_change_invalidates_coded_result",
@@ -31012,10 +31819,14 @@
           "start_line": 1999,
           "end_line": 2007,
           "signature_sha256": "3b1f28f51c4be78d31d8767e6da868d051cee15c9d1e23ad8d3d025deaeb3f56",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-normalized-relation-change-invalidates-coded-result",
+          "review_notes": [
+            "Change line relation parcel_metric_area_m2 to8, full validator rejects relation/source/rebuilt. Parcel-metric guard can fail before relation-hash comparison."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_coding_api_rejects_relation_set_not_rebuilt_from_geometry",
@@ -31023,10 +31834,14 @@
           "start_line": 2011,
           "end_line": 2032,
           "signature_sha256": "885e4dcd06e1e421647d236d19118bf88f9bb468133d5d87e1f335164cae1698",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-coding-api-rejects-relation-set-not-rebuilt-from-geometry",
+          "review_notes": [
+            "Four mutations: remove first row without resetting resulting RangeIndex start, append unknown parcel, reverse/reset order, or change line overlap metric. Resolver expects broad relation/parcel/source/rebuilt/normalized regex. Missing/extra can fail canonical-index/identity guards; reordered/plausible metric cases exercise expected relation agreement. Does not isolate completeness guard in every branch."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_parquet_readback_preserves_source_hash_envelope",
@@ -31034,10 +31849,14 @@
           "start_line": 2035,
           "end_line": 2060,
           "signature_sha256": "3f0280486dd1d258a80db44c8dbe8e37e10abaf8529520413e9489757f29d913",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-parquet-readback-preserves-source-hash-envelope",
+          "review_notes": [
+            "Write/reload all five index-preserving Parquet frames and call actual full validator with seven original inputs. Successful source-complete validation, no manifest or production artifact loader invoked."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_public_api_signatures_remain_source_complete",
@@ -31045,10 +31864,14 @@
           "start_line": 2063,
           "end_line": 2086,
           "signature_sha256": "1254c979aebd8e30130b4cc934d4259f3062640a5523df83775ea52db95221a3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-public-api-signatures-remain-source-complete",
+          "review_notes": [
+            "Inspect actual resolver and validator parameter-name tuples, assert seven/eight names in order. No assertion of defaults, annotations or keyword-only shape; literal signatures in production companion provide those."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator",
@@ -31056,10 +31879,14 @@
           "start_line": 2089,
           "end_line": 2098,
           "signature_sha256": "0aef500457070e526b8472a7b053e7e4fb1cc89a4152b1a6cb93af48b9a9f84e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-step-7d-5b-2b-5-exposes-lightweight-coded-result-validator",
+          "review_notes": [
+            "Assert hasattr(module, public envelope name), call it successfully with a valid result, then replace complete digest by zeros and expect hash/invalid error. No explicit callable assertion; this boundary does not reread sources."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_schema_v5_envelope_result",
@@ -31067,10 +31894,14 @@
           "start_line": 2101,
           "end_line": 2102,
           "signature_sha256": "3d136f06f9f6ac39cee9b77572c275f567f82ea1606e8838e3480825f4ff5f3b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--schema-v5-envelope-result",
+          "review_notes": [
+            "Resolve active physical synthetic fixtures to get valid schema5 envelope. Even lightweight-envelope tests incur setup I/O before their local validation call."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "_canonical_empty_coded_result",
@@ -31078,10 +31909,14 @@
           "start_line": 2105,
           "end_line": 2137,
           "signature_sha256": "a741d22522d59ffeef98bfdd3adf96a827d09c640f5d4e4cd2028e417c94d490",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol--canonical-empty-coded-result",
+          "review_notes": [
+            "Empty all three coded catalogs and relations preserving schema, assign canonical plain int64 Index, optionally empty dictionary, reseal components/complete result. Keeps old source-input commitments; helper intentionally constructs locally coherent but not rebuilt source outputs."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_rejects_canonical_empty_code_dictionary",
@@ -31089,10 +31924,14 @@
           "start_line": 2140,
           "end_line": 2146,
           "signature_sha256": "1ca40ed086e8be31ce10682f2e6120cf00007dd61c118422f773d0d251d26e9e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-rejects-canonical-empty-code-dictionary",
+          "review_notes": [
+            "Use empty-output helper including dictionary; envelope rejects dictionary/empty/record despite coherent hashes and schema. No physical-source reconstruction."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs",
@@ -31100,10 +31939,14 @@
           "start_line": 2149,
           "end_line": 2167,
           "signature_sha256": "8ea5b49f2623bd2b0b2fa58d94ed86f6b97b0a47532991b268688ea4cd959f0a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-accepts-nonempty-dictionary-with-empty-outputs",
+          "review_notes": [
+            "Retain nonempty dictionary but empty four outputs with coherent schema/hashes; envelope accepts, assert dictionary nonempty and all outputs empty. This explicitly proves local envelope acceptance is not source completeness."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_controls_malformed_dictionary_type",
@@ -31111,10 +31954,14 @@
           "start_line": 2171,
           "end_line": 2179,
           "signature_sha256": "8c2faa483ad0ffa0f3a506a8bed71410ceac5680975cd2d7442d9c480e97673b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-controls-malformed-dictionary-type",
+          "review_notes": [
+            "Replace dictionary by None or string without resealing, call public envelope and expect controlled PlanningFeatureCodeError. No claim private helper catches every unexpected exception alone."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_rejects_geospatial_code_dictionary",
@@ -31122,10 +31969,14 @@
           "start_line": 2182,
           "end_line": 2189,
           "signature_sha256": "59fda9006e0b601403971aab82ac9266b667d097473ce920598ed7079288b289",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-rejects-geospatial-code-dictionary",
+          "review_notes": [
+            "Wrap dictionary in GeoDataFrame and replace; local envelope rejects dictionary/DataFrame exact-type contract, no reseal needed."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_dictionary_schema_is_explicit",
@@ -31133,10 +31984,14 @@
           "start_line": 2195,
           "end_line": 2209,
           "signature_sha256": "e8a6fbe719ecc168003d007d84fc19333614b58cbed1bce00013dca898a4ce43",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-dictionary-schema-is-explicit",
+          "review_notes": [
+            "Four dictionary changes: label category dtype, RangeIndex, named Index, uint64 Index; reseal full result and call envelope. Require dictionary/schema/dtype/index rejection independent of stale hash."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_dictionary_rows_are_intrinsically_validated",
@@ -31144,10 +31999,14 @@
           "start_line": 2226,
           "end_line": 2258,
           "signature_sha256": "a2c29f1136a588942520d3dfdbeb9692fb0a5375a1c37963aff9051578a1d4c7",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-dictionary-rows-are-intrinsically-validated",
+          "review_notes": [
+            "Nine resealed dictionary mutations: duplicate/reversed triples, malformed type/subtype, wrong family/URL/profile/profile SHA and literal-null reference. Local envelope rejects row/lineage/order contract with broad listed regex; no source completeness test."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_scalar_lineage_contracts_are_intrinsic",
@@ -31155,10 +32014,14 @@
           "start_line": 2261,
           "end_line": 2272,
           "signature_sha256": "a64602ce66a319b49f7339f87ece936fa171ff78fe12345c905a30baa3dca504",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-scalar-lineage-contracts-are-intrinsic",
+          "review_notes": [
+            "Replace standard with v2099 or planning context SHA by malformed value; reseal and call envelope, expect standard/SHA/sha/lineage error. Recomputed hashes cannot waive scalar guards."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic",
@@ -31166,10 +32029,14 @@
           "start_line": 2275,
           "end_line": 2295,
           "signature_sha256": "82f660130c056c7d1b1d78c522be6fdaf4680bed18e573352ba4bb99b0493cf9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-official-rows-and-relation-feature-agreement-are-intrinsic",
+          "review_notes": [
+            "Three independently resealed mutations: null resolved surface label, known row claims UNKNOWN with existing meanings, or relation label differs. Envelope rejects official/meaning/UNKNOWN/relation/feature, with no source reread."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result",
@@ -31177,10 +32044,14 @@
           "start_line": 2298,
           "end_line": 2310,
           "signature_sha256": "4c7b376229fce7f6a00a62857eda7010c5d6231917f68195ab30cc9f1f6024fe",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-requires-exact-result-type-and-accepts-valid-result",
+          "review_notes": [
+            "Instantiate nested derived type from result.__dict__, require type/result error, then validate original envelope successfully. Exact type check precedes hash/row checks."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         },
         {
           "qualified_name": "test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result.DerivedPlanningFeatureCodeResult",
@@ -31188,14 +32059,41 @@
           "start_line": 2304,
           "end_line": 2305,
           "signature_sha256": "0eb56bff3aec0af86be75b497ebdf80c6e608c153ce305f0c71e9fccad67cf3f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
-          "test_references": []
+          "status": "CHECKED",
+          "documentation_anchor": "symbol-test-schema-v5-envelope-requires-exact-result-type-and-accepts-valid-result-derivedplanningfeaturecoderesult",
+          "review_notes": [
+            "Empty subclass of PlanningFeatureCodeResult used only to demonstrate exact-type rejection. No new field or validator; inherited constructor does not confer envelope acceptance."
+          ],
+          "test_references": [
+            "tests/unit/test_resolve_planning_feature_codes.py"
+          ]
         }
       ],
       "findings": [],
-      "transferred_to": "inpn_roads extension"
+      "r12_prior_evidence": {
+        "commit": "fa3e2132ed314ee6f62f62612b017d71e08c0f34",
+        "fragment": "docs/code/audit/reviews/planning.json",
+        "row_path": "tests/unit/test_resolve_planning_feature_codes.py",
+        "row_without_symbols": {
+          "path": "tests/unit/test_resolve_planning_feature_codes.py",
+          "source_sha256": "f089c7cf174ecf5fa745d5909f817884a6c9df6d52f0e53f8702a639106e574c",
+          "documentation_path": "docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md",
+          "role": "test",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Untouched and not fully read by planning reviewer; transferred by parent to inpn_roads extension for independent complete review in a separate fragment."
+          ],
+          "test_references": [],
+          "findings": [],
+          "transferred_to": "inpn_roads extension"
+        },
+        "symbol_count": 102,
+        "symbols_canonical_json_sha256": "da6abc2eebaadce491162b12ba6c6eb8a2f5053a8263dd2d22b0d8f7dba8f663",
+        "symbol_history": "Original NOT_READ/null anchors/empty notes retained in named commit. Sole actual planning owner; transferred_to was an unmaterialized intention, no counterpart or duplicate credit."
+      },
+      "r12_source_sha256_basis": "git-content"
     },
     {
       "path": "tests/unit/test_structure_planning_regulation.py",
