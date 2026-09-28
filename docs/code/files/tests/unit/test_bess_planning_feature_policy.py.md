@@ -268,7 +268,7 @@ def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status()
 ):
 ```
 
-Compile synthetic fixture and call full validator. Assert policy/result versions 1/1, scope, table row count equals dictionary length, no parcel_id/feature_id/relation_type columns, and all three flags False. No parcel decision or production Muret source proof.
+Compile synthetic fixture and call full validator. Assert policy/result versions 1/1, scope, table row count equals dictionary length, no parcel_id/planning_feature_id/relation_type columns, and all three flags False. No parcel decision or production Muret source proof.
 
 <a id="symbol-test-checked-in-policy-pins-all-twelve-exact-muret-decisions"></a>
 ### `tests.unit.test_bess_planning_feature_policy.test_checked_in_policy_pins_all_twelve_exact_muret_decisions`
@@ -755,7 +755,7 @@ Source lines 746–752. Kind: function. Owner: `tests.unit.test_bess_planning_fe
 def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
 ```
 
-Append b"changed" to actual test Parquet while retaining old manifest; local loader must reject size/SHA/hash. Size mismatch can reject first; this is pre-load byte corruption, not a mid-read race.
+Append b"changed-after-manifest" to actual test Parquet while retaining old manifest; local loader must reject size/SHA/hash. Size mismatch can reject first; this is pre-load byte corruption, not a mid-read race.
 
 <a id="symbol-test-artifact-loader-parses-the-exact-verified-parquet-bytes"></a>
 ### `tests.unit.test_bess_planning_feature_policy.test_artifact_loader_parses_the_exact_verified_parquet_bytes`

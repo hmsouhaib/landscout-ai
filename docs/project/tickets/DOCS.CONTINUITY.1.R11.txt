@@ -1,0 +1,246 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R11
+
+Audit regroupé de l’interpréteur BESS de zonage écrit, avec deux rectifications éditoriales R10 bornées
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt GitHub : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : a23a59dea07835b86310dcb36886c2f2a9c98564
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif et limite
+
+Poursuivre l’audit documentaire par un composant complet : interpréteur du règlement écrit de zonage, tests existants et deux compagnons. Réutiliser R6 pour le contexte du YAML, sans le réécrire ni le confondre avec les politiques CNIG R5/R10.
+
+Quatre unités originales :
+
+src/landscout/stages/interpret_bess_zoning.py
+
+tests/unit/test_interpret_bess_zoning.py
+
+docs/code/files/src/landscout/stages/interpret_bess_zoning.py.md
+
+docs/code/files/tests/unit/test_interpret_bess_zoning.py.md
+
+Les deux Python sont protégés. Aucun changement d’algorithme, configuration, test, import, formatage, dépendance ou source réelle n’est autorisé.
+
+Deux rectifications de transcription R10 sont jointes explicitement à ce ticket : leur périmètre exact est en section 3. Ce n’est ni un second audit du compilateur, ni un nouveau crédit de couverture, ni un ticket R10.1 à exécuter séparément.
+
+LandScout reste BESS-first, moteur d’origination et de préanalyse. Muret est un terrain d’essai. Le règlement écrit peut alimenter des statuts de préanalyse sans devenir une autorisation juridique, une classification BESS/ICPE prouvée ou un score.
+
+Souhaib décide du produit. ChatGPT reste reviewer/architecte/auteur de tickets en lecture seule. Codex modifie les seuls documents autorisés, publie sur recovery puis s’arrête. Un ticket à la fois ; aucun journal Codex, hash ou statut CHECKED ne remplace une revue indépendante.
+
+1. Reçu fourni de la revue indépendante R10
+
+Cette section est une déclaration du reviewer ChatGPT, pas une exécution Codex, une signature cryptographique ou un certificat global. L’archiver comme telle avec ce ticket.
+
+Verdict : APPROVED — périmètre documentaire R10, avec R10-D01 et R10-D02 ouvertes, mineures et non bloquantes. Aucun R10.1 préalable n’est demandé.
+
+Commit examiné : a23a59dea07835b86310dcb36886c2f2a9c98564.
+Parent : d169023696c2a6c228d90c04fcab13441aac61fc.
+Message : docs: audit BESS CNIG policy compiler reference.
+Tree renvoyé par GitHub : 2c999ea16c31e176100f60257755a9a09d2a9452.
+
+La comparaison distante retrouve un descendant direct et sept chemins documentaires, sans modification de Python, des tests, des YAML ou de l’auditeur. Les références distantes consultées conservent main inchangé. Cela ne vérifie pas la propreté du checkout Windows, de son index ou des fichiers ignorés.
+
+Le reviewer a lu le compilateur 1–1114 et ses tests 1–1242, les explications des deux compagnons et les petits propriétaires strict_yaml, strict_json, immutable_mapping et frame_integrity. Il a comparé fonctions, appels, retours, types, guards, wrappers, hashes et assertions. Les snapshots répétés n’ont pas été indépendamment reconstruits/hashés. Cette revue ne clôture pas toutes les dépendances ou tout le dépôt.
+
+Contrats acceptés : compilation par triplet exact, schémas 1/1/2, neuf exports déclarés, sept locks, ordre des frontières, enveloppe publique avec wrapper, chargeur local à deux chemins sans validation physique CNIG/GPU, table de 21 colonnes, config figée avec FrozenDict et table résultat mutable, quatre familles de hashes canoniques distinctes du SHA brut Parquet, inconnues et nulls correctement délimités. Une table d’une ligne rehashée peut passer l’enveloppe locale sans être complète pour le dictionnaire.
+
+Les tests sont correctement distingués : valeurs Muret substituées par helper privé versus sources physiques ; snapshot de valeurs versus mutation ; compteur de décodeur versus compteur de lecture brute ; ancien piège _file_sha256 non appelé ; bool-priority qui peut échouer sur le dtype avant sa garde de domaine. R10-T01..04 restent des limites de preuve, pas des défauts applicatifs automatiquement créés.
+
+OIDs consultés : compilateur e9b3f5dd3664b7e710ad47fbc07691e3d5829bd2, tests 1cc0c9f48c17efcbf6d780dcd521ffe7d80d83da. Leurs SHA256 complets et les empreintes des compagnons n’ont pas été recalculés par le reviewer.
+
+Limite propriétaire : une tentative de lecture bornée de planning.json a retourné un corps vide avec métadonnées ; l’API de commit n’a pas fourni le patch de ce gros fichier. Le reviewer n’a donc pas validé intégralement les notes actuelles, les quatre transitions ou les compteurs dédupliqués à partir de ce registre. Les deux corrections ci-dessous imposent leur inspection locale sans présumer une duplication.
+
+Aucun pytest, import applicatif, loader/compilateur, pipeline GPU/EP, auditeur INDEX, reproduction runtime ou rendu visuel n’a été exécuté par le reviewer. Les 164 passes en 157,56 s, exit 0 après nettoyage, sans warning/skip/xfail rapporté, sont l’exécution locale R10. Les contrôles exhaustifs des 183 mappings, snapshots, liens/ancres, 106 fichiers protégés et 295 chemins hors périmètre restent également des preuves locales rapportées.
+
+Le candidat INDEX R10 rapporte completed=true, exit 1, 10 257 constats, manifeste 936e09e62a210c67d6584d05763f597d09519fcb3b949603139c66e088785fe7. Le reçu seul a été complété ensuite ; aucun deuxième run ni total final-tree n’est déduit. Ce résultat demeure PARTIAL, pas un succès global.
+
+Progression enregistrée : 91/245 fichiers et 2 194/4 769 symboles, soit 154 fichiers et 2 575 symboles ouverts. Recevoir l’approbation ou corriger les deux notices R10 ajoute zéro unité. Les réserves restent ouvertes jusqu’à leur correction contrôlée dans R11 ; ne pas les déclarer déjà corrigées au commit R10.
+
+Conserver A-001..A-004, cinq limites historiques, R3-T01..04, R9-T01..04, R10-T01..04, OPEN R5-D01, acceptation cold-start/rendu/finale et revue sémantique exhaustive 7F.1C.1. Dernière frontière fonctionnelle approuvée : 7F.1B.4, avec sa lacune de reçu original conservée.
+
+2. Départ, propriété et préservation
+
+Lire AGENTS, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R10, le présent ticket et l’autorité des fichiers protégés. Consulter le contexte R6 du YAML de zonage écrit sans reprendre son audit complet.
+
+Établir racine réelle, branche, HEAD, index/worktree, opérations Git, référence de suivi et vraie référence serveur. Exiger la base ci-dessus, index/worktree propre et main inchangé. Une référence de suivi locale n’est pas une interrogation du serveur.
+
+Si reprise interrompue de CE R11, identifier son travail et son premier élément incomplet, puis préserver/reprendre. Ne pas reset, restore, clean, stash, rebase, amend, squash ou merge pour forcer la base. En cas de divergence non expliquée, préserver et rapporter.
+
+Après erreur de propriété effectivement constatée seulement, l’exception exacte par commande déjà autorisée reste possible : git -c safe.directory=C:/souhaib/landscout-ai -C C:/souhaib/landscout-ai .... Aucune confiance wildcard/persistante, ACL ou protection Windows ne doit être modifiée.
+
+OIDs repérés en préparation, à vérifier avant édition :
+
+Fichier
+
+OID Git
+
+Interpréteur
+
+4b1dc0ee036f2c318c1a56db8c2b5ff883ca85cc
+
+Tests de l’interpréteur
+
+657b77322a3b110fba8559d8f556212bcaaf6e69
+
+Comparer avant/après les 106 fichiers protégés et tous les chemins initiaux hors périmètre, avec nombre recalculé. Préserver exactement les deux exceptions Git/checkout de fins de ligne : YAML muret_bess_zoning_policy et ticket RESUME historique. Garder les 13 observations whitespace héritées distinctes d’un nouveau delta propre. Aucune normalisation des sources ou archives.
+
+Retrouver les quatre unités R11 dans la matrice originale et tous les fragments, par chemin exact. Ne pas inférer leur statut d’une lecture précédente de dépendance ou d’un ordre lexical. Réconcilier proprement propriété/transfert/doublons éventuels ; ne pas donner un deuxième crédit aux unités déjà clôturées.
+
+3. Deux corrections éditoriales R10 expressément autorisées
+
+Seul le compagnon docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md est ouvert pour ces deux paragraphes, avec leurs notes propriétaires correspondantes SI elles contiennent le même écart. Aucun autre paragraphe du compilateur n’est à régénérer.
+
+R10-D01 — nom exact d’une colonne absente
+
+Source inchangé : tests/unit/test_bess_planning_feature_policy.py, lignes 244–259, fonction test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status.
+
+La notice écrit parcel_id/feature_id/relation_type. Le test vérifie exactement parcel_id, planning_feature_id, relation_type. Remplacer le seul nom incorrect ; ne pas inventer un nouvel assert, un autre schéma ou un scénario.
+
+R10-D02 — octets exacts ajoutés au Parquet
+
+Même source, lignes 746–752, fonction test_artifact_loader_rejects_parquet_replacement.
+
+La notice écrit b"changed". Le test ajoute exactement b"changed-after-manifest". Corriger le littéral. Préserver l’explication juste : modification avant chargement, manifeste non mis à jour, longueur vérifiée avant SHA. Ce n’est pas une course de remplacement après capture.
+
+Lire les deux corps au même HEAD et les deux notes actuelles. Si une note répète l’erreur, la corriger ; sinon la conserver et le signaler. Mettre à jour le fingerprint du compagnon et une provenance compacte. Ne pas réécrire l’ancien reçu R10 ou la présente réserve historique. Reporter le résultat dans le reçu R11, sans se donner une approbation indépendante.
+
+Conserver tous les snapshots, signatures, ancres et symboles R10. Aucun nouveau pytest compilateur. Ces deux corrections ajoutent zéro crédit et ne réparent ni A-004 ni R5-D01.
+
+4. Écritures autorisées
+
+Les deux compagnons R11 de l’interpréteur et de ses tests.
+
+Fragment(s) propriétaire(s) : uniquement les quatre unités R11, leurs notes/statuts/fingerprints et preuves ; plus les deux notes R10 effectivement concernées, le fingerprint de leur compagnon et la provenance compacte de section 3. Aucun autre statut R10 promu.
+
+Le compagnon des tests du compilateur : uniquement section 3 et, si nécessaire, lien compact vers son reçu de correction.
+
+Nouveau docs/code/audit/R11_BESS_WRITTEN_ZONING.md.
+
+Nouvelle archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R11.txt de l’instruction effectivement reçue.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md et docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS est autorisé seulement pour un nouveau constat concret, non dupliqué, avec preuve et limites. Une lacune de test n’est pas automatiquement un défaut applicatif. Les réserves éditoriales R10 peuvent être suivies dans le reçu R11 et l’état courant, sans nouveau backlog applicatif.
+
+Interdits : code, tests, configurations, dépendances, auditeur, autres compagnons, ancien reçu/ticket, cache/artefact réel, fusion ou régénération globale de coverage.json/matrice, nouveau checker permanent, CI/PR, scoring ou fonctionnalité environnementale.
+
+5. Lire le composant entier et décrire chaque symbole
+
+Lire entièrement l’interpréteur, ses tests et les explications existantes des deux compagnons. Réutiliser les lectures/préparations connues après comparaison, pas à l’aveugle. Les snapshots déjà identiques peuvent être comparés mécaniquement après lecture de la source ; leur SHA ne valide pas la prose.
+
+Pour chaque classe, fonction, champ et callback recensé : propriétaire qualifié, signature complète, paramètres requis/defaults, types/retours effectifs, unités, nulls/dtypes, ordre des guards, erreurs locales et wrappers, copies/mutations, appels et I/O. Décrire imports, constantes et exports sans gonfler le dénominateur historique. L’AST localise et inventorie, il ne déclare pas CHECKED.
+
+Faire concorder notice, note propriétaire et corps réel. Vérifier les retours tuple et leur déballage, paramètres partagés de helpers, coercitions réellement effectuées, et exceptions locales non traduites. Aucune description générique reprise du compilateur/application parce qu’un helper a le même nom.
+
+Lire les dépendances nécessaires en bornant les plages : GPU/zonage normalisé, index du règlement, structure/fragments, tolérance overlay, YAML strict, schémas/hash/immutabilité. Nommer le vrai import/propriétaire ; le module importe notamment la tolérance via stages.planning_overlay. Ces lectures ne clôturent pas automatiquement les unités dépendantes.
+
+6. Architecture, données et portée de décision
+
+Repères lus pour préparer R11, à vérifier et compléter dans les corps :
+
+Six exports déclarés : BessZoningPolicyConfig, BessZoningPrecheckError, BessZoningPrecheckResult, interpret_bess_zoning, load_bess_zoning_policy_config, validate_bess_zoning_precheck. Contrôler leurs réexports sans déduire une API publique de la simple importabilité.
+
+Schéma de politique 5, schéma de hash du résultat 5.
+
+Scope WRITTEN_ZONING_REGULATION_ONLY, revue CONFIGURED_USE_CONTROL_ARTICLES_ONLY.
+
+Statuts chapitre : POTENTIALLY_COMPATIBLE, CONDITIONAL_REVIEW, LIKELY_DIFFICULT, UNKNOWN ; domaine parcellaire incluant MIXED_REVIEW_REQUIRED.
+
+Familles de routes : DIRECT_ROUTE, CONDITIONAL_ROUTE, RESTRICTION_EXCEPTION_ROUTE, DIFFICULTY_ONLY.
+
+Les directions de preuve distinguent support positif, difficulté, condition et CONTEXT_ONLY.
+
+Documenter le parcours réel : source GPU/zonage/parcelles/relations + index/structure/fragments + politique → tables de chapitres, preuves, liens/routes, zones sources et résultats parcellaires. Relever les champs et le nombre réel de tables/scalaires au lieu d’en importer les compteurs de R8/R9/R10.
+
+Contrairement au compilateur CNIG, cet interpréteur peut produire des statuts de préanalyse de parcelles. Ne pas écrire « aucune décision parcellaire » par copier-coller. Distinguer cette préanalyse d’une permission/refus juridiquement certain, d’un score ou d’une exclusion automatique.
+
+7. Preuves, occurrences et règles complètes
+
+Décrire séparément citation exacte, occurrence dans un fragment section/page et règle complète associée : identités, offsets de début/fin, intervalles inclusif/exclusif, unité caractères Python versus bytes UTF-8, SHA d’extrait/fragment/règle et mécanismes de liaison.
+
+Vérifier les gardes de couverture de la revue : sections requises/manquantes, portée limitée des articles configurés, preuve de contexte versus preuve décisionnelle, références orphelines/doublons, cohérence d’un chapitre/route, calcul du statut et de la confiance. Ne pas déduire de propriétés juridiques seulement parce que les liens et hashes sont cohérents.
+
+Suivre exactement les quatre variantes de route et les rôles de preuve qu’elles permettent. Documenter quelles conditions interdisent une route ou imposent UNKNOWN. Les preuves contextuelles ne deviennent pas des conditions génériques d’une route sans code/source explicites.
+
+Réutiliser les corrections R6 UP/AUp : UP ne rattache pas automatiquement sa clause ICPE à l’exception d’intérêt public ; AUp distingue la condition générale d’infrastructure de la clause ICPE contextuelle. BESS == ICPE n’est pas établi. Ne réécrire ni politique ni référence juridique.
+
+8. Propagation vers zones et parcelles
+
+Décrire les mappings de labels EXACT/CONFIG_ALIAS versus ambigu/non résolu et leurs conséquences. Vérifier les IDs et ensembles requis, la relation aux sections/chapitres et l’éventuelle conservation du texte brut.
+
+Tracer les aires positives, contacts nuls, union/couverture/non-couverture, confiance et statuts mélangés. La zone dominante ne doit pas être présentée comme effaçant les désaccords si le code les conserve. Une tolérance numérique d’intégrité n’est pas un seuil d’aptitude BESS. Ne pas inventer une pondération/majorité ou un tri absent.
+
+Pour toutes les tables : colonnes exactes dans l’ordre, dtypes, valeurs nulles autorisées, index/CRS, géométries conservées ou copiées, unités. Distinguer annotation, construction d’objet, guard intrinsèque et reconstruction contre les entrées. Une dataclass figée ne rend pas un DataFrame immuable.
+
+9. Chemins de validation et hashes
+
+Lire l’ordre effectif dans les API publiques : guard du zonage GPU, résolution/revalidation de politique, index, structure/fragments, locks, calcul et vérification finale. Distinguer validation physique déléguée des données géographiques et reconstruction textuelle en mémoire.
+
+Ne pas prétendre qu’un validateur d’index/structure rouvre le PDF original lorsqu’il ne reçoit et ne lit que les objets déjà extraits. Ne pas transformer une vérification d’un résultat contre lui-même dans le builder en deuxième reconstruction indépendante. Le validateur public peut reconstruire depuis les entrées : suivre ses vrais appels.
+
+Pour chaque hash : domaine literal, payload, version, scalaires/tables, ordre index/lignes/colonnes, dtypes, CRS, WKB, nulls, types spéciaux, valeurs propagées versus recalculées. Décrire uniquement les dimensions réellement contrôlées ; ne pas inventer une préservation M/Z, réparation ou reprojection. Pas de contrat manifest/loader/writer recopié des modules CNIG s’il n’existe pas ici.
+
+Les erreurs explicites, erreurs Pydantic et conversions par chaque wrapper doivent être attribuées à leur propre fonction. Indiquer les entrées lues, celles qui sont copiées et les effets physiques réels.
+
+10. Tests : assertions, fixtures et limites
+
+Lire chaque test et ses fixtures jusqu’au chemin appelé et aux assertions. L’index initial du fichier construit trois pages de texte synthétiques, avec un extrait répété ; ne pas présenter ce helper comme une extraction effective d’un PDF.
+
+Identifier les monkeypatchs, notamment toute neutralisation de garde GPU, et leur portée. Une fixture utilisant un hash synthétique n’est pas un téléchargement officiel. Si des tests d’intégration sont consultés, préciser les plages et le caractère synthétique ; leur lecture ne devient ni exécution ni clôture automatique.
+
+Pour chaque cas, dire exactement quel champ/objet/extrait/offset/route est changé, quels hashes sont recalculés, si l’échec peut survenir avant le contrôle annoncé, et quelle assertion l’isole réellement. Décrire les callbacks par leur corps : spy déléguant, compteur sans effet ou sentinelle qui lève. Ne pas multiplier un compteur d’appels en nombre de lectures physiques.
+
+Séparer les tests qui chargent le YAML Muret, ceux qui valident des valeurs configurées, ceux qui manipulent des occurrences/fragments synthétiques et une éventuelle validation physique. Un nom de test ne prouve pas null-safe, exhaustivité, vérification juridique, absence de toute I/O ou exécution d’une branche donnée.
+
+Aucun nouveau test ni correction de production n’est autorisé. Consigner tout constat véritable sans le réparer et sans réétiqueter les réserves existantes.
+
+11. Validation bornée
+
+Après lecture et correction documentaire, exécuter une seule fois le fichier existant de tests de l’interpréteur, dans l’environnement installé :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r11-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_interpret_bess_zoning.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R11 focused pytest failed: $code" }
+
+Capturer résultat, warnings/skips/xfails et exit après nettoyage. Ne pas fixer le nombre depuis une ancienne suite. Pas de retries silencieux ; échec/blocage signifie préserver/qualifier/rapporter, pas réparer l’environnement ou les tests.
+
+Les fichiers synthétiques créés par ces fixtures sont permis. Aucun vrai cache Muret/GPU/EP, téléchargement, pipeline réel, recherche juridique, full pytest, uv sync/install, mise à jour de dépendance ou linter/formateur Python. Ne pas relancer les 164 tests compilateur pour les deux corrections de prose R10.
+
+Les vérifications textuelles/AST/hash/JSON/Markdown sans import applicatif sont permises ; outils temporaires hors dépôt. Renderer déjà disponible uniquement ; sinon rendu PENDING. Un parseur Markdown n’est pas une validation visuelle.
+
+12. Clôture, compteurs et contrôle INDEX
+
+Manuellement d’abord : chaque notice et note contre son code. Ensuite : identités qualifiées, plages/signatures, bonne destination d’ancre unique, snapshots complets et base SHA Git/index/checkout, liens entrants/sortants, Unicode/tables/fences, exports réels et format attendu par l’auditeur.
+
+Départ enregistré : 91/245 fichiers et 2 194/4 769 symboles. Calculer les statuts initiaux des quatre unités R11, leurs symboles et le gain réel ; ne pas imposer 95 ou un compte prédéterminé. La correction des deux notes R10, lectures de dépendances et réception de la présente approbation n’ajoutent aucune unité.
+
+Conserver global PARTIAL et toutes les réserves antérieures. R10 reste approuvé avec ses réserves historiques ; enregistrer leur correction locale R11 avec sa preuve, sans réécrire R10 pour prétendre qu’elles n’ont jamais existé. Pas de fusion globale de coverage.json/matrice pour masquer les diagnostics.
+
+Après préparation de toutes les écritures autorisées, stage explicitement et exécuter une seule fois l’auditeur INDEX inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r11-candidate.stdout.txt 2> C:\souhaib\r11-candidate.stderr.txt
+
+Conserver stdout/stderr, métriques, manifeste path/mode/OID, completed/exit et comparaison des constats pertinents avec le candidat R10. Son total 10 257 concerne son candidat avant complétion du reçu, pas une cible pour R11. Exit 1/completed=true peut rester cohérent avec PARTIAL ; timeout/interruption/exit 2 n’est pas un audit achevé.
+
+Compléter idéalement seulement le reçu après le run, puis vérifier son delta exact. Toute autre modification doit être identifiée et contrôlée explicitement. Aucun final=candidat fictif, deuxième run inventé ou boucle de self-SHA.
+
+13. Publication et arrêt
+
+Publier lorsque le lot autorisé est réellement terminé ; sinon préserver et retourner PARTIAL avec le premier élément inachevé. Stage par chemins explicites, pas git add global/commit -a, amend, reset, rebase, squash, merge, PR, force-push, suppression de branche ou push main.
+
+git commit -m "docs: audit written zoning interpreter reference"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier le SHA réel après publication, index/worktree propre, référence de suivi et vrai serveur concordants, main inchangé. Le reçu ne doit pas inventer son futur SHA.
+
+Rapport : départ/final/main, chemins réels et propriétaires, lectures et limites, quatre transitions/gain dédupliqué, corrections R10-D01/D02 et notes réellement touchées (zéro crédit), API/modèles/algorithmes/hashes documentés, tests effectivement exécutés, contrôles de forme et préservation, candidat/delta final, réserves conservées et prochain groupe seulement identifié.
+
+Libellé : DOCS.CONTINUITY.1.R11 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Aucun nouveau ticket documentaire ou développement fonctionnel automatique.
