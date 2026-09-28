@@ -1,0 +1,209 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R13
+
+Clôturer la documentation de la structure factuelle du règlement, en lot cohérent
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD requis : ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique et contexte produit
+
+Documenter et terminer la vérification du composant qui structure le règlement déjà indexé : grammaire, sections, correspondance des zones, preuves thématiques et fragments section/page. Traiter source, tests et compagnons comme un lot cohérent, en réutilisant les lectures/brouillons/preuves existants et en clôturant seulement les unités réellement encore ouvertes.
+
+Quatre unités à réconcilier, sans présumer leurs statuts initiaux :
+
+src/landscout/stages/structure_planning_regulation.py
+
+tests/unit/test_structure_planning_regulation.py
+
+docs/code/files/src/landscout/stages/structure_planning_regulation.py.md
+
+docs/code/files/tests/unit/test_structure_planning_regulation.py.md
+
+Le reçu R12 identifiait explicitement les tests et leur compagnon NOT_READ. Il ne prouve pas que le source et son compagnon sont dans le même état. Examiner les véritables lignes propriétaires : une unité déjà clôturée garde son crédit et ses preuves. Ne pas remettre le lot à zéro, ne pas changer les dénominateurs et ne pas supposer un gain de quatre fichiers.
+
+LandScout reste BESS-first ; Muret est un terrain d'essai, pas l'identité définitive du produit. Structurer un index textuel et rechercher un terme n'est ni interpréter juridiquement une règle, ni classer un BESS ICPE, ni autoriser/exclure une parcelle, ni produire un score. La frontière fonctionnelle approuvée demeure 7F.1B.4 ; 7F.1C.1 demeure un dossier de recherche à revue sémantique exhaustive inachevée.
+
+Souhaib décide du produit ; ChatGPT reste reviewer et auteur de tickets en lecture seule ; Codex réalise les modifications documentaires autorisées et publie sur recovery. Un ticket à la fois. CI/PR reste différé. Aucun résultat Codex ou CHECKED ne vaut approbation indépendante.
+
+1. Reçu fourni de revue indépendante R12.1
+
+Cette section est une déclaration de ChatGPT à archiver comme telle, pas une exécution Codex, signature cryptographique ou certification globale.
+
+APPROVED — périmètre documentaire R12.1. Le lot résolveur R12 corrigé par R12.1 est accepté dans son périmètre documentaire ; aucun R12.2 préalable. Audit global PARTIAL.
+
+Commit examiné : ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679.
+Parent : 0b97c6cc25cc3475438fd31f1fbf2ba18414b210.
+Message : docs: correct CNIG resolver test reference fidelity.
+Tree GitHub : 8f8691b6e1cf9b355a7cd6c908522140cbd05d39.
+La comparaison distante établit un descendant direct et six chemins documentaires ; main distant inchangé. Elle n'atteste pas le checkout Windows, son index ou ses fichiers ignorés.
+
+Revue du delta : six paragraphes du compagnon, six notes propriétaires dans le petit diff planning.json, fingerprint/provenance, six corps de tests actuels aux lignes 151–164, 167–190, 220–336, 728–745, 1146–1153 et 1329–1338, plus constante GPU 48–56. Lecture R12 acquise réutilisée pour les parties inchangées. Le test conserve l'OID 44fd1331e011d98b46b926d6529571ade927e9b6.
+
+Cinq groupes acceptés :
+
+R12-D01 : zones.gpkg / couche physique ZONE / rôle logique zoning.
+
+R12-D02 : deux accès de libellés de surface, premier libellé de ligne et codes bruts de cette ligne 07/04, ensemble des statuts de surface ; pas d'assertion de cardinalité ni de couple brut de surface ajoutée.
+
+R12-D03 : colonne dupliquée planning_feature_id, avec GeoDataFrame et regex réels ; pas une collision d'identité de lignes.
+
+R12-D04 : seul catalogue ligne modifié ; relations inchangées ; garde déterministe potentiellement antérieure à l'unicité globale.
+
+R12-D05 : deux notices utilisent EXTRACTION_MANIFEST_NAME, valeur .landscout-gpu-extraction.json ; exclusion uniquement directement sous root, sans inventer lstat/rejet explicite des liens.
+
+Les six notes changées du registre correspondent aux corrections. Aucun recomptage complet de planning.json ni contrôle automatisé de tous les mappings n'est revendiqué. Les paragraphes R11 déjà acceptés restent inchangés. Aucun nouveau défaut applicatif n'est établi.
+
+Le reviewer n'a exécuté ni pytest/import applicatif/loader/pipeline GPU/EP/PDF, ni auditeur INDEX, ni rendu visuel ou nouveau cold-start. Pas de recalcul complet des snapshots/SHA ni de comparaison locale des 106 fichiers protégés et 302 chemins hors périmètre. Ces contrôles restent les preuves rapportées par Codex.
+
+170 passes / 52,75 s / exit0 restent l'exécution historique R12. Le candidat R12.1 rapporte 10 221 constats / completed=true / exit1, manifeste canonique 7221516b6940c2b9b549d790918f54858dd5e1eb3e0813fc1b2f889a63196488. Le reçu seul a été complété ensuite : ne pas inférer final=candidat, second run ou total audité du commit final. L'égalité des totaux masque une substitution de diagnostic d'inventaire, décrite dans le reçu.
+
+Compteurs rapportés inchangés : 99/245 fichiers et 2 617/4 769 symboles, restent 146 fichiers / 2 152 symboles. L'approbation ajoute zéro crédit. Conserver toutes les réserves existantes : A-001..A-004, cinq limites historiques, R3-T01..04, R9-T01..04, R10-T01..04, R11-T01..05, R12-T01..05, OPEN R5-D01, cold-start/visuel/finalisation globale, revue sémantique exhaustive 7F.1C.1 et lacune du reçu fonctionnel original 7F.1B.4.
+
+Consigner ce verdict par référence successorale courte dans CURRENT_STATE. Ne pas réécrire les reçus historiques PENDING/CORRECTION_REQUIRED et ne pas recopier toute la chronologie dans chaque nouveau fichier.
+
+2. Readiness et préservation
+
+Lire AGENTS.md, WORKING_RULES.md, RESUME.md, CURRENT_STATE.md, BACKLOG_AND_GAPS.md, DOCUMENTATION_AUDIT.md, les reçus R7/R12/R12.1 pertinents, l'autorité de préservation et ce ticket. Identifier les références réelles depuis les points d'entrée existants ; ne pas inventer un fichier manquant.
+
+Vérifier racine, branche, HEAD, index/worktree, éventuelles opérations Git, suivi et référence serveur réelle. Exiger le HEAD ci-dessus et main inchangé. Une interruption de CE ticket conserve ses modifications identifiables ; reprendre le premier point inachevé, sans écraser les travaux acquis.
+
+Pas de reset, restore, clean, stash, rebase, amend, squash, merge, force-push ou réconciliation automatique. Après une vraie erreur de propriété seulement, l'exception par commande/chemin exact déjà autorisée peut servir ; jamais safe.directory=* ou confiance persistante. Aucun changement de protection, ACL, environnement ou dépendance.
+
+Identités lues lors de la préparation, à confirmer :
+
+Python protégé
+
+OID Git
+
+structure_planning_regulation.py
+
+f49a7d791996765cd31fdd6c5309a814a8db96d2
+
+test_structure_planning_regulation.py
+
+0f0a4eabde13ef0029477981ab51830744f87698
+
+Le compagnon source existant a l'OID f3f696e4d33c09819e15047c6ffbb27cfe75e690 ; son en-tête observé ne suffit pas à certifier sa clôture. Recalculer les identités en nommant la base Git/index/checkout et conserver l'historique de la base antérieure.
+
+Comparer les 106 fichiers protégés et tous les chemins initiaux hors périmètre ; recalculer leur nombre courant, ne pas copier 302. Préserver les deux exceptions EOL historiques et les 13 constats whitespace hérités. Ne normaliser aucun Python, YAML ou ticket archivé pour faire correspondre artificiellement un hash.
+
+3. Périmètre d'écriture
+
+Autorisé :
+
+Les deux compagnons de structure ci-dessus, seulement pour une explication nécessaire et vérifiée ; conserver les parties déjà exactes.
+
+Fragment(s) propriétaire(s) réellement identifiés : quatre unités, notes pertinentes, fingerprints, provenance compacte, transitions effectives. Un transferred_to sans vraie ligne cible ne crée pas un propriétaire.
+
+Nouveau docs/code/audit/R13_PLANNING_REGULATION_STRUCTURE.md.
+
+Archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R13.txt de l'instruction réellement reçue.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md et docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS n'est autorisé que pour un nouveau constat concret prouvé, non dupliqué et explicitement séparé d'une limitation de test. Le signaler sans correction métier.
+
+Interdits : toute modification Python/tests/YAML/dépendance/auditeur, anciens reçus/tickets, autres compagnons, snapshots/caches réels, nouveaux outils permanents, CI/PR, fusion/régénération de coverage.json ou de la matrice globale. Ne pas rouvrir R12.1, les règles UP/AUp ou R5-D01 dans ce lot.
+
+4. Lecture et réutilisation des acquis
+
+Lire le source et les tests complets au commit de départ ; réutiliser les lectures R7 et les brouillons disponibles lorsque leurs bytes sont identiques, mais vérifier effectivement chaque explication que ce ticket clôture. Ne pas confondre une lecture précédente avec une correspondance prouvée de la prose.
+
+Rechercher les quatre chemins et symboles dans la matrice et les fragments. Établir les vrais états initiaux, les éventuelles notes ouvertes et les preuves antérieures. Ne pas reconstruire un inventaire parallèle ni effacer le travail des 141 unités READ.
+
+Pour chaque symbole : propriétaire qualifié, signature exacte, paramètres/defaults/retour, champs et nulls, ordre des gardes/appels, algorithme, erreurs locales versus wrappers, copies/mutations, lectures/écritures effectives et tests associés. Garder des phrases lisibles ; un nom de test, un hash ou un snapshot intégral ne valide pas l'explication.
+
+Lire les seuls passages nécessaires de index_planning_regulation, planning_text, immutable_mapping, strict_yaml, planning_overlay, exports et consommateur interpret_bess_zoning. R7 fournit le contexte de configuration Muret déjà accepté ; ne pas réauditer juridiquement ou modifier ce YAML. Ne pas donner de crédit de clôture aux dépendances simplement consultées.
+
+5. Frontières à établir depuis le code
+
+Repères confirmés par les déclarations et APIs consultées, à confronter aux corps complets :
+
+Huit exports. Configuration supportée 2 ; SECTION_HASH_SCHEMA_VERSION 3 ; STRUCTURE_MANIFEST_SCHEMA_VERSION 4. Le mot manifest dans une constante ne prouve pas l'existence d'un chargeur d'artefacts public.
+
+Trois tableaux conservés : sections, zone_mapping, topic_evidence. Les fragments section/page sont un retour de validation distinct : vérifier type, schéma, identités et hashes réellement calculés.
+
+Builder public : quatre entrées index/zones/intersections/config ; validateur et accès fragments : cinq avec result. Distinguer retour None du validateur simple et DataFrame du validateur avec fragments.
+
+Le builder appelle _build_structure_result puis validate_planning_regulation_structure. Le validateur avec fragments reconstruit lui aussi un expected result. Ne pas recopier la promesse d'une unique reconstruction de R11/R12 : établir le vrai graphe et les contrôles faits à chaque étape.
+
+Ces APIs ne reçoivent pas GpuPlanningDocument et ne relisent pas le PDF original. « Reconstruction depuis les entrées factuelles » ne signifie pas nouvelle acquisition ou validation physique GPU/PDF à cette frontière. Les identités propagées doivent être distinguées des bytes effectivement relus.
+
+Une configuration fournie est reconstruite ; les chemins font une lecture YAML. Distinguer wrappers directs, exceptions déléguées et erreurs de modèles Pydantic.
+
+Le validateur simple délègue et retourne None ; ne lui inventer ni signature différente ni bloc try/except absent.
+
+6. Algorithme, texte et relations
+
+Documenter depuis l'implémentation : validation des pages et verrous, statuts d'extraction, lignes conservées/ignorées, corps/sommaire, événements de titres, continuation, hiérarchie parent/enfant, construction des sections et fragments, couverture des enregistrements, métriques et mapping des zones.
+
+Séparer regex sur lignes brutes, normalisation de recherche et aliases explicites. Vérifier capture groups, plusieurs regex applicables, continuation et tolérance aux formes d'articles. Aucun nettoyage ou réparation silencieux n'est ajouté par ce ticket.
+
+Pour le mapping, exposer EXACT/CONFIG_ALIAS/UNMAPPED/AMBIGUOUS et leurs méthodes, la priorité des correspondances exactes, l'ordre effectivement utilisé, les doublons, compteurs de parcelles/intersections/dominance. Ne pas transformer UNMAPPED en statut BESS ou emprunter la règle de rejet de l'interpréteur voisin.
+
+Pour la recherche thématique, décrire token/longest_match, tie-break, portée des chevauchements, offsets normalisés versus bruts, occurrences et contexte. Les positions sont des indices de caractères, pas des bytes PDF. Reprendre exactement la portée et les unités de topic_context_characters. « Installation classée » trouvée dans le texte n'établit pas BESS == ICPE.
+
+Pour les frames/hashes, vérifier schéma/ordre/index/dtypes réellement engagés, true null, séquences et mappings, domaines/versions, octets UTF-8 contre YAML/PDF brut, métadonnées propagées. Ne pas attribuer automatiquement le contrat dtype/index-class du résolveur CNIG à ce module. Expliquer les modèles figés, mappings gelés et frames mutables.
+
+7. Tests : correspondance exacte, pas résumé des titres
+
+Lire fixtures, données, mutations, reseal, appels et assertions de bout en bout. La fixture observée _index produit des textes synthétiques ; _config est synthetic_v1 ; valid_result retourne un couple (index, résultat), pas uniquement un résultat. Vérifier le fichier entier et les éventuelles autres fixtures, sans généraliser ce préambule.
+
+Distinguer : modèle seul, helper privé, validation publique complète en mémoire, I/O temporaire de sérialisation et source officielle. Un test de grammaire « Muret compatible » n'est pas automatiquement un chargement du YAML Muret ou du PDF.
+
+Décrire le premier rejet possible, l'exception/message effectivement exigés, les valeurs/colonnes modifiées et les entrées restées intactes. Compteurs déléguants, fonctions sans effet et sentinelles levantes sont différents. Pour un test combinant plusieurs défauts, ne pas prétendre qu'il isole chacun d'eux. Une assertion d'égalité, de cardinalité ou de paramètre ne prouve que ce qu'elle compare.
+
+Les imports/constantes/decorators doivent être exacts sans compter de nouveaux symboles dans le dénominateur historique. Vérifier les liens symbole → ancre → bonne section → signature → note propriétaire, pas simplement la présence d'une ancre.
+
+8. Une validation ciblée
+
+Après les corrections documentaires, une seule exécution du test existant, environnement installé inchangé :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r13-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_structure_planning_regulation.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R13 focused pytest failed: $code" }
+
+Capturer la sortie finale après cleanup, nombre réel de cas, durée, warnings/skips/xfails ; ne pas préassigner le total depuis un ancien log. Échec = préserver et rapporter, sans réparer code ou environnement et sans retry silencieux.
+
+Pas de pytest CNIG/R11, suite complète, pipeline GPU/EP réel, nouveau PDF, téléchargement, recherche juridique, uv sync/install, changement de bibliothèque ou outil permanent. Les I/O synthétiques prévus par les tests sont permis. Scripts temporaires de texte/AST/hash/JSON/Markdown hors dépôt : permis, sans import applicatif supplémentaire.
+
+9. Clôture documentaire et compteurs
+
+Contrôler les paragraphes et notes contre le code avant la mécanique. Vérifier : signatures, plages, bonnes ancres uniques, liens entrants/sortants, exports, tableaux/fences/Unicode, SHA/basis, snapshots exacts et instruction reçue archivée fidèlement.
+
+Point de départ rapporté : 99/245 fichiers, 2 617/4 769 symboles. Calculer le gain depuis les vrais états des quatre unités ; ne pas supposer que les quatre sont NOT_READ ou que la prochaine somme est 103. Une approbation, une déclaration, une dépendance ou un reçu ne donne aucun crédit supplémentaire.
+
+Les tests/compagnon sont le prochain élément explicitement identifié ; source/compagnon sont regroupés pour éviter un second passage dissocié. Conserver les sections et notes déjà vérifiées, compléter les autres, sans clôture automatique des 146 unités restantes. Le propriétaire actuel doit être prouvé avant toute mise à jour.
+
+Rendu visuel uniquement si un outil utilisable est déjà disponible ; sinon PENDING. Une vérification de syntaxe Markdown ne remplace pas le rendu. Conserver les réserves et statuts partiels honnêtement.
+
+10. Un contrôle INDEX, puis reçu non circulaire
+
+Préparer les documents finaux et références avant de stage explicitement les seuls chemins relus. Une seule exécution complète de l'auditeur inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r13-candidate.stdout.txt 2> C:\souhaib\r13-candidate.stderr.txt
+
+Capturer sortie native/completed/métriques, manifeste exact path/mode/OID, stdout/stderr complets. Comparer au candidat R12.1 retenu seulement si les logs réels sont disponibles ; 10 221 n'est pas une cible. Exit1/completed=true peut refléter PARTIAL ; timeout/exit2/interruption n'est pas une validation terminée.
+
+Ne pas changer l'auditeur, les exclusions ou les statuts pour fabriquer du vert. Ne pas résoudre les stale fingerprints de coverage.json par régénération globale dans ce lot.
+
+Compléter le nouveau reçu après le run ; contrôler explicitement sa seule différence. Tout autre delta ultérieur doit être nommé, vérifié et distingué du candidat audité. Pas de self-SHA futur, de second run fictif ou de total audité attribué au commit final par déduction.
+
+11. Publication et arrêt
+
+Publier seulement la documentation réellement terminée ; sinon retourner PARTIAL avec point exact de reprise, sans abandon du travail. Staging par chemins explicites, pas git add global ni commit -a. Main reste inchangé.
+
+git commit -m "docs: audit planning regulation structure reference"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier SHA réel, index/worktree propre, suivi et serveur concordants, main inchangé. Rapporter les unités/statuts/propriétaires réels, nombre de notices, corrections importantes, limites des preuves, test unique et exit, audit candidat/delta, préservation et première unité restante seulement identifiée.
+
+Libellé : DOCS.CONTINUITY.1.R13 completed — global audit PARTIAL; review pending.
+
+Puis STOP. Aucun ticket suivant, correctif métier, mapping environnemental ou développement fonctionnel automatique.

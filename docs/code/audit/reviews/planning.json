@@ -873,14 +873,15 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
-      "source_sha256": "388769becaae12010b0dd98c6792ea430f679917a9bb8dd48c66fc38049ded0c",
+      "source_sha256": "07ed34abce062635afd90d00ae444aae3f4c3557de33466c4f461a5632d54ad1",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
-      "status": "READ",
+      "status": "CORRECTED",
       "imports_exports_callers_reviewed": [],
       "contract_review": [
-        "Read all original 5,308 filtered prose/signature/table/relationship lines plus exact source-substring equality audit for 147 repeated blocks after complete primary source read. Filled a prior transient filtered gap 844–851 by rereading 801–900. Corrected all 58 callable purposes, 15 model purposes/70 field meanings, alias ownership, stale Mapping/import declarations, misleading else/elif guard prose and source-vs-in-memory boundary. Final source snapshot unchanged; test/YAML/caller closure pending."
+        "Read all original 5,308 filtered prose/signature/table/relationship lines plus exact source-substring equality audit for 147 repeated blocks after complete primary source read. Filled a prior transient filtered gap 844–851 by rereading 801–900. Corrected all 58 callable purposes, 15 model purposes/70 field meanings, alias ownership, stale Mapping/import declarations, misleading else/elif guard prose and source-vs-in-memory boundary. Final source snapshot unchanged; test/YAML/caller closure pending.",
+        "R13 complete source/test/prose reconciliation; preserve acquired READ evidence. 143 source and 74 test symbol mappings closed against unchanged Git bytes. In-memory reconstruction is not a fresh GPU/PDF acquisition; synthetic test limits are retained in R13_PLANNING_REGULATION_STRUCTURE.md."
       ],
       "test_references": [],
       "symbols": [],
@@ -890,9 +891,42 @@
       "read_ranges": [
         [
           1,
-          10570
+          11821
         ]
-      ]
+      ],
+      "r13_prior_evidence": {
+        "commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679",
+        "file_row_without_symbols": {
+          "path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+          "source_sha256": "388769becaae12010b0dd98c6792ea430f679917a9bb8dd48c66fc38049ded0c",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Read all original 5,308 filtered prose/signature/table/relationship lines plus exact source-substring equality audit for 147 repeated blocks after complete primary source read. Filled a prior transient filtered gap 844–851 by rereading 801–900. Corrected all 58 callable purposes, 15 model purposes/70 field meanings, alias ownership, stale Mapping/import declarations, misleading else/elif guard prose and source-vs-in-memory boundary. Final source snapshot unchanged; test/YAML/caller closure pending."
+          ],
+          "test_references": [],
+          "findings": [
+            "PLANNING-DOC-016"
+          ],
+          "read_ranges": [
+            [
+              1,
+              10570
+            ]
+          ]
+        },
+        "symbols_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "source_sha256_basis": "git-content",
+      "r13_provenance": {
+        "receipt": "docs/code/audit/R13_PLANNING_REGULATION_STRUCTURE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R13.txt",
+        "review": "PENDING",
+        "source_commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679"
+      }
     },
     {
       "path": "docs/code/files/tests/integration/test_gpu_planning_end_to_end.py.md",
@@ -1277,16 +1311,47 @@
     },
     {
       "path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
-      "source_sha256": "33df8581446c6ffa7002c1eba55f3452c41d373dd8f14e4e0f202e9122e8e781",
+      "source_sha256": "c7e36d80ef135019696ad89a4c6e58f32dba0e200cc1dca8816e5d04970e8e97",
       "documentation_path": null,
       "role": "companion",
-      "read_complete": false,
-      "status": "NOT_READ",
+      "read_complete": true,
+      "status": "CORRECTED",
       "imports_exports_callers_reviewed": [],
-      "contract_review": [],
+      "contract_review": [
+        "R13 complete source/test/prose reconciliation; preserve acquired READ evidence. 143 source and 74 test symbol mappings closed against unchanged Git bytes. In-memory reconstruction is not a fresh GPU/PDF acquisition; synthetic test limits are retained in R13_PLANNING_REGULATION_STRUCTURE.md."
+      ],
       "test_references": [],
       "symbols": [],
-      "findings": []
+      "findings": [],
+      "r13_prior_evidence": {
+        "commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679",
+        "file_row_without_symbols": {
+          "path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
+          "source_sha256": "33df8581446c6ffa7002c1eba55f3452c41d373dd8f14e4e0f202e9122e8e781",
+          "documentation_path": null,
+          "role": "companion",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": []
+        },
+        "symbols_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "source_sha256_basis": "git-content",
+      "r13_provenance": {
+        "receipt": "docs/code/audit/R13_PLANNING_REGULATION_STRUCTURE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R13.txt",
+        "review": "PENDING",
+        "source_commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679"
+      },
+      "read_ranges": [
+        [
+          1,
+          8853
+        ]
+      ]
     },
     {
       "path": "src/landscout/common/artifact_paths.py",
@@ -16799,13 +16864,18 @@
       "documentation_path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
       "role": "source",
       "read_complete": true,
-      "status": "READ",
-      "imports_exports_callers_reviewed": [],
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Exact imports/aliases/decorators/signatures and eight source exports checked; contextual dependency reads grant no closure credit."
+      ],
       "contract_review": [
         "Completely read actual source, including all model validators/serializers, headings and lossless retained-line partition, token-boundary longest-overlap topic matching, source-input hashes, all public config reconstruction and full in-memory rebuild validators. Companion and tests still being audited; individual symbol review notes are pending their documentation reconciliation.",
-        "Fully read 1–2512; all 58 functions, 15 classes and 70 fields reconciled against all companion prose and 147 exact repeated source blocks. Config deep immutability differs from mutable result DataFrames; rebuilt structure uses supplied locked index/table facts, not physical GPU/PDF rereads. Unit/YAML and interpret caller closure pending."
+        "Fully read 1–2512; all 58 functions, 15 classes and 70 fields reconciled against all companion prose and 147 exact repeated source blocks. Config deep immutability differs from mutable result DataFrames; rebuilt structure uses supplied locked index/table facts, not physical GPU/PDF rereads. Unit/YAML and interpret caller closure pending.",
+        "R13 complete source/test/prose reconciliation; preserve acquired READ evidence. 143 source and 74 test symbol mappings closed against unchanged Git bytes. In-memory reconstruction is not a fresh GPU/PDF acquisition; synthetic test limits are retained in R13_PLANNING_REGULATION_STRUCTURE.md."
       ],
-      "test_references": [],
+      "test_references": [
+        "tests/unit/test_structure_planning_regulation.py"
+      ],
       "symbols": [
         {
           "qualified_name": "PlanningRegulationStructureError",
@@ -16813,8 +16883,8 @@
           "start_line": 159,
           "end_line": 160,
           "signature_sha256": "5fc66e5c00d4566539c34ab70091fedcd14ec482afa90b08514f42f44acaba02",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureError",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureerror",
           "review_notes": [
             "Controlled ValueError subtype for config, index-lock, structural grammar, factual-table and rebuilt-evidence failures."
           ],
@@ -16826,8 +16896,8 @@
           "start_line": 163,
           "end_line": 164,
           "signature_sha256": "78373b6e572c41745f3dba7e1ea6edc4bce541674877e258ffc207c72868d893",
-          "status": "READ",
-          "documentation_anchor": "_StrictConfigModel",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--strictconfigmodel",
           "review_notes": [
             "Base for this module's Pydantic configs: extra fields are forbidden and attribute assignment is frozen. Individual fields use strict scalar types; nested aliases/topics are copied into immutable mappings by the parent validator."
           ],
@@ -16839,8 +16909,8 @@
           "start_line": 167,
           "end_line": 172,
           "signature_sha256": "2a6e5a135057f2929c9f9e83dcc3e505b751c37ba4c9c298e9bf3472bdb7e328",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig",
           "review_notes": [
             "Five required expected index identities. Scalar format validation is local; the containing structure config checks trimmed document/profile values and `_validate_document_lock` compares all five against the supplied validated index."
           ],
@@ -16852,8 +16922,8 @@
           "start_line": 168,
           "end_line": 168,
           "signature_sha256": "08e4f3659a59546ff1578e5c54c9e5ca6533c92c2084fad1b2ba7dc004dd3fa2",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig-document-id",
           "review_notes": [
             "Expected GPU document identifier, compared exactly to index.document_id; nonempty and trimmed at parent validation."
           ],
@@ -16865,8 +16935,8 @@
           "start_line": 169,
           "end_line": 169,
           "signature_sha256": "8c14eaa7b39c2fc97fa034a8bd2fb5bbabd839b33958078b076c0174e686c64e",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig-pdf-sha256",
           "review_notes": [
             "Expected selected regulation PDF digest; 64 lowercase hex, compared to index.pdf_sha256."
           ],
@@ -16878,8 +16948,8 @@
           "start_line": 170,
           "end_line": 170,
           "signature_sha256": "fe117ce4cf933a36938206cde40a046dd7558674b00cb221e3afaabbc0ca00c2",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig-pages-content-sha256",
           "review_notes": [
             "Expected indexed-page canonical digest, compared to index.pages_content_sha256."
           ],
@@ -16891,8 +16961,8 @@
           "start_line": 171,
           "end_line": 171,
           "signature_sha256": "59e9df611fb4a3949855c1f0a0e778750a9d0d01739b751241584b0edffc9edc",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig-index-content-sha256",
           "review_notes": [
             "Expected complete index-envelope digest, compared to index.index_content_sha256."
           ],
@@ -16904,8 +16974,8 @@
           "start_line": 172,
           "end_line": 172,
           "signature_sha256": "4d360ce261984729875a10a9c89d543b4ce1a6e006aa418d254b4b51e74e4763",
-          "status": "READ",
-          "documentation_anchor": "DocumentLockConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlockconfig-normalization-profile",
           "review_notes": [
             "Expected index normalization profile identifier; nonempty trimmed and compared exactly."
           ],
@@ -16917,8 +16987,8 @@
           "start_line": 175,
           "end_line": 188,
           "signature_sha256": "5b05dc6d8204ea96696c9f27fa36b558f0a5c77b485b0452d049d2563c499f11",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig",
           "review_notes": [
             "Immutable document-layout controls: one-based body start, ordered immutable TOC page numbers, bounded same-page heading continuation count and exact boolean evidence-inclusion flag."
           ],
@@ -16930,8 +17000,8 @@
           "start_line": 176,
           "end_line": 176,
           "signature_sha256": "19e8555ec4088277de96e6f64a965fdca612f1898518da9f69b89a18a7718d82",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig-body-start-page",
           "review_notes": [
             "Required StrictInt >=1; first page eligible for structural headings and body ERROR enforcement; must exist in the index."
           ],
@@ -16943,8 +17013,8 @@
           "start_line": 177,
           "end_line": 177,
           "signature_sha256": "a62f8da883ce10e9410267b3f74fe39afa647e93acccdf84a8387dbb662f52b4",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig-table-of-contents-pages",
           "review_notes": [
             "Tuple of StrictInt page numbers, default empty, positive/unique/ascending and later checked for actual index membership."
           ],
@@ -16956,8 +17026,8 @@
           "start_line": 178,
           "end_line": 178,
           "signature_sha256": "cccd24192b225578e629eb9ebcbb7b237164f8e4a5c29a47715bc1d7d74dad7d",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig-max-heading-continuation-lines",
           "review_notes": [
             "Required StrictInt from 0 through 10; maximum following continuation lines for non-zone headings on the same page."
           ],
@@ -16969,10 +17039,10 @@
           "start_line": 179,
           "end_line": 179,
           "signature_sha256": "23f0240d282ba8b7cefc224a9be31900d041dbc024a860b0593bba350fe70468",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig-include-table-of-contents-in-topic-evidence",
           "review_notes": [
-            "Required StrictBool: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification."
+            "StrictBool, default False: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification."
           ],
           "test_references": []
         },
@@ -16982,8 +17052,8 @@
           "start_line": 182,
           "end_line": 188,
           "signature_sha256": "b536b60eaa964507e670de8578b27d0293054772a5c38d775496eed331b51f8a",
-          "status": "READ",
-          "documentation_anchor": "DocumentLayoutConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-documentlayoutconfig--validate-pages",
           "review_notes": [
             "Rejects non-positive, duplicate or non-ascending configured TOC page numbers and returns the same validated model. Actual page existence is checked later against the index; an empty tuple is allowed."
           ],
@@ -16995,8 +17065,8 @@
           "start_line": 191,
           "end_line": 195,
           "signature_sha256": "9f5a1be968385411f12aecfa73d76483b6556007afd6389b8f8edd1f7d5d00c0",
-          "status": "READ",
-          "documentation_anchor": "HeadingPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-headingpatternsconfig",
           "review_notes": [
             "Ordered immutable regex tuples for three structural categories and optional continuation lines. Parent validation enforces compilability, required named captures and duplicate restrictions."
           ],
@@ -17008,8 +17078,8 @@
           "start_line": 192,
           "end_line": 192,
           "signature_sha256": "86a298f632841a3f5975298ac3edb4a59286628b9a9cceb2def6a8e2e8738df1",
-          "status": "READ",
-          "documentation_anchor": "HeadingPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-headingpatternsconfig-zone-chapter",
           "review_notes": [
             "Required nonempty ordered tuple of regexes with a named label capture."
           ],
@@ -17021,8 +17091,8 @@
           "start_line": 193,
           "end_line": 193,
           "signature_sha256": "91968b3303a84d07f96ca078d87c248a41fda3c6ca6f46791d807e1f36aed17d",
-          "status": "READ",
-          "documentation_anchor": "HeadingPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-headingpatternsconfig-article",
           "review_notes": [
             "Required nonempty ordered tuple of regexes with named zone, number and title captures."
           ],
@@ -17034,8 +17104,8 @@
           "start_line": 194,
           "end_line": 194,
           "signature_sha256": "e3ab7c3375d21f223b56e3ebf856326d64afc5f11db6b42fcb4a76293c31d7fa",
-          "status": "READ",
-          "documentation_anchor": "HeadingPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-headingpatternsconfig-general-section",
           "review_notes": [
             "Required nonempty ordered tuple of regexes with named number and title captures."
           ],
@@ -17047,8 +17117,8 @@
           "start_line": 195,
           "end_line": 195,
           "signature_sha256": "c4a29d03bccd72183a167a0cb8758edb91af348262ce1e75966f96ef642b79c2",
-          "status": "READ",
-          "documentation_anchor": "HeadingPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-headingpatternsconfig-continuation",
           "review_notes": [
             "Ordered optional fullmatch regexes for heading-continuation lines; default empty."
           ],
@@ -17060,8 +17130,8 @@
           "start_line": 198,
           "end_line": 200,
           "signature_sha256": "b46a19525552448dbdf8e73c52e980409211a10e0846216125dfd9c7c234b822",
-          "status": "READ",
-          "documentation_anchor": "IgnoredPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-ignoredpatternsconfig",
           "review_notes": [
             "Ordered immutable regex tuples for positional page header/footer filtering. Empty tuples disable that side; these are not global text-deletion patterns."
           ],
@@ -17073,8 +17143,8 @@
           "start_line": 199,
           "end_line": 199,
           "signature_sha256": "f42f543d7941e04a5b3682fda43894fa6d8e9d34aa29c16216723183f444485c",
-          "status": "READ",
-          "documentation_anchor": "IgnoredPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-ignoredpatternsconfig-page-headers",
           "review_notes": [
             "Ordered optional fullmatch regexes used only at the leading header position; default empty."
           ],
@@ -17086,8 +17156,8 @@
           "start_line": 200,
           "end_line": 200,
           "signature_sha256": "5556c57910dba27eccec81d4b290fad77228610b68bf9d22fcc6a2680cc31663",
-          "status": "READ",
-          "documentation_anchor": "IgnoredPatternsConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-ignoredpatternsconfig-page-footers",
           "review_notes": [
             "Ordered optional fullmatch regexes used only at the trailing footer position; default empty."
           ],
@@ -17099,8 +17169,8 @@
           "start_line": 203,
           "end_line": 209,
           "signature_sha256": "a831d6407b6c9a70106cd49939189633d86707d38328576e31c16d8aa34e31df",
-          "status": "READ",
-          "documentation_anchor": "TopicMatchPolicyConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-topicmatchpolicyconfig",
           "review_notes": [
             "Closed token-boundary/longest-match declaration; its property emits the deterministic policy identifier used in evidence rows."
           ],
@@ -17112,8 +17182,8 @@
           "start_line": 204,
           "end_line": 204,
           "signature_sha256": "fb7145fdf31d0145d190e1796c137ac64efaec8c3b78ad0e5e9903f7850df9eb",
-          "status": "READ",
-          "documentation_anchor": "TopicMatchPolicyConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-topicmatchpolicyconfig-boundary-mode",
           "review_notes": [
             "Only literal token is accepted; matching checks neighboring alphanumeric/underscore characters."
           ],
@@ -17125,8 +17195,8 @@
           "start_line": 205,
           "end_line": 205,
           "signature_sha256": "e316dd07ebf2ecd51a7076ec451e31d4a6f126bc5611353ee607410c954c753c",
-          "status": "READ",
-          "documentation_anchor": "TopicMatchPolicyConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-topicmatchpolicyconfig-overlap-resolution",
           "review_notes": [
             "Only literal longest_match is accepted; configured term order resolves equal-length candidate priority."
           ],
@@ -17138,8 +17208,8 @@
           "start_line": 208,
           "end_line": 209,
           "signature_sha256": "a75bda4d49cf0b826e85471532c0cdc5ced4b21ff3bfd2bdbd27e31dccdc0153",
-          "status": "READ",
-          "documentation_anchor": "TopicMatchPolicyConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-topicmatchpolicyconfig-identifier",
           "review_notes": [
             "Joins the two validated literal policy fields as `token_longest_match`, the evidence-row identifier. It does not perform matching."
           ],
@@ -17151,8 +17221,8 @@
           "start_line": 212,
           "end_line": 327,
           "signature_sha256": "2975b9b49904941ec5e8b89ca552c5b921ed72b8e0d7e0cabb285c0fb6d6c11f",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig",
           "review_notes": [
             "Deeply immutable schema-2 structure configuration retaining copied aliases and topic-term tuples, ordered grammar declarations, document locks and context width. Public consumers reconstruct and revalidate supplied model instances; JSON serializers preserve the established canonical hash representation."
           ],
@@ -17164,8 +17234,8 @@
           "start_line": 215,
           "end_line": 215,
           "signature_sha256": "1d849c8e8dc5c32176612b98b8b5bd5e9fdd837bd65cc0758f134f9b84dce3b5",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-schema-version",
           "review_notes": [
             "Required strict positive version; parent supports exactly 2."
           ],
@@ -17177,8 +17247,8 @@
           "start_line": 216,
           "end_line": 216,
           "signature_sha256": "8176033cbb2fbc5ea9868ec129cbd3d462e6f8e706184e2faea0eeabaf137374",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-structure-profile",
           "review_notes": [
             "Required trimmed nonempty identity for this grammar; copied into evidence and bound by config/result hashes."
           ],
@@ -17190,8 +17260,8 @@
           "start_line": 217,
           "end_line": 217,
           "signature_sha256": "859c9882710efd2b04a8b741649391fb48c2dc84f05112fe61cdaaa51c16a8f6",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-document-lock",
           "review_notes": [
             "Required immutable five-identity lock model; does not itself reopen the source."
           ],
@@ -17203,8 +17273,8 @@
           "start_line": 218,
           "end_line": 218,
           "signature_sha256": "be9cd8d221981ce4afc22c1178ff8bac9e3c8f33d4aff0710f42c5b208fee3c7",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-document-layout",
           "review_notes": [
             "Required immutable body/TOC/continuation/evidence controls."
           ],
@@ -17216,8 +17286,8 @@
           "start_line": 219,
           "end_line": 219,
           "signature_sha256": "924ae7cd6f1e49c4e2be78150403808dcf1fc7fece83aaae2844d4294dded806",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-heading-patterns",
           "review_notes": [
             "Required ordered structural/continuation grammar tuples."
           ],
@@ -17229,8 +17299,8 @@
           "start_line": 220,
           "end_line": 220,
           "signature_sha256": "e159d5df3ff5cff6f17dde772509781156d24533bf69c025c002dd912c583024",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-ignored-patterns",
           "review_notes": [
             "Required header/footer pattern model; its tuples may be empty."
           ],
@@ -17242,8 +17312,8 @@
           "start_line": 221,
           "end_line": 221,
           "signature_sha256": "47965264b48d2444a2022e6172a6e3129a6a5568b230843ff946f5b709424236",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-zone-aliases",
           "review_notes": [
             "Required Mapping[StrictStr, StrictStr], copied/frozen after acyclic trimmed exact-key/target validation; mapping keys are not fuzzy or casefolded."
           ],
@@ -17255,8 +17325,8 @@
           "start_line": 222,
           "end_line": 222,
           "signature_sha256": "84a1147be38f4c9f2d51ee893d645c36479d2e8d628585f376be71d2c2dc65e0",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-topics",
           "review_notes": [
             "Required Mapping[StrictStr, tuple[StrictStr, ...]], copied/frozen; at least one topic and term per topic, with normalized duplicates rejected within a topic. Topic names sort for output while term order is preserved."
           ],
@@ -17268,8 +17338,8 @@
           "start_line": 223,
           "end_line": 223,
           "signature_sha256": "b63f8798b1e92a51d55c610253e6d8f0390032d73ad4f64e91cebf64ba347d77",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-topic-match-policy",
           "review_notes": [
             "Required closed token/longest-match model; no alternative matcher is inferred."
           ],
@@ -17281,8 +17351,8 @@
           "start_line": 224,
           "end_line": 224,
           "signature_sha256": "f8fd61895f8c371b8f477f52641539717b6a665f63a752d93240aad0aac3ac4d",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig-topic-context-characters",
           "review_notes": [
             "Required StrictInt >=0 giving the normalized-character margin around the first retained match, not raw bytes or a match limit."
           ],
@@ -17294,8 +17364,8 @@
           "start_line": 227,
           "end_line": 228,
           "signature_sha256": "87f1acfb8a900cb90ba3db170795eecad8d56c6c1052f28c2c638bd972df787f",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig--serialize-zone-aliases",
           "review_notes": [
             "Returns a new plain dictionary of aliases during Pydantic serialization. The copied mapping does not expose the retained immutable backing object."
           ],
@@ -17307,8 +17377,8 @@
           "start_line": 231,
           "end_line": 238,
           "signature_sha256": "dd691aef537c309a32bcf7c313bf27c7177a2ff0880ad307d5ef2fb930985b28",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig--serialize-topics",
           "review_notes": [
             "Uses `SerializationInfo.mode` to emit a new topic dictionary with lists in JSON mode, or a new dictionary retaining immutable term tuples in Python mode. Ordered terms and the established canonical JSON shape are preserved without a mutable alias to the validated model."
           ],
@@ -17320,8 +17390,8 @@
           "start_line": 241,
           "end_line": 327,
           "signature_sha256": "e7faeff29199268de5ee105506bddcc162b02555884af1102fbd85b44a062866",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureConfig",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureconfig--validate-grammar",
           "review_notes": [
             "Validates schema 2, trimmed profile/lock strings, nonempty trimmed unique compilable regexes, required named captures, cross-group duplicate structural regex rejection, acyclic exact aliases, and nonempty topics with distinct normalized terms within each topic. Then `freeze_mapping` copies and freezes aliases/topics. It does not test whether different regexes overlap on actual source lines; `_classify_structural_heading` handles that ambiguity."
           ],
@@ -17333,8 +17403,8 @@
           "start_line": 331,
           "end_line": 352,
           "signature_sha256": "4d5165c10ca8cf311078a2dadb0f1b0d2ed9b981273f5e24c7fad92f73b61bab",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult",
           "review_notes": [
             "Frozen dataclass lineage envelope with 19 required fields. The three pandas DataFrames remain mutable, so immediate assignment freezing is not deep frame immutability; validators rebuild and compare their contents and hashes."
           ],
@@ -17346,8 +17416,8 @@
           "start_line": 334,
           "end_line": 334,
           "signature_sha256": "91d7a6f0e3572072c6933a8641dc696623d6d3238c3b814bc43b3385d06bb66c",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-document-id",
           "review_notes": [
             "Supplied index document identifier."
           ],
@@ -17359,8 +17429,8 @@
           "start_line": 335,
           "end_line": 335,
           "signature_sha256": "0e7464db3547b287b4da67097f9d7cffe8345e9e344cb22bb54a487ee2e282cc",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-archive-sha256",
           "review_notes": [
             "Supplied index archive digest; comparison is lineage, not a fresh archive read."
           ],
@@ -17372,8 +17442,8 @@
           "start_line": 336,
           "end_line": 336,
           "signature_sha256": "7a0fb5ccf8a2708d66606336d91933e613adf8cfff16c5cf2610c622b3306b48",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-pdf-sha256",
           "review_notes": [
             "Supplied index selected-PDF digest."
           ],
@@ -17385,8 +17455,8 @@
           "start_line": 337,
           "end_line": 337,
           "signature_sha256": "39ec69c7f05cc8a9b8d55c8dd3d64be4714aed226ced2fa85032a90c32764f8f",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-index-content-sha256",
           "review_notes": [
             "Supplied complete index-envelope digest."
           ],
@@ -17398,8 +17468,8 @@
           "start_line": 338,
           "end_line": 338,
           "signature_sha256": "757ed92324464ca2cf3fb3fbbad7e7509fd4e3d488b42b6507899578f159f1a8",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-structure-profile",
           "review_notes": [
             "Validated config profile identifier."
           ],
@@ -17411,8 +17481,8 @@
           "start_line": 339,
           "end_line": 339,
           "signature_sha256": "797c01ac7493d20de6b529c82bb5d27845f4133e1502a92779ffc8fecef25b46",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-structure-config-schema-version",
           "review_notes": [
             "Validated structure config version (2)."
           ],
@@ -17424,8 +17494,8 @@
           "start_line": 340,
           "end_line": 340,
           "signature_sha256": "5f78798ff7dd106930eee373f4e4eb24bfab6482aa1824613c2631eff3fca6ce",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-structure-config-sha256",
           "review_notes": [
             "Canonical JSON-mode semantic config digest, not YAML byte SHA."
           ],
@@ -17437,8 +17507,8 @@
           "start_line": 341,
           "end_line": 341,
           "signature_sha256": "0e3e7fc7f8e4fbf531b357e21837ca6135dd47dc9a09f31b380b102d6e0143b9",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-zones-content-sha256",
           "review_notes": [
             "Ordered canonical values and column list for the five selected zoning inputs; excludes geometry/index/dtypes/extras."
           ],
@@ -17450,8 +17520,8 @@
           "start_line": 342,
           "end_line": 342,
           "signature_sha256": "5f8b95c1bbb206b88ff287b5ee614e1e87f7b82e9927cd3c4b0a7ea596f59866",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-zoning-intersection-hash-columns",
           "review_notes": [
             "Exact ordered tuple of eight required input columns plus present approved optional metrics."
           ],
@@ -17463,8 +17533,8 @@
           "start_line": 343,
           "end_line": 343,
           "signature_sha256": "ea447b0edd0ef9bcdefeb0d4286a2bff1b7275f10b83561329404e16c266ab7f",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-zoning-intersections-content-sha256",
           "review_notes": [
             "Ordered canonical relation rows and selected column-list digest."
           ],
@@ -17476,8 +17546,8 @@
           "start_line": 344,
           "end_line": 344,
           "signature_sha256": "efd20a658cc359591ab1c33ab4891da5d953cf14b3251ef76bc4c9fa38e71f72",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-source-records-sha256",
           "review_notes": [
             "Digest of the complete retained line-record sequence, including source page/line positions and raw text."
           ],
@@ -17489,8 +17559,8 @@
           "start_line": 345,
           "end_line": 345,
           "signature_sha256": "f9743e9baf44578b3af9d30b8c318d33e0908caa10be6f886b803a17ecefa21f",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-section-hash-schema-version",
           "review_notes": [
             "Supported section/component hash version 3."
           ],
@@ -17502,8 +17572,8 @@
           "start_line": 346,
           "end_line": 346,
           "signature_sha256": "847cd653f4e4de3e4286785fb2fb468f5a2394365f8fe22b99ecbe47f1525317",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-sections-content-sha256",
           "review_notes": [
             "Domain-separated section-frame digest including shared input/config lineage."
           ],
@@ -17515,8 +17585,8 @@
           "start_line": 347,
           "end_line": 347,
           "signature_sha256": "8c8f1e5cc26fb6d47c99c8b4a011c25625900280d6abce220b894f1cc240b82a",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-zone-map-content-sha256",
           "review_notes": [
             "Domain-separated zone-mapping frame digest including shared input/config lineage."
           ],
@@ -17528,8 +17598,8 @@
           "start_line": 348,
           "end_line": 348,
           "signature_sha256": "151c679ff69189fa75f87135e85f502f718b871c6de27fc7b982fbd7764b6094",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-topic-evidence-content-sha256",
           "review_notes": [
             "Domain-separated topic-evidence frame digest including shared input/config lineage."
           ],
@@ -17541,8 +17611,8 @@
           "start_line": 349,
           "end_line": 349,
           "signature_sha256": "750122627b58c70cc634cf5d9f2d9641bb9f6521f5a5deebe4499dae63911148",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-structure-result-content-sha256",
           "review_notes": [
             "Outer envelope digest binding all other scalar/tuple identities and the three component hashes."
           ],
@@ -17554,8 +17624,8 @@
           "start_line": 350,
           "end_line": 350,
           "signature_sha256": "1370d682a4822b1fa8e637f279dfc91643ec7d4b72326cb672a0b94c5d20f63e",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-sections",
           "review_notes": [
             "Mutable 24-column ordered factual section DataFrame; raw text is reconstructed from complete retained-record partitions."
           ],
@@ -17567,8 +17637,8 @@
           "start_line": 351,
           "end_line": 351,
           "signature_sha256": "e9148254d73a21e9345f2afa4fd62d0621723f933aabf4e2ff8b4552bbd357c4",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-zone-mapping",
           "review_notes": [
             "Mutable 14-column sorted raw-label mapping/count DataFrame; not a zoning suitability decision."
           ],
@@ -17580,8 +17650,8 @@
           "start_line": 352,
           "end_line": 352,
           "signature_sha256": "57bf48c974f496fbbf734626e281226476045a9dd909f5f604af67d93695370c",
-          "status": "READ",
-          "documentation_anchor": "PlanningRegulationStructureResult",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planningregulationstructureresult-topic-evidence",
           "review_notes": [
             "Mutable 21-column literal-match DataFrame, with exact fragment-local offsets and contexts; empty evidence is allowed."
           ],
@@ -17593,8 +17663,8 @@
           "start_line": 356,
           "end_line": 360,
           "signature_sha256": "21aef88db4f0fac961063a013d5394e7fad3c80181a325e1b71b243837cb5290",
-          "status": "READ",
-          "documentation_anchor": "_LineRecord",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--linerecord",
           "review_notes": [
             "Frozen retained-line record preserving source page and original page-line identity after positional filtering."
           ],
@@ -17606,8 +17676,8 @@
           "start_line": 357,
           "end_line": 357,
           "signature_sha256": "29e07cba89ee508951ca078d5e4b9388b193d5b6457184cf5c612efd8a465962",
-          "status": "READ",
-          "documentation_anchor": "_LineRecord",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--linerecord-record-id",
           "review_notes": [
             "Sequential global RECORD-000001-style identity after filtering."
           ],
@@ -17619,8 +17689,8 @@
           "start_line": 358,
           "end_line": 358,
           "signature_sha256": "53db893b56b2e0281bf38896b2ec39461bf620fddf4190216063089127938aa3",
-          "status": "READ",
-          "documentation_anchor": "_LineRecord",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--linerecord-page-number",
           "review_notes": [
             "One-based source index page number."
           ],
@@ -17632,8 +17702,8 @@
           "start_line": 359,
           "end_line": 359,
           "signature_sha256": "98b387184f12c3c7db3434df1883393484237a91d748093c0043bfadcfd5836e",
-          "status": "READ",
-          "documentation_anchor": "_LineRecord",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--linerecord-page-line-number",
           "review_notes": [
             "One-based original splitlines position on that page, including gaps caused by filtering."
           ],
@@ -17645,8 +17715,8 @@
           "start_line": 360,
           "end_line": 360,
           "signature_sha256": "e64b25c7d1f1c5b80c1d796bfa558d879ab517d60b3c1f9c7a2bc0527ef45a48",
-          "status": "READ",
-          "documentation_anchor": "_LineRecord",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--linerecord-raw",
           "review_notes": [
             "Unnormalized retained source line without splitlines separator."
           ],
@@ -17658,8 +17728,8 @@
           "start_line": 364,
           "end_line": 371,
           "signature_sha256": "d25f9dbcb2fad209a430933d80fe67644525dba756b13015d17090bed29c64ae",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent",
           "review_notes": [
             "Frozen recognized heading at a retained-record position, including raw/normalized heading, optional captured chapter and article facts."
           ],
@@ -17671,8 +17741,8 @@
           "start_line": 365,
           "end_line": 365,
           "signature_sha256": "35a2fd2780347acad8bcbbca1bc81821b56baf79a588dc8e2fadfd9af4f3f5a1",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-record-position",
           "review_notes": [
             "Zero-based position of the actual heading record in the retained sequence, before blank-prefix boundary shifts."
           ],
@@ -17684,8 +17754,8 @@
           "start_line": 366,
           "end_line": 366,
           "signature_sha256": "888e0b61ef35ff102aefca17980332ce282802e8b9b19e01f2a1e62f28e4915d",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-section-type",
           "review_notes": [
             "Recognized GENERAL, ZONE_CHAPTER or ARTICLE category."
           ],
@@ -17697,8 +17767,8 @@
           "start_line": 367,
           "end_line": 367,
           "signature_sha256": "f9f2416e10eb06e4e9a74a8d79dbea9cfdcf16cfffe5268c1fe0a51538f18c69",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-heading-raw",
           "review_notes": [
             "Raw heading lines joined with newline, including accepted continuations."
           ],
@@ -17710,8 +17780,8 @@
           "start_line": 368,
           "end_line": 368,
           "signature_sha256": "b8747a5f67c1085599c232d6042188ca27c0832f61886e70c7307e0dd2679565",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-heading-normalized",
           "review_notes": [
             "Shared normalization of the complete raw heading."
           ],
@@ -17723,8 +17793,8 @@
           "start_line": 369,
           "end_line": 369,
           "signature_sha256": "43a6648541c68bbbfdc9caeec313c2d28382a26d382a54a91a7c5b9db57a3429",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-zone-chapter-label",
           "review_notes": [
             "Whitespace-compacted captured zone label, or None for a general heading."
           ],
@@ -17736,8 +17806,8 @@
           "start_line": 370,
           "end_line": 370,
           "signature_sha256": "33dcd6266b017bddab4812b93936b26c4ad1305d2a54b8579557327d77b8b638",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-article-number-raw",
           "review_notes": [
             "Captured source number for ARTICLE/GENERAL, otherwise None."
           ],
@@ -17749,8 +17819,8 @@
           "start_line": 371,
           "end_line": 371,
           "signature_sha256": "4c71a55a9a1281ac4319f168ade2ce1083bc35e0f732f7a727fd474b60ff6152",
-          "status": "READ",
-          "documentation_anchor": "_HeadingEvent",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--headingevent-article-title-raw",
           "review_notes": [
             "Captured title joined with stripped continuation text, otherwise None."
           ],
@@ -17762,8 +17832,8 @@
           "start_line": 375,
           "end_line": 378,
           "signature_sha256": "a5b672a4777a5e833a8a7848af6161f5157ddbcceacb170a366139358c941fbb",
-          "status": "READ",
-          "documentation_anchor": "_StructuralHeadingMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structuralheadingmatch",
           "review_notes": [
             "Frozen diagnostic result for one fullmatching structural regex and its named captures; multiple such matches are rejected before becoming a heading event."
           ],
@@ -17775,8 +17845,8 @@
           "start_line": 376,
           "end_line": 376,
           "signature_sha256": "888e0b61ef35ff102aefca17980332ce282802e8b9b19e01f2a1e62f28e4915d",
-          "status": "READ",
-          "documentation_anchor": "_StructuralHeadingMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structuralheadingmatch-section-type",
           "review_notes": [
             "The fullmatching pattern group's structural category."
           ],
@@ -17788,8 +17858,8 @@
           "start_line": 377,
           "end_line": 377,
           "signature_sha256": "d1e5944389173974bdfebe0f691668d818911322ad61cc6fcd06149949312ccd",
-          "status": "READ",
-          "documentation_anchor": "_StructuralHeadingMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structuralheadingmatch-pattern-index",
           "review_notes": [
             "Zero-based pattern index within that group, used in ambiguity diagnostics."
           ],
@@ -17801,8 +17871,8 @@
           "start_line": 378,
           "end_line": 378,
           "signature_sha256": "54fc331f69c589a2fb905a6a82856279060045bcc5f45ae5445fd08aafef5fc8",
-          "status": "READ",
-          "documentation_anchor": "_StructuralHeadingMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structuralheadingmatch-named-captures",
           "review_notes": [
             "Immutable ordered tuple of groupdict key/value pairs; values can be None."
           ],
@@ -17814,8 +17884,8 @@
           "start_line": 382,
           "end_line": 385,
           "signature_sha256": "4cf2d5d38b06430a6d4daa1ca25ba501d23f01e2b4b6b8a24f1a539f7a96fbc7",
-          "status": "READ",
-          "documentation_anchor": "_SectionBoundary",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionboundary",
           "review_notes": [
             "Frozen start marker for partitioning retained records, with optional heading event and explicit TOC-boundary flag."
           ],
@@ -17827,8 +17897,8 @@
           "start_line": 383,
           "end_line": 383,
           "signature_sha256": "35a2fd2780347acad8bcbbca1bc81821b56baf79a588dc8e2fadfd9af4f3f5a1",
-          "status": "READ",
-          "documentation_anchor": "_SectionBoundary",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionboundary-record-position",
           "review_notes": [
             "Zero-based retained-record start, potentially moved back over ordinary blanks."
           ],
@@ -17840,8 +17910,8 @@
           "start_line": 384,
           "end_line": 384,
           "signature_sha256": "47f4800eef368de061121f077208ba53aa9595a4be36b57692629f2e660547d5",
-          "status": "READ",
-          "documentation_anchor": "_SectionBoundary",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionboundary-event",
           "review_notes": [
             "Recognized heading event for a factual section, or None for an OTHER boundary."
           ],
@@ -17853,8 +17923,8 @@
           "start_line": 385,
           "end_line": 385,
           "signature_sha256": "beaf9462e02c4bb99a7714390a15db3c923d90f67a1d6c8cc33afe6993fc9714",
-          "status": "READ",
-          "documentation_anchor": "_SectionBoundary",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionboundary-forced-table-of-contents",
           "review_notes": [
             "True only for explicit TOC starts; preserves TOC OTHER boundaries even for blank text."
           ],
@@ -17866,8 +17936,8 @@
           "start_line": 389,
           "end_line": 391,
           "signature_sha256": "e6ad872c93a98db54806ea5acfe36f5b8fda97ef0446e5a507aa618ced958522",
-          "status": "READ",
-          "documentation_anchor": "_SectionBuild",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionbuild",
           "review_notes": [
             "Frozen private holder for a mutable local section-row dictionary and an immutable ordered tuple of per-page raw fragments. It is not a public deeply immutable trust model."
           ],
@@ -17879,8 +17949,8 @@
           "start_line": 390,
           "end_line": 390,
           "signature_sha256": "980130890371f1f3b13af585b726aa68856f47d11a7dcd42771f24702fbcd8ed",
-          "status": "READ",
-          "documentation_anchor": "_SectionBuild",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionbuild-row",
           "review_notes": [
             "Mutable local dictionary with one section's factual 24-column values; filled/hash-bound during construction."
           ],
@@ -17892,8 +17962,8 @@
           "start_line": 391,
           "end_line": 391,
           "signature_sha256": "2b040bbf1bcf2364faf090d7d54bb6c6b2fb39ab53219da7e9b1a7b2db205659",
-          "status": "READ",
-          "documentation_anchor": "_SectionBuild",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--sectionbuild-page-fragments",
           "review_notes": [
             "Ordered immutable (one-based page number, raw fragment text) tuple for that section."
           ],
@@ -17905,8 +17975,8 @@
           "start_line": 394,
           "end_line": 397,
           "signature_sha256": "42388f3597c48ccb08c33c258aabe6c9eb830b7b844e6e18d3780c18b89f3244",
-          "status": "READ",
-          "documentation_anchor": "_exact_config_string",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--exact-config-string",
           "review_notes": [
             "Rejects empty or untrimmed strings after StrictStr field validation. This helper itself does not perform an exact-runtime-type check."
           ],
@@ -17918,8 +17988,8 @@
           "start_line": 400,
           "end_line": 408,
           "signature_sha256": "ccf0d024e44ff769b0d34591bf4ec54cd33d80996aba1ed89596934a96a264e9",
-          "status": "READ",
-          "documentation_anchor": "_validate_alias_cycles",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-alias-cycles",
           "review_notes": [
             "Walks every exact, case-sensitive alias chain and raises on a visited key; terminal targets need not be alias keys. The visited sets are local and the input mapping is not mutated."
           ],
@@ -17931,8 +18001,8 @@
           "start_line": 411,
           "end_line": 431,
           "signature_sha256": "c613ffe953a9a7f0f57d9c2d95093b3d838639eb0e4b140955b9163f902323c6",
-          "status": "READ",
-          "documentation_anchor": "load_planning_regulation_structure_config",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-load-planning-regulation-structure-config",
           "review_notes": [
             "Reads the supplied local YAML path, uses duplicate-safe strict YAML loading, requires a mapping root and validates a fresh deeply immutable structure config. YAML/parser/model/file failures become PlanningRegulationStructureError; no source document is read and no config hash is calculated here."
           ],
@@ -17944,8 +18014,8 @@
           "start_line": 434,
           "end_line": 439,
           "signature_sha256": "d17a85b13a52009c058a875ca8f3e4130e23961af7c1593d298a227eb795fc3a",
-          "status": "READ",
-          "documentation_anchor": "_strict_string",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--strict-string",
           "review_notes": [
             "Requires a nonempty trimmed string value and returns it unchanged; isinstance accepts string subclasses. Errors use the caller's label."
           ],
@@ -17957,8 +18027,8 @@
           "start_line": 442,
           "end_line": 448,
           "signature_sha256": "d21c292bca764a08354dd86ed2f4faedd810d78acad42f0a3b7f4784a7ae3284",
-          "status": "READ",
-          "documentation_anchor": "_strict_nonnegative_integer",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--strict-nonnegative-integer",
           "review_notes": [
             "Rejects bool and non-Integral values, converts accepted integral scalars including NumPy integers to built-in int, and rejects negative values."
           ],
@@ -17970,8 +18040,8 @@
           "start_line": 451,
           "end_line": 455,
           "signature_sha256": "0e95801fc32f1dafa0105d3b340041668f202c13e554b9e2e739dd817001639d",
-          "status": "READ",
-          "documentation_anchor": "_strict_positive_integer",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--strict-positive-integer",
           "review_notes": [
             "Reuses the nonnegative integer guard and additionally rejects zero; it is used for page numbers, counts and versions."
           ],
@@ -17983,8 +18053,8 @@
           "start_line": 458,
           "end_line": 464,
           "signature_sha256": "c987d27e37d003baf5b16d8b94cf18cd102ad41691d0973dec175711405c2f7a",
-          "status": "READ",
-          "documentation_anchor": "_validated_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validated-sha256",
           "review_notes": [
             "Requires a trimmed lower-case 64-hex SHA256 string. This is lexical validation, not recomputation of bytes or source authority."
           ],
@@ -17996,8 +18066,8 @@
           "start_line": 467,
           "end_line": 482,
           "signature_sha256": "a1dd92a7e0f8c820b459437f3e8193c3a8ca6f478f66977e3acba5e0206817fb",
-          "status": "READ",
-          "documentation_anchor": "_canonical_value",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--canonical-value",
           "review_notes": [
             "Builds temporary JSON-compatible containers: None/pd.NA/float NaN become null; NumPy scalars recurse through item(); tuples/lists/arrays become lists; mapping keys are stringified and values recurse. Strings/ints/floats/bools remain values, unsupported objects fail. This is not the immutable config freezer; infinities fail at JSON serialization."
           ],
@@ -18009,8 +18079,8 @@
           "start_line": 485,
           "end_line": 500,
           "signature_sha256": "afb1ef77db4c216b691e2b044807d6c255124e323f53a110210270e448cb920d",
-          "status": "READ",
-          "documentation_anchor": "_canonical_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--canonical-sha256",
           "review_notes": [
             "Hashes UTF-8 canonical JSON with Unicode retained, sorted mapping keys, compact separators and allow_nan=False after `_canonical_value`. Serialization errors are controlled; no Python repr or filesystem data enters this function."
           ],
@@ -18022,8 +18092,8 @@
           "start_line": 503,
           "end_line": 513,
           "signature_sha256": "8950bcdef26a9f40690655d707a354fd936226859c62c157c7de7f240fdea3f3",
-          "status": "READ",
-          "documentation_anchor": "_config_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--config-sha256",
           "review_notes": [
             "Hashes the config model's JSON-mode plain representation under the structure-config domain. Topic mapping keys are sorted but configured term order remains meaningful; raw YAML formatting and key insertion order are not the identity."
           ],
@@ -18035,8 +18105,8 @@
           "start_line": 516,
           "end_line": 575,
           "signature_sha256": "c42007b194fa5de302b83dfd5180f512fecb220f14e0580b30499177555ab7bd",
-          "status": "READ",
-          "documentation_anchor": "_validate_document_lock",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-document-lock",
           "review_notes": [
             "Intrinsically validates the supplied index, compares its document/PDF/pages/index/normalization identities to the five configured locks, checks body-start and TOC page existence, and rejects ERROR extraction on non-TOC body pages. EMPTY pages and ERROR pages outside that applicable body are not rejected by this guard. It does not reopen the PDF or GPU source."
           ],
@@ -18048,8 +18118,8 @@
           "start_line": 578,
           "end_line": 579,
           "signature_sha256": "dba6c07a4fc9295b90ef9efdb300bffa5cc273867653183c05e8fa8fc10b0ba8",
-          "status": "READ",
-          "documentation_anchor": "_compiled",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--compiled",
           "review_notes": [
             "Compiles regexes in configured order into a tuple. Public callers supply patterns already checked by config validation."
           ],
@@ -18061,8 +18131,8 @@
           "start_line": 582,
           "end_line": 583,
           "signature_sha256": "814b6ade5c994beb60d9f4a2d2d31a575a3fe200d535b7bb94e65f62210535a0",
-          "status": "READ",
-          "documentation_anchor": "_matches_any",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--matches-any",
           "review_notes": [
             "Checks full-string regex matches, not substring search, against a sequence of compiled patterns; returns false for an empty sequence."
           ],
@@ -18074,8 +18144,8 @@
           "start_line": 586,
           "end_line": 628,
           "signature_sha256": "18dc8e859280634e4667f47e95941d0b3c986c6d2e69df4ef4795cb08635f9a2",
-          "status": "READ",
-          "documentation_anchor": "_retained_page_lines",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--retained-page-lines",
           "review_notes": [
             "Enumerates raw splitlines with original one-based line numbers. It removes configured matching header/blank prefixes only when the first nonblank line is a header, and matching footer/blank suffixes only when the last nonblank line is a footer. Matching interior lines and remaining raw text are preserved."
           ],
@@ -18087,10 +18157,10 @@
           "start_line": 631,
           "end_line": 662,
           "signature_sha256": "248b535438ebe5ee3cc3d77a93d2852c12105f97580746cef5bc2bb6c2d34575",
-          "status": "READ",
-          "documentation_anchor": "_line_records",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--line-records",
           "review_notes": [
-            "Builds sequential RECORD-000001-style records from every indexed page after positional header/footer filtering, preserving page and original page-line numbers. It checks raw text strings and rejects no retained records; body/TOC selection is a later heading concern."
+            "Builds sequential RECORD-000001-style records from every indexed page after positional header/footer filtering, preserving page and original page-line numbers. It checks raw text strings and rejects an empty retained-record sequence; body/TOC selection is a later heading concern."
           ],
           "test_references": []
         },
@@ -18100,8 +18170,8 @@
           "start_line": 665,
           "end_line": 671,
           "signature_sha256": "e39481532648ee4436c5380070daf91d8569acb1ea4e999dfd10b50193358e48",
-          "status": "READ",
-          "documentation_anchor": "_source_record_payload",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--source-record-payload",
           "review_notes": [
             "Creates the four-key hash payload record_id/page_number/page_line_number/raw_text from a retained _LineRecord; raw is renamed raw_text without text normalization."
           ],
@@ -18113,8 +18183,8 @@
           "start_line": 674,
           "end_line": 681,
           "signature_sha256": "a49cf0326dd6919fb1819d5aa21eda1bac28ff77fab229e8645ef471d686d218",
-          "status": "READ",
-          "documentation_anchor": "_source_records_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--source-records-sha256",
           "review_notes": [
             "Hashes the ordered complete or section-local retained record payload sequence under the source-records domain and section schema 3. Sequence order and original page-line positions are included."
           ],
@@ -18126,8 +18196,8 @@
           "start_line": 684,
           "end_line": 686,
           "signature_sha256": "ce9b22c9821faf5cfca92bdfbaa95a2027ee3016219590ab5b27301703cfab1d",
-          "status": "READ",
-          "documentation_anchor": "_canonical_chapter_label",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--canonical-chapter-label",
           "review_notes": [
             "Removes every regex whitespace character from a captured heading label, then requires a nonempty trimmed result. It does not casefold the label or apply config aliases."
           ],
@@ -18139,8 +18209,8 @@
           "start_line": 689,
           "end_line": 721,
           "signature_sha256": "bb720f51bd1694a6b3d4b8f92374e9e1e708938a0be1c571005bec8595c7226b",
-          "status": "READ",
-          "documentation_anchor": "_classify_structural_heading",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--classify-structural-heading",
           "review_notes": [
             "Fullmatches a line against every pattern in every structural category and retains named captures with zero-based within-group pattern indexes. Any two matches, including within one category, raise an ambiguity error naming record/page/line and matches; zero matches return None."
           ],
@@ -18152,8 +18222,8 @@
           "start_line": 724,
           "end_line": 818,
           "signature_sha256": "1a65736fee819bd5140deaf20eef1ecd645d742df64e03083622def5b68cb482",
-          "status": "READ",
-          "documentation_anchor": "_heading_events",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--heading-events",
           "review_notes": [
             "Scans retained body records outside configured TOC pages. It classifies structural headings and may extend non-zone headings over up to the configured same-page continuation lines, stopping at blanks, structural headings or nonmatching continuation lines. It canonicalizes chapter labels, preserves raw heading lines and normalizes heading text; no matched body heading is a controlled failure."
           ],
@@ -18165,8 +18235,8 @@
           "start_line": 821,
           "end_line": 833,
           "signature_sha256": "87df60c378bcb9131e65512e658fe9a1034395cb4d5e2c8d1b90497b54da947a",
-          "status": "READ",
-          "documentation_anchor": "_page_fragments",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--page-fragments",
           "review_notes": [
             "Groups consecutive section records by source page, joining their raw lines with newline into ordered immutable (page, text) pairs; empty input returns an empty tuple."
           ],
@@ -18178,8 +18248,8 @@
           "start_line": 836,
           "end_line": 845,
           "signature_sha256": "0c21adb653258b3b2df7dda6cbae79c147f6d67c3882ff3ec68efc659e408a9c",
-          "status": "READ",
-          "documentation_anchor": "_contiguous_page_blocks",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--contiguous-page-blocks",
           "review_notes": [
             "Groups an already validated ascending page sequence into maximal adjacent-number tuples. It neither sorts nor validates page numbers itself."
           ],
@@ -18191,8 +18261,8 @@
           "start_line": 848,
           "end_line": 962,
           "signature_sha256": "f7b5ccb309c38fc6c56012e50aaf985d2707844d87758298637e4089dfc67af5",
-          "status": "READ",
-          "documentation_anchor": "_section_starts",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--section-starts",
           "review_notes": [
             "Combines heading boundaries with forced OTHER boundaries for every contiguous configured TOC block. It shifts real headings backward over preceding blank records, preserves a nonblank preamble as OTHER, absorbs ordinary blank-only gaps into adjacent factual sections and preserves forced blank TOC sections. It returns ordered local boundaries and rejects a missing boundary."
           ],
@@ -18204,8 +18274,8 @@
           "start_line": 965,
           "end_line": 977,
           "signature_sha256": "f4c54d7000da9776516d7970cefdb9744271e470dfc1e19c91718245d2452d52",
-          "status": "READ",
-          "documentation_anchor": "_section_content_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--section-content-sha256",
           "review_notes": [
             "Hashes all canonical SECTION_COLUMNS except the row's own section_content_sha256, under the section domain and schema 3. It does not mutate the supplied mapping."
           ],
@@ -18217,8 +18287,8 @@
           "start_line": 980,
           "end_line": 1080,
           "signature_sha256": "3eb955c894975d938f6b94d5cad857bb730a4d014599909077e01092b3073553",
-          "status": "READ",
-          "documentation_anchor": "_build_sections",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--build-sections",
           "review_notes": [
             "Partitions every retained record exactly once, assigns sequential section IDs, preserves ordered page fragments/raw text and computes record/section hashes. Articles require a preceding active zone chapter and a casefold-equal captured zone; GENERAL resets that active chapter whereas OTHER does not. It returns the 24-column frame, local builds and retained records, using int64 for four counters/page endpoints."
           ],
@@ -18230,8 +18300,8 @@
           "start_line": 1083,
           "end_line": 1085,
           "signature_sha256": "62b75f1dd82098018e753101099a1e8ffa646cf3554eb4c78a6774834ad1613f",
-          "status": "READ",
-          "documentation_anchor": "_validate_source_label_values",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-source-label-values",
           "review_notes": [
             "Checks every supplied Series value with the trimmed nonempty string guard. Empty series pass; this helper does not normalize or map labels."
           ],
@@ -18243,10 +18313,10 @@
           "start_line": 1088,
           "end_line": 1235,
           "signature_sha256": "6b56fc7ffdb52d1e5ccc127de34d4fc7aa4f581774ddc58d03a30ef6121c5d08",
-          "status": "READ",
-          "documentation_anchor": "_validated_zoning_inputs",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validated-zoning-inputs",
           "review_notes": [
-            "Copies the supplied zoning and relation DataFrames after checking required columns, unique zone/source IDs and parcel-zone pairs, exact source/label lineage and known references. Intersection areas must be finite nonnegative non-bool Real values and are copied as float64, with positive AREA_OVERLAP versus zero TOUCH_ONLY parity; present parcel/zone upper metrics are finite nonnegative and use the shared technical tolerance. This validates supplied factual values, not physical geometry, CRS, complete parcel coverage or fresh GPU bytes."
+            "Checks DataFrame types and required columns, then deep-copies both frames before validating unique zone/source IDs and parcel-zone pairs, exact source/label lineage and known references. Intersection areas must be finite nonnegative non-bool Real values and are copied as float64, with positive AREA_OVERLAP versus zero TOUCH_ONLY parity; present parcel/zone upper metrics are finite nonnegative and use the shared technical tolerance. This validates supplied factual values, not physical geometry, CRS, complete parcel coverage or fresh GPU bytes."
           ],
           "test_references": []
         },
@@ -18256,8 +18326,8 @@
           "start_line": 1238,
           "end_line": 1249,
           "signature_sha256": "1687f67fdcc41864e3eec4197b568dd78c57df619c4ca1974e4aa401ff8bc26d",
-          "status": "READ",
-          "documentation_anchor": "_input_frame_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--input-frame-sha256",
           "review_notes": [
             "Hashes a caller domain, explicit ordered selected column names and ordered canonical row values. Extra columns, frame index and pandas dtypes are not bound by this payload."
           ],
@@ -18269,8 +18339,8 @@
           "start_line": 1252,
           "end_line": 1257,
           "signature_sha256": "41552454e914e0666e90ae4fd2ad4e45cd004866b2d80fe718c5d805d4dbc177",
-          "status": "READ",
-          "documentation_anchor": "_intersection_hash_columns",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--intersection-hash-columns",
           "review_notes": [
             "Returns the eight required relation columns followed by whichever of the two approved optional upper-area columns are present, in fixed declaration order. Unrelated extras do not join the hash."
           ],
@@ -18282,8 +18352,8 @@
           "start_line": 1260,
           "end_line": 1270,
           "signature_sha256": "439c14c37ec9c86ab603c1b7c523cdfdfc736da0666865701f15901a2a79d61a",
-          "status": "READ",
-          "documentation_anchor": "_resolved_alias",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--resolved-alias",
           "review_notes": [
             "Returns None for a label without a configured alias, otherwise follows exact case-sensitive links to the terminal target, rejecting a cycle defensively. It never mutates the mapping."
           ],
@@ -18295,8 +18365,8 @@
           "start_line": 1273,
           "end_line": 1286,
           "signature_sha256": "0039ab8d570613b308fbd7da8a9f21ae129a91c19243d71272ee537b513bc96d",
-          "status": "READ",
-          "documentation_anchor": "_dominant_counts",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--dominant-counts",
           "review_notes": [
             "Selects one positive-area relation per parcel after stable ordering by parcel ID, descending area, then lexical planning_zone_id; counts selected raw zone labels. Touch-only rows do not create a dominant label; this is factual selection, not scoring."
           ],
@@ -18308,8 +18378,8 @@
           "start_line": 1289,
           "end_line": 1377,
           "signature_sha256": "7aa0ada7c955529efc70048cba1c9e3f7c47e656012e1bf96e6555428aaede17",
-          "status": "READ",
-          "documentation_anchor": "_build_zone_mapping",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--build-zone-mapping",
           "review_notes": [
             "Produces one sorted row per catalog raw label, preferring a unique exact chapter, then a unique terminal configured alias; duplicate matched chapters are AMBIGUOUS and no match is UNMAPPED. Counts catalog polygons, all relation rows/unique parcels (including touches), and positive-area dominant parcels. Any unresolved dominant label fails; unresolved non-dominant labels remain evidence."
           ],
@@ -18321,8 +18391,8 @@
           "start_line": 1381,
           "end_line": 1386,
           "signature_sha256": "6ae28aeb6e31d1a26f4dced62819afe07940079bc9ae72e211c000e74f53d207",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch",
           "review_notes": [
             "Frozen selected/candidate match record for one configured term, with zero-based half-open normalized-fragment offsets."
           ],
@@ -18334,8 +18404,8 @@
           "start_line": 1382,
           "end_line": 1382,
           "signature_sha256": "7d9569fc2923f2b6033ce43ced4509c9793d2adfdd8d72faae9ac3d201b5f321",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch-term-index",
           "review_notes": [
             "Zero-based configured term position within one topic; controls equal-length priority."
           ],
@@ -18347,8 +18417,8 @@
           "start_line": 1383,
           "end_line": 1383,
           "signature_sha256": "78bc2959ed7ea5eb41256835215e78bc93fa0a17f617c54fe26bdb039ef27345",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch-search-term",
           "review_notes": [
             "Original configured term string."
           ],
@@ -18360,8 +18430,8 @@
           "start_line": 1384,
           "end_line": 1384,
           "signature_sha256": "62a3b3e680c5143920636aa9ab1f0801aea6bd1d5b002615943d442d0dd2023d",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch-normalized-term",
           "review_notes": [
             "Shared-normalized configured term used for literal matching."
           ],
@@ -18373,8 +18443,8 @@
           "start_line": 1385,
           "end_line": 1385,
           "signature_sha256": "02ccf96280b7bcde16b75e85ba650daba83f97ab8ba177a85c4015d8912436fa",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch-normalized-start",
           "review_notes": [
             "Zero-based inclusive start in the normalized section/page fragment."
           ],
@@ -18386,8 +18456,8 @@
           "start_line": 1386,
           "end_line": 1386,
           "signature_sha256": "9ed161709e44231622236ed0675ea424c063c081512001c3135869eee3ac9e5c",
-          "status": "READ",
-          "documentation_anchor": "_TopicMatch",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--topicmatch-normalized-end",
           "review_notes": [
             "Zero-based exclusive end in the same normalized fragment."
           ],
@@ -18399,8 +18469,8 @@
           "start_line": 1389,
           "end_line": 1390,
           "signature_sha256": "acdb201e850fc1663b8e2b6e0f106279c539f41eecc5f3574661256cabbc6290",
-          "status": "READ",
-          "documentation_anchor": "_is_token_character",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--is-token-character",
           "review_notes": [
             "Treats Unicode alphanumeric characters and underscore as token characters for matching boundaries; it is called on individual neighboring normalized characters."
           ],
@@ -18412,8 +18482,8 @@
           "start_line": 1393,
           "end_line": 1442,
           "signature_sha256": "2787e49076eef22650373889f947abfd89d2baadaf3c1fbb564de36507fbb30b",
-          "status": "READ",
-          "documentation_anchor": "_literal_topic_matches",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--literal-topic-matches",
           "review_notes": [
             "Enumerates token-bounded literal normalized matches for one topic's ordered terms, including overlapping candidates. Greedy selection prefers longer spans, then configured term index, then start offset, rejecting overlaps with already selected spans; output sorts by start and term index. This competition is within one topic/fragment, not across topics."
           ],
@@ -18425,8 +18495,8 @@
           "start_line": 1445,
           "end_line": 1454,
           "signature_sha256": "c1ef601b9758e0241048ed2192cf24262830bf5ea2ce4d587a0708bd146ba170",
-          "status": "READ",
-          "documentation_anchor": "_evidence_scope",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--evidence-scope",
           "review_notes": [
             "Maps GENERAL to GENERAL_RULE, ZONE_CHAPTER/ARTICLE to ZONE_SPECIFIC_RULE and OTHER to OTHER_TEXT, rejecting unsupported types. These names describe text location rather than legal applicability."
           ],
@@ -18438,8 +18508,8 @@
           "start_line": 1457,
           "end_line": 1553,
           "signature_sha256": "643f6a16fc3bb2e36bd04c7a7f2c2fc2176fe7051febccee5268cb8ff5c99f59",
-          "status": "READ",
-          "documentation_anchor": "_build_topic_evidence",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--build-topic-evidence",
           "review_notes": [
             "Iterates sorted topic names, section builds, page fragments and configured term order; excludes TOC fragments unless enabled. It emits one row per retained topic/term/section/page with occurrence count, first normalized/raw half-open offsets and bounded context reconstructed through the normalization mapping. Empty evidence keeps the 21-column schema with six int64 columns."
           ],
@@ -18451,8 +18521,8 @@
           "start_line": 1556,
           "end_line": 1583,
           "signature_sha256": "6f2687aec236d1ede245f23b60c64bad968943e413eea7cce71267994d2abd44",
-          "status": "READ",
-          "documentation_anchor": "_frame_hash",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--frame-hash",
           "review_notes": [
             "Hashes selected ordered component rows with document/index/config/input/source-record lineage and schema 3. Unlike `_input_frame_sha256`, it does not include a separate column-name list; indexes and dtypes are not part of the payload."
           ],
@@ -18464,8 +18534,8 @@
           "start_line": 1586,
           "end_line": 1612,
           "signature_sha256": "651e62211147de0d539b40c2a78cf44f72040ebc39964f629c32064f29ac6802",
-          "status": "READ",
-          "documentation_anchor": "_structure_result_content_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structure-result-content-sha256",
           "review_notes": [
             "Hashes the domain-separated outer lineage/config/input/schema and three component digests. It excludes its own digest and does not serialize frames directly."
           ],
@@ -18477,8 +18547,8 @@
           "start_line": 1615,
           "end_line": 1644,
           "signature_sha256": "79b9735aaea9a9422d1d32903658e63e87caf0f7d5729d3e3b79052cc354a1ba",
-          "status": "READ",
-          "documentation_anchor": "_result_with_hashes",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--result-with-hashes",
           "review_notes": [
             "Uses dataclasses.replace to create a result with recomputed section, zone-map and topic digests, then recomputes the outer digest. Frame references are retained, not deep-frozen or copied; a consistent rehash alone is not source validation."
           ],
@@ -18490,8 +18560,8 @@
           "start_line": 1647,
           "end_line": 1654,
           "signature_sha256": "725aac4e74b6ee308793606ec1381b09195e4a47e15031a68870421c0977b0a6",
-          "status": "READ",
-          "documentation_anchor": "_page_tuple",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--page-tuple",
           "review_notes": [
             "Accepts only tuple/list/NumPy-array containers, normalizes each positive integral page number to built-in int, and returns a tuple. Ascending uniqueness and exact source coverage are checked by callers, not here."
           ],
@@ -18503,8 +18573,8 @@
           "start_line": 1657,
           "end_line": 1856,
           "signature_sha256": "15bfde6d77fcf27a85ac51c1bd41fbc69040093175fedc5669c009d48281719b",
-          "status": "READ",
-          "documentation_anchor": "_validate_sections",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-sections",
           "review_notes": [
             "Checks the exact section schema, sequential IDs, text normalization, counts, row hashes, lineage, page ranges and a complete contiguous nonoverlapping retained-record partition. It validates type-specific nulls/article fields and earlier zone-chapter parents with equal labels; comparison with rebuilt sections additionally enforces the exact grammar-derived result."
           ],
@@ -18516,8 +18586,8 @@
           "start_line": 1859,
           "end_line": 1973,
           "signature_sha256": "70c5b4674e95d0752075c6b90a1f36834c2b7076164e97a2b2db07603a726cbe",
-          "status": "READ",
-          "documentation_anchor": "_validate_zone_mapping",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-zone-mapping",
           "review_notes": [
             "Checks the exact schema, sorted unique labels, status/method pairs, nonnegative counts with positive polygon count, resolved chapter/alias consistency, unresolved null fields, dominant resolution and count inequalities. Exact factual counts and row completeness are established by comparison with the rebuilt mapping."
           ],
@@ -18529,8 +18599,8 @@
           "start_line": 1976,
           "end_line": 2119,
           "signature_sha256": "84dcd2865dd52b590475e5d6b5b59bb4262c6327eaa11933b251c39474383330",
-          "status": "READ",
-          "documentation_anchor": "_validate_topic_evidence",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-topic-evidence",
           "review_notes": [
             "Checks schema and configured topic/term/section/page references, location-derived scope, section labels, policy identity, unique row keys and lineage. It reruns each topic's matching against rebuilt fragments to compare first offsets, count and exact raw/normalized contexts; the full rebuilt-frame comparison detects omitted evidence rows."
           ],
@@ -18542,8 +18612,8 @@
           "start_line": 2122,
           "end_line": 2171,
           "signature_sha256": "2946401ad0328f08238807fa368f7f9cde57e88479c23c9586b8c3c4f4a17b9e",
-          "status": "READ",
-          "documentation_anchor": "_build_structure_result",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--build-structure-result",
           "review_notes": [
             "Builds sections, mapping and topic frames, computes config/input/retained-record digests and fills the frozen result envelope's component/outer hashes. It returns auxiliary builds and records for validation without writing artifacts."
           ],
@@ -18555,8 +18625,8 @@
           "start_line": 2174,
           "end_line": 2283,
           "signature_sha256": "083d2be8ae58e640c008d2abf5204beecb227d764b617b7dcc8ab6aa90981346",
-          "status": "READ",
-          "documentation_anchor": "_validate_result_self",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate-result-self",
           "review_notes": [
             "Intrinsically validates the index and result type, compares all lineage/config/input identities and supported versions, requires the exact ordered tuple of intersection hash columns, runs all three frame validators and recomputes component/outer hashes. It is one part of the public rebuilt-result validation, not a fresh PDF/GPU read."
           ],
@@ -18568,8 +18638,8 @@
           "start_line": 2286,
           "end_line": 2298,
           "signature_sha256": "38aff19677b61a92931b883444d57aab9486e7e133fc83044ff3f07997e11e82",
-          "status": "READ",
-          "documentation_anchor": "_resolved_config",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--resolved-config",
           "review_notes": [
             "For a supplied model instance, serializes Python-mode values and reconstructs/revalidates a fresh PlanningRegulationStructureConfig even when the original is frozen; otherwise loads the supplied path. isinstance, not exact type identity, selects the model branch. Failures are controlled."
           ],
@@ -18581,8 +18651,8 @@
           "start_line": 2301,
           "end_line": 2302,
           "signature_sha256": "dc8db01d164f48f8b703210c98e3b9c92e4dc466b072e0243519acd1c308fbe7",
-          "status": "READ",
-          "documentation_anchor": "_canonical_frame_rows",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--canonical-frame-rows",
           "review_notes": [
             "Returns canonical selected ordered row records for result comparison. Null/NumPy/container representations are normalized; frame indexes and pandas dtypes are not compared here."
           ],
@@ -18594,8 +18664,8 @@
           "start_line": 2305,
           "end_line": 2348,
           "signature_sha256": "4a9fc3c32dbd2883a9464e4c7eb593627719a5add52ac273a3a259cec0f02ac6",
-          "status": "READ",
-          "documentation_anchor": "_compare_expected_result",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--compare-expected-result",
           "review_notes": [
             "Compares all 16 scalar/tuple result attributes plus exact column order and canonical ordered rows for the three frames against a rebuilt result. It does not require identical pandas index/dtype representations."
           ],
@@ -18607,8 +18677,8 @@
           "start_line": 2351,
           "end_line": 2393,
           "signature_sha256": "9bd94c6047691f47da9a3c46488d4b1779125473d34db0a7a53079ad59f18426",
-          "status": "READ",
-          "documentation_anchor": "_section_page_fragments",
+          "status": "CHECKED",
+          "documentation_anchor": "r13--section-page-fragments",
           "review_notes": [
             "Creates a new ten-column section/page frame from rebuilt retained fragments, binding each raw UTF-8 fragment SHA and the complete structure-result digest. Page numbers become int64 and duplicate section/page keys fail."
           ],
@@ -18620,8 +18690,8 @@
           "start_line": 2396,
           "end_line": 2433,
           "signature_sha256": "8e591a93962fc441936a230919fcdeb4f1fbb69d7a86e22bfbb9bf27b14097ab",
-          "status": "READ",
-          "documentation_anchor": "validate_planning_regulation_structure_with_fragments",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-validate-planning-regulation-structure-with-fragments",
           "review_notes": [
             "Reconstructs config, validates index/document locks and supplied zoning facts, rebuilds expected evidence once, validates the provided envelope/frames and compares the complete expected result, then returns new retained fragments. Source-complete here means all supplied locked index/zoning inputs are used; it does not reopen physical PDF/GPU or recalculate overlay geometry. Unexpected errors are wrapped."
           ],
@@ -18633,8 +18703,8 @@
           "start_line": 2436,
           "end_line": 2451,
           "signature_sha256": "f898cbcd174fa9438b4872e88afae593fec6ebd90ff1f7575f66cb9d400a6ca4",
-          "status": "READ",
-          "documentation_anchor": "validate_planning_regulation_structure",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-validate-planning-regulation-structure",
           "review_notes": [
             "Delegates to the same complete reconstruction/comparison boundary and discards the constructed fragment frame, returning None. It does not weaken any checks performed by the fragment-returning API."
           ],
@@ -18646,8 +18716,8 @@
           "start_line": 2454,
           "end_line": 2476,
           "signature_sha256": "0927143bfdb2ad8a8d077194d7603ef33b01ba5c0f30df3e6acc668fd8606a42",
-          "status": "READ",
-          "documentation_anchor": "planning_regulation_section_page_fragments",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-planning-regulation-section-page-fragments",
           "review_notes": [
             "Returns fragments only after the public complete structure-validation path; it is not an accessor that trusts stored section text. Controlled structure errors propagate and unexpected exceptions are wrapped."
           ],
@@ -18659,8 +18729,8 @@
           "start_line": 2479,
           "end_line": 2512,
           "signature_sha256": "cc9044b9eb72d296908ba6087cc1b347a043da36fb82a8c357b6be083b2bbcff",
-          "status": "READ",
-          "documentation_anchor": "structure_planning_regulation",
+          "status": "CHECKED",
+          "documentation_anchor": "r13-structure-planning-regulation",
           "review_notes": [
             "Reconstructs config, checks the index/document lock and copied zoning facts, builds the result and invokes its public validator, which rebuilds expected evidence again before return. It creates factual sections/mappings/literal topic evidence, not BESS interpretation, legal permission, scoring or new spatial calculations."
           ],
@@ -18675,7 +18745,41 @@
           1,
           2512
         ]
-      ]
+      ],
+      "r13_prior_evidence": {
+        "commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679",
+        "file_row_without_symbols": {
+          "path": "src/landscout/stages/structure_planning_regulation.py",
+          "source_sha256": "2338569ce08bf5fc632803299c3ea3913301b6722ba63befc24edd276165d614",
+          "documentation_path": "docs/code/files/src/landscout/stages/structure_planning_regulation.py.md",
+          "role": "source",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [
+            "Completely read actual source, including all model validators/serializers, headings and lossless retained-line partition, token-boundary longest-overlap topic matching, source-input hashes, all public config reconstruction and full in-memory rebuild validators. Companion and tests still being audited; individual symbol review notes are pending their documentation reconciliation.",
+            "Fully read 1–2512; all 58 functions, 15 classes and 70 fields reconciled against all companion prose and 147 exact repeated source blocks. Config deep immutability differs from mutable result DataFrames; rebuilt structure uses supplied locked index/table facts, not physical GPU/PDF rereads. Unit/YAML and interpret caller closure pending."
+          ],
+          "test_references": [],
+          "findings": [
+            "PLANNING-DOC-016"
+          ],
+          "read_ranges": [
+            [
+              1,
+              2512
+            ]
+          ]
+        },
+        "symbols_sha256": "4d2c77657aae602452f7d8f0acbbba3e83c8d0e9d2535e5024976cc95774a12b"
+      },
+      "source_sha256_basis": "git-content",
+      "r13_provenance": {
+        "receipt": "docs/code/audit/R13_PLANNING_REGULATION_STRUCTURE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R13.txt",
+        "review": "PENDING",
+        "source_commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679"
+      }
     },
     {
       "path": "tests/integration/test_gpu_planning_end_to_end.py",
@@ -32101,11 +32205,82 @@
       "source_sha256": "80ab6feaf5e77d99f538c1aab53f0520f496a45c18758a7d33d4c7554646b6d2",
       "documentation_path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
       "role": "test",
-      "read_complete": false,
-      "status": "NOT_READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "read_complete": true,
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Exact imports/aliases/decorators/signatures and eight source exports checked; contextual dependency reads grant no closure credit."
+      ],
+      "contract_review": [
+        "R13 complete source/test/prose reconciliation; preserve acquired READ evidence. 143 source and 74 test symbol mappings closed against unchanged Git bytes. In-memory reconstruction is not a fresh GPU/PDF acquisition; synthetic test limits are retained in R13_PLANNING_REGULATION_STRUCTURE.md."
+      ],
+      "test_references": [
+        "tests/unit/test_structure_planning_regulation.py::test_package_exports_clean_high_level_api",
+        "tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_can_return_validated_fragments",
+        "tests/unit/test_structure_planning_regulation.py::test_structure_schema_versions_are_explicit",
+        "tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_config_schema_versions_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_result_config_schema_versions_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_old_and_unknown_section_hash_schema_versions_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_rejects_boolean_coercion",
+        "tests/unit/test_structure_planning_regulation.py::test_toc_topic_evidence_flag_accepts_exact_booleans",
+        "tests/unit/test_structure_planning_regulation.py::test_document_layout_accepts_real_first_and_last_indexed_pages",
+        "tests/unit/test_structure_planning_regulation.py::test_document_layout_rejects_nonexistent_indexed_pages",
+        "tests/unit/test_structure_planning_regulation.py::test_existing_empty_toc_page_is_valid_not_nonexistent",
+        "tests/unit/test_structure_planning_regulation.py::test_document_lock_mismatch_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_invalid_regex_and_unknown_yaml_field_are_controlled",
+        "tests/unit/test_structure_planning_regulation.py::test_duplicate_yaml_alias_and_alias_cycle_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_realistic_structure_is_deterministic_and_toc_heading_is_ignored",
+        "tests/unit/test_structure_planning_regulation.py::test_zone_article_parent_and_multi_page_text_are_preserved",
+        "tests/unit/test_structure_planning_regulation.py::test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping",
+        "tests/unit/test_structure_planning_regulation.py::test_topic_evidence_distinguishes_general_and_zone_specific",
+        "tests/unit/test_structure_planning_regulation.py::test_evidence_scope_is_derived_from_exact_section_type",
+        "tests/unit/test_structure_planning_regulation.py::test_reversed_topic_mapping_keys_do_not_change_output_or_hashes",
+        "tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break",
+        "tests/unit/test_structure_planning_regulation.py::test_inputs_are_not_mutated",
+        "tests/unit/test_structure_planning_regulation.py::test_structure_decision_mappings_are_deeply_immutable",
+        "tests/unit/test_structure_planning_regulation.py::test_body_page_extraction_error_stops_structure",
+        "tests/unit/test_structure_planning_regulation.py::test_blank_successfully_extracted_body_page_remains_valid",
+        "tests/unit/test_structure_planning_regulation.py::test_coordinated_frame_mutation_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_unknown_topic_page_reference_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_coordinated_section_row_mutation_is_caught_by_outer_envelope",
+        "tests/unit/test_structure_planning_regulation.py::test_dominant_unmapped_zone_stops_processing",
+        "tests/unit/test_structure_planning_regulation.py::test_positional_header_footer_filter_preserves_matching_body_lines",
+        "tests/unit/test_structure_planning_regulation.py::test_page_without_configured_header_or_footer_is_unchanged",
+        "tests/unit/test_structure_planning_regulation.py::test_blank_only_prefix_is_preserved_in_first_actual_section",
+        "tests/unit/test_structure_planning_regulation.py::test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence",
+        "tests/unit/test_structure_planning_regulation.py::test_blank_gap_after_toc_is_preserved_without_a_blank_other_section",
+        "tests/unit/test_structure_planning_regulation.py::test_blank_only_toc_blocks_remain_separate_other_sections",
+        "tests/unit/test_structure_planning_regulation.py::test_blank_toc_followed_only_by_blank_tail_remains_other",
+        "tests/unit/test_structure_planning_regulation.py::test_ordinary_blank_gap_attaches_to_following_real_heading",
+        "tests/unit/test_structure_planning_regulation.py::test_trailing_blank_records_attach_to_preceding_factual_section",
+        "tests/unit/test_structure_planning_regulation.py::test_heading_patterns_require_mandatory_named_captures",
+        "tests/unit/test_structure_planning_regulation.py::test_optional_pattern_lists_may_be_empty",
+        "tests/unit/test_structure_planning_regulation.py::test_unique_zone_heading_and_nonheading_line_are_classified_deterministically",
+        "tests/unit/test_structure_planning_regulation.py::test_two_zone_patterns_matching_one_line_are_ambiguous",
+        "tests/unit/test_structure_planning_regulation.py::test_two_article_patterns_matching_one_line_are_ambiguous",
+        "tests/unit/test_structure_planning_regulation.py::test_general_and_article_cross_category_match_is_ambiguous",
+        "tests/unit/test_structure_planning_regulation.py::test_zone_and_general_cross_category_match_is_ambiguous",
+        "tests/unit/test_structure_planning_regulation.py::test_identical_structural_regex_across_groups_is_rejected_by_config",
+        "tests/unit/test_structure_planning_regulation.py::test_ambiguous_continuation_candidate_fails_with_record_diagnostic",
+        "tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_changed_ambiguous_grammar",
+        "tests/unit/test_structure_planning_regulation.py::test_normal_muret_compatible_grammar_remains_deterministic",
+        "tests/unit/test_structure_planning_regulation.py::test_lossless_partition_mutation_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_duplicate_or_reordered_record_partition_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_unsorted_section_pages_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_article_parent_semantics_are_enforced",
+        "tests/unit/test_structure_planning_regulation.py::test_wrong_intersection_source_zone_id_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_intersection_area_cannot_exceed_available_geometry_area",
+        "tests/unit/test_structure_planning_regulation.py::test_intersection_upper_bound_uses_shared_relative_tolerance",
+        "tests/unit/test_structure_planning_regulation.py::test_intersection_hash_columns_are_actual_and_deterministic",
+        "tests/unit/test_structure_planning_regulation.py::test_optional_intersection_metric_change_invalidates_existing_result",
+        "tests/unit/test_structure_planning_regulation.py::test_intersection_hash_column_lineage_mutation_is_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_zone_mapping_contract_mutations_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_alias_chain_resolves_to_final_configured_target",
+        "tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy",
+        "tests/unit/test_structure_planning_regulation.py::test_topic_evidence_semantic_mutations_are_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected",
+        "tests/unit/test_structure_planning_regulation.py::test_source_complete_validator_rejects_post_build_source_change",
+        "tests/unit/test_structure_planning_regulation.py::test_source_and_result_hash_mutation_is_rejected"
+      ],
       "symbols": [
         {
           "qualified_name": "_index",
@@ -32113,9 +32288,11 @@
           "start_line": 39,
           "end_line": 84,
           "signature_sha256": "9d18562843ca172183e8635c59fe150e6da92885e348dab7678179da3e512379",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--index",
+          "review_notes": [
+            "Creates a self-hashed synthetic PlanningRegulationIndex from supplied page strings or seven default Test PLU pages (TOC, general provisions, U/N chapters and two Z chapters). It derives TEXT/EMPTY, normalized text and character counts, hashes every page and the pages envelope, then replaces the complete index digest. doc-1 and repeated-letter archive/PDF identities are fixture values; no PDF is opened or extracted."
+          ],
           "test_references": []
         },
         {
@@ -32124,9 +32301,11 @@
           "start_line": 87,
           "end_line": 127,
           "signature_sha256": "15f843597ea5d2e6b43644a7cbe56bbda57a9489fa22a54946ff821114575852",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--config",
+          "review_notes": [
+            "Validates an in-memory schema-2 synthetic_v1 grammar locked to the supplied index. Defaults select body page 1, TOC page 1, two continuation lines, Test PLU headers and numeric footers, Ua→U, energy/risk terms, token_longest_match and a 20-normalized-character context margin. It does not load the Muret YAML."
+          ],
           "test_references": []
         },
         {
@@ -32135,9 +32314,11 @@
           "start_line": 130,
           "end_line": 140,
           "signature_sha256": "89e438fe46da6be55bcaefb2b8ece55575fc0ad45dff66e9bb663b7d9c3c22d3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--zones",
+          "review_notes": [
+            "Returns five non-geometric catalog rows labelled U, Ua, X, UX and Z, with ZONE-/SRC- identifiers and document/archive lineage copied from the index. This is a DataFrame fixture, not a GPU physical zoning read."
+          ],
           "test_references": []
         },
         {
@@ -32146,9 +32327,11 @@
           "start_line": 143,
           "end_line": 155,
           "signature_sha256": "3775071375f43c75600fd1871a7e256db8c4604f04a62a91cebea44c50aa3256",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--intersections",
+          "review_notes": [
+            "Returns two synthetic AREA_OVERLAP rows: PARCEL-1/U/100.0 and PARCEL-2/Ua/50.0, with matching source identifiers and index lineage. No optional upper-area columns or geometry calculation are present."
+          ],
           "test_references": []
         },
         {
@@ -32157,9 +32340,11 @@
           "start_line": 159,
           "end_line": 164,
           "signature_sha256": "c8d4d3b2b06ca240d31617711d8478282886b8dec337c745cce49f23826a4940",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-valid-result",
+          "review_notes": [
+            "The pytest fixture builds from _index, _zones, _intersections and _config and returns the pair (index, result). Its result has already traversed the public builder and its delegated in-memory validation; this is not a source-acquisition fixture. The function has no return annotation."
+          ],
           "test_references": []
         },
         {
@@ -32168,9 +32353,11 @@
           "start_line": 167,
           "end_line": 177,
           "signature_sha256": "81c103bdf907f099bceb8c4c2c27e6c086e3106ace077635a1a087ef4a4a1de8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--validate",
+          "review_notes": [
+            "Calls the five-argument public validator with the supplied index/result and freshly regenerated synthetic zones, intersections and config. It returns None and does not reseal a mutated result or replace the supplied index."
+          ],
           "test_references": []
         },
         {
@@ -32179,9 +32366,11 @@
           "start_line": 180,
           "end_line": 184,
           "signature_sha256": "44d2ad588063b6def08f4b38640306d4630578fef3f25d440ddb856343e71a6d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-package-exports-clean-high-level-api",
+          "review_notes": [
+            "Checks membership of the builder and two validator names in stages.__all__, and absence of names beginning _build_. It does not assert equality with the complete eight-export inventory."
+          ],
           "test_references": []
         },
         {
@@ -32190,9 +32379,11 @@
           "start_line": 187,
           "end_line": 209,
           "signature_sha256": "4dcfeaa509bde340bd2a067100eb78fb5871a1277f831a5f5ce1ccbeb616ec48",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-source-complete-validator-can-return-validated-fragments",
+          "review_notes": [
+            "Unpacks valid_result and invokes the fragment-returning public validator with all five in-memory inputs. Asserts the exact ten-column tuple, uniqueness of (section_id, page_number), and uniform document_id. It does not independently recompute fragment hashes or compare all raw fragment texts."
+          ],
           "test_references": []
         },
         {
@@ -32201,9 +32392,11 @@
           "start_line": 212,
           "end_line": 219,
           "signature_sha256": "e2fe0a98183b086e352565723f9067a4bf8607cb63ca4d9928216c0b2c4f2717",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-structure-schema-versions-are-explicit",
+          "review_notes": [
+            "From the synthetic fixture, asserts config/result config version 2, constant/result section hash version 3 and manifest constant 4. No manifest artifact is loaded."
+          ],
           "test_references": []
         },
         {
@@ -32212,9 +32405,11 @@
           "start_line": 223,
           "end_line": 230,
           "signature_sha256": "1a37b82e735f5dfb62aeaaa2fed590e5e25b337b57b21a47be5cdbf468935b10",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-old-and-unknown-config-schema-versions-are-rejected",
+          "review_notes": [
+            "Changes only the dumped config schema_version to 1 or 3 and requires model validation to raise ValueError matching unsupported structure config schema. This is a model-only boundary, not the file loader."
+          ],
           "test_references": []
         },
         {
@@ -32223,9 +32418,11 @@
           "start_line": 234,
           "end_line": 243,
           "signature_sha256": "d841d0e9a8634e40562b60ba37f8fc4a4bbe8e39ff02bcdcfccf32e217c7aa97",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-old-and-unknown-result-config-schema-versions-are-rejected",
+          "review_notes": [
+            "Replaces only the result config schema version by 1 or 3; _validate must raise PlanningRegulationStructureError matching schema version. The original factual inputs remain unchanged."
+          ],
           "test_references": []
         },
         {
@@ -32234,9 +32431,11 @@
           "start_line": 247,
           "end_line": 253,
           "signature_sha256": "41b65afc5d02a1d49b4f0d75c3ea0e7b7b135abdf844398ea8f492b0222c52bd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-old-and-unknown-section-hash-schema-versions-are-rejected",
+          "review_notes": [
+            "Replaces only the result section hash version by 1, 2 or 4, then requires the public validation helper to raise PlanningRegulationStructureError matching schema version."
+          ],
           "test_references": []
         },
         {
@@ -32245,9 +32444,11 @@
           "start_line": 257,
           "end_line": 262,
           "signature_sha256": "fff01e3a9e16ae0c365d8ef02a740101fcc885e35f1778b0eff2b4c7a9edace8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-toc-topic-evidence-flag-rejects-boolean-coercion",
+          "review_notes": [
+            "Puts 0, 1, false/true strings or yes into the dumped TOC evidence flag and requires ValueError from model_validate. It tests these five non-bool inputs, not all possible coercions."
+          ],
           "test_references": []
         },
         {
@@ -32256,9 +32457,11 @@
           "start_line": 266,
           "end_line": 273,
           "signature_sha256": "8602af652ae792b121bddc858c13c748caf28dd400c36b27fd88c2c5d57f343b",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-toc-topic-evidence-flag-accepts-exact-booleans",
+          "review_notes": [
+            "Validates each exact False/True flag and asserts identity (is) with the supplied Boolean; no builder execution is performed by this test body."
+          ],
           "test_references": []
         },
         {
@@ -32267,9 +32470,11 @@
           "start_line": 276,
           "end_line": 294,
           "signature_sha256": "d77659602df769d84260bbf4c733b8b76709cfa7411b65390682a24d522b1fc3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-document-layout-accepts-real-first-and-last-indexed-pages",
+          "review_notes": [
+            "Builds three synthetic pages with TOC pages (1, 3), body start 1 and a U body on page 2 through the layout helper, validates again, and asserts first/last section page tuples (1,) and (3,). Real means present in this synthetic index."
+          ],
           "test_references": []
         },
         {
@@ -32278,9 +32483,11 @@
           "start_line": 305,
           "end_line": 319,
           "signature_sha256": "c51aea1a76e0d9e554ca20dc3b098ff77c3595279c4c295004e3b18d2df3d654",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-document-layout-rejects-nonexistent-indexed-pages",
+          "review_notes": [
+            "Uses unchecked nested model_copy updates for TOC (0,), TOC (8,) or body start 8 and expects PlanningRegulationStructureError from the builder. Zero can fail during reconstructed config validation before index membership; the test does not isolate that later guard for every case."
+          ],
           "test_references": []
         },
         {
@@ -32289,9 +32496,11 @@
           "start_line": 322,
           "end_line": 338,
           "signature_sha256": "0c297431ff531e2a5b560909042aa464389771525f9b030d0ce01391ea0793b0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-existing-empty-toc-page-is-valid-not-nonexistent",
+          "review_notes": [
+            "Builds an empty first TOC page and U body page 2, asserts EMPTY on the first indexed page and completes public validation. This distinguishes an existing empty page from a missing page number."
+          ],
           "test_references": []
         },
         {
@@ -32300,9 +32509,11 @@
           "start_line": 351,
           "end_line": 361,
           "signature_sha256": "49f9b98290158ed0b4eb63fc85d0c233e329bbc21a206d9ac5dbc87c69770957",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-document-lock-mismatch-is-rejected",
+          "review_notes": [
+            "Individually changes each of the five lock fields using model_copy (f×64 for digests, wrong otherwise), preserving the index. Builder rejection must be PlanningRegulationStructureError matching document lock."
+          ],
           "test_references": []
         },
         {
@@ -32311,9 +32522,11 @@
           "start_line": 364,
           "end_line": 374,
           "signature_sha256": "a84d466e2d683a0c5348308ee86a54b8f320045868d1caec84b934308a02d5b0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-invalid-regex-and-unknown-yaml-field-are-controlled",
+          "review_notes": [
+            "Writes temporary bad.yaml containing both zone regex [ and unexpected=True, then requires a controlled loader error without a message constraint. The combined malformed input does not independently prove the regex guard: extra-field rejection may precede the after-validator."
+          ],
           "test_references": []
         },
         {
@@ -32322,9 +32535,11 @@
           "start_line": 377,
           "end_line": 392,
           "signature_sha256": "f59bd70422180ae77b3c686ec915f9ec74bbe098dab15eb9433b12d9aeada85a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-duplicate-yaml-alias-and-alias-cycle-are-rejected",
+          "review_notes": [
+            "Writes and loads two separate temporary YAML files: A→B→A must raise a controlled error; duplicated A mapping keys injected under zone_aliases must raise PlanningRegulationStructureError matching Duplicate YAML. str.replace changes text in memory, not a filesystem path."
+          ],
           "test_references": []
         },
         {
@@ -32333,9 +32548,11 @@
           "start_line": 395,
           "end_line": 408,
           "signature_sha256": "ee399be451edf041c2dce8472043759eabd4075d021ea13f5024faf5abd1c436",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-realistic-structure-is-deterministic-and-toc-heading-is-ignored",
+          "review_notes": [
+            "Validates the default synthetic result, checks sequential section IDs, chapter labels exactly [U, N, Z, Z] with one U chapter, and the first GENERAL heading/text. No second build or real PDF is compared here."
+          ],
           "test_references": []
         },
         {
@@ -32344,9 +32561,11 @@
           "start_line": 411,
           "end_line": 420,
           "signature_sha256": "d5fff95454c5c3a1ca5b8784b48a21a8afe7db3f5c8559dc35d5bb6cd1598563",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-zone-article-parent-and-multi-page-text-are-preserved",
+          "review_notes": [
+            "Selects the ARTICLE U 1 row, follows its parent ID and asserts a ZONE_CHAPTER parent, page tuple (3, 4), and both expected page-text substrings. It does not assert all parent fields or fragment hashes."
+          ],
           "test_references": []
         },
         {
@@ -32355,9 +32574,11 @@
           "start_line": 423,
           "end_line": 431,
           "signature_sha256": "66162119740383638f7184f5483ab0560daeb472120448a22d9b0634afface7a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-exact-alias-unmapped-ambiguous-and-no-fuzzy-mapping",
+          "review_notes": [
+            "Checks U=EXACT, Ua=CONFIG_ALIAS, X/UX=UNMAPPED, Z=AMBIGUOUS and X dominant count zero in the default result. No policy/BESS classification or universal fuzzy-match test follows from those selected cells."
+          ],
           "test_references": []
         },
         {
@@ -32366,9 +32587,11 @@
           "start_line": 434,
           "end_line": 439,
           "signature_sha256": "4f62b0c5a9e3f6163068eaa8f8f660fc7b199052f011e1a99f472bbbd2db9bbe",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-topic-evidence-distinguishes-general-and-zone-specific",
+          "review_notes": [
+            "Filters energy evidence and asserts exactly the two GENERAL_RULE/ZONE_SPECIFIC_RULE scope values, occurrence-count set {1}, and truthy raw contexts; it does not assert exact context strings."
+          ],
           "test_references": []
         },
         {
@@ -32377,9 +32600,11 @@
           "start_line": 442,
           "end_line": 491,
           "signature_sha256": "e5315400914d5e00768ee58d7efc01d665a31fedecf19b48e0d5e8db1e07001a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-evidence-scope-is-derived-from-exact-section-type",
+          "review_notes": [
+            "Builds synthetic cover/general/chapter/article energy text with no TOC/filtering, checks all four section-type-to-scope sets, then changes an OTHER evidence row to GENERAL_RULE. Public validation must reject with a scope message; no hashes are resealed."
+          ],
           "test_references": []
         },
         {
@@ -32388,9 +32613,11 @@
           "start_line": 494,
           "end_line": 533,
           "signature_sha256": "ff12b1532af4e40ad29ff340ea784f39e7021df95079bcce41c82c3ada7610b2",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-reversed-topic-mapping-keys-do-not-change-output-or-hashes",
+          "review_notes": [
+            "Reverses only topic mapping insertion order and first proves that order survives model creation. Two public builds must have frame-equal topic evidence, sorted topic names, and equal config, topic and outer hashes. Term order is not changed."
+          ],
           "test_references": []
         },
         {
@@ -32399,9 +32626,11 @@
           "start_line": 536,
           "end_line": 572,
           "signature_sha256": "1dbdeb45272dda745d928bdc7583613cae54503c9a47e50581fe63da7e636c51",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-equal-length-overlap-uses-configured-term-order-as-tie-break",
+          "review_notes": [
+            "On alpha beta gamma, the private matcher selects alpha beta at [0,10) or beta gamma at [6,16) when equal-length term order reverses. Two synthetic public builds retain the corresponding term, and config hashes differ. This combines helper-level and in-memory builder evidence."
+          ],
           "test_references": []
         },
         {
@@ -32410,9 +32639,11 @@
           "start_line": 575,
           "end_line": 585,
           "signature_sha256": "8daf33bb26322836e0acb754d38c117ba252828397b5d19e0f941b7c44aefd68",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-inputs-are-not-mutated",
+          "review_notes": [
+            "Deep-copies pages, zones and intersections, executes the public builder, then uses three pandas assert_frame_equal calls against the originals. Zero Python assert statements is not absence of assertions; the test does not prove arbitrary nested-object alias isolation."
+          ],
           "test_references": []
         },
         {
@@ -32421,9 +32652,11 @@
           "start_line": 588,
           "end_line": 597,
           "signature_sha256": "2c76fc3d91a944fb39626a1b91ec73fe02dfff8046e0e8754cf93ba0cf725126",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-structure-decision-mappings-are-deeply-immutable",
+          "review_notes": [
+            "Attempts zone_aliases[Ux]=U and topics[new]=(term,) on a validated synthetic config. Both must immediately raise TypeError matching frozen mapping and the Python dump must remain equal. This body tests two mapping assignments, not an exhaustive collection-operation matrix."
+          ],
           "test_references": []
         },
         {
@@ -32432,9 +32665,11 @@
           "start_line": 600,
           "end_line": 623,
           "signature_sha256": "e78d7b4b190a00e1440d40cdd67bb9f295ba13c47c2f79998b3362580e3cd666",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-body-page-extraction-error-stops-structure",
+          "review_notes": [
+            "Changes page 3 to a coherent ERROR with empty texts/count zero and a synthetic error string; recalculates its page, pages and complete index hashes and regenerates the matching config lock. Builder rejection must match body page.*ERROR, rather than merely stale hashes."
+          ],
           "test_references": []
         },
         {
@@ -32443,9 +32678,11 @@
           "start_line": 626,
           "end_line": 650,
           "signature_sha256": "6245c88ac2d53a02d385ddecf47be2c6b8280280714d8a31bc046865f304fd45",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-blank-successfully-extracted-body-page-remains-valid",
+          "review_notes": [
+            "Changes page 2 to coherent EMPTY/null error, recalculates page/pages/index hashes, builds with a newly matching lock and asserts sections are nonempty. No actual extraction occurs."
+          ],
           "test_references": []
         },
         {
@@ -32454,9 +32691,11 @@
           "start_line": 661,
           "end_line": 679,
           "signature_sha256": "9bb94086412b3e701c8d8b866c41a24c1d8ead2055810e0bcf51372274e8a06c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-coordinated-frame-mutation-is-rejected",
+          "review_notes": [
+            "Copies one frame and changes row 0: section raw_text or topic raw_context gains changed; mapping candidate_parcel_count increases by one. Validation rejects both the original envelope and a second attempt with only the selected component hash set to f×64. This is not a valid recomputation of all hashes; earlier normalization/count/context guards can reject."
+          ],
           "test_references": []
         },
         {
@@ -32465,9 +32704,11 @@
           "start_line": 682,
           "end_line": 687,
           "signature_sha256": "efb0ab060f0984682a59a5f58d98e46197f993149194a0c25ffb86fb26d1c6af",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-unknown-topic-page-reference-is-rejected",
+          "review_notes": [
+            "Sets the first evidence page_number to 999 in a copied frame, retains all other inputs/hashes, and requires PlanningRegulationStructureError matching unknown page."
+          ],
           "test_references": []
         },
         {
@@ -32476,9 +32717,11 @@
           "start_line": 690,
           "end_line": 703,
           "signature_sha256": "f3faee121e3e533ec8164564b321147fbe09cb88c1274638aeed0059c5d0d075",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-coordinated-section-row-mutation-is-caught-by-outer-envelope",
+          "review_notes": [
+            "Appends changed to the first section raw_text and recomputes normalized_text, character_count and that section row digest, but not the component/outer envelopes. _validate must reject without a message constraint. The raw-text-versus-retained-record guard precedes outer-hash checks, so the title does not prove rejection specifically by the outer envelope."
+          ],
           "test_references": []
         },
         {
@@ -32487,9 +32730,11 @@
           "start_line": 706,
           "end_line": 715,
           "signature_sha256": "5171f1168d7d20bffa22977a6afc8841a2843450e27e2268e6522c3ecff5890f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-dominant-unmapped-zone-stops-processing",
+          "review_notes": [
+            "Changes the first positive relation consistently from U to catalog X across planning_zone_id/source_zone_id/zone_label_raw; its area remains 100.0. Builder rejection must match Dominant candidate because X has no chapter mapping."
+          ],
           "test_references": []
         },
         {
@@ -32498,9 +32743,11 @@
           "start_line": 718,
           "end_line": 734,
           "signature_sha256": "860f160fd65b264764e42a80278e4b05435633cfd7af291f8cf13e0ec928a059",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-positional-header-footer-filter-preserves-matching-body-lines",
+          "review_notes": [
+            "Calls _line_records directly on one synthetic page with leading Test PLU, interior Test PLU/100 and trailing 42. Asserts interior matches survive, footer 42 is absent, first retained text is the general heading at original line 4. It does not invoke public structure validation."
+          ],
           "test_references": []
         },
         {
@@ -32509,9 +32756,11 @@
           "start_line": 737,
           "end_line": 751,
           "signature_sha256": "8c7f1a2438b19e9982c1064ed3ad4bd2c792fb61f9becb7efd9751c56bf83fc8",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-page-without-configured-header-or-footer-is-unchanged",
+          "review_notes": [
+            "Disables both pattern tuples via model_copy and calls _line_records directly, asserting all three raw lines exactly. No public config reconstruction is exercised."
+          ],
           "test_references": []
         },
         {
@@ -32520,9 +32769,11 @@
           "start_line": 769,
           "end_line": 801,
           "signature_sha256": "68fbc5b11d5b3732008c87dbff57e098e3d12d9508501fe5eccbf044827e32ad",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-blank-only-prefix-is-preserved-in-first-actual-section",
+          "review_notes": [
+            "For blanks before a heading on the same page or a preceding blank page, disables TOC/filtering and builds/validates. Asserts the first actual ZONE_CHAPTER retains heading ZONE U, RECORD-000001, expected pages/prefix, complete record-count sum and no OTHER section."
+          ],
           "test_references": []
         },
         {
@@ -32531,9 +32782,11 @@
           "start_line": 804,
           "end_line": 868,
           "signature_sha256": "c80d96882562d99cbf18a289d398e1681a79310dce2978ee495a10c38ff67d38",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-toc-blocks-anywhere-are-other-and-toggle-topic-evidence",
+          "review_notes": [
+            "Builds seven synthetic pages with TOC blocks (1,2), (4,5), (7), with evidence disabled/enabled. Both results validate; OTHER page tuples/headings are exact, sections and mappings are frame-equal, excluded evidence is on {3,6}, included evidence on all seven pages with TOC scope OTHER_TEXT. set.isdisjoint is not a spatial operation."
+          ],
           "test_references": []
         },
         {
@@ -32542,9 +32795,11 @@
           "start_line": 871,
           "end_line": 906,
           "signature_sha256": "739b924f29a228b8b8b16964fbadab6881cc6d41f4ed37480462e58b05c076a1",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-blank-gap-after-toc-is-preserved-without-a-blank-other-section",
+          "review_notes": [
+            "With TOC page 2, blank page 3 and U body page 4, builds/validates and asserts only page 2 belongs to OTHER while the chapter retains pages (3,4), heading ZONE U and the exact blank prefix."
+          ],
           "test_references": []
         },
         {
@@ -32553,9 +32808,11 @@
           "start_line": 909,
           "end_line": 943,
           "signature_sha256": "e48c6eb7aa3496b5959dfc2b2d76e7a4fbed23e4db8accc9a32600273ba7a6f0",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--structure-with-document-layout",
+          "review_notes": [
+            "Builds synthetic pages with keyword-only defaults toc_pages=(), body_start_page=1 and include_toc_evidence=False, disables header/footer patterns, validates the config, builds and explicitly validates the result, and asserts total record coverage. Returns (index, config, result), without a return annotation."
+          ],
           "test_references": []
         },
         {
@@ -32564,9 +32821,11 @@
           "start_line": 953,
           "end_line": 969,
           "signature_sha256": "9b4e9f48f0cdf1e997ad896dc3f35316d26977dc3c6ece67657f7ccb98ca3a39",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-blank-only-toc-blocks-remain-separate-other-sections",
+          "review_notes": [
+            "Uses the layout helper with one or two whitespace-only TOC pages. Requires exactly one OTHER row with the parameterized pages, blank raw text and empty heading; helper validation and record coverage also run."
+          ],
           "test_references": []
         },
         {
@@ -32575,9 +32834,11 @@
           "start_line": 972,
           "end_line": 985,
           "signature_sha256": "290058398ae3081b9f8e6a92ce61a9b34622f2bbedb89720791414e5670f7d76",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-blank-toc-followed-only-by-blank-tail-remains-other",
+          "review_notes": [
+            "Uses a U body page, blank TOC page 2 and ordinary blank tail page 3; asserts one blank OTHER section covering (2,3) with empty heading. The tail is absorbed into the forced TOC section."
+          ],
           "test_references": []
         },
         {
@@ -32586,9 +32847,11 @@
           "start_line": 988,
           "end_line": 1001,
           "signature_sha256": "1254b07a18e2dc6ee9e3354db3bec90783addd9b937693f28d90751bffe30e92",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-ordinary-blank-gap-attaches-to-following-real-heading",
+          "review_notes": [
+            "Builds general text, an ordinary blank page and a U chapter; asserts chapter pages (2,3), blank raw prefix and heading ZONE U through the validating layout helper."
+          ],
           "test_references": []
         },
         {
@@ -32597,9 +32860,11 @@
           "start_line": 1004,
           "end_line": 1014,
           "signature_sha256": "e7c8abcb43d42cd11313195c0de7cb5137785ddc570a48d39ea2072af2a51527",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-trailing-blank-records-attach-to-preceding-factual-section",
+          "review_notes": [
+            "Through the layout helper, builds a U article followed by a blank page. Asserts final type ARTICLE, pages (1,2) and the exact whitespace suffix."
+          ],
           "test_references": []
         },
         {
@@ -32608,9 +32873,11 @@
           "start_line": 1025,
           "end_line": 1036,
           "signature_sha256": "d49691c74076f8085fff31526cae46ab69afbc42be8dce222d2a91e02eb43256",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-heading-patterns-require-mandatory-named-captures",
+          "review_notes": [
+            "Replaces one structural regex family: zone lacks label, article lacks number/title, general lacks title. Reconstructing the config payload must raise ValueError matching named captures; no source matching is attempted."
+          ],
           "test_references": []
         },
         {
@@ -32619,9 +32886,11 @@
           "start_line": 1039,
           "end_line": 1047,
           "signature_sha256": "7f96b250e303ebc4202e8cbbd06603e1527095fa5ebeb8775ccebe5f0910786a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-optional-pattern-lists-may-be-empty",
+          "review_notes": [
+            "Sets continuation and both ignored-pattern families to empty tuples and validates the model. It explicitly asserts continuation and page_headers are empty; page_footers is supplied but not separately asserted."
+          ],
           "test_references": []
         },
         {
@@ -32630,9 +32899,11 @@
           "start_line": 1050,
           "end_line": 1068,
           "signature_sha256": "9095b0d17b48ada5d74c0f871c552d8b45cba9fbb913ea26180f870886dfc6ed",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13--config-with-structural-patterns",
+          "review_notes": [
+            "Starts from a synthetic config dump, disables TOC and ignored patterns, applies only non-None keyword regex-family replacements, and returns model_validate(payload). None means preserve that original family, not an empty pattern list."
+          ],
           "test_references": []
         },
         {
@@ -32641,9 +32912,11 @@
           "start_line": 1071,
           "end_line": 1082,
           "signature_sha256": "de1c70e671ca88308cbd91d2c3fbd2e91caeb86bd4c1bd0b999f4c3b8630f8d3",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-unique-zone-heading-and-nonheading-line-are-classified-deterministically",
+          "review_notes": [
+            "Calls _line_records and _heading_events directly on ordinary text then a U chapter/article. Asserts event types [ZONE_CHAPTER, ARTICLE], chapter position 1/label U and no event at position 0; this is helper evidence, not a full mapping build."
+          ],
           "test_references": []
         },
         {
@@ -32652,9 +32925,11 @@
           "start_line": 1085,
           "end_line": 1108,
           "signature_sha256": "9153dcba66de0a39a40d364437bda72f7ae13971ee55af6250321b34ffc86d37",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-two-zone-patterns-matching-one-line-are-ambiguous",
+          "review_notes": [
+            "Supplies two distinct zone regexes matching ZONE U and invokes the public builder. The controlled error must include Ambiguous structural heading, RECORD-000001, page/line 1 and ZONE_CHAPTER[0]/[1], but not raw ZONE U."
+          ],
           "test_references": []
         },
         {
@@ -32663,9 +32938,11 @@
           "start_line": 1111,
           "end_line": 1129,
           "signature_sha256": "8b2b246019f6ae7e9a39b870909b17d52794c82fe8434caf59ceb0a256b8f93c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-two-article-patterns-matching-one-line-are-ambiguous",
+          "review_notes": [
+            "Supplies two distinct article regexes matching ARTICLE U 1 - BODY, then requires public builder failure matching ARTICLE\\[0\\].*ARTICLE\\[1\\]. This tests same-category ambiguity after the U chapter."
+          ],
           "test_references": []
         },
         {
@@ -32674,9 +32951,11 @@
           "start_line": 1132,
           "end_line": 1147,
           "signature_sha256": "e07c6b4b112234e024ee194b701fe7220aecfc23cce53964507b7670b5ade49c",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-general-and-article-cross-category-match-is-ambiguous",
+          "review_notes": [
+            "Allows an empty zone capture in an article regex so ARTICLE 1 - GENERAL matches both categories. Public builder failure is required and the captured message must name GENERAL[0] and ARTICLE[0]."
+          ],
           "test_references": []
         },
         {
@@ -32685,9 +32964,11 @@
           "start_line": 1150,
           "end_line": 1165,
           "signature_sha256": "e23e47d77b80de2443c95521051537c9967836e3286afc34bd84015f2de439d9",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-zone-and-general-cross-category-match-is-ambiguous",
+          "review_notes": [
+            "Adds a general regex matching ZONE U through number/title captures. Builder failure must name ZONE_CHAPTER[0] and GENERAL[0]; no category silently wins."
+          ],
           "test_references": []
         },
         {
@@ -32696,9 +32977,11 @@
           "start_line": 1168,
           "end_line": 1175,
           "signature_sha256": "83c851593d98c1c3e39e1491444d01c1923c94395562ad896afa60e8d94c42eb",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-identical-structural-regex-across-groups-is-rejected-by-config",
+          "review_notes": [
+            "Reuses the identical label-only regex in zone and general groups and requires model ValueError matching reused across groups. This guard runs before the also-missing general captures; the test isolates the reuse diagnostic, not general capture validity."
+          ],
           "test_references": []
         },
         {
@@ -32707,9 +32990,11 @@
           "start_line": 1178,
           "end_line": 1203,
           "signature_sha256": "dd533221740491f8f6e3291fe8efde9ceddd04995ea27c1bdefb1b37f310521a",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-ambiguous-continuation-candidate-fails-with-record-diagnostic",
+          "review_notes": [
+            "After a valid general heading, AMBIGUOUS matches second zone and general regexes during continuation lookahead. Public builder failure must name RECORD-000002, page 1, line 2, ZONE_CHAPTER[1] and GENERAL[1]."
+          ],
           "test_references": []
         },
         {
@@ -32718,9 +33003,11 @@
           "start_line": 1206,
           "end_line": 1230,
           "signature_sha256": "31104e056fae155c0676cca27afadbf81e04c9e3be6603f9eb7c3dde349d8f77",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-source-complete-validator-rejects-changed-ambiguous-grammar",
+          "review_notes": [
+            "Keeps the already-built result and adds an article regex overlapping the general grammar via model_copy. Public validation requires Ambiguous structural heading during expected-result reconstruction, before checking the old result config hash."
+          ],
           "test_references": []
         },
         {
@@ -32729,9 +33016,11 @@
           "start_line": 1233,
           "end_line": 1253,
           "signature_sha256": "8c915096efa6fab373460b444f4f00e5edf18013af0aed59afe1e601b77d3122",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-normal-muret-compatible-grammar-remains-deterministic",
+          "review_notes": [
+            "Runs two builds from the same _index/_config synthetic_v1 fixtures and asserts all three frames equal plus identical outer result digest. It neither loads Muret YAML nor opens its PDF, despite the test name."
+          ],
           "test_references": []
         },
         {
@@ -32740,9 +33029,11 @@
           "start_line": 1265,
           "end_line": 1274,
           "signature_sha256": "7306784d0eb32eb446efbe48292c45a2d414688414a2e693f6a5e86a3030e70e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-lossless-partition-mutation-is-rejected",
+          "review_notes": [
+            "Individually changes the first section ID to SECTION-9999, start record to RECORD-999999, record count to 999 or record digest to f×64. The unchanged-input validator must raise a controlled error; no rehash/message assertion isolates later checks."
+          ],
           "test_references": []
         },
         {
@@ -32751,9 +33042,11 @@
           "start_line": 1277,
           "end_line": 1282,
           "signature_sha256": "7e01e26805a4d8521bac5ce691f75a16ccfb63342e818f143d7b9c5769364a4e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-duplicate-or-reordered-record-partition-is-rejected",
+          "review_notes": [
+            "Copies the first section start_record_id into the second section, causing overlap; expects a partition error. No actual row reordering or duplicated frame row is performed."
+          ],
           "test_references": []
         },
         {
@@ -32762,9 +33055,11 @@
           "start_line": 1285,
           "end_line": 1293,
           "signature_sha256": "8eed40e20055e5df16d4e5707195ec14a0048f15481316df399052b364b8b5ea",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-unsorted-section-pages-are-rejected",
+          "review_notes": [
+            "Reverses the first multi-page section page_numbers tuple and requires a page references error. Raw text, record boundaries and hashes are not updated."
+          ],
           "test_references": []
         },
         {
@@ -32773,9 +33068,11 @@
           "start_line": 1299,
           "end_line": 1312,
           "signature_sha256": "c06a2e5d75bb9fcbdfc1db0814c597e63c464c98075fa51f8d137dfdb5dd80e5",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-article-parent-semantics-are-enforced",
+          "review_notes": [
+            "On the first ARTICLE, separately sets parent None, parent to the final section ID, or zone label N. Requires a controlled error without message/reseal. Each change leaves section_content_sha256 stale, so its earlier row-hash check can reject before parent-semantic checks; parent_after also names the final ARTICLE rather than a later chapter."
+          ],
           "test_references": []
         },
         {
@@ -32784,9 +33081,11 @@
           "start_line": 1315,
           "end_line": 1322,
           "signature_sha256": "db498511efbaa4a8a87361ef75a0ed5adb55c522f7f2cd73ed948a0fc00cac7e",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-wrong-intersection-source-zone-id-is-rejected",
+          "review_notes": [
+            "Changes only the first relation source_zone_id to WRONG, preserving the catalog and result. Public validation must fail with source-zone during factual input validation."
+          ],
           "test_references": []
         },
         {
@@ -32795,9 +33094,11 @@
           "start_line": 1326,
           "end_line": 1335,
           "signature_sha256": "47d5c64763b5c8e608b25e9b37956d7c5898718e21c0012a529c8c9feddab059",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-intersection-area-cannot-exceed-available-geometry-area",
+          "review_notes": [
+            "Adds either optional upper-area column with [99.0,50.0] against [100.0,50.0] intersection areas. Public builder must reject with exceeds; this compares supplied numbers, not measured geometries."
+          ],
           "test_references": []
         },
         {
@@ -32806,9 +33107,11 @@
           "start_line": 1339,
           "end_line": 1373,
           "signature_sha256": "f0ef391097bf6d09c3b2c7a0fb084077a9ef89c91d8fa409773f51e5b600eb15",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-intersection-upper-bound-uses-shared-relative-tolerance",
+          "review_notes": [
+            "For each optional upper column, uses reference area 10^12 and the shared tolerance (asserted >1e-6). Building/validating at reference+tolerance/2 succeeds; building at reference+2*tolerance fails with exceeds. No overlay is calculated."
+          ],
           "test_references": []
         },
         {
@@ -32817,9 +33120,11 @@
           "start_line": 1385,
           "end_line": 1420,
           "signature_sha256": "f8bfab2340b37a5683eca11c9f793767958420e6698d0b7fdce951cbb6ded510",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-intersection-hash-columns-are-actual-and-deterministic",
+          "review_notes": [
+            "Exercises neither, either or both optional metrics, inserting them at position 0 in reversed optional order. Asserts the stored tuple equals the eight required names followed by present optional names in declared parcel-then-zone order, then validates. Does not compare hashes across differently ordered equivalent frames."
+          ],
           "test_references": []
         },
         {
@@ -32828,9 +33133,11 @@
           "start_line": 1427,
           "end_line": 1449,
           "signature_sha256": "9867050af99d9be77d4373a2020520fb884e5a8dee4044ef93db9315196293be",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-optional-intersection-metric-change-invalidates-existing-result",
+          "review_notes": [
+            "Builds with parcel bounds [200,100] and zone bounds [300,150], increments one selected first-row bound by 1.0, and validates the old result against changed inputs. Requires input hash error while numeric bounds remain admissible."
+          ],
           "test_references": []
         },
         {
@@ -32839,9 +33146,11 @@
           "start_line": 1452,
           "end_line": 1474,
           "signature_sha256": "4538819db5c4bbabc07c68539e5bebc6060380067adb88c35222c2bbb37aea85",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-intersection-hash-column-lineage-mutation-is-rejected",
+          "review_notes": [
+            "Builds with parcel_metric_area_m2, then reverses only the stored zoning_intersection_hash_columns tuple. Original inputs are retained; validation must fail with hash columns."
+          ],
           "test_references": []
         },
         {
@@ -32850,9 +33159,11 @@
           "start_line": 1488,
           "end_line": 1498,
           "signature_sha256": "87961f19a8fb7d3b0d21ac92e9c519db65b3c10f67db595efbd138c5ecfee615",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-zone-mapping-contract-mutations-are-rejected",
+          "review_notes": [
+            "On mapping U, separately changes method to NONE, matched ID to SECTION-0002 (GENERAL), resolved label to N, polygon count to 99, intersection count to 0 or dominant count to 99. Each must raise a controlled error without reseal/message constraint. Some hit semantic/count checks; polygon count can instead reach the stale component-hash guard, so this does not isolate rebuilt count comparison."
+          ],
           "test_references": []
         },
         {
@@ -32861,9 +33172,11 @@
           "start_line": 1501,
           "end_line": 1512,
           "signature_sha256": "e5c625dc9059f4c985fa21b286bb99954387adb8bf3697987d402ad05d658ccc",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-alias-chain-resolves-to-final-configured-target",
+          "review_notes": [
+            "Supplies an unchecked model_copy mapping Ua→Urban→U; the public builder reconstructs it. Asserts Ua resolves to U with CONFIG_ALIAS and X remains UNMAPPED, without fuzzy matching or a policy conclusion."
+          ],
           "test_references": []
         },
         {
@@ -32872,9 +33185,11 @@
           "start_line": 1515,
           "end_line": 1546,
           "signature_sha256": "db49908984f2e2eb26d69521b9faf13d23fdb444622a1d148383ae26698e9605",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-token-boundary-and-longest-match-policy",
+          "review_notes": [
+            "Calls only the shared normalizer and private literal matcher on French singular/plural, dérisque and overlapping phrase examples. Asserts each of ten configured terms is retained exactly once and total matches is ten: longer phrases suppress contained matches while standalone instances survive. No legal or BESS/ICPE equivalence is tested."
+          ],
           "test_references": []
         },
         {
@@ -32883,9 +33198,11 @@
           "start_line": 1562,
           "end_line": 1573,
           "signature_sha256": "37152f871cd7ceeaf6a07be5d32b4869b45beaad9121e686c38d05f9463f996f",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-topic-evidence-semantic-mutations-are-rejected",
+          "review_notes": [
+            "Mutates the first zone-specific evidence row (fallback first row) across eight separate cases: scope GENERAL_RULE, zone N, article 999, unconfigured topic/term, count 99, fabricated raw context or normalized start 999. All require controlled rejection against unchanged sources/hashes; no message or independently resealed envelope is asserted."
+          ],
           "test_references": []
         },
         {
@@ -32894,9 +33211,11 @@
           "start_line": 1576,
           "end_line": 1593,
           "signature_sha256": "f4d1ccdca1eef84e9846fae0e88b3a106ab855a9698c9693f3d8ba8ba450b425",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-coordinated-topic-evidence-and-hash-mutation-is-rebuilt-and-rejected",
+          "review_notes": [
+            "Sets first raw_context to fabricated and actually recomputes all three component hashes and the outer digest with _result_with_hashes. Public validation must still reject; intrinsic context comparison to rebuilt source fragments occurs before the final expected-frame comparison, so that final comparison is not isolated."
+          ],
           "test_references": []
         },
         {
@@ -32905,9 +33224,11 @@
           "start_line": 1599,
           "end_line": 1629,
           "signature_sha256": "ca0d80a089d04fc860f3457c8bfdf6610cfb7a4463ced91aeb23f05d5d58e85d",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-source-complete-validator-rejects-post-build-source-change",
+          "review_notes": [
+            "Validates an old result after one of six source changes: Ua→N alias; energy→electricity term; equivalent but different zone regex; coordinated source_zone_id CHANGED in catalog/relation; area 99; or coherent TOUCH_ONLY/0 relation. Each requires a controlled error, without a message. Config/input identity guards can reject before final rebuilt-frame comparison."
+          ],
           "test_references": []
         },
         {
@@ -32916,13 +33237,44 @@
           "start_line": 1641,
           "end_line": 1646,
           "signature_sha256": "088fa8e78868b8a976cfd495a057e2bcdc40f8c683e95d4d5906bc21a0b59abd",
-          "status": "NOT_READ",
-          "documentation_anchor": null,
-          "review_notes": [],
+          "status": "CHECKED",
+          "documentation_anchor": "r13-test-source-and-result-hash-mutation-is-rejected",
+          "review_notes": [
+            "Individually replaces config, zones, intersections or outer result digest with f×64 and calls _validate. Requires PlanningRegulationStructureError, not a particular message; the actual data remain unchanged."
+          ],
           "test_references": []
         }
       ],
-      "findings": []
+      "findings": [],
+      "r13_prior_evidence": {
+        "commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679",
+        "file_row_without_symbols": {
+          "path": "tests/unit/test_structure_planning_regulation.py",
+          "source_sha256": "80ab6feaf5e77d99f538c1aab53f0520f496a45c18758a7d33d4c7554646b6d2",
+          "documentation_path": "docs/code/files/tests/unit/test_structure_planning_regulation.py.md",
+          "role": "test",
+          "read_complete": false,
+          "status": "NOT_READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": []
+        },
+        "symbols_sha256": "ddfb0a0484c2da891d72dd4bd834b49d7237a63f42e6974c73861492e2e4ccf8"
+      },
+      "source_sha256_basis": "git-content",
+      "r13_provenance": {
+        "receipt": "docs/code/audit/R13_PLANNING_REGULATION_STRUCTURE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R13.txt",
+        "review": "PENDING",
+        "source_commit": "ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679"
+      },
+      "read_ranges": [
+        [
+          1,
+          1646
+        ]
+      ]
     }
   ],
   "findings": [

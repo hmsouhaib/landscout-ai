@@ -8,6 +8,8 @@
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Partitions indexed regulation into source-bound sections while failing closed on applicable body-page extraction errors.
 - Source SHA256: `2338569ce08bf5fc632803299c3ea3913301b6722ba63befc24edd276165d614`
+- Source SHA256 basis: `git-content`
+- R13 verification basis: `ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4.1 contract delta
 
@@ -522,9 +524,28 @@ The following are actual DataFrame fields, unlike the module aliases and version
 
 The builder emits int64 for section start_page/end_page/source_record_count/character_count, the four mapping counts, and topic page_number/occurrence_count/four offsets. Empty topic evidence preserves those six int64 columns and object dtype for the other columns. Validators compare canonical values rather than making identical pandas dtypes/indexes a persisted structure contract.
 
+### R13 public call graph and proof limits
+
+The eight declared exports are re-exported by stages. The builder takes four required arguments (index, zones, zoning_intersections, config); both validators and the fragment accessor take those four plus result. They accept no GpuPlanningDocument. A model config is dumped and reconstructed; only a config path causes a YAML read. The simple validator has no local try/except and returns None. The with-fragments validator returns a new DataFrame; controlled structure errors propagate and other exceptions, including delegated index errors, are wrapped there. Builder and accessor have their own outer wrappers.
+
+On a normal builder call: resolve config → validate index/locks → validate/copy zoning inputs → _build_structure_result → simple validator → with-fragments validator → resolve config and validate locks/inputs again → _build_structure_result again → _validate_result_self → _compare_expected_result → construct fragments (discarded by the simple validator) → return the original result. A direct with-fragments call rebuilds expected evidence once; a builder call therefore does not promise one reconstruction overall. No public artifact loader is declared merely because STRUCTURE_MANIFEST_SCHEMA_VERSION is 4.
+
+Heading regexes fullmatch stripped raw lines, not search-normalized text. Whitespace removal from captured chapter labels, casefold comparison between article/chapter, and exact case-sensitive catalog/alias lookup are different operations. The shared search normalizer folds accents/case, punctuation variants and whitespace with raw character-span mapping; it does not silently repair PDF bytes. A topic context margin is applied on each side of the first match within its normalized section/page fragment, clipped to that fragment. Topic overlap competition never crosses topics or fragments. A literal installation-classée occurrence makes no BESS == ICPE assertion.
+
+The checked [test companion](../../../tests/unit/test_structure_planning_regulation.py.md) distinguishes model/helper checks, synthetic public reconstruction and temporary YAML reads. No source-official run, geometry overlay or Muret PDF acquisition is exercised. Hash payloads below retain their current domains/versions: schema 2 config, schema 3 records/sections/components, outer result domain; the manifest constant is not inserted into these payloads. No hash/schema changes are made by R13.
+
 ## 5. Classes, models, dataclasses, and fields
 
+<a id="r13-planningregulationstructureerror"></a>
 ### `PlanningRegulationStructureError`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError`. Source lines 159–160.
+
+Exact declaration/signature:
+
+```python
+class PlanningRegulationStructureError(ValueError):
+```
 
 **Source purpose:** Controlled ValueError subtype for config, index-lock, structural grammar, factual-table and rebuilt-evidence failures.
 
@@ -666,7 +687,16 @@ class PlanningRegulationStructureError(ValueError):
     """Raised when factual regulation structure integrity cannot be proven."""
 ```
 
+<a id="r13--strictconfigmodel"></a>
 ### `_StrictConfigModel`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._StrictConfigModel`. Source lines 163–164.
+
+Exact declaration/signature:
+
+```python
+class _StrictConfigModel(BaseModel):
+```
 
 **Source purpose:** Base for this module's Pydantic configs: extra fields are forbidden and attribute assignment is frozen. Individual fields use strict scalar types; nested aliases/topics are copied into immutable mappings by the parent validator.
 
@@ -692,7 +722,16 @@ class _StrictConfigModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 ```
 
+<a id="r13-documentlockconfig"></a>
 ### `DocumentLockConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.DocumentLockConfig`. Source lines 167–172.
+
+Exact declaration/signature:
+
+```python
+class DocumentLockConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Five required expected index identities. Scalar format validation is local; the containing structure config checks trimmed document/profile values and `_validate_document_lock` compares all five against the supplied validated index.
 
@@ -734,7 +773,71 @@ class DocumentLockConfig(_StrictConfigModel):
     normalization_profile: StrictStr = Field(min_length=1)
 ```
 
+<a id="r13-documentlockconfig-document-id"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLockConfig.document_id`
+
+Source lines 168–168.
+
+```python
+document_id: StrictStr = Field(min_length=1)
+```
+
+Expected GPU document identifier, compared exactly to index.document_id; nonempty and trimmed at parent validation.
+
+<a id="r13-documentlockconfig-pdf-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLockConfig.pdf_sha256`
+
+Source lines 169–169.
+
+```python
+pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+```
+
+Expected selected regulation PDF digest; 64 lowercase hex, compared to index.pdf_sha256.
+
+<a id="r13-documentlockconfig-pages-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLockConfig.pages_content_sha256`
+
+Source lines 170–170.
+
+```python
+pages_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+```
+
+Expected indexed-page canonical digest, compared to index.pages_content_sha256.
+
+<a id="r13-documentlockconfig-index-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLockConfig.index_content_sha256`
+
+Source lines 171–171.
+
+```python
+index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+```
+
+Expected complete index-envelope digest, compared to index.index_content_sha256.
+
+<a id="r13-documentlockconfig-normalization-profile"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLockConfig.normalization_profile`
+
+Source lines 172–172.
+
+```python
+normalization_profile: StrictStr = Field(min_length=1)
+```
+
+Expected index normalization profile identifier; nonempty trimmed and compared exactly.
+
+<a id="r13-documentlayoutconfig"></a>
 ### `DocumentLayoutConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.DocumentLayoutConfig`. Source lines 175–188.
+
+Exact declaration/signature:
+
+```python
+class DocumentLayoutConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Immutable document-layout controls: one-based body start, ordered immutable TOC page numbers, bounded same-page heading continuation count and exact boolean evidence-inclusion flag.
 
@@ -757,7 +860,7 @@ class DocumentLockConfig(_StrictConfigModel):
 | `body_start_page` | Required StrictInt >=1; first page eligible for structural headings and body ERROR enforcement; must exist in the index. |
 | `table_of_contents_pages` | Tuple of StrictInt page numbers, default empty, positive/unique/ascending and later checked for actual index membership. |
 | `max_heading_continuation_lines` | Required StrictInt from 0 through 10; maximum following continuation lines for non-zone headings on the same page. |
-| `include_table_of_contents_in_topic_evidence` | Required StrictBool: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification. |
+| `include_table_of_contents_in_topic_evidence` | StrictBool, default False: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification. |
 
 **Qualified consumers**
 
@@ -782,7 +885,60 @@ class DocumentLayoutConfig(_StrictConfigModel):
         return self
 ```
 
+<a id="r13-documentlayoutconfig-body-start-page"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLayoutConfig.body_start_page`
+
+Source lines 176–176.
+
+```python
+body_start_page: StrictInt = Field(ge=1)
+```
+
+Required StrictInt >=1; first page eligible for structural headings and body ERROR enforcement; must exist in the index.
+
+<a id="r13-documentlayoutconfig-table-of-contents-pages"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLayoutConfig.table_of_contents_pages`
+
+Source lines 177–177.
+
+```python
+table_of_contents_pages: tuple[StrictInt, ...] = ()
+```
+
+Tuple of StrictInt page numbers, default empty, positive/unique/ascending and later checked for actual index membership.
+
+<a id="r13-documentlayoutconfig-max-heading-continuation-lines"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLayoutConfig.max_heading_continuation_lines`
+
+Source lines 178–178.
+
+```python
+max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)
+```
+
+Required StrictInt from 0 through 10; maximum following continuation lines for non-zone headings on the same page.
+
+<a id="r13-documentlayoutconfig-include-table-of-contents-in-topic-evidence"></a>
+#### `landscout.stages.structure_planning_regulation.DocumentLayoutConfig.include_table_of_contents_in_topic_evidence`
+
+Source lines 179–179.
+
+```python
+include_table_of_contents_in_topic_evidence: StrictBool = False
+```
+
+StrictBool, default False: whether explicit TOC section fragments participate in topic matching; TOC headings remain excluded from structural classification.
+
+<a id="r13-headingpatternsconfig"></a>
 ### `HeadingPatternsConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.HeadingPatternsConfig`. Source lines 191–195.
+
+Exact declaration/signature:
+
+```python
+class HeadingPatternsConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Ordered immutable regex tuples for three structural categories and optional continuation lines. Parent validation enforces compilability, required named captures and duplicate restrictions.
 
@@ -821,7 +977,60 @@ class HeadingPatternsConfig(_StrictConfigModel):
     continuation: tuple[StrictStr, ...] = ()
 ```
 
+<a id="r13-headingpatternsconfig-zone-chapter"></a>
+#### `landscout.stages.structure_planning_regulation.HeadingPatternsConfig.zone_chapter`
+
+Source lines 192–192.
+
+```python
+zone_chapter: tuple[StrictStr, ...] = Field(min_length=1)
+```
+
+Required nonempty ordered tuple of regexes with a named label capture.
+
+<a id="r13-headingpatternsconfig-article"></a>
+#### `landscout.stages.structure_planning_regulation.HeadingPatternsConfig.article`
+
+Source lines 193–193.
+
+```python
+article: tuple[StrictStr, ...] = Field(min_length=1)
+```
+
+Required nonempty ordered tuple of regexes with named zone, number and title captures.
+
+<a id="r13-headingpatternsconfig-general-section"></a>
+#### `landscout.stages.structure_planning_regulation.HeadingPatternsConfig.general_section`
+
+Source lines 194–194.
+
+```python
+general_section: tuple[StrictStr, ...] = Field(min_length=1)
+```
+
+Required nonempty ordered tuple of regexes with named number and title captures.
+
+<a id="r13-headingpatternsconfig-continuation"></a>
+#### `landscout.stages.structure_planning_regulation.HeadingPatternsConfig.continuation`
+
+Source lines 195–195.
+
+```python
+continuation: tuple[StrictStr, ...] = ()
+```
+
+Ordered optional fullmatch regexes for heading-continuation lines; default empty.
+
+<a id="r13-ignoredpatternsconfig"></a>
 ### `IgnoredPatternsConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.IgnoredPatternsConfig`. Source lines 198–200.
+
+Exact declaration/signature:
+
+```python
+class IgnoredPatternsConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Ordered immutable regex tuples for positional page header/footer filtering. Empty tuples disable that side; these are not global text-deletion patterns.
 
@@ -854,7 +1063,38 @@ class IgnoredPatternsConfig(_StrictConfigModel):
     page_footers: tuple[StrictStr, ...] = ()
 ```
 
+<a id="r13-ignoredpatternsconfig-page-headers"></a>
+#### `landscout.stages.structure_planning_regulation.IgnoredPatternsConfig.page_headers`
+
+Source lines 199–199.
+
+```python
+page_headers: tuple[StrictStr, ...] = ()
+```
+
+Ordered optional fullmatch regexes used only at the leading header position; default empty.
+
+<a id="r13-ignoredpatternsconfig-page-footers"></a>
+#### `landscout.stages.structure_planning_regulation.IgnoredPatternsConfig.page_footers`
+
+Source lines 200–200.
+
+```python
+page_footers: tuple[StrictStr, ...] = ()
+```
+
+Ordered optional fullmatch regexes used only at the trailing footer position; default empty.
+
+<a id="r13-topicmatchpolicyconfig"></a>
 ### `TopicMatchPolicyConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.TopicMatchPolicyConfig`. Source lines 203–209.
+
+Exact declaration/signature:
+
+```python
+class TopicMatchPolicyConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Closed token-boundary/longest-match declaration; its property emits the deterministic policy identifier used in evidence rows.
 
@@ -891,7 +1131,38 @@ class TopicMatchPolicyConfig(_StrictConfigModel):
         return f"{self.boundary_mode}_{self.overlap_resolution}"
 ```
 
+<a id="r13-topicmatchpolicyconfig-boundary-mode"></a>
+#### `landscout.stages.structure_planning_regulation.TopicMatchPolicyConfig.boundary_mode`
+
+Source lines 204–204.
+
+```python
+boundary_mode: Literal["token"]
+```
+
+Only literal token is accepted; matching checks neighboring alphanumeric/underscore characters.
+
+<a id="r13-topicmatchpolicyconfig-overlap-resolution"></a>
+#### `landscout.stages.structure_planning_regulation.TopicMatchPolicyConfig.overlap_resolution`
+
+Source lines 205–205.
+
+```python
+overlap_resolution: Literal["longest_match"]
+```
+
+Only literal longest_match is accepted; configured term order resolves equal-length candidate priority.
+
+<a id="r13-planningregulationstructureconfig"></a>
 ### `PlanningRegulationStructureConfig`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig`. Source lines 212–327.
+
+Exact declaration/signature:
+
+```python
+class PlanningRegulationStructureConfig(_StrictConfigModel):
+```
 
 **Source purpose:** Deeply immutable schema-2 structure configuration retaining copied aliases and topic-term tuples, ordered grammar declarations, document locks and context width. Public consumers reconstruct and revalidate supplied model instances; JSON serializers preserve the established canonical hash representation.
 
@@ -1133,7 +1404,126 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
         return self
 ```
 
+<a id="r13-planningregulationstructureconfig-schema-version"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.schema_version`
+
+Source lines 215–215.
+
+```python
+schema_version: StrictInt
+```
+
+Required strict positive version; parent supports exactly 2.
+
+<a id="r13-planningregulationstructureconfig-structure-profile"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.structure_profile`
+
+Source lines 216–216.
+
+```python
+structure_profile: StrictStr = Field(min_length=1)
+```
+
+Required trimmed nonempty identity for this grammar; copied into evidence and bound by config/result hashes.
+
+<a id="r13-planningregulationstructureconfig-document-lock"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.document_lock`
+
+Source lines 217–217.
+
+```python
+document_lock: DocumentLockConfig
+```
+
+Required immutable five-identity lock model; does not itself reopen the source.
+
+<a id="r13-planningregulationstructureconfig-document-layout"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.document_layout`
+
+Source lines 218–218.
+
+```python
+document_layout: DocumentLayoutConfig
+```
+
+Required immutable body/TOC/continuation/evidence controls.
+
+<a id="r13-planningregulationstructureconfig-heading-patterns"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.heading_patterns`
+
+Source lines 219–219.
+
+```python
+heading_patterns: HeadingPatternsConfig
+```
+
+Required ordered structural/continuation grammar tuples.
+
+<a id="r13-planningregulationstructureconfig-ignored-patterns"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.ignored_patterns`
+
+Source lines 220–220.
+
+```python
+ignored_patterns: IgnoredPatternsConfig
+```
+
+Required header/footer pattern model; its tuples may be empty.
+
+<a id="r13-planningregulationstructureconfig-zone-aliases"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.zone_aliases`
+
+Source lines 221–221.
+
+```python
+zone_aliases: Mapping[StrictStr, StrictStr]
+```
+
+Required Mapping[StrictStr, StrictStr], copied/frozen after acyclic trimmed exact-key/target validation; mapping keys are not fuzzy or casefolded.
+
+<a id="r13-planningregulationstructureconfig-topics"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.topics`
+
+Source lines 222–222.
+
+```python
+topics: Mapping[StrictStr, tuple[StrictStr, ...]]
+```
+
+Required Mapping[StrictStr, tuple[StrictStr, ...]], copied/frozen; at least one topic and term per topic, with normalized duplicates rejected within a topic. Topic names sort for output while term order is preserved.
+
+<a id="r13-planningregulationstructureconfig-topic-match-policy"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.topic_match_policy`
+
+Source lines 223–223.
+
+```python
+topic_match_policy: TopicMatchPolicyConfig
+```
+
+Required closed token/longest-match model; no alternative matcher is inferred.
+
+<a id="r13-planningregulationstructureconfig-topic-context-characters"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.topic_context_characters`
+
+Source lines 224–224.
+
+```python
+topic_context_characters: StrictInt = Field(ge=0)
+```
+
+Required StrictInt >=0 giving the normalized-character margin around the first retained match, not raw bytes or a match limit.
+
+<a id="r13-planningregulationstructureresult"></a>
 ### `PlanningRegulationStructureResult`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult`. Source lines 331–352.
+
+Exact declaration/signature:
+
+```python
+class PlanningRegulationStructureResult:
+```
 
 **Source purpose:** Frozen dataclass lineage envelope with 19 required fields. The three pandas DataFrames remain mutable, so immediate assignment freezing is not deep frame immutability; validators rebuild and compare their contents and hashes.
 
@@ -1271,7 +1661,225 @@ class PlanningRegulationStructureResult:
     topic_evidence: pd.DataFrame
 ```
 
+<a id="r13-planningregulationstructureresult-document-id"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.document_id`
+
+Source lines 334–334.
+
+```python
+document_id: str
+```
+
+Supplied index document identifier.
+
+<a id="r13-planningregulationstructureresult-archive-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.archive_sha256`
+
+Source lines 335–335.
+
+```python
+archive_sha256: str
+```
+
+Supplied index archive digest; comparison is lineage, not a fresh archive read.
+
+<a id="r13-planningregulationstructureresult-pdf-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.pdf_sha256`
+
+Source lines 336–336.
+
+```python
+pdf_sha256: str
+```
+
+Supplied index selected-PDF digest.
+
+<a id="r13-planningregulationstructureresult-index-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.index_content_sha256`
+
+Source lines 337–337.
+
+```python
+index_content_sha256: str
+```
+
+Supplied complete index-envelope digest.
+
+<a id="r13-planningregulationstructureresult-structure-profile"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.structure_profile`
+
+Source lines 338–338.
+
+```python
+structure_profile: str
+```
+
+Validated config profile identifier.
+
+<a id="r13-planningregulationstructureresult-structure-config-schema-version"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.structure_config_schema_version`
+
+Source lines 339–339.
+
+```python
+structure_config_schema_version: int
+```
+
+Validated structure config version (2).
+
+<a id="r13-planningregulationstructureresult-structure-config-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.structure_config_sha256`
+
+Source lines 340–340.
+
+```python
+structure_config_sha256: str
+```
+
+Canonical JSON-mode semantic config digest, not YAML byte SHA.
+
+<a id="r13-planningregulationstructureresult-zones-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.zones_content_sha256`
+
+Source lines 341–341.
+
+```python
+zones_content_sha256: str
+```
+
+Ordered canonical values and column list for the five selected zoning inputs; excludes geometry/index/dtypes/extras.
+
+<a id="r13-planningregulationstructureresult-zoning-intersection-hash-columns"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.zoning_intersection_hash_columns`
+
+Source lines 342–342.
+
+```python
+zoning_intersection_hash_columns: tuple[str, ...]
+```
+
+Exact ordered tuple of eight required input columns plus present approved optional metrics.
+
+<a id="r13-planningregulationstructureresult-zoning-intersections-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.zoning_intersections_content_sha256`
+
+Source lines 343–343.
+
+```python
+zoning_intersections_content_sha256: str
+```
+
+Ordered canonical relation rows and selected column-list digest.
+
+<a id="r13-planningregulationstructureresult-source-records-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.source_records_sha256`
+
+Source lines 344–344.
+
+```python
+source_records_sha256: str
+```
+
+Digest of the complete retained line-record sequence, including source page/line positions and raw text.
+
+<a id="r13-planningregulationstructureresult-section-hash-schema-version"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.section_hash_schema_version`
+
+Source lines 345–345.
+
+```python
+section_hash_schema_version: int
+```
+
+Supported section/component hash version 3.
+
+<a id="r13-planningregulationstructureresult-sections-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.sections_content_sha256`
+
+Source lines 346–346.
+
+```python
+sections_content_sha256: str
+```
+
+Domain-separated section-frame digest including shared input/config lineage.
+
+<a id="r13-planningregulationstructureresult-zone-map-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.zone_map_content_sha256`
+
+Source lines 347–347.
+
+```python
+zone_map_content_sha256: str
+```
+
+Domain-separated zone-mapping frame digest including shared input/config lineage.
+
+<a id="r13-planningregulationstructureresult-topic-evidence-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.topic_evidence_content_sha256`
+
+Source lines 348–348.
+
+```python
+topic_evidence_content_sha256: str
+```
+
+Domain-separated topic-evidence frame digest including shared input/config lineage.
+
+<a id="r13-planningregulationstructureresult-structure-result-content-sha256"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.structure_result_content_sha256`
+
+Source lines 349–349.
+
+```python
+structure_result_content_sha256: str
+```
+
+Outer envelope digest binding all other scalar/tuple identities and the three component hashes.
+
+<a id="r13-planningregulationstructureresult-sections"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.sections`
+
+Source lines 350–350.
+
+```python
+sections: pd.DataFrame
+```
+
+Mutable 24-column ordered factual section DataFrame; raw text is reconstructed from complete retained-record partitions.
+
+<a id="r13-planningregulationstructureresult-zone-mapping"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.zone_mapping`
+
+Source lines 351–351.
+
+```python
+zone_mapping: pd.DataFrame
+```
+
+Mutable 14-column sorted raw-label mapping/count DataFrame; not a zoning suitability decision.
+
+<a id="r13-planningregulationstructureresult-topic-evidence"></a>
+#### `landscout.stages.structure_planning_regulation.PlanningRegulationStructureResult.topic_evidence`
+
+Source lines 352–352.
+
+```python
+topic_evidence: pd.DataFrame
+```
+
+Mutable 21-column literal-match DataFrame, with exact fragment-local offsets and contexts; empty evidence is allowed.
+
+<a id="r13--linerecord"></a>
 ### `_LineRecord`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._LineRecord`. Source lines 356–360.
+
+Exact declaration/signature:
+
+```python
+class _LineRecord:
+```
 
 **Source purpose:** Frozen retained-line record preserving source page and original page-line identity after positional filtering.
 
@@ -1321,7 +1929,60 @@ class _LineRecord:
     raw: str
 ```
 
+<a id="r13--linerecord-record-id"></a>
+#### `landscout.stages.structure_planning_regulation._LineRecord.record_id`
+
+Source lines 357–357.
+
+```python
+record_id: str
+```
+
+Sequential global RECORD-000001-style identity after filtering.
+
+<a id="r13--linerecord-page-number"></a>
+#### `landscout.stages.structure_planning_regulation._LineRecord.page_number`
+
+Source lines 358–358.
+
+```python
+page_number: int
+```
+
+One-based source index page number.
+
+<a id="r13--linerecord-page-line-number"></a>
+#### `landscout.stages.structure_planning_regulation._LineRecord.page_line_number`
+
+Source lines 359–359.
+
+```python
+page_line_number: int
+```
+
+One-based original splitlines position on that page, including gaps caused by filtering.
+
+<a id="r13--linerecord-raw"></a>
+#### `landscout.stages.structure_planning_regulation._LineRecord.raw`
+
+Source lines 360–360.
+
+```python
+raw: str
+```
+
+Unnormalized retained source line without splitlines separator.
+
+<a id="r13--headingevent"></a>
 ### `_HeadingEvent`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._HeadingEvent`. Source lines 364–371.
+
+Exact declaration/signature:
+
+```python
+class _HeadingEvent:
+```
 
 **Source purpose:** Frozen recognized heading at a retained-record position, including raw/normalized heading, optional captured chapter and article facts.
 
@@ -1371,7 +2032,93 @@ class _HeadingEvent:
     article_title_raw: str | None
 ```
 
+<a id="r13--headingevent-record-position"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.record_position`
+
+Source lines 365–365.
+
+```python
+record_position: int
+```
+
+Zero-based position of the actual heading record in the retained sequence, before blank-prefix boundary shifts.
+
+<a id="r13--headingevent-section-type"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.section_type`
+
+Source lines 366–366.
+
+```python
+section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]
+```
+
+Recognized GENERAL, ZONE_CHAPTER or ARTICLE category.
+
+<a id="r13--headingevent-heading-raw"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.heading_raw`
+
+Source lines 367–367.
+
+```python
+heading_raw: str
+```
+
+Raw heading lines joined with newline, including accepted continuations.
+
+<a id="r13--headingevent-heading-normalized"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.heading_normalized`
+
+Source lines 368–368.
+
+```python
+heading_normalized: str
+```
+
+Shared normalization of the complete raw heading.
+
+<a id="r13--headingevent-zone-chapter-label"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.zone_chapter_label`
+
+Source lines 369–369.
+
+```python
+zone_chapter_label: str | None
+```
+
+Whitespace-compacted captured zone label, or None for a general heading.
+
+<a id="r13--headingevent-article-number-raw"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.article_number_raw`
+
+Source lines 370–370.
+
+```python
+article_number_raw: str | None
+```
+
+Captured source number for ARTICLE/GENERAL, otherwise None.
+
+<a id="r13--headingevent-article-title-raw"></a>
+#### `landscout.stages.structure_planning_regulation._HeadingEvent.article_title_raw`
+
+Source lines 371–371.
+
+```python
+article_title_raw: str | None
+```
+
+Captured title joined with stripped continuation text, otherwise None.
+
+<a id="r13--structuralheadingmatch"></a>
 ### `_StructuralHeadingMatch`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._StructuralHeadingMatch`. Source lines 375–378.
+
+Exact declaration/signature:
+
+```python
+class _StructuralHeadingMatch:
+```
 
 **Source purpose:** Frozen diagnostic result for one fullmatching structural regex and its named captures; multiple such matches are rejected before becoming a heading event.
 
@@ -1408,7 +2155,49 @@ class _StructuralHeadingMatch:
     named_captures: tuple[tuple[str, str | None], ...]
 ```
 
+<a id="r13--structuralheadingmatch-section-type"></a>
+#### `landscout.stages.structure_planning_regulation._StructuralHeadingMatch.section_type`
+
+Source lines 376–376.
+
+```python
+section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]
+```
+
+The fullmatching pattern group's structural category.
+
+<a id="r13--structuralheadingmatch-pattern-index"></a>
+#### `landscout.stages.structure_planning_regulation._StructuralHeadingMatch.pattern_index`
+
+Source lines 377–377.
+
+```python
+pattern_index: int
+```
+
+Zero-based pattern index within that group, used in ambiguity diagnostics.
+
+<a id="r13--structuralheadingmatch-named-captures"></a>
+#### `landscout.stages.structure_planning_regulation._StructuralHeadingMatch.named_captures`
+
+Source lines 378–378.
+
+```python
+named_captures: tuple[tuple[str, str | None], ...]
+```
+
+Immutable ordered tuple of groupdict key/value pairs; values can be None.
+
+<a id="r13--sectionboundary"></a>
 ### `_SectionBoundary`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._SectionBoundary`. Source lines 382–385.
+
+Exact declaration/signature:
+
+```python
+class _SectionBoundary:
+```
 
 **Source purpose:** Frozen start marker for partitioning retained records, with optional heading event and explicit TOC-boundary flag.
 
@@ -1445,7 +2234,49 @@ class _SectionBoundary:
     forced_table_of_contents: bool
 ```
 
+<a id="r13--sectionboundary-record-position"></a>
+#### `landscout.stages.structure_planning_regulation._SectionBoundary.record_position`
+
+Source lines 383–383.
+
+```python
+record_position: int
+```
+
+Zero-based retained-record start, potentially moved back over ordinary blanks.
+
+<a id="r13--sectionboundary-event"></a>
+#### `landscout.stages.structure_planning_regulation._SectionBoundary.event`
+
+Source lines 384–384.
+
+```python
+event: _HeadingEvent | None
+```
+
+Recognized heading event for a factual section, or None for an OTHER boundary.
+
+<a id="r13--sectionboundary-forced-table-of-contents"></a>
+#### `landscout.stages.structure_planning_regulation._SectionBoundary.forced_table_of_contents`
+
+Source lines 385–385.
+
+```python
+forced_table_of_contents: bool
+```
+
+True only for explicit TOC starts; preserves TOC OTHER boundaries even for blank text.
+
+<a id="r13--sectionbuild"></a>
 ### `_SectionBuild`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._SectionBuild`. Source lines 389–391.
+
+Exact declaration/signature:
+
+```python
+class _SectionBuild:
+```
 
 **Source purpose:** Frozen private holder for a mutable local section-row dictionary and an immutable ordered tuple of per-page raw fragments. It is not a public deeply immutable trust model.
 
@@ -1484,7 +2315,38 @@ class _SectionBuild:
     page_fragments: tuple[tuple[int, str], ...]
 ```
 
+<a id="r13--sectionbuild-row"></a>
+#### `landscout.stages.structure_planning_regulation._SectionBuild.row`
+
+Source lines 390–390.
+
+```python
+row: dict[str, object]
+```
+
+Mutable local dictionary with one section's factual 24-column values; filled/hash-bound during construction.
+
+<a id="r13--sectionbuild-page-fragments"></a>
+#### `landscout.stages.structure_planning_regulation._SectionBuild.page_fragments`
+
+Source lines 391–391.
+
+```python
+page_fragments: tuple[tuple[int, str], ...]
+```
+
+Ordered immutable (one-based page number, raw fragment text) tuple for that section.
+
+<a id="r13--topicmatch"></a>
 ### `_TopicMatch`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._TopicMatch`. Source lines 1381–1386.
+
+Exact declaration/signature:
+
+```python
+class _TopicMatch:
+```
 
 **Source purpose:** Frozen selected/candidate match record for one configured term, with zero-based half-open normalized-fragment offsets.
 
@@ -1529,9 +2391,67 @@ class _TopicMatch:
 ```
 
 
+<a id="r13--topicmatch-term-index"></a>
+#### `landscout.stages.structure_planning_regulation._TopicMatch.term_index`
+
+Source lines 1382–1382.
+
+```python
+term_index: int
+```
+
+Zero-based configured term position within one topic; controls equal-length priority.
+
+<a id="r13--topicmatch-search-term"></a>
+#### `landscout.stages.structure_planning_regulation._TopicMatch.search_term`
+
+Source lines 1383–1383.
+
+```python
+search_term: str
+```
+
+Original configured term string.
+
+<a id="r13--topicmatch-normalized-term"></a>
+#### `landscout.stages.structure_planning_regulation._TopicMatch.normalized_term`
+
+Source lines 1384–1384.
+
+```python
+normalized_term: str
+```
+
+Shared-normalized configured term used for literal matching.
+
+<a id="r13--topicmatch-normalized-start"></a>
+#### `landscout.stages.structure_planning_regulation._TopicMatch.normalized_start`
+
+Source lines 1385–1385.
+
+```python
+normalized_start: int
+```
+
+Zero-based inclusive start in the normalized section/page fragment.
+
+<a id="r13--topicmatch-normalized-end"></a>
+#### `landscout.stages.structure_planning_regulation._TopicMatch.normalized_end`
+
+Source lines 1386–1386.
+
+```python
+normalized_end: int
+```
+
+Zero-based exclusive end in the same normalized fragment.
+
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r13-documentlayoutconfig--validate-pages"></a>
 ### `DocumentLayoutConfig._validate_pages`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.DocumentLayoutConfig._validate_pages`. Source lines 182–188.
 
 **Purpose:** Rejects non-positive, duplicate or non-ascending configured TOC page numbers and returns the same validated model. Actual page existence is checked later against the index; an empty tuple is allowed.
 
@@ -1548,7 +2468,7 @@ def _validate_pages(self) -> DocumentLayoutConfig:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -1603,7 +2523,10 @@ def _validate_pages(self) -> DocumentLayoutConfig:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-topicmatchpolicyconfig-identifier"></a>
 ### `TopicMatchPolicyConfig.identifier`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.TopicMatchPolicyConfig.identifier`. Source lines 208–209.
 
 **Purpose:** Joins the two validated literal policy fields as `token_longest_match`, the evidence-row identifier. It does not perform matching.
 
@@ -1620,7 +2543,7 @@ def identifier(self) -> str:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -1662,7 +2585,10 @@ def identifier(self) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-planningregulationstructureconfig--validate-grammar"></a>
 ### `PlanningRegulationStructureConfig._validate_grammar`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig._validate_grammar`. Source lines 241–327.
 
 **Purpose:** Validates schema 2, trimmed profile/lock strings, nonempty trimmed unique compilable regexes, required named captures, cross-group duplicate structural regex rejection, acyclic exact aliases, and nonempty topics with distinct normalized terms within each topic. Then `freeze_mapping` copies and freezes aliases/topics. It does not test whether different regexes overlap on actual source lines; `_classify_structural_heading` handles that ambiguity.
 
@@ -1679,7 +2605,7 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `self` | positional-or-keyword | `None` | `required` |
+| `self` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -1830,7 +2756,10 @@ def _validate_grammar(self) -> PlanningRegulationStructureConfig:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--exact-config-string"></a>
 ### `_exact_config_string`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._exact_config_string`. Source lines 394–397.
 
 **Purpose:** Rejects empty or untrimmed strings after StrictStr field validation. This helper itself does not perform an exact-runtime-type check.
 
@@ -1897,7 +2826,10 @@ def _exact_config_string(value: str, label: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-alias-cycles"></a>
 ### `_validate_alias_cycles`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_alias_cycles`. Source lines 400–408.
 
 **Purpose:** Walks every exact, case-sensitive alias chain and raises on a visited key; terminal targets need not be alias keys. The visited sets are local and the input mapping is not mutated.
 
@@ -1968,7 +2900,10 @@ def _validate_alias_cycles(aliases: Mapping[str, str]) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-load-planning-regulation-structure-config"></a>
 ### `load_planning_regulation_structure_config`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config`. Source lines 411–431.
 
 **Purpose:** Reads the supplied local YAML path, uses duplicate-safe strict YAML loading, requires a mapping root and validates a fresh deeply immutable structure config. YAML/parser/model/file failures become PlanningRegulationStructureError; no source document is read and no config hash is calculated here.
 
@@ -2042,7 +2977,7 @@ Outbound call expressions and conservative ownership:
 | `config_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
 
 **Source-observed side-effect matrix**
@@ -2090,7 +3025,10 @@ def load_planning_regulation_structure_config(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--strict-string"></a>
 ### `_strict_string`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._strict_string`. Source lines 434–439.
 
 **Purpose:** Requires a nonempty trimmed string value and returns it unchanged; isinstance accepts string subclasses. Errors use the caller's label.
 
@@ -2174,7 +3112,10 @@ def _strict_string(value: object, label: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--strict-nonnegative-integer"></a>
 ### `_strict_nonnegative_integer`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._strict_nonnegative_integer`. Source lines 442–448.
 
 **Purpose:** Rejects bool and non-Integral values, converts accepted integral scalars including NumPy integers to built-in int, and rejects negative values.
 
@@ -2252,7 +3193,10 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--strict-positive-integer"></a>
 ### `_strict_positive_integer`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._strict_positive_integer`. Source lines 451–455.
 
 **Purpose:** Reuses the nonnegative integer guard and additionally rejects zero; it is used for page numbers, counts and versions.
 
@@ -2330,7 +3274,10 @@ def _strict_positive_integer(value: object, label: str) -> int:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validated-sha256"></a>
 ### `_validated_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validated_sha256`. Source lines 458–464.
 
 **Purpose:** Requires a trimmed lower-case 64-hex SHA256 string. This is lexical validation, not recomputation of bytes or source authority.
 
@@ -2403,7 +3350,10 @@ def _validated_sha256(value: object, label: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--canonical-value"></a>
 ### `_canonical_value`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._canonical_value`. Source lines 467–482.
 
 **Purpose:** Builds temporary JSON-compatible containers: None/pd.NA/float NaN become null; NumPy scalars recurse through item(); tuples/lists/arrays become lists; mapping keys are stringified and values recurse. Strings/ints/floats/bools remain values, unsupported objects fail. This is not the immutable config freezer; infinities fail at JSON serialization.
 
@@ -2495,7 +3445,10 @@ def _canonical_value(value: object) -> object:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--canonical-sha256"></a>
 ### `_canonical_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._canonical_sha256`. Source lines 485–500.
 
 **Purpose:** Hashes UTF-8 canonical JSON with Unicode retained, sorted mapping keys, compact separators and allow_nan=False after `_canonical_value`. Serialization errors are controlled; no Python repr or filesystem data enters this function.
 
@@ -2588,7 +3541,10 @@ def _canonical_sha256(value: object) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--config-sha256"></a>
 ### `_config_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._config_sha256`. Source lines 503–513.
 
 **Purpose:** Hashes the config model's JSON-mode plain representation under the structure-config domain. Topic mapping keys are sorted but configured term order remains meaningful; raw YAML formatting and key insertion order are not the identity.
 
@@ -2664,7 +3620,10 @@ def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-document-lock"></a>
 ### `_validate_document_lock`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_document_lock`. Source lines 516–575.
 
 **Purpose:** Intrinsically validates the supplied index, compares its document/PDF/pages/index/normalization identities to the five configured locks, checks body-start and TOC page existence, and rejects ERROR extraction on non-TOC body pages. EMPTY pages and ERROR pages outside that applicable body are not rejected by this guard. It does not reopen the PDF or GPU source.
 
@@ -2801,7 +3760,10 @@ def _validate_document_lock(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--compiled"></a>
 ### `_compiled`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._compiled`. Source lines 578–579.
 
 **Purpose:** Compiles regexes in configured order into a tuple. Public callers supply patterns already checked by config validation.
 
@@ -2866,7 +3828,10 @@ def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--matches-any"></a>
 ### `_matches_any`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._matches_any`. Source lines 582–583.
 
 **Purpose:** Checks full-string regex matches, not substring search, against a sequence of compiled patterns; returns false for an empty sequence.
 
@@ -2932,7 +3897,10 @@ def _matches_any(value: str, patterns: Sequence[re.Pattern[str]]) -> bool:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--retained-page-lines"></a>
 ### `_retained_page_lines`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._retained_page_lines`. Source lines 586–628.
 
 **Purpose:** Enumerates raw splitlines with original one-based line numbers. It removes configured matching header/blank prefixes only when the first nonblank line is a header, and matching footer/blank suffixes only when the last nonblank line is a footer. Matching interior lines and remaining raw text are preserved.
 
@@ -3052,9 +4020,12 @@ def _retained_page_lines(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--line-records"></a>
 ### `_line_records`
 
-**Purpose:** Builds sequential RECORD-000001-style records from every indexed page after positional header/footer filtering, preserving page and original page-line numbers. It checks raw text strings and rejects no retained records; body/TOC selection is a later heading concern.
+Qualified owner: `landscout.stages.structure_planning_regulation._line_records`. Source lines 631–662.
+
+**Purpose:** Builds sequential RECORD-000001-style records from every indexed page after positional header/footer filtering, preserving page and original page-line numbers. It checks raw text strings and rejects an empty retained-record sequence; body/TOC selection is a later heading concern.
 
 **Exact signature**
 
@@ -3183,7 +4154,10 @@ def _line_records(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--source-record-payload"></a>
 ### `_source_record_payload`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._source_record_payload`. Source lines 665–671.
 
 **Purpose:** Creates the four-key hash payload record_id/page_number/page_line_number/raw_text from a retained _LineRecord; raw is renamed raw_text without text normalization.
 
@@ -3248,7 +4222,10 @@ def _source_record_payload(record: _LineRecord) -> dict[str, object]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--source-records-sha256"></a>
 ### `_source_records_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._source_records_sha256`. Source lines 674–681.
 
 **Purpose:** Hashes the ordered complete or section-local retained record payload sequence under the source-records domain and section schema 3. Sequence order and original page-line positions are included.
 
@@ -3321,7 +4298,10 @@ def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--canonical-chapter-label"></a>
 ### `_canonical_chapter_label`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._canonical_chapter_label`. Source lines 684–686.
 
 **Purpose:** Removes every regex whitespace character from a captured heading label, then requires a nonempty trimmed result. It does not casefold the label or apply config aliases.
 
@@ -3385,7 +4365,10 @@ def _canonical_chapter_label(value: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--classify-structural-heading"></a>
 ### `_classify_structural_heading`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._classify_structural_heading`. Source lines 689–721.
 
 **Purpose:** Fullmatches a line against every pattern in every structural category and retains named captures with zero-based within-group pattern indexes. Any two matches, including within one category, raise an ambiguity error naming record/page/line and matches; zero matches return None.
 
@@ -3499,7 +4482,10 @@ def _classify_structural_heading(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--heading-events"></a>
 ### `_heading_events`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._heading_events`. Source lines 724–818.
 
 **Purpose:** Scans retained body records outside configured TOC pages. It classifies structural headings and may extend non-zone headings over up to the configured same-page continuation lines, stopping at blanks, structural headings or nonmatching continuation lines. It canonicalizes chapter labels, preserves raw heading lines and normalizes heading text; no matched body heading is a controlled failure.
 
@@ -3695,7 +4681,10 @@ def _heading_events(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--page-fragments"></a>
 ### `_page_fragments`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._page_fragments`. Source lines 821–833.
 
 **Purpose:** Groups consecutive section records by source page, joining their raw lines with newline into ordered immutable (page, text) pairs; empty input returns an empty tuple.
 
@@ -3771,7 +4760,10 @@ def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ..
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--contiguous-page-blocks"></a>
 ### `_contiguous_page_blocks`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._contiguous_page_blocks`. Source lines 836–845.
 
 **Purpose:** Groups an already validated ascending page sequence into maximal adjacent-number tuples. It neither sorts nor validates page numbers itself.
 
@@ -3844,7 +4836,10 @@ def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--section-starts"></a>
 ### `_section_starts`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._section_starts`. Source lines 848–962.
 
 **Purpose:** Combines heading boundaries with forced OTHER boundaries for every contiguous configured TOC block. It shifts real headings backward over preceding blank records, preserves a nonblank preamble as OTHER, absorbs ordinary blank-only gaps into adjacent factual sections and preserves forced blank TOC sections. It returns ordered local boundaries and rejects a missing boundary.
 
@@ -4046,7 +5041,10 @@ def _section_starts(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--section-content-sha256"></a>
 ### `_section_content_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._section_content_sha256`. Source lines 965–977.
 
 **Purpose:** Hashes all canonical SECTION_COLUMNS except the row's own section_content_sha256, under the section domain and schema 3. It does not mutate the supplied mapping.
 
@@ -4138,7 +5136,10 @@ def _section_content_sha256(row: Mapping[str, object]) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--build-sections"></a>
 ### `_build_sections`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._build_sections`. Source lines 980–1080.
 
 **Purpose:** Partitions every retained record exactly once, assigns sequential section IDs, preserves ordered page fragments/raw text and computes record/section hashes. Articles require a preceding active zone chapter and a casefold-equal captured zone; GENERAL resets that active chapter whereas OTHER does not. It returns the 24-column frame, local builds and retained records, using int64 for four counters/page endpoints.
 
@@ -4327,7 +5328,10 @@ def _build_sections(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-source-label-values"></a>
 ### `_validate_source_label_values`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_source_label_values`. Source lines 1083–1085.
 
 **Purpose:** Checks every supplied Series value with the trimmed nonempty string guard. Empty series pass; this helper does not normalize or map labels.
 
@@ -4391,9 +5395,12 @@ def _validate_source_label_values(series: pd.Series, label: str) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validated-zoning-inputs"></a>
 ### `_validated_zoning_inputs`
 
-**Purpose:** Copies the supplied zoning and relation DataFrames after checking required columns, unique zone/source IDs and parcel-zone pairs, exact source/label lineage and known references. Intersection areas must be finite nonnegative non-bool Real values and are copied as float64, with positive AREA_OVERLAP versus zero TOUCH_ONLY parity; present parcel/zone upper metrics are finite nonnegative and use the shared technical tolerance. This validates supplied factual values, not physical geometry, CRS, complete parcel coverage or fresh GPU bytes.
+Qualified owner: `landscout.stages.structure_planning_regulation._validated_zoning_inputs`. Source lines 1088–1235.
+
+**Purpose:** Checks DataFrame types and required columns, then deep-copies both frames before validating unique zone/source IDs and parcel-zone pairs, exact source/label lineage and known references. Intersection areas must be finite nonnegative non-bool Real values and are copied as float64, with positive AREA_OVERLAP versus zero TOUCH_ONLY parity; present parcel/zone upper metrics are finite nonnegative and use the shared technical tolerance. This validates supplied factual values, not physical geometry, CRS, complete parcel coverage or fresh GPU bytes.
 
 **Exact signature**
 
@@ -4676,7 +5683,10 @@ def _validated_zoning_inputs(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--input-frame-sha256"></a>
 ### `_input_frame_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._input_frame_sha256`. Source lines 1238–1249.
 
 **Purpose:** Hashes a caller domain, explicit ordered selected column names and ordered canonical row values. Extra columns, frame index and pandas dtypes are not bound by this payload.
 
@@ -4758,7 +5768,10 @@ def _input_frame_sha256(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--intersection-hash-columns"></a>
 ### `_intersection_hash_columns`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._intersection_hash_columns`. Source lines 1252–1257.
 
 **Purpose:** Returns the eight required relation columns followed by whichever of the two approved optional upper-area columns are present, in fixed declaration order. Unrelated extras do not join the hash.
 
@@ -4826,7 +5839,10 @@ def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--resolved-alias"></a>
 ### `_resolved_alias`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._resolved_alias`. Source lines 1260–1270.
 
 **Purpose:** Returns None for a label without a configured alias, otherwise follows exact case-sensitive links to the terminal target, rejecting a cycle defensively. It never mutates the mapping.
 
@@ -4904,7 +5920,10 @@ def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--dominant-counts"></a>
 ### `_dominant_counts`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._dominant_counts`. Source lines 1273–1286.
 
 **Purpose:** Selects one positive-area relation per parcel after stable ordering by parcel ID, descending area, then lexical planning_zone_id; counts selected raw zone labels. Touch-only rows do not create a dominant label; this is factual selection, not scoring.
 
@@ -4984,7 +6003,10 @@ def _dominant_counts(intersections: pd.DataFrame) -> Counter[str]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--build-zone-mapping"></a>
 ### `_build_zone_mapping`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._build_zone_mapping`. Source lines 1289–1377.
 
 **Purpose:** Produces one sorted row per catalog raw label, preferring a unique exact chapter, then a unique terminal configured alias; duplicate matched chapters are AMBIGUOUS and no match is UNMAPPED. Counts catalog polygons, all relation rows/unique parcels (including touches), and positive-area dominant parcels. Any unresolved dominant label fails; unresolved non-dominant labels remain evidence.
 
@@ -5168,7 +6190,10 @@ def _build_zone_mapping(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--is-token-character"></a>
 ### `_is_token_character`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._is_token_character`. Source lines 1389–1390.
 
 **Purpose:** Treats Unicode alphanumeric characters and underscore as token characters for matching boundaries; it is called on individual neighboring normalized characters.
 
@@ -5230,7 +6255,10 @@ def _is_token_character(value: str) -> bool:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--literal-topic-matches"></a>
 ### `_literal_topic_matches`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._literal_topic_matches`. Source lines 1393–1442.
 
 **Purpose:** Enumerates token-bounded literal normalized matches for one topic's ordered terms, including overlapping candidates. Greedy selection prefers longer spans, then configured term index, then start offset, rejecting overlaps with already selected spans; output sorts by start and term index. This competition is within one topic/fragment, not across topics.
 
@@ -5375,7 +6403,10 @@ def _literal_topic_matches(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--evidence-scope"></a>
 ### `_evidence_scope`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._evidence_scope`. Source lines 1445–1454.
 
 **Purpose:** Maps GENERAL to GENERAL_RULE, ZONE_CHAPTER/ARTICLE to ZONE_SPECIFIC_RULE and OTHER to OTHER_TEXT, rejecting unsupported types. These names describe text location rather than legal applicability.
 
@@ -5450,7 +6481,10 @@ def _evidence_scope(section_type: str) -> str:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--build-topic-evidence"></a>
 ### `_build_topic_evidence`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._build_topic_evidence`. Source lines 1457–1553.
 
 **Purpose:** Iterates sorted topic names, section builds, page fragments and configured term order; excludes TOC fragments unless enabled. It emits one row per retained topic/term/section/page with occurrence count, first normalized/raw half-open offsets and bounded context reconstructed through the normalization mapping. Empty evidence keeps the 21-column schema with six int64 columns.
 
@@ -5631,7 +6665,10 @@ def _build_topic_evidence(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--frame-hash"></a>
 ### `_frame_hash`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._frame_hash`. Source lines 1556–1583.
 
 **Purpose:** Hashes selected ordered component rows with document/index/config/input/source-record lineage and schema 3. Unlike `_input_frame_sha256`, it does not include a separate column-name list; indexes and dtypes are not part of the payload.
 
@@ -5729,7 +6766,10 @@ def _frame_hash(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--structure-result-content-sha256"></a>
 ### `_structure_result_content_sha256`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._structure_result_content_sha256`. Source lines 1586–1612.
 
 **Purpose:** Hashes the domain-separated outer lineage/config/input/schema and three component digests. It excludes its own digest and does not serialize frames directly.
 
@@ -5819,7 +6859,10 @@ def _structure_result_content_sha256(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--result-with-hashes"></a>
 ### `_result_with_hashes`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._result_with_hashes`. Source lines 1615–1644.
 
 **Purpose:** Uses dataclasses.replace to create a result with recomputed section, zone-map and topic digests, then recomputes the outer digest. Frame references are retained, not deep-frozen or copied; a consistent rehash alone is not source validation.
 
@@ -5941,7 +6984,10 @@ def _result_with_hashes(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--page-tuple"></a>
 ### `_page_tuple`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._page_tuple`. Source lines 1647–1654.
 
 **Purpose:** Accepts only tuple/list/NumPy-array containers, normalizes each positive integral page number to built-in int, and returns a tuple. Ascending uniqueness and exact source coverage are checked by callers, not here.
 
@@ -6015,7 +7061,10 @@ def _page_tuple(value: object) -> tuple[int, ...]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-sections"></a>
 ### `_validate_sections`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_sections`. Source lines 1657–1856.
 
 **Purpose:** Checks the exact section schema, sequential IDs, text normalization, counts, row hashes, lineage, page ranges and a complete contiguous nonoverlapping retained-record partition. It validates type-specific nulls/article fields and earlier zone-chapter parents with equal labels; comparison with rebuilt sections additionally enforces the exact grammar-derived result.
 
@@ -6344,7 +7393,10 @@ def _validate_sections(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-zone-mapping"></a>
 ### `_validate_zone_mapping`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_zone_mapping`. Source lines 1859–1973.
 
 **Purpose:** Checks the exact schema, sorted unique labels, status/method pairs, nonnegative counts with positive polygon count, resolved chapter/alias consistency, unresolved null fields, dominant resolution and count inequalities. Exact factual counts and row completeness are established by comparison with the rebuilt mapping.
 
@@ -6550,7 +7602,10 @@ def _validate_zone_mapping(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-topic-evidence"></a>
 ### `_validate_topic_evidence`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_topic_evidence`. Source lines 1976–2119.
 
 **Purpose:** Checks schema and configured topic/term/section/page references, location-derived scope, section labels, policy identity, unique row keys and lineage. It reruns each topic's matching against rebuilt fragments to compare first offsets, count and exact raw/normalized contexts; the full rebuilt-frame comparison detects omitted evidence rows.
 
@@ -6803,7 +7858,10 @@ def _validate_topic_evidence(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--build-structure-result"></a>
 ### `_build_structure_result`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._build_structure_result`. Source lines 2122–2171.
 
 **Purpose:** Builds sections, mapping and topic frames, computes config/input/retained-record digests and fills the frozen result envelope's component/outer hashes. It returns auxiliary builds and records for validation without writing artifacts.
 
@@ -6935,7 +7993,10 @@ def _build_structure_result(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--validate-result-self"></a>
 ### `_validate_result_self`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._validate_result_self`. Source lines 2174–2283.
 
 **Purpose:** Intrinsically validates the index and result type, compares all lineage/config/input identities and supported versions, requires the exact ordered tuple of intersection hash columns, runs all three frame validators and recomputes component/outer hashes. It is one part of the public rebuilt-result validation, not a fresh PDF/GPU read.
 
@@ -7143,7 +8204,10 @@ def _validate_result_self(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--resolved-config"></a>
 ### `_resolved_config`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._resolved_config`. Source lines 2286–2298.
 
 **Purpose:** For a supplied model instance, serializes Python-mode values and reconstructs/revalidates a fresh PlanningRegulationStructureConfig even when the original is frozen; otherwise loads the supplied path. isinstance, not exact type identity, selects the model branch. Failures are controlled.
 
@@ -7184,7 +8248,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `PlanningRegulationStructureError` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureError` |
 | `load_planning_regulation_structure_config` | `landscout.stages.structure_planning_regulation.load_planning_regulation_structure_config` |
@@ -7226,7 +8290,10 @@ def _resolved_config(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--canonical-frame-rows"></a>
 ### `_canonical_frame_rows`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._canonical_frame_rows`. Source lines 2301–2302.
 
 **Purpose:** Returns canonical selected ordered row records for result comparison. Null/NumPy/container representations are normalized; frame indexes and pandas dtypes are not compared here.
 
@@ -7290,7 +8357,10 @@ def _canonical_frame_rows(frame: pd.DataFrame, columns: Sequence[str]) -> object
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--compare-expected-result"></a>
 ### `_compare_expected_result`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._compare_expected_result`. Source lines 2305–2348.
 
 **Purpose:** Compares all 16 scalar/tuple result attributes plus exact column order and canonical ordered rows for the three frames against a rebuilt result. It does not require identical pandas index/dtype representations.
 
@@ -7403,7 +8473,10 @@ def _compare_expected_result(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13--section-page-fragments"></a>
 ### `_section_page_fragments`
+
+Qualified owner: `landscout.stages.structure_planning_regulation._section_page_fragments`. Source lines 2351–2393.
 
 **Purpose:** Creates a new ten-column section/page frame from rebuilt retained fragments, binding each raw UTF-8 fragment SHA and the complete structure-result digest. Page numbers become int64 and duplicate section/page keys fail.
 
@@ -7518,7 +8591,10 @@ def _section_page_fragments(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-validate-planning-regulation-structure-with-fragments"></a>
 ### `validate_planning_regulation_structure_with_fragments`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure_with_fragments`. Source lines 2396–2433.
 
 **Purpose:** Reconstructs config, validates index/document locks and supplied zoning facts, rebuilds expected evidence once, validates the provided envelope/frames and compares the complete expected result, then returns new retained fragments. Source-complete here means all supplied locked index/zoning inputs are used; it does not reopen physical PDF/GPU or recalculate overlay geometry. Unexpected errors are wrapped.
 
@@ -7672,7 +8748,10 @@ def validate_planning_regulation_structure_with_fragments(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-validate-planning-regulation-structure"></a>
 ### `validate_planning_regulation_structure`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.validate_planning_regulation_structure`. Source lines 2436–2451.
 
 **Purpose:** Delegates to the same complete reconstruction/comparison boundary and discards the constructed fragment frame, returning None. It does not weaken any checks performed by the fragment-returning API.
 
@@ -7812,7 +8891,10 @@ def validate_planning_regulation_structure(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-planning-regulation-section-page-fragments"></a>
 ### `planning_regulation_section_page_fragments`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.planning_regulation_section_page_fragments`. Source lines 2454–2476.
 
 **Purpose:** Returns fragments only after the public complete structure-validation path; it is not an accessor that trusts stored section text. Controlled structure errors propagate and unexpected exceptions are wrapped.
 
@@ -7929,7 +9011,10 @@ def planning_regulation_section_page_fragments(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r13-structure-planning-regulation"></a>
 ### `structure_planning_regulation`
+
+Qualified owner: `landscout.stages.structure_planning_regulation.structure_planning_regulation`. Source lines 2479–2512.
 
 **Purpose:** Reconstructs config, checks the index/document lock and copied zoning facts, builds the result and invokes its public validator, which rebuilds expected evidence again before return. It creates factual sections/mappings/literal topic evidence, not BESS interpretation, legal permission, scoring or new spatial calculations.
 
@@ -8130,7 +9215,16 @@ def structure_planning_regulation(
 
 ## 6A. STEP 7F.1A.4.1 changed callable contracts
 
+<a id="r13-planningregulationstructureconfig--serialize-zone-aliases"></a>
 ### `PlanningRegulationStructureConfig._serialize_zone_aliases` — STEP 7F.1A.4.1 current contract
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig._serialize_zone_aliases`. Source lines 227–228.
+
+Exact declaration/signature:
+
+```python
+    def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
+```
 
 - Exact signature: `def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:`
 - Exact decorators: `@field_serializer("zone_aliases")`
@@ -8144,7 +9238,20 @@ def _serialize_zone_aliases(self, value: Mapping[str, str]) -> dict[str, str]:
         return dict(value)
 ```
 
+<a id="r13-planningregulationstructureconfig--serialize-topics"></a>
 ### `PlanningRegulationStructureConfig._serialize_topics` — STEP 7F.1A.4.1 current contract
+
+Qualified owner: `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig._serialize_topics`. Source lines 231–238.
+
+Exact declaration/signature:
+
+```python
+    def _serialize_topics(
+        self,
+        value: Mapping[str, tuple[str, ...]],
+        info: SerializationInfo,
+    ) -> dict[str, tuple[str, ...] | list[str]]:
+```
 
 - Exact signature: `def _serialize_topics( self, value: Mapping[str, tuple[str, ...]], info: SerializationInfo, ) -> dict[str, tuple[str, ...] | list[str]]:`
 - Exact decorators: `@field_serializer("topics")`

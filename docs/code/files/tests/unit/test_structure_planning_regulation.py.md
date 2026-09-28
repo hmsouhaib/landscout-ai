@@ -6,17 +6,25 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+- Responsibility: Exercises the synthetic structure contracts and bounded assertions documented below; it does not establish exhaustive or official-source coverage.
 - Source SHA256: `80ab6feaf5e77d99f538c1aab53f0520f496a45c18758a7d33d4c7554646b6d2`
+- Source SHA256 basis: `git-content`
+- R13 verification basis: `ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
 - Refreshes permanent STEP 7F.1A.4 regression coverage for structure planning regulation; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
+## R13 fixture and evidence boundary
+
+All page/index facts here are synthetic; no original PDF, GPU package, network source, geometry overlay or official Muret configuration is opened. Only the two loader tests write temporary YAML and delegate reads to the public config loader. No monkeypatch counter/no-op/sentinel arrangement is present in this file. Public result tests do perform the real in-memory reconstruction, whereas direct helper and model tests do not implicitly exercise the entire boundary. The three result DataFrames are mutable even though the lineage dataclass is frozen.
+
+The per-test purpose paragraphs qualify earliest possible failures. In particular, invalid-regex plus extra-field input is combined, page zero may fail config reconstruction, unchanged section row hashes precede parent semantics, and fabricated context is compared to rebuilt fragments before final expected-frame equality. These are proof limits, not new production defects. Matching a test title or counting assertions does not establish a stronger invariant.
+
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Exercises the synthetic structure contracts and bounded assertions documented below; it does not establish exhaustive or official-source coverage.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -32,7 +40,7 @@ The file belongs to the **unit/regression test** layer and **isolated contract t
 
 - `import pandas as pd`
 - `import pytest`
-- `import yaml`
+- `import yaml` (local to the two temporary-YAML loader tests)
 
 ### Internal LandScout imports
 
@@ -81,9 +89,12 @@ No top-level class/model/dataclass is declared.
 
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r13--index"></a>
 ### `_index`
 
-**Purpose:** Implements `index` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._index`. Source lines 39–84.
+
+**Purpose:** Creates a self-hashed synthetic PlanningRegulationIndex from supplied page strings or seven default Test PLU pages (TOC, general provisions, U/N chapters and two Z chapters). It derives TEXT/EMPTY, normalized text and character counts, hashes every page and the pages envelope, then replaces the complete index digest. doc-1 and repeated-letter archive/PDF identities are fixture values; no PDF is opened or extracted.
 
 **Exact signature**
 
@@ -190,7 +201,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `enumerate` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `landscout.stages.index_planning_regulation._normalize_search_text` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` via the index alias |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_page_content_sha256` | `landscout.stages.index_planning_regulation._page_content_sha256` |
 | `rows.append` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -270,9 +281,12 @@ def _index(raw_pages: tuple[str, ...] | None = None) -> PlanningRegulationIndex:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--config"></a>
 ### `_config`
 
-**Purpose:** Implements `config` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._config`. Source lines 87–127.
+
+**Purpose:** Validates an in-memory schema-2 synthetic_v1 grammar locked to the supplied index. Defaults select body page 1, TOC page 1, two continuation lines, Test PLU headers and numeric footers, Ua→U, energy/risk terms, token_longest_match and a 20-normalized-character context margin. It does not load the Muret YAML.
 
 **Exact signature**
 
@@ -380,7 +394,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 
 **Source-observed side-effect matrix**
 
@@ -447,9 +461,12 @@ def _config(index: PlanningRegulationIndex) -> PlanningRegulationStructureConfig
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--zones"></a>
 ### `_zones`
 
-**Purpose:** Implements `zones` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._zones`. Source lines 130–140.
+
+**Purpose:** Returns five non-geometric catalog rows labelled U, Ua, X, UX and Z, with ZONE-/SRC- identifiers and document/archive lineage copied from the index. This is a DataFrame fixture, not a GPU physical zoning read.
 
 **Exact signature**
 
@@ -582,9 +599,12 @@ def _zones(index: PlanningRegulationIndex) -> pd.DataFrame:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--intersections"></a>
 ### `_intersections`
 
-**Purpose:** Implements `intersections` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._intersections`. Source lines 143–155.
+
+**Purpose:** Returns two synthetic AREA_OVERLAP rows: PARCEL-1/U/100.0 and PARCEL-2/Ua/50.0, with matching source identifiers and index lineage. No optional upper-area columns or geometry calculation are present.
 
 **Exact signature**
 
@@ -719,9 +739,12 @@ def _intersections(index: PlanningRegulationIndex) -> pd.DataFrame:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-valid-result"></a>
 ### `valid_result`
 
-**Purpose:** Implements `valid result` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation.valid_result`. Source lines 159–164.
+
+**Purpose:** The pytest fixture builds from _index, _zones, _intersections and _config and returns the pair (index, result). Its result has already traversed the public builder and its delegated in-memory validation; this is not a source-acquisition fixture. The function has no return annotation.
 
 **Exact signature**
 
@@ -730,7 +753,7 @@ def valid_result():
 ```
 
 - Exact decorators: `pytest.fixture`.
-- Declared return annotation: `None`.
+- Declared return annotation: not declared (not `-> None`).
 
 **Inputs**
 
@@ -807,9 +830,12 @@ def valid_result():
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--validate"></a>
 ### `_validate`
 
-**Purpose:** Implements `validate` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._validate`. Source lines 167–177.
+
+**Purpose:** Calls the five-argument public validator with the supplied index/result and freshly regenerated synthetic zones, intersections and config. It returns None and does not reseal a mutated result or replace the supplied index.
 
 **Exact signature**
 
@@ -828,7 +854,7 @@ def _validate(
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
 | `index` | positional-or-keyword | `PlanningRegulationIndex` | `required` |
-| `result` | positional-or-keyword | `None` | `required` |
+| `result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -910,9 +936,12 @@ def _validate(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-package-exports-clean-high-level-api"></a>
 ### `test_package_exports_clean_high_level_api`
 
-**Purpose:** Regression invariant: package exports clean high level api. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_package_exports_clean_high_level_api`. Source lines 180–184.
+
+**Purpose:** Checks membership of the builder and two validator names in stages.__all__, and absence of names beginning _build_. It does not assert equality with the complete eight-export inventory.
 
 **Exact signature**
 
@@ -977,9 +1006,12 @@ def test_package_exports_clean_high_level_api() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-source-complete-validator-can-return-validated-fragments"></a>
 ### `test_source_complete_validator_can_return_validated_fragments`
 
-**Purpose:** Regression invariant: source complete validator can return validated fragments. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_source_complete_validator_can_return_validated_fragments`. Source lines 187–209.
+
+**Purpose:** Unpacks valid_result and invokes the fragment-returning public validator with all five in-memory inputs. Asserts the exact ten-column tuple, uniqueness of (section_id, page_number), and uniform document_id. It does not independently recompute fragment hashes or compare all raw fragment texts.
 
 **Exact signature**
 
@@ -994,7 +1026,7 @@ def test_source_complete_validator_can_return_validated_fragments(valid_result) 
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -1070,9 +1102,12 @@ def test_source_complete_validator_can_return_validated_fragments(valid_result) 
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-structure-schema-versions-are-explicit"></a>
 ### `test_structure_schema_versions_are_explicit`
 
-**Purpose:** Regression invariant: structure schema versions are explicit. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_structure_schema_versions_are_explicit`. Source lines 212–219.
+
+**Purpose:** From the synthetic fixture, asserts config/result config version 2, constant/result section hash version 3 and manifest constant 4. No manifest artifact is loaded.
 
 **Exact signature**
 
@@ -1087,7 +1122,7 @@ def test_structure_schema_versions_are_explicit(valid_result) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -1142,9 +1177,12 @@ def test_structure_schema_versions_are_explicit(valid_result) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-old-and-unknown-config-schema-versions-are-rejected"></a>
 ### `test_old_and_unknown_config_schema_versions_are_rejected`
 
-**Purpose:** Regression invariant: old and unknown config schema versions are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_old_and_unknown_config_schema_versions_are_rejected`. Source lines 223–230.
+
+**Purpose:** Changes only the dumped config schema_version to 1 or 3 and requires model validation to raise ValueError matching unsupported structure config schema. This is a model-only boundary, not the file loader.
 
 **Exact signature**
 
@@ -1182,7 +1220,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `pytest.raises` | `pytest.raises` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
@@ -1217,9 +1255,12 @@ def test_old_and_unknown_config_schema_versions_are_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-old-and-unknown-result-config-schema-versions-are-rejected"></a>
 ### `test_old_and_unknown_result_config_schema_versions_are_rejected`
 
-**Purpose:** Regression invariant: old and unknown result config schema versions are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_old_and_unknown_result_config_schema_versions_are_rejected`. Source lines 234–243.
+
+**Purpose:** Replaces only the result config schema version by 1 or 3; _validate must raise PlanningRegulationStructureError matching schema version. The original factual inputs remain unchanged.
 
 **Exact signature**
 
@@ -1237,7 +1278,7 @@ def test_old_and_unknown_result_config_schema_versions_are_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `schema_version` | positional-or-keyword | `int` | `required` |
 
 **Return and exception contract**
@@ -1294,9 +1335,12 @@ def test_old_and_unknown_result_config_schema_versions_are_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-old-and-unknown-section-hash-schema-versions-are-rejected"></a>
 ### `test_old_and_unknown_section_hash_schema_versions_are_rejected`
 
-**Purpose:** Regression invariant: old and unknown section hash schema versions are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_old_and_unknown_section_hash_schema_versions_are_rejected`. Source lines 247–253.
+
+**Purpose:** Replaces only the result section hash version by 1, 2 or 4, then requires the public validation helper to raise PlanningRegulationStructureError matching schema version.
 
 **Exact signature**
 
@@ -1314,7 +1358,7 @@ def test_old_and_unknown_section_hash_schema_versions_are_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `schema_version` | positional-or-keyword | `int` | `required` |
 
 **Return and exception contract**
@@ -1368,9 +1412,12 @@ def test_old_and_unknown_section_hash_schema_versions_are_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-toc-topic-evidence-flag-rejects-boolean-coercion"></a>
 ### `test_toc_topic_evidence_flag_rejects_boolean_coercion`
 
-**Purpose:** Regression invariant: toc topic evidence flag rejects boolean coercion. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_toc_topic_evidence_flag_rejects_boolean_coercion`. Source lines 257–262.
+
+**Purpose:** Puts 0, 1, false/true strings or yes into the dumped TOC evidence flag and requires ValueError from model_validate. It tests these five non-bool inputs, not all possible coercions.
 
 **Exact signature**
 
@@ -1406,7 +1453,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `pytest.raises` | `pytest.raises` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
@@ -1439,9 +1486,12 @@ def test_toc_topic_evidence_flag_rejects_boolean_coercion(value: object) -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-toc-topic-evidence-flag-accepts-exact-booleans"></a>
 ### `test_toc_topic_evidence_flag_accepts_exact_booleans`
 
-**Purpose:** Regression invariant: toc topic evidence flag accepts exact booleans. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_toc_topic_evidence_flag_accepts_exact_booleans`. Source lines 266–273.
+
+**Purpose:** Validates each exact False/True flag and asserts identity (is) with the supplied Boolean; no builder execution is performed by this test body.
 
 **Exact signature**
 
@@ -1476,7 +1526,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
@@ -1511,9 +1561,12 @@ def test_toc_topic_evidence_flag_accepts_exact_booleans(value: bool) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-document-layout-accepts-real-first-and-last-indexed-pages"></a>
 ### `test_document_layout_accepts_real_first_and_last_indexed_pages`
 
-**Purpose:** Regression invariant: document layout accepts real first and last indexed pages. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_document_layout_accepts_real_first_and_last_indexed_pages`. Source lines 276–294.
+
+**Purpose:** Builds three synthetic pages with TOC pages (1, 3), body start 1 and a U body on page 2 through the layout helper, validates again, and asserts first/last section page tuples (1,) and (3,). Real means present in this synthetic index.
 
 **Exact signature**
 
@@ -1592,9 +1645,12 @@ def test_document_layout_accepts_real_first_and_last_indexed_pages() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-document-layout-rejects-nonexistent-indexed-pages"></a>
 ### `test_document_layout_rejects_nonexistent_indexed_pages`
 
-**Purpose:** Regression invariant: document layout rejects nonexistent indexed pages. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_document_layout_rejects_nonexistent_indexed_pages`. Source lines 305–319.
+
+**Purpose:** Uses unchecked nested model_copy updates for TOC (0,), TOC (8,) or body start 8 and expects PlanningRegulationStructureError from the builder. Zero can fail during reconstructed config validation before index membership; the test does not isolate that later guard for every case.
 
 **Exact signature**
 
@@ -1686,9 +1742,12 @@ def test_document_layout_rejects_nonexistent_indexed_pages(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-existing-empty-toc-page-is-valid-not-nonexistent"></a>
 ### `test_existing_empty_toc_page_is_valid_not_nonexistent`
 
-**Purpose:** Regression invariant: existing empty toc page is valid not nonexistent. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_existing_empty_toc_page_is_valid_not_nonexistent`. Source lines 322–338.
+
+**Purpose:** Builds an empty first TOC page and U body page 2, asserts EMPTY on the first indexed page and completes public validation. This distinguishes an existing empty page from a missing page number.
 
 **Exact signature**
 
@@ -1764,9 +1823,12 @@ def test_existing_empty_toc_page_is_valid_not_nonexistent() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-document-lock-mismatch-is-rejected"></a>
 ### `test_document_lock_mismatch_is_rejected`
 
-**Purpose:** Regression invariant: document lock mismatch is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_document_lock_mismatch_is_rejected`. Source lines 351–361.
+
+**Purpose:** Individually changes each of the five lock fields using model_copy (f×64 for digests, wrong otherwise), preserving the index. Builder rejection must be PlanningRegulationStructureError matching document lock.
 
 **Exact signature**
 
@@ -1852,9 +1914,12 @@ def test_document_lock_mismatch_is_rejected(lock_field: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-invalid-regex-and-unknown-yaml-field-are-controlled"></a>
 ### `test_invalid_regex_and_unknown_yaml_field_are_controlled`
 
-**Purpose:** Regression invariant: invalid regex and unknown yaml field are controlled. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_invalid_regex_and_unknown_yaml_field_are_controlled`. Source lines 364–374.
+
+**Purpose:** Writes temporary bad.yaml containing both zone regex [ and unexpected=True, then requires a controlled loader error without a message constraint. The combined malformed input does not independently prove the regex guard: extra-field rejection may precede the after-validator.
 
 **Exact signature**
 
@@ -1929,9 +1994,12 @@ def test_invalid_regex_and_unknown_yaml_field_are_controlled(tmp_path: Path) -> 
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-duplicate-yaml-alias-and-alias-cycle-are-rejected"></a>
 ### `test_duplicate_yaml_alias_and_alias_cycle_are_rejected`
 
-**Purpose:** Regression invariant: duplicate yaml alias and alias cycle are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_duplicate_yaml_alias_and_alias_cycle_are_rejected`. Source lines 377–392.
+
+**Purpose:** Writes and loads two separate temporary YAML files: A→B→A must raise a controlled error; duplicated A mapping keys injected under zone_aliases must raise PlanningRegulationStructureError matching Duplicate YAML. str.replace changes text in memory, not a filesystem path.
 
 **Exact signature**
 
@@ -1982,7 +2050,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `cycle.write_text`<br>`text.replace`<br>`duplicate.write_text` |
+| Filesystem/archive write or publication | `cycle.write_text`<br>`duplicate.write_text` (text.replace is in-memory string construction) |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -2014,9 +2082,12 @@ def test_duplicate_yaml_alias_and_alias_cycle_are_rejected(tmp_path: Path) -> No
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-realistic-structure-is-deterministic-and-toc-heading-is-ignored"></a>
 ### `test_realistic_structure_is_deterministic_and_toc_heading_is_ignored`
 
-**Purpose:** Regression invariant: realistic structure is deterministic and toc heading is ignored. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_realistic_structure_is_deterministic_and_toc_heading_is_ignored`. Source lines 395–408.
+
+**Purpose:** Validates the default synthetic result, checks sequential section IDs, chapter labels exactly [U, N, Z, Z] with one U chapter, and the first GENERAL heading/text. No second build or real PDF is compared here.
 
 **Exact signature**
 
@@ -2033,7 +2104,7 @@ def test_realistic_structure_is_deterministic_and_toc_heading_is_ignored(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -2100,9 +2171,12 @@ def test_realistic_structure_is_deterministic_and_toc_heading_is_ignored(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-zone-article-parent-and-multi-page-text-are-preserved"></a>
 ### `test_zone_article_parent_and_multi_page_text_are_preserved`
 
-**Purpose:** Regression invariant: zone article parent and multi page text are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_zone_article_parent_and_multi_page_text_are_preserved`. Source lines 411–420.
+
+**Purpose:** Selects the ARTICLE U 1 row, follows its parent ID and asserts a ZONE_CHAPTER parent, page tuple (3, 4), and both expected page-text substrings. It does not assert all parent fields or fragment hashes.
 
 **Exact signature**
 
@@ -2117,7 +2191,7 @@ def test_zone_article_parent_and_multi_page_text_are_preserved(valid_result) -> 
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -2175,9 +2249,12 @@ def test_zone_article_parent_and_multi_page_text_are_preserved(valid_result) -> 
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-exact-alias-unmapped-ambiguous-and-no-fuzzy-mapping"></a>
 ### `test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping`
 
-**Purpose:** Regression invariant: exact alias unmapped ambiguous and no fuzzy mapping. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping`. Source lines 423–431.
+
+**Purpose:** Checks U=EXACT, Ua=CONFIG_ALIAS, X/UX=UNMAPPED, Z=AMBIGUOUS and X dominant count zero in the default result. No policy/BESS classification or universal fuzzy-match test follows from those selected cells.
 
 **Exact signature**
 
@@ -2192,7 +2269,7 @@ def test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping(valid_result) -> No
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -2249,9 +2326,12 @@ def test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping(valid_result) -> No
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-topic-evidence-distinguishes-general-and-zone-specific"></a>
 ### `test_topic_evidence_distinguishes_general_and_zone_specific`
 
-**Purpose:** Regression invariant: topic evidence distinguishes general and zone specific. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_topic_evidence_distinguishes_general_and_zone_specific`. Source lines 434–439.
+
+**Purpose:** Filters energy evidence and asserts exactly the two GENERAL_RULE/ZONE_SPECIFIC_RULE scope values, occurrence-count set {1}, and truthy raw contexts; it does not assert exact context strings.
 
 **Exact signature**
 
@@ -2266,7 +2346,7 @@ def test_topic_evidence_distinguishes_general_and_zone_specific(valid_result) ->
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -2319,9 +2399,12 @@ def test_topic_evidence_distinguishes_general_and_zone_specific(valid_result) ->
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-evidence-scope-is-derived-from-exact-section-type"></a>
 ### `test_evidence_scope_is_derived_from_exact_section_type`
 
-**Purpose:** Regression invariant: evidence scope is derived from exact section type. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_evidence_scope_is_derived_from_exact_section_type`. Source lines 442–491.
+
+**Purpose:** Builds synthetic cover/general/chapter/article energy text with no TOC/filtering, checks all four section-type-to-scope sets, then changes an OTHER evidence row to GENERAL_RULE. Public validation must reject with a scope message; no hashes are resealed.
 
 **Exact signature**
 
@@ -2356,7 +2439,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
 | `_intersections` | `tests.unit.test_structure_planning_regulation._intersections` |
@@ -2445,9 +2528,12 @@ def test_evidence_scope_is_derived_from_exact_section_type() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-reversed-topic-mapping-keys-do-not-change-output-or-hashes"></a>
 ### `test_reversed_topic_mapping_keys_do_not_change_output_or_hashes`
 
-**Purpose:** Regression invariant: reversed topic mapping keys do not change output or hashes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_reversed_topic_mapping_keys_do_not_change_output_or_hashes`. Source lines 494–533.
+
+**Purpose:** Reverses only topic mapping insertion order and first proves that order survives model creation. Two public builds must have frame-equal topic evidence, sorted topic names, and equal config, topic and outer hashes. Term order is not changed.
 
 **Exact signature**
 
@@ -2488,7 +2574,7 @@ Outbound call expressions and conservative ownership:
 | `reversed` | `unresolved local/third-party receiver; no ownership inferred` |
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 | `payload["topics"].items` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
 | `_intersections` | `tests.unit.test_structure_planning_regulation._intersections` |
@@ -2560,9 +2646,12 @@ def test_reversed_topic_mapping_keys_do_not_change_output_or_hashes() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-equal-length-overlap-uses-configured-term-order-as-tie-break"></a>
 ### `test_equal_length_overlap_uses_configured_term_order_as_tie_break`
 
-**Purpose:** Regression invariant: equal length overlap uses configured term order as tie break. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_equal_length_overlap_uses_configured_term_order_as_tie_break`. Source lines 536–572.
+
+**Purpose:** On alpha beta gamma, the private matcher selects alpha beta at [0,10) or beta gamma at [6,16) when equal-length term order reverses. Two synthetic public builds retain the corresponding term, and config hashes differ. This combines helper-level and in-memory builder evidence.
 
 **Exact signature**
 
@@ -2605,7 +2694,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `forward_config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
@@ -2674,9 +2763,12 @@ def test_equal_length_overlap_uses_configured_term_order_as_tie_break() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-inputs-are-not-mutated"></a>
 ### `test_inputs_are_not_mutated`
 
-**Purpose:** Regression invariant: inputs are not mutated. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_inputs_are_not_mutated`. Source lines 575–585.
+
+**Purpose:** Deep-copies pages, zones and intersections, executes the public builder, then uses three pandas assert_frame_equal calls against the originals. Zero Python assert statements is not absence of assertions; the test does not prove arbitrary nested-object alias isolation.
 
 **Exact signature**
 
@@ -2749,9 +2841,12 @@ def test_inputs_are_not_mutated() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-structure-decision-mappings-are-deeply-immutable"></a>
 ### `test_structure_decision_mappings_are_deeply_immutable`
 
-**Purpose:** Regression invariant: structure decision mappings are deeply immutable. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_structure_decision_mappings_are_deeply_immutable`. Source lines 588–597.
+
+**Purpose:** Attempts zone_aliases[Ux]=U and topics[new]=(term,) on a validated synthetic config. Both must immediately raise TypeError matching frozen mapping and the Python dump must remain equal. This body tests two mapping assignments, not an exhaustive collection-operation matrix.
 
 **Exact signature**
 
@@ -2822,9 +2917,12 @@ def test_structure_decision_mappings_are_deeply_immutable() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-body-page-extraction-error-stops-structure"></a>
 ### `test_body_page_extraction_error_stops_structure`
 
-**Purpose:** Regression invariant: body page extraction error stops structure. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_body_page_extraction_error_stops_structure`. Source lines 600–623.
+
+**Purpose:** Changes page 3 to a coherent ERROR with empty texts/count zero and a synthetic error string; recalculates its page, pages and complete index hashes and regenerates the matching config lock. Builder rejection must match body page.*ERROR, rather than merely stale hashes.
 
 **Exact signature**
 
@@ -2915,9 +3013,12 @@ def test_body_page_extraction_error_stops_structure() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-blank-successfully-extracted-body-page-remains-valid"></a>
 ### `test_blank_successfully_extracted_body_page_remains_valid`
 
-**Purpose:** Regression invariant: blank successfully extracted body page remains valid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_blank_successfully_extracted_body_page_remains_valid`. Source lines 626–650.
+
+**Purpose:** Changes page 2 to coherent EMPTY/null error, recalculates page/pages/index hashes, builds with a newly matching lock and asserts sections are nonempty. No actual extraction occurs.
 
 **Exact signature**
 
@@ -3008,9 +3109,12 @@ def test_blank_successfully_extracted_body_page_remains_valid() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-coordinated-frame-mutation-is-rejected"></a>
 ### `test_coordinated_frame_mutation_is_rejected`
 
-**Purpose:** Regression invariant: coordinated frame mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_coordinated_frame_mutation_is_rejected`. Source lines 661–679.
+
+**Purpose:** Copies one frame and changes row 0: section raw_text or topic raw_context gains changed; mapping candidate_parcel_count increases by one. Validation rejects both the original envelope and a second attempt with only the selected component hash set to f×64. This is not a valid recomputation of all hashes; earlier normalization/count/context guards can reject.
 
 **Exact signature**
 
@@ -3037,7 +3141,7 @@ def test_coordinated_frame_mutation_is_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `frame_name` | positional-or-keyword | `str` | `required` |
 | `hash_name` | positional-or-keyword | `str` | `required` |
 | `column` | positional-or-keyword | `str` | `required` |
@@ -3108,9 +3212,12 @@ def test_coordinated_frame_mutation_is_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-unknown-topic-page-reference-is-rejected"></a>
 ### `test_unknown_topic_page_reference_is_rejected`
 
-**Purpose:** Regression invariant: unknown topic page reference is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_unknown_topic_page_reference_is_rejected`. Source lines 682–687.
+
+**Purpose:** Sets the first evidence page_number to 999 in a copied frame, retains all other inputs/hashes, and requires PlanningRegulationStructureError matching unknown page.
 
 **Exact signature**
 
@@ -3125,7 +3232,7 @@ def test_unknown_topic_page_reference_is_rejected(valid_result) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -3177,9 +3284,12 @@ def test_unknown_topic_page_reference_is_rejected(valid_result) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-coordinated-section-row-mutation-is-caught-by-outer-envelope"></a>
 ### `test_coordinated_section_row_mutation_is_caught_by_outer_envelope`
 
-**Purpose:** Regression invariant: coordinated section row mutation is caught by outer envelope. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_coordinated_section_row_mutation_is_caught_by_outer_envelope`. Source lines 690–703.
+
+**Purpose:** Appends changed to the first section raw_text and recomputes normalized_text, character_count and that section row digest, but not the component/outer envelopes. _validate must reject without a message constraint. The raw-text-versus-retained-record guard precedes outer-hash checks, so the title does not prove rejection specifically by the outer envelope.
 
 **Exact signature**
 
@@ -3196,7 +3306,7 @@ def test_coordinated_section_row_mutation_is_caught_by_outer_envelope(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -3214,7 +3324,7 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `result.sections.copy` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_normalize_search_text` | `landscout.stages.index_planning_regulation._normalize_search_text` |
+| `_normalize_search_text` | `landscout.common.planning_text.normalize_planning_search_text` via the index alias |
 | `len` | `unresolved local/third-party receiver; no ownership inferred` |
 | `sections.loc[0].to_dict` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_section_content_sha256` | `landscout.stages.structure_planning_regulation._section_content_sha256` |
@@ -3260,9 +3370,12 @@ def test_coordinated_section_row_mutation_is_caught_by_outer_envelope(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-dominant-unmapped-zone-stops-processing"></a>
 ### `test_dominant_unmapped_zone_stops_processing`
 
-**Purpose:** Regression invariant: dominant unmapped zone stops processing. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_dominant_unmapped_zone_stops_processing`. Source lines 706–715.
+
+**Purpose:** Changes the first positive relation consistently from U to catalog X across planning_zone_id/source_zone_id/zone_label_raw; its area remains 100.0. Builder rejection must match Dominant candidate because X has no chapter mapping.
 
 **Exact signature**
 
@@ -3334,9 +3447,12 @@ def test_dominant_unmapped_zone_stops_processing() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-positional-header-footer-filter-preserves-matching-body-lines"></a>
 ### `test_positional_header_footer_filter_preserves_matching_body_lines`
 
-**Purpose:** Regression invariant: positional header footer filter preserves matching body lines. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_positional_header_footer_filter_preserves_matching_body_lines`. Source lines 718–734.
+
+**Purpose:** Calls _line_records directly on one synthetic page with leading Test PLU, interior Test PLU/100 and trailing 42. Asserts interior matches survive, footer 42 is absent, first retained text is the general heading at original line 4. It does not invoke public structure validation.
 
 **Exact signature**
 
@@ -3415,9 +3531,12 @@ def test_positional_header_footer_filter_preserves_matching_body_lines() -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-page-without-configured-header-or-footer-is-unchanged"></a>
 ### `test_page_without_configured_header_or_footer_is_unchanged`
 
-**Purpose:** Regression invariant: page without configured header or footer is unchanged. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_page_without_configured_header_or_footer_is_unchanged`. Source lines 737–751.
+
+**Purpose:** Disables both pattern tuples via model_copy and calls _line_records directly, asserting all three raw lines exactly. No public config reconstruction is exercised.
 
 **Exact signature**
 
@@ -3492,9 +3611,12 @@ def test_page_without_configured_header_or_footer_is_unchanged() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-blank-only-prefix-is-preserved-in-first-actual-section"></a>
 ### `test_blank_only_prefix_is_preserved_in_first_actual_section`
 
-**Purpose:** Regression invariant: blank only prefix is preserved in first actual section. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_blank_only_prefix_is_preserved_in_first_actual_section`. Source lines 769–801.
+
+**Purpose:** For blanks before a heading on the same page or a preceding blank page, disables TOC/filtering and builds/validates. Asserts the first actual ZONE_CHAPTER retains heading ZONE U, RECORD-000001, expected pages/prefix, complete record-count sum and no OTHER section.
 
 **Exact signature**
 
@@ -3555,7 +3677,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `_line_records` | `landscout.stages.structure_planning_regulation._line_records` |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
@@ -3626,9 +3748,12 @@ def test_blank_only_prefix_is_preserved_in_first_actual_section(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-toc-blocks-anywhere-are-other-and-toggle-topic-evidence"></a>
 ### `test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence`
 
-**Purpose:** Regression invariant: toc blocks anywhere are other and toggle topic evidence. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence`. Source lines 804–868.
+
+**Purpose:** Builds seven synthetic pages with TOC blocks (1,2), (4,5), (7), with evidence disabled/enabled. Both results validate; OTHER page tuples/headings are exact, sections and mappings are frame-equal, excluded evidence is on {3,6}, included evidence on all seven pages with TOC scope OTHER_TEXT. set.isdisjoint is not a spatial operation.
 
 **Exact signature**
 
@@ -3667,7 +3792,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `payload["document_layout"].update` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `excluded_config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
@@ -3692,7 +3817,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `toc_pages.isdisjoint` |
+| CRS/geometry/spatial calculation | None; toc_pages.isdisjoint compares Python sets of page numbers. |
 | External process/environment | None directly present. |
 | In-memory mutation | `payload["document_layout"].update(<br>        {<br>            "table_of_contents_pages": (1, 2, 4, 5, 7),<br>            "include_table_of_contents_in_topic_evidence": False,<br>        }<br>    )`<br>`payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}`<br>`included_payload["document_layout"][<br>        "include_table_of_contents_in_topic_evidence"<br>    ] = True` |
 | Direct parameter mutation | None directly present. |
@@ -3771,9 +3896,12 @@ def test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-blank-gap-after-toc-is-preserved-without-a-blank-other-section"></a>
 ### `test_blank_gap_after_toc_is_preserved_without_a_blank_other_section`
 
-**Purpose:** Regression invariant: blank gap after toc is preserved without a blank other section. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_blank_gap_after_toc_is_preserved_without_a_blank_other_section`. Source lines 871–906.
+
+**Purpose:** With TOC page 2, blank page 3 and U body page 4, builds/validates and asserts only page 2 belongs to OTHER while the chapter retains pages (3,4), heading ZONE U and the exact blank prefix.
 
 **Exact signature**
 
@@ -3809,7 +3937,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
 | `_intersections` | `tests.unit.test_structure_planning_regulation._intersections` |
@@ -3879,9 +4007,12 @@ def test_blank_gap_after_toc_is_preserved_without_a_blank_other_section() -> Non
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--structure-with-document-layout"></a>
 ### `_structure_with_document_layout`
 
-**Purpose:** Implements `structure with document layout` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._structure_with_document_layout`. Source lines 909–943.
+
+**Purpose:** Builds synthetic pages with keyword-only defaults toc_pages=(), body_start_page=1 and include_toc_evidence=False, disables header/footer patterns, validates the config, builds and explicitly validates the result, and asserts total record coverage. Returns (index, config, result), without a return annotation.
 
 **Exact signature**
 
@@ -3896,7 +4027,7 @@ def _structure_with_document_layout(
 ```
 
 - Exact decorators: none.
-- Declared return annotation: `None`.
+- Declared return annotation: not declared (not `-> None`).
 
 **Inputs**
 
@@ -3938,7 +4069,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `payload["document_layout"].update` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
 | `_intersections` | `tests.unit.test_structure_planning_regulation._intersections` |
@@ -4007,9 +4138,12 @@ def _structure_with_document_layout(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-blank-only-toc-blocks-remain-separate-other-sections"></a>
 ### `test_blank_only_toc_blocks_remain_separate_other_sections`
 
-**Purpose:** Regression invariant: blank only toc blocks remain separate other sections. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_blank_only_toc_blocks_remain_separate_other_sections`. Source lines 953–969.
+
+**Purpose:** Uses the layout helper with one or two whitespace-only TOC pages. Requires exactly one OTHER row with the parameterized pages, blank raw text and empty heading; helper validation and record coverage also run.
 
 **Exact signature**
 
@@ -4103,9 +4237,12 @@ def test_blank_only_toc_blocks_remain_separate_other_sections(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-blank-toc-followed-only-by-blank-tail-remains-other"></a>
 ### `test_blank_toc_followed_only_by_blank_tail_remains_other`
 
-**Purpose:** Regression invariant: blank toc followed only by blank tail remains other. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_blank_toc_followed_only_by_blank_tail_remains_other`. Source lines 972–985.
+
+**Purpose:** Uses a U body page, blank TOC page 2 and ordinary blank tail page 3; asserts one blank OTHER section covering (2,3) with empty heading. The tail is absorbed into the forced TOC section.
 
 **Exact signature**
 
@@ -4183,9 +4320,12 @@ def test_blank_toc_followed_only_by_blank_tail_remains_other() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-ordinary-blank-gap-attaches-to-following-real-heading"></a>
 ### `test_ordinary_blank_gap_attaches_to_following_real_heading`
 
-**Purpose:** Regression invariant: ordinary blank gap attaches to following real heading. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_ordinary_blank_gap_attaches_to_following_real_heading`. Source lines 988–1001.
+
+**Purpose:** Builds general text, an ordinary blank page and a U chapter; asserts chapter pages (2,3), blank raw prefix and heading ZONE U through the validating layout helper.
 
 **Exact signature**
 
@@ -4261,9 +4401,12 @@ def test_ordinary_blank_gap_attaches_to_following_real_heading() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-trailing-blank-records-attach-to-preceding-factual-section"></a>
 ### `test_trailing_blank_records_attach_to_preceding_factual_section`
 
-**Purpose:** Regression invariant: trailing blank records attach to preceding factual section. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_trailing_blank_records_attach_to_preceding_factual_section`. Source lines 1004–1014.
+
+**Purpose:** Through the layout helper, builds a U article followed by a blank page. Asserts final type ARTICLE, pages (1,2) and the exact whitespace suffix.
 
 **Exact signature**
 
@@ -4335,9 +4478,12 @@ def test_trailing_blank_records_attach_to_preceding_factual_section() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-heading-patterns-require-mandatory-named-captures"></a>
 ### `test_heading_patterns_require_mandatory_named_captures`
 
-**Purpose:** Regression invariant: heading patterns require mandatory named captures. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_heading_patterns_require_mandatory_named_captures`. Source lines 1025–1036.
+
+**Purpose:** Replaces one structural regex family: zone lacks label, article lacks number/title, general lacks title. Reconstructing the config payload must raise ValueError matching named captures; no source matching is attempted.
 
 **Exact signature**
 
@@ -4384,7 +4530,7 @@ Outbound call expressions and conservative ownership:
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `config.heading_patterns.model_copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `patterns.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -4425,9 +4571,12 @@ def test_heading_patterns_require_mandatory_named_captures(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-optional-pattern-lists-may-be-empty"></a>
 ### `test_optional_pattern_lists_may_be_empty`
 
-**Purpose:** Regression invariant: optional pattern lists may be empty. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_optional_pattern_lists_may_be_empty`. Source lines 1039–1047.
+
+**Purpose:** Sets continuation and both ignored-pattern families to empty tuples and validates the model. It explicitly asserts continuation and page_headers are empty; page_footers is supplied but not separately asserted.
 
 **Exact signature**
 
@@ -4461,7 +4610,7 @@ Outbound call expressions and conservative ownership:
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 
 **Source-observed side-effect matrix**
 
@@ -4496,9 +4645,12 @@ def test_optional_pattern_lists_may_be_empty() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13--config-with-structural-patterns"></a>
 ### `_config_with_structural_patterns`
 
-**Purpose:** Implements `config with structural patterns` within the file role: Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file.
+Qualified owner: `tests.unit.test_structure_planning_regulation._config_with_structural_patterns`. Source lines 1050–1068.
+
+**Purpose:** Starts from a synthetic config dump, disables TOC and ignored patterns, applies only non-None keyword regex-family replacements, and returns model_validate(payload). None means preserve that original family, not an empty pattern list.
 
 **Exact signature**
 
@@ -4552,7 +4704,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `replacements.items` | `unresolved local/third-party receiver; no ownership inferred` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 
 **Source-observed side-effect matrix**
 
@@ -4597,9 +4749,12 @@ def _config_with_structural_patterns(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-unique-zone-heading-and-nonheading-line-are-classified-deterministically"></a>
 ### `test_unique_zone_heading_and_nonheading_line_are_classified_deterministically`
 
-**Purpose:** Regression invariant: unique zone heading and nonheading line are classified deterministically. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_unique_zone_heading_and_nonheading_line_are_classified_deterministically`. Source lines 1071–1082.
+
+**Purpose:** Calls _line_records and _heading_events directly on ordinary text then a U chapter/article. Asserts event types [ZONE_CHAPTER, ARTICLE], chapter position 1/label U and no event at position 0; this is helper evidence, not a full mapping build.
 
 **Exact signature**
 
@@ -4676,9 +4831,12 @@ def test_unique_zone_heading_and_nonheading_line_are_classified_deterministicall
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-two-zone-patterns-matching-one-line-are-ambiguous"></a>
 ### `test_two_zone_patterns_matching_one_line_are_ambiguous`
 
-**Purpose:** Regression invariant: two zone patterns matching one line are ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_two_zone_patterns_matching_one_line_are_ambiguous`. Source lines 1085–1108.
+
+**Purpose:** Supplies two distinct zone regexes matching ZONE U and invokes the public builder. The controlled error must include Ambiguous structural heading, RECORD-000001, page/line 1 and ZONE_CHAPTER[0]/[1], but not raw ZONE U.
 
 **Exact signature**
 
@@ -4772,9 +4930,12 @@ def test_two_zone_patterns_matching_one_line_are_ambiguous() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-two-article-patterns-matching-one-line-are-ambiguous"></a>
 ### `test_two_article_patterns_matching_one_line_are_ambiguous`
 
-**Purpose:** Regression invariant: two article patterns matching one line are ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_two_article_patterns_matching_one_line_are_ambiguous`. Source lines 1111–1129.
+
+**Purpose:** Supplies two distinct article regexes matching ARTICLE U 1 - BODY, then requires public builder failure matching ARTICLE\[0\].*ARTICLE\[1\]. This tests same-category ambiguity after the U chapter.
 
 **Exact signature**
 
@@ -4854,9 +5015,12 @@ def test_two_article_patterns_matching_one_line_are_ambiguous() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-general-and-article-cross-category-match-is-ambiguous"></a>
 ### `test_general_and_article_cross_category_match_is_ambiguous`
 
-**Purpose:** Regression invariant: general and article cross category match is ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_general_and_article_cross_category_match_is_ambiguous`. Source lines 1132–1147.
+
+**Purpose:** Allows an empty zone capture in an article regex so ARTICLE 1 - GENERAL matches both categories. Public builder failure is required and the captured message must name GENERAL[0] and ARTICLE[0].
 
 **Exact signature**
 
@@ -4937,9 +5101,12 @@ def test_general_and_article_cross_category_match_is_ambiguous() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-zone-and-general-cross-category-match-is-ambiguous"></a>
 ### `test_zone_and_general_cross_category_match_is_ambiguous`
 
-**Purpose:** Regression invariant: zone and general cross category match is ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_zone_and_general_cross_category_match_is_ambiguous`. Source lines 1150–1165.
+
+**Purpose:** Adds a general regex matching ZONE U through number/title captures. Builder failure must name ZONE_CHAPTER[0] and GENERAL[0]; no category silently wins.
 
 **Exact signature**
 
@@ -5020,9 +5187,12 @@ def test_zone_and_general_cross_category_match_is_ambiguous() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-identical-structural-regex-across-groups-is-rejected-by-config"></a>
 ### `test_identical_structural_regex_across_groups_is_rejected_by_config`
 
-**Purpose:** Regression invariant: identical structural regex across groups is rejected by config. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_identical_structural_regex_across_groups_is_rejected_by_config`. Source lines 1168–1175.
+
+**Purpose:** Reuses the identical label-only regex in zone and general groups and requires model ValueError matching reused across groups. This guard runs before the also-missing general captures; the test isolates the reuse diagnostic, not general capture validity.
 
 **Exact signature**
 
@@ -5056,7 +5226,7 @@ Outbound call expressions and conservative ownership:
 | `_config(index).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
 | `pytest.raises` | `pytest.raises` |
-| `PlanningRegulationStructureConfig.model_validate` | `landscout.stages.structure_planning_regulation.PlanningRegulationStructureConfig.model_validate` |
+| `PlanningRegulationStructureConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by PlanningRegulationStructureConfig) |
 
 **Source-observed side-effect matrix**
 
@@ -5090,9 +5260,12 @@ def test_identical_structural_regex_across_groups_is_rejected_by_config() -> Non
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-ambiguous-continuation-candidate-fails-with-record-diagnostic"></a>
 ### `test_ambiguous_continuation_candidate_fails_with_record_diagnostic`
 
-**Purpose:** Regression invariant: ambiguous continuation candidate fails with record diagnostic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_ambiguous_continuation_candidate_fails_with_record_diagnostic`. Source lines 1178–1203.
+
+**Purpose:** After a valid general heading, AMBIGUOUS matches second zone and general regexes during continuation lookahead. Public builder failure must name RECORD-000002, page 1, line 2, ZONE_CHAPTER[1] and GENERAL[1].
 
 **Exact signature**
 
@@ -5186,9 +5359,12 @@ def test_ambiguous_continuation_candidate_fails_with_record_diagnostic() -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-source-complete-validator-rejects-changed-ambiguous-grammar"></a>
 ### `test_source_complete_validator_rejects_changed_ambiguous_grammar`
 
-**Purpose:** Regression invariant: source complete validator rejects changed ambiguous grammar. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_source_complete_validator_rejects_changed_ambiguous_grammar`. Source lines 1206–1230.
+
+**Purpose:** Keeps the already-built result and adds an article regex overlapping the general grammar via model_copy. Public validation requires Ambiguous structural heading during expected-result reconstruction, before checking the old result config hash.
 
 **Exact signature**
 
@@ -5205,7 +5381,7 @@ def test_source_complete_validator_rejects_changed_ambiguous_grammar(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -5279,9 +5455,12 @@ def test_source_complete_validator_rejects_changed_ambiguous_grammar(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-normal-muret-compatible-grammar-remains-deterministic"></a>
 ### `test_normal_muret_compatible_grammar_remains_deterministic`
 
-**Purpose:** Regression invariant: normal muret compatible grammar remains deterministic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_normal_muret_compatible_grammar_remains_deterministic`. Source lines 1233–1253.
+
+**Purpose:** Runs two builds from the same _index/_config synthetic_v1 fixtures and asserts all three frames equal plus identical outer result digest. It neither loads Muret YAML nor opens its PDF, despite the test name.
 
 **Exact signature**
 
@@ -5363,9 +5542,12 @@ def test_normal_muret_compatible_grammar_remains_deterministic() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-lossless-partition-mutation-is-rejected"></a>
 ### `test_lossless_partition_mutation_is_rejected`
 
-**Purpose:** Regression invariant: lossless partition mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_lossless_partition_mutation_is_rejected`. Source lines 1265–1274.
+
+**Purpose:** Individually changes the first section ID to SECTION-9999, start record to RECORD-999999, record count to 999 or record digest to f×64. The unchanged-input validator must raise a controlled error; no rehash/message assertion isolates later checks.
 
 **Exact signature**
 
@@ -5392,7 +5574,7 @@ def test_lossless_partition_mutation_is_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `mutation` | positional-or-keyword | `str` | `required` |
 | `value` | positional-or-keyword | `object` | `required` |
 
@@ -5451,9 +5633,12 @@ def test_lossless_partition_mutation_is_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-duplicate-or-reordered-record-partition-is-rejected"></a>
 ### `test_duplicate_or_reordered_record_partition_is_rejected`
 
-**Purpose:** Regression invariant: duplicate or reordered record partition is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_duplicate_or_reordered_record_partition_is_rejected`. Source lines 1277–1282.
+
+**Purpose:** Copies the first section start_record_id into the second section, causing overlap; expects a partition error. No actual row reordering or duplicated frame row is performed.
 
 **Exact signature**
 
@@ -5468,7 +5653,7 @@ def test_duplicate_or_reordered_record_partition_is_rejected(valid_result) -> No
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -5520,9 +5705,12 @@ def test_duplicate_or_reordered_record_partition_is_rejected(valid_result) -> No
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-unsorted-section-pages-are-rejected"></a>
 ### `test_unsorted_section_pages_are_rejected`
 
-**Purpose:** Regression invariant: unsorted section pages are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_unsorted_section_pages_are_rejected`. Source lines 1285–1293.
+
+**Purpose:** Reverses the first multi-page section page_numbers tuple and requires a page references error. Raw text, record boundaries and hashes are not updated.
 
 **Exact signature**
 
@@ -5537,7 +5725,7 @@ def test_unsorted_section_pages_are_rejected(valid_result) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -5596,9 +5784,12 @@ def test_unsorted_section_pages_are_rejected(valid_result) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-article-parent-semantics-are-enforced"></a>
 ### `test_article_parent_semantics_are_enforced`
 
-**Purpose:** Regression invariant: article parent semantics are enforced. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_article_parent_semantics_are_enforced`. Source lines 1299–1312.
+
+**Purpose:** On the first ARTICLE, separately sets parent None, parent to the final section ID, or zone label N. Requires a controlled error without message/reseal. Each change leaves section_content_sha256 stale, so its earlier row-hash check can reject before parent-semantic checks; parent_after also names the final ARTICLE rather than a later chapter.
 
 **Exact signature**
 
@@ -5615,7 +5806,7 @@ def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> N
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `mutation` | positional-or-keyword | `str` | `required` |
 
 **Return and exception contract**
@@ -5678,9 +5869,12 @@ def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> N
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-wrong-intersection-source-zone-id-is-rejected"></a>
 ### `test_wrong_intersection_source_zone_id_is_rejected`
 
-**Purpose:** Regression invariant: wrong intersection source zone id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_wrong_intersection_source_zone_id_is_rejected`. Source lines 1315–1322.
+
+**Purpose:** Changes only the first relation source_zone_id to WRONG, preserving the catalog and result. Public validation must fail with source-zone during factual input validation.
 
 **Exact signature**
 
@@ -5695,7 +5889,7 @@ def test_wrong_intersection_source_zone_id_is_rejected(valid_result) -> None:
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -5750,9 +5944,12 @@ def test_wrong_intersection_source_zone_id_is_rejected(valid_result) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-intersection-area-cannot-exceed-available-geometry-area"></a>
 ### `test_intersection_area_cannot_exceed_available_geometry_area`
 
-**Purpose:** Regression invariant: intersection area cannot exceed available geometry area. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_intersection_area_cannot_exceed_available_geometry_area`. Source lines 1326–1335.
+
+**Purpose:** Adds either optional upper-area column with [99.0,50.0] against [100.0,50.0] intersection areas. Public builder must reject with exceeds; this compares supplied numbers, not measured geometries.
 
 **Exact signature**
 
@@ -5828,9 +6025,12 @@ def test_intersection_area_cannot_exceed_available_geometry_area(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-intersection-upper-bound-uses-shared-relative-tolerance"></a>
 ### `test_intersection_upper_bound_uses_shared_relative_tolerance`
 
-**Purpose:** Regression invariant: intersection upper bound uses shared relative tolerance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_intersection_upper_bound_uses_shared_relative_tolerance`. Source lines 1339–1373.
+
+**Purpose:** For each optional upper column, uses reference area 10^12 and the shared tolerance (asserted >1e-6). Building/validating at reference+tolerance/2 succeeds; building at reference+2*tolerance fails with exceeds. No overlay is calculated.
 
 **Exact signature**
 
@@ -5868,7 +6068,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_index` | `tests.unit.test_structure_planning_regulation._index` |
 | `_config` | `tests.unit.test_structure_planning_regulation._config` |
-| `technical_overlay_tolerance` | `landscout.stages.planning_overlay.technical_overlay_tolerance` |
+| `technical_overlay_tolerance` | `landscout.common.planning_overlay.technical_overlay_tolerance` via the stage re-export |
 | `_intersections` | `tests.unit.test_structure_planning_regulation._intersections` |
 | `structure_planning_regulation` | `landscout.stages.structure_planning_regulation.structure_planning_regulation` |
 | `_zones` | `tests.unit.test_structure_planning_regulation._zones` |
@@ -5887,7 +6087,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `technical_overlay_tolerance` |
+| CRS/geometry/spatial calculation | Numerical tolerance on supplied scalar areas only; no geometry/CRS operation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `within_tolerance[upper_column] = [reference_area, 50.0]`<br>`within_tolerance.loc[0, "intersection_area_m2"] = reference_area + tolerance / 2`<br>`above_tolerance.loc[0, "intersection_area_m2"] = reference_area + tolerance * 2` |
 | Direct parameter mutation | None directly present. |
@@ -5936,9 +6136,12 @@ def test_intersection_upper_bound_uses_shared_relative_tolerance(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-intersection-hash-columns-are-actual-and-deterministic"></a>
 ### `test_intersection_hash_columns_are_actual_and_deterministic`
 
-**Purpose:** Regression invariant: intersection hash columns are actual and deterministic. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_intersection_hash_columns_are_actual_and_deterministic`. Source lines 1385–1420.
+
+**Purpose:** Exercises neither, either or both optional metrics, inserting them at position 0 in reversed optional order. Asserts the stored tuple equals the eight required names followed by present optional names in declared parcel-then-zone order, then validates. Does not compare hashes across differently ordered equivalent frames.
 
 **Exact signature**
 
@@ -6051,9 +6254,12 @@ def test_intersection_hash_columns_are_actual_and_deterministic(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-optional-intersection-metric-change-invalidates-existing-result"></a>
 ### `test_optional_intersection_metric_change_invalidates_existing_result`
 
-**Purpose:** Regression invariant: optional intersection metric change invalidates existing result. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_optional_intersection_metric_change_invalidates_existing_result`. Source lines 1427–1449.
+
+**Purpose:** Builds with parcel bounds [200,100] and zone bounds [300,150], increments one selected first-row bound by 1.0, and validates the old result against changed inputs. Requires input hash error while numeric bounds remain admissible.
 
 **Exact signature**
 
@@ -6147,9 +6353,12 @@ def test_optional_intersection_metric_change_invalidates_existing_result(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-intersection-hash-column-lineage-mutation-is-rejected"></a>
 ### `test_intersection_hash_column_lineage_mutation_is_rejected`
 
-**Purpose:** Regression invariant: intersection hash column lineage mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_intersection_hash_column_lineage_mutation_is_rejected`. Source lines 1452–1474.
+
+**Purpose:** Builds with parcel_metric_area_m2, then reverses only the stored zoning_intersection_hash_columns tuple. Original inputs are retained; validation must fail with hash columns.
 
 **Exact signature**
 
@@ -6237,9 +6446,12 @@ def test_intersection_hash_column_lineage_mutation_is_rejected() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-zone-mapping-contract-mutations-are-rejected"></a>
 ### `test_zone_mapping_contract_mutations_are_rejected`
 
-**Purpose:** Regression invariant: zone mapping contract mutations are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_zone_mapping_contract_mutations_are_rejected`. Source lines 1488–1498.
+
+**Purpose:** On mapping U, separately changes method to NONE, matched ID to SECTION-0002 (GENERAL), resolved label to N, polygon count to 99, intersection count to 0 or dominant count to 99. Each must raise a controlled error without reseal/message constraint. Some hit semantic/count checks; polygon count can instead reach the stale component-hash guard, so this does not isolate rebuilt count comparison.
 
 **Exact signature**
 
@@ -6268,7 +6480,7 @@ def test_zone_mapping_contract_mutations_are_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `column` | positional-or-keyword | `str` | `required` |
 | `value` | positional-or-keyword | `object` | `required` |
 
@@ -6329,9 +6541,12 @@ def test_zone_mapping_contract_mutations_are_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-alias-chain-resolves-to-final-configured-target"></a>
 ### `test_alias_chain_resolves_to_final_configured_target`
 
-**Purpose:** Regression invariant: alias chain resolves to final configured target. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_alias_chain_resolves_to_final_configured_target`. Source lines 1501–1512.
+
+**Purpose:** Supplies an unchecked model_copy mapping Ua→Urban→U; the public builder reconstructs it. Asserts Ua resolves to U with CONFIG_ALIAS and X remains UNMAPPED, without fuzzy matching or a policy conclusion.
 
 **Exact signature**
 
@@ -6407,9 +6622,12 @@ def test_alias_chain_resolves_to_final_configured_target() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-token-boundary-and-longest-match-policy"></a>
 ### `test_token_boundary_and_longest_match_policy`
 
-**Purpose:** Regression invariant: token boundary and longest match policy. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_token_boundary_and_longest_match_policy`. Source lines 1515–1546.
+
+**Purpose:** Calls only the shared normalizer and private literal matcher on French singular/plural, dérisque and overlapping phrase examples. Asserts each of ten configured terms is retained exactly once and total matches is ten: longer phrases suppress contained matches while standalone instances survive. No legal or BESS/ICPE equivalence is tested.
 
 **Exact signature**
 
@@ -6510,9 +6728,12 @@ def test_token_boundary_and_longest_match_policy() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-topic-evidence-semantic-mutations-are-rejected"></a>
 ### `test_topic_evidence_semantic_mutations_are_rejected`
 
-**Purpose:** Regression invariant: topic evidence semantic mutations are rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_topic_evidence_semantic_mutations_are_rejected`. Source lines 1562–1573.
+
+**Purpose:** Mutates the first zone-specific evidence row (fallback first row) across eight separate cases: scope GENERAL_RULE, zone N, article 999, unconfigured topic/term, count 99, fabricated raw context or normalized start 999. All require controlled rejection against unchanged sources/hashes; no message or independently resealed envelope is asserted.
 
 **Exact signature**
 
@@ -6543,7 +6764,7 @@ def test_topic_evidence_semantic_mutations_are_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `column` | positional-or-keyword | `str` | `required` |
 | `value` | positional-or-keyword | `object` | `required` |
 
@@ -6606,9 +6827,12 @@ def test_topic_evidence_semantic_mutations_are_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-coordinated-topic-evidence-and-hash-mutation-is-rebuilt-and-rejected"></a>
 ### `test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected`
 
-**Purpose:** Regression invariant: coordinated topic evidence and hash mutation is rebuilt and rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected`. Source lines 1576–1593.
+
+**Purpose:** Sets first raw_context to fabricated and actually recomputes all three component hashes and the outer digest with _result_with_hashes. Public validation must still reject; intrinsic context comparison to rebuilt source fragments occurs before the final expected-frame comparison, so that final comparison is not isolated.
 
 **Exact signature**
 
@@ -6625,7 +6849,7 @@ def test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 
 **Return and exception contract**
 
@@ -6690,9 +6914,12 @@ def test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-source-complete-validator-rejects-post-build-source-change"></a>
 ### `test_source_complete_validator_rejects_post_build_source_change`
 
-**Purpose:** Regression invariant: source complete validator rejects post build source change. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_source_complete_validator_rejects_post_build_source_change`. Source lines 1599–1629.
+
+**Purpose:** Validates an old result after one of six source changes: Ua→N alias; energy→electricity term; equivalent but different zone regex; coordinated source_zone_id CHANGED in catalog/relation; area 99; or coherent TOUCH_ONLY/0 relation. Each requires a controlled error, without a message. Config/input identity guards can reject before final rebuilt-frame comparison.
 
 **Exact signature**
 
@@ -6712,7 +6939,7 @@ def test_source_complete_validator_rejects_post_build_source_change(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `source_change` | positional-or-keyword | `str` | `required` |
 
 **Return and exception contract**
@@ -6794,9 +7021,12 @@ def test_source_complete_validator_rejects_post_build_source_change(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r13-test-source-and-result-hash-mutation-is-rejected"></a>
 ### `test_source_and_result_hash_mutation_is_rejected`
 
-**Purpose:** Regression invariant: source and result hash mutation is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_structure_planning_regulation.test_source_and_result_hash_mutation_is_rejected`. Source lines 1641–1646.
+
+**Purpose:** Individually replaces config, zones, intersections or outer result digest with f×64 and calls _validate. Requires PlanningRegulationStructureError, not a particular message; the actual data remain unchanged.
 
 **Exact signature**
 
@@ -6821,7 +7051,7 @@ def test_source_and_result_hash_mutation_is_rejected(
 
 | Name | Kind | Annotation | Default |
 |---|---|---|---|
-| `valid_result` | positional-or-keyword | `None` | `required` |
+| `valid_result` | positional-or-keyword | not annotated | `required` |
 | `hash_field` | positional-or-keyword | `str` | `required` |
 
 **Return and exception contract**
@@ -6886,74 +7116,74 @@ def test_source_and_result_hash_mutation_is_rejected(
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+| Test | Parametrization | Expected exception contexts | Python assert statements (excludes assertion helper calls) | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_package_exports_clean_high_level_api` | none | none | 4 | Proves package exports clean high level api using the exact source reproduced in section 7. |
-| `test_source_complete_validator_can_return_validated_fragments` | none | none | 3 | Proves source complete validator can return validated fragments using the exact source reproduced in section 7. |
-| `test_structure_schema_versions_are_explicit` | none | none | 5 | Proves structure schema versions are explicit using the exact source reproduced in section 7. |
-| `test_old_and_unknown_config_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 3]) | pytest.raises(ValueError, match="unsupported structure config schema") | 0 | Proves old and unknown config schema versions are rejected using the exact source reproduced in section 7. |
-| `test_old_and_unknown_result_config_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 3]) | pytest.raises(PlanningRegulationStructureError, match="schema version") | 0 | Proves old and unknown result config schema versions are rejected using the exact source reproduced in section 7. |
-| `test_old_and_unknown_section_hash_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 2, 4]) | pytest.raises(PlanningRegulationStructureError, match="schema version") | 0 | Proves old and unknown section hash schema versions are rejected using the exact source reproduced in section 7. |
-| `test_toc_topic_evidence_flag_rejects_boolean_coercion` | pytest.mark.parametrize("value", [0, 1, "false", "true", "yes"]) | pytest.raises(ValueError) | 0 | Proves toc topic evidence flag rejects boolean coercion using the exact source reproduced in section 7. |
-| `test_toc_topic_evidence_flag_accepts_exact_booleans` | pytest.mark.parametrize("value", [False, True]) | none | 1 | Proves toc topic evidence flag accepts exact booleans using the exact source reproduced in section 7. |
-| `test_document_layout_accepts_real_first_and_last_indexed_pages` | none | none | 2 | Proves document layout accepts real first and last indexed pages using the exact source reproduced in section 7. |
-| `test_document_layout_rejects_nonexistent_indexed_pages` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("table_of_contents_pages", (0,)),<br>        ("table_of_contents_pages", (8,)),<br>        ("body_start_page", 8),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves document layout rejects nonexistent indexed pages using the exact source reproduced in section 7. |
-| `test_existing_empty_toc_page_is_valid_not_nonexistent` | none | none | 1 | Proves existing empty toc page is valid not nonexistent using the exact source reproduced in section 7. |
-| `test_document_lock_mismatch_is_rejected` | pytest.mark.parametrize(<br>    "lock_field",<br>    [<br>        "document_id",<br>        "pdf_sha256",<br>        "pages_content_sha256",<br>        "index_content_sha256",<br>        "normalization_profile",<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError, match="document lock") | 0 | Proves document lock mismatch is rejected using the exact source reproduced in section 7. |
-| `test_invalid_regex_and_unknown_yaml_field_are_controlled` | none | pytest.raises(PlanningRegulationStructureError) | 0 | Proves invalid regex and unknown yaml field are controlled using the exact source reproduced in section 7. |
-| `test_duplicate_yaml_alias_and_alias_cycle_are_rejected` | none | pytest.raises(PlanningRegulationStructureError); pytest.raises(PlanningRegulationStructureError, match="Duplicate YAML") | 0 | Proves duplicate yaml alias and alias cycle are rejected using the exact source reproduced in section 7. |
-| `test_realistic_structure_is_deterministic_and_toc_heading_is_ignored` | none | none | 5 | Proves realistic structure is deterministic and toc heading is ignored using the exact source reproduced in section 7. |
-| `test_zone_article_parent_and_multi_page_text_are_preserved` | none | none | 4 | Proves zone article parent and multi page text are preserved using the exact source reproduced in section 7. |
-| `test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping` | none | none | 6 | Proves exact alias unmapped ambiguous and no fuzzy mapping using the exact source reproduced in section 7. |
-| `test_topic_evidence_distinguishes_general_and_zone_specific` | none | none | 3 | Proves topic evidence distinguishes general and zone specific using the exact source reproduced in section 7. |
-| `test_evidence_scope_is_derived_from_exact_section_type` | none | pytest.raises(PlanningRegulationStructureError, match="scope") | 1 | Proves evidence scope is derived from exact section type using the exact source reproduced in section 7. |
-| `test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` | none | none | 5 | Proves reversed topic mapping keys do not change output or hashes using the exact source reproduced in section 7. |
-| `test_equal_length_overlap_uses_configured_term_order_as_tie_break` | none | none | 7 | Proves equal length overlap uses configured term order as tie break using the exact source reproduced in section 7. |
-| `test_inputs_are_not_mutated` | none | none | 0 | Proves inputs are not mutated using the exact source reproduced in section 7. |
-| `test_structure_decision_mappings_are_deeply_immutable` | none | pytest.raises(TypeError, match="frozen mapping"); pytest.raises(TypeError, match="frozen mapping") | 1 | Proves structure decision mappings are deeply immutable using the exact source reproduced in section 7. |
-| `test_body_page_extraction_error_stops_structure` | none | pytest.raises(PlanningRegulationStructureError, match="body page.*ERROR") | 0 | Proves body page extraction error stops structure using the exact source reproduced in section 7. |
-| `test_blank_successfully_extracted_body_page_remains_valid` | none | none | 1 | Proves blank successfully extracted body page remains valid using the exact source reproduced in section 7. |
-| `test_coordinated_frame_mutation_is_rejected` | pytest.mark.parametrize(<br>    "frame_name,hash_name,column",<br>    [<br>        ("sections", "sections_content_sha256", "raw_text"),<br>        ("zone_mapping", "zone_map_content_sha256", "candidate_parcel_count"),<br>        ("topic_evidence", "topic_evidence_content_sha256", "raw_context"),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError); pytest.raises(PlanningRegulationStructureError) | 0 | Proves coordinated frame mutation is rejected using the exact source reproduced in section 7. |
-| `test_unknown_topic_page_reference_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="unknown page") | 0 | Proves unknown topic page reference is rejected using the exact source reproduced in section 7. |
-| `test_coordinated_section_row_mutation_is_caught_by_outer_envelope` | none | pytest.raises(PlanningRegulationStructureError) | 0 | Proves coordinated section row mutation is caught by outer envelope using the exact source reproduced in section 7. |
-| `test_dominant_unmapped_zone_stops_processing` | none | pytest.raises(PlanningRegulationStructureError, match="Dominant candidate") | 0 | Proves dominant unmapped zone stops processing using the exact source reproduced in section 7. |
-| `test_positional_header_footer_filter_preserves_matching_body_lines` | none | none | 5 | Proves positional header footer filter preserves matching body lines using the exact source reproduced in section 7. |
-| `test_page_without_configured_header_or_footer_is_unchanged` | none | none | 1 | Proves page without configured header or footer is unchanged using the exact source reproduced in section 7. |
-| `test_blank_only_prefix_is_preserved_in_first_actual_section` | pytest.mark.parametrize(<br>    ("raw_pages", "expected_pages", "expected_prefix"),<br>    [<br>        (<br>            ("\n \t\nZONE U\nARTICLE U 1 - TEST\nBody",),<br>            (1,),<br>            "\n \t\nZONE U",<br>        ),<br>        (<br>            (" \n", "ZONE U\nARTICLE U 1 - TEST\nBody"),<br>            (1, 2),<br>            " \nZONE U",<br>        ),<br>    ],<br>) | none | 7 | Proves blank only prefix is preserved in first actual section using the exact source reproduced in section 7. |
-| `test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` | none | none | 6 | Proves toc blocks anywhere are other and toggle topic evidence using the exact source reproduced in section 7. |
-| `test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` | none | none | 4 | Proves blank gap after toc is preserved without a blank other section using the exact source reproduced in section 7. |
-| `test_blank_only_toc_blocks_remain_separate_other_sections` | pytest.mark.parametrize(<br>    ("toc_raw_pages", "expected_pages"),<br>    [<br>        ((" \n\t",), (2,)),<br>        ((" \n\t", "\t\n "), (2, 3)),<br>    ],<br>) | none | 4 | Proves blank only toc blocks remain separate other sections using the exact source reproduced in section 7. |
-| `test_blank_toc_followed_only_by_blank_tail_remains_other` | none | none | 4 | Proves blank toc followed only by blank tail remains other using the exact source reproduced in section 7. |
-| `test_ordinary_blank_gap_attaches_to_following_real_heading` | none | none | 3 | Proves ordinary blank gap attaches to following real heading using the exact source reproduced in section 7. |
-| `test_trailing_blank_records_attach_to_preceding_factual_section` | none | none | 3 | Proves trailing blank records attach to preceding factual section using the exact source reproduced in section 7. |
-| `test_heading_patterns_require_mandatory_named_captures` | pytest.mark.parametrize(<br>    ("group", "pattern"),<br>    [<br>        ("zone_chapter", r"^ZONE\s+[A-Z]+$"),<br>        ("article", r"^ARTICLE\s+(?P<zone>[A-Z]+)\s+\d+\s+-\s+.*$"),<br>        ("general_section", r"^ARTICLE\s+(?P<number>\d+)\s+-\s+.*$"),<br>    ],<br>) | pytest.raises(ValueError, match="named captures") | 0 | Proves heading patterns require mandatory named captures using the exact source reproduced in section 7. |
-| `test_optional_pattern_lists_may_be_empty` | none | none | 2 | Proves optional pattern lists may be empty using the exact source reproduced in section 7. |
-| `test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` | none | none | 4 | Proves unique zone heading and nonheading line are classified deterministically using the exact source reproduced in section 7. |
-| `test_two_zone_patterns_matching_one_line_are_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 7 | Proves two zone patterns matching one line are ambiguous using the exact source reproduced in section 7. |
-| `test_two_article_patterns_matching_one_line_are_ambiguous` | none | pytest.raises(<br>        PlanningRegulationStructureError,<br>        match=r"ARTICLE\[0\].*ARTICLE\[1\]",<br>    ) | 0 | Proves two article patterns matching one line are ambiguous using the exact source reproduced in section 7. |
-| `test_general_and_article_cross_category_match_is_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 2 | Proves general and article cross category match is ambiguous using the exact source reproduced in section 7. |
-| `test_zone_and_general_cross_category_match_is_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 2 | Proves zone and general cross category match is ambiguous using the exact source reproduced in section 7. |
-| `test_identical_structural_regex_across_groups_is_rejected_by_config` | none | pytest.raises(ValueError, match="reused across groups") | 0 | Proves identical structural regex across groups is rejected by config using the exact source reproduced in section 7. |
-| `test_ambiguous_continuation_candidate_fails_with_record_diagnostic` | none | pytest.raises(PlanningRegulationStructureError) | 5 | Proves ambiguous continuation candidate fails with record diagnostic using the exact source reproduced in section 7. |
-| `test_source_complete_validator_rejects_changed_ambiguous_grammar` | none | pytest.raises(<br>        PlanningRegulationStructureError,<br>        match="Ambiguous structural heading",<br>    ) | 0 | Proves source complete validator rejects changed ambiguous grammar using the exact source reproduced in section 7. |
-| `test_normal_muret_compatible_grammar_remains_deterministic` | none | none | 1 | Proves normal muret compatible grammar remains deterministic using the exact source reproduced in section 7. |
-| `test_lossless_partition_mutation_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "value"),<br>    [<br>        ("section_id", "SECTION-9999"),<br>        ("start_record_id", "RECORD-999999"),<br>        ("source_record_count", 999),<br>        ("source_records_sha256", "f" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves lossless partition mutation is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_or_reordered_record_partition_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="partition") | 0 | Proves duplicate or reordered record partition is rejected using the exact source reproduced in section 7. |
-| `test_unsorted_section_pages_are_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="page references") | 0 | Proves unsorted section pages are rejected using the exact source reproduced in section 7. |
-| `test_article_parent_semantics_are_enforced` | pytest.mark.parametrize(<br>    "mutation", ["missing_parent", "parent_after", "zone_mismatch"]<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves article parent semantics are enforced using the exact source reproduced in section 7. |
-| `test_wrong_intersection_source_zone_id_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="source-zone") | 0 | Proves wrong intersection source zone id is rejected using the exact source reproduced in section 7. |
-| `test_intersection_area_cannot_exceed_available_geometry_area` | pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"]) | pytest.raises(PlanningRegulationStructureError, match="exceeds") | 0 | Proves intersection area cannot exceed available geometry area using the exact source reproduced in section 7. |
-| `test_intersection_upper_bound_uses_shared_relative_tolerance` | pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"]) | pytest.raises(PlanningRegulationStructureError, match="exceeds") | 1 | Proves intersection upper bound uses shared relative tolerance using the exact source reproduced in section 7. |
-| `test_intersection_hash_columns_are_actual_and_deterministic` | pytest.mark.parametrize(<br>    "optional_columns",<br>    [<br>        (),<br>        ("parcel_metric_area_m2",),<br>        ("zone_area_m2",),<br>        ("parcel_metric_area_m2", "zone_area_m2"),<br>    ],<br>) | none | 1 | Proves intersection hash columns are actual and deterministic using the exact source reproduced in section 7. |
-| `test_optional_intersection_metric_change_invalidates_existing_result` | pytest.mark.parametrize(<br>    "changed_column",<br>    ["parcel_metric_area_m2", "zone_area_m2"],<br>) | pytest.raises(PlanningRegulationStructureError, match="input hash") | 0 | Proves optional intersection metric change invalidates existing result using the exact source reproduced in section 7. |
-| `test_intersection_hash_column_lineage_mutation_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="hash columns") | 0 | Proves intersection hash column lineage mutation is rejected using the exact source reproduced in section 7. |
-| `test_zone_mapping_contract_mutations_are_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("mapping_method", "NONE"),<br>        ("matched_section_id", "SECTION-0002"),<br>        ("resolved_zone_chapter_label", "N"),<br>        ("zone_polygon_count", 99),<br>        ("candidate_intersection_count", 0),<br>        ("dominant_candidate_count", 99),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves zone mapping contract mutations are rejected using the exact source reproduced in section 7. |
-| `test_alias_chain_resolves_to_final_configured_target` | none | none | 3 | Proves alias chain resolves to final configured target using the exact source reproduced in section 7. |
-| `test_token_boundary_and_longest_match_policy` | none | none | 11 | Proves token boundary and longest match policy using the exact source reproduced in section 7. |
-| `test_topic_evidence_semantic_mutations_are_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("evidence_scope", "GENERAL_RULE"),<br>        ("zone_chapter_label", "N"),<br>        ("article_number_raw", "999"),<br>        ("topic", "unconfigured"),<br>        ("search_term", "unconfigured"),<br>        ("occurrence_count", 99),<br>        ("raw_context", "fabricated"),<br>        ("first_match_normalized_start", 999),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves topic evidence semantic mutations are rejected using the exact source reproduced in section 7. |
-| `test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` | none | pytest.raises(PlanningRegulationStructureError) | 0 | Proves coordinated topic evidence and hash mutation is rebuilt and rejected using the exact source reproduced in section 7. |
-| `test_source_complete_validator_rejects_post_build_source_change` | pytest.mark.parametrize(<br>    "source_change", ["alias", "topic", "heading", "zone", "area", "relation"]<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves source complete validator rejects post build source change using the exact source reproduced in section 7. |
-| `test_source_and_result_hash_mutation_is_rejected` | pytest.mark.parametrize(<br>    "hash_field",<br>    [<br>        "structure_config_sha256",<br>        "zones_content_sha256",<br>        "zoning_intersections_content_sha256",<br>        "structure_result_content_sha256",<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | Proves source and result hash mutation is rejected using the exact source reproduced in section 7. |
+| `test_package_exports_clean_high_level_api` | none | none | 4 | See [verified scenario and limits](#r13-test-package-exports-clean-high-level-api). |
+| `test_source_complete_validator_can_return_validated_fragments` | none | none | 3 | See [verified scenario and limits](#r13-test-source-complete-validator-can-return-validated-fragments). |
+| `test_structure_schema_versions_are_explicit` | none | none | 5 | See [verified scenario and limits](#r13-test-structure-schema-versions-are-explicit). |
+| `test_old_and_unknown_config_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 3]) | pytest.raises(ValueError, match="unsupported structure config schema") | 0 | See [verified scenario and limits](#r13-test-old-and-unknown-config-schema-versions-are-rejected). |
+| `test_old_and_unknown_result_config_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 3]) | pytest.raises(PlanningRegulationStructureError, match="schema version") | 0 | See [verified scenario and limits](#r13-test-old-and-unknown-result-config-schema-versions-are-rejected). |
+| `test_old_and_unknown_section_hash_schema_versions_are_rejected` | pytest.mark.parametrize("schema_version", [1, 2, 4]) | pytest.raises(PlanningRegulationStructureError, match="schema version") | 0 | See [verified scenario and limits](#r13-test-old-and-unknown-section-hash-schema-versions-are-rejected). |
+| `test_toc_topic_evidence_flag_rejects_boolean_coercion` | pytest.mark.parametrize("value", [0, 1, "false", "true", "yes"]) | pytest.raises(ValueError) | 0 | See [verified scenario and limits](#r13-test-toc-topic-evidence-flag-rejects-boolean-coercion). |
+| `test_toc_topic_evidence_flag_accepts_exact_booleans` | pytest.mark.parametrize("value", [False, True]) | none | 1 | See [verified scenario and limits](#r13-test-toc-topic-evidence-flag-accepts-exact-booleans). |
+| `test_document_layout_accepts_real_first_and_last_indexed_pages` | none | none | 2 | See [verified scenario and limits](#r13-test-document-layout-accepts-real-first-and-last-indexed-pages). |
+| `test_document_layout_rejects_nonexistent_indexed_pages` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("table_of_contents_pages", (0,)),<br>        ("table_of_contents_pages", (8,)),<br>        ("body_start_page", 8),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-document-layout-rejects-nonexistent-indexed-pages). |
+| `test_existing_empty_toc_page_is_valid_not_nonexistent` | none | none | 1 | See [verified scenario and limits](#r13-test-existing-empty-toc-page-is-valid-not-nonexistent). |
+| `test_document_lock_mismatch_is_rejected` | pytest.mark.parametrize(<br>    "lock_field",<br>    [<br>        "document_id",<br>        "pdf_sha256",<br>        "pages_content_sha256",<br>        "index_content_sha256",<br>        "normalization_profile",<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError, match="document lock") | 0 | See [verified scenario and limits](#r13-test-document-lock-mismatch-is-rejected). |
+| `test_invalid_regex_and_unknown_yaml_field_are_controlled` | none | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-invalid-regex-and-unknown-yaml-field-are-controlled). |
+| `test_duplicate_yaml_alias_and_alias_cycle_are_rejected` | none | pytest.raises(PlanningRegulationStructureError); pytest.raises(PlanningRegulationStructureError, match="Duplicate YAML") | 0 | See [verified scenario and limits](#r13-test-duplicate-yaml-alias-and-alias-cycle-are-rejected). |
+| `test_realistic_structure_is_deterministic_and_toc_heading_is_ignored` | none | none | 5 | See [verified scenario and limits](#r13-test-realistic-structure-is-deterministic-and-toc-heading-is-ignored). |
+| `test_zone_article_parent_and_multi_page_text_are_preserved` | none | none | 4 | See [verified scenario and limits](#r13-test-zone-article-parent-and-multi-page-text-are-preserved). |
+| `test_exact_alias_unmapped_ambiguous_and_no_fuzzy_mapping` | none | none | 6 | See [verified scenario and limits](#r13-test-exact-alias-unmapped-ambiguous-and-no-fuzzy-mapping). |
+| `test_topic_evidence_distinguishes_general_and_zone_specific` | none | none | 3 | See [verified scenario and limits](#r13-test-topic-evidence-distinguishes-general-and-zone-specific). |
+| `test_evidence_scope_is_derived_from_exact_section_type` | none | pytest.raises(PlanningRegulationStructureError, match="scope") | 1 | See [verified scenario and limits](#r13-test-evidence-scope-is-derived-from-exact-section-type). |
+| `test_reversed_topic_mapping_keys_do_not_change_output_or_hashes` | none | none | 5 | See [verified scenario and limits](#r13-test-reversed-topic-mapping-keys-do-not-change-output-or-hashes). |
+| `test_equal_length_overlap_uses_configured_term_order_as_tie_break` | none | none | 7 | See [verified scenario and limits](#r13-test-equal-length-overlap-uses-configured-term-order-as-tie-break). |
+| `test_inputs_are_not_mutated` | none | none | 0 | See [verified scenario and limits](#r13-test-inputs-are-not-mutated). |
+| `test_structure_decision_mappings_are_deeply_immutable` | none | pytest.raises(TypeError, match="frozen mapping"); pytest.raises(TypeError, match="frozen mapping") | 1 | See [verified scenario and limits](#r13-test-structure-decision-mappings-are-deeply-immutable). |
+| `test_body_page_extraction_error_stops_structure` | none | pytest.raises(PlanningRegulationStructureError, match="body page.*ERROR") | 0 | See [verified scenario and limits](#r13-test-body-page-extraction-error-stops-structure). |
+| `test_blank_successfully_extracted_body_page_remains_valid` | none | none | 1 | See [verified scenario and limits](#r13-test-blank-successfully-extracted-body-page-remains-valid). |
+| `test_coordinated_frame_mutation_is_rejected` | pytest.mark.parametrize(<br>    "frame_name,hash_name,column",<br>    [<br>        ("sections", "sections_content_sha256", "raw_text"),<br>        ("zone_mapping", "zone_map_content_sha256", "candidate_parcel_count"),<br>        ("topic_evidence", "topic_evidence_content_sha256", "raw_context"),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError); pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-coordinated-frame-mutation-is-rejected). |
+| `test_unknown_topic_page_reference_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="unknown page") | 0 | See [verified scenario and limits](#r13-test-unknown-topic-page-reference-is-rejected). |
+| `test_coordinated_section_row_mutation_is_caught_by_outer_envelope` | none | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-coordinated-section-row-mutation-is-caught-by-outer-envelope). |
+| `test_dominant_unmapped_zone_stops_processing` | none | pytest.raises(PlanningRegulationStructureError, match="Dominant candidate") | 0 | See [verified scenario and limits](#r13-test-dominant-unmapped-zone-stops-processing). |
+| `test_positional_header_footer_filter_preserves_matching_body_lines` | none | none | 5 | See [verified scenario and limits](#r13-test-positional-header-footer-filter-preserves-matching-body-lines). |
+| `test_page_without_configured_header_or_footer_is_unchanged` | none | none | 1 | See [verified scenario and limits](#r13-test-page-without-configured-header-or-footer-is-unchanged). |
+| `test_blank_only_prefix_is_preserved_in_first_actual_section` | pytest.mark.parametrize(<br>    ("raw_pages", "expected_pages", "expected_prefix"),<br>    [<br>        (<br>            ("\n \t\nZONE U\nARTICLE U 1 - TEST\nBody",),<br>            (1,),<br>            "\n \t\nZONE U",<br>        ),<br>        (<br>            (" \n", "ZONE U\nARTICLE U 1 - TEST\nBody"),<br>            (1, 2),<br>            " \nZONE U",<br>        ),<br>    ],<br>) | none | 7 | See [verified scenario and limits](#r13-test-blank-only-prefix-is-preserved-in-first-actual-section). |
+| `test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence` | none | none | 6 | See [verified scenario and limits](#r13-test-toc-blocks-anywhere-are-other-and-toggle-topic-evidence). |
+| `test_blank_gap_after_toc_is_preserved_without_a_blank_other_section` | none | none | 4 | See [verified scenario and limits](#r13-test-blank-gap-after-toc-is-preserved-without-a-blank-other-section). |
+| `test_blank_only_toc_blocks_remain_separate_other_sections` | pytest.mark.parametrize(<br>    ("toc_raw_pages", "expected_pages"),<br>    [<br>        ((" \n\t",), (2,)),<br>        ((" \n\t", "\t\n "), (2, 3)),<br>    ],<br>) | none | 4 | See [verified scenario and limits](#r13-test-blank-only-toc-blocks-remain-separate-other-sections). |
+| `test_blank_toc_followed_only_by_blank_tail_remains_other` | none | none | 4 | See [verified scenario and limits](#r13-test-blank-toc-followed-only-by-blank-tail-remains-other). |
+| `test_ordinary_blank_gap_attaches_to_following_real_heading` | none | none | 3 | See [verified scenario and limits](#r13-test-ordinary-blank-gap-attaches-to-following-real-heading). |
+| `test_trailing_blank_records_attach_to_preceding_factual_section` | none | none | 3 | See [verified scenario and limits](#r13-test-trailing-blank-records-attach-to-preceding-factual-section). |
+| `test_heading_patterns_require_mandatory_named_captures` | pytest.mark.parametrize(<br>    ("group", "pattern"),<br>    [<br>        ("zone_chapter", r"^ZONE\s+[A-Z]+$"),<br>        ("article", r"^ARTICLE\s+(?P<zone>[A-Z]+)\s+\d+\s+-\s+.*$"),<br>        ("general_section", r"^ARTICLE\s+(?P<number>\d+)\s+-\s+.*$"),<br>    ],<br>) | pytest.raises(ValueError, match="named captures") | 0 | See [verified scenario and limits](#r13-test-heading-patterns-require-mandatory-named-captures). |
+| `test_optional_pattern_lists_may_be_empty` | none | none | 2 | See [verified scenario and limits](#r13-test-optional-pattern-lists-may-be-empty). |
+| `test_unique_zone_heading_and_nonheading_line_are_classified_deterministically` | none | none | 4 | See [verified scenario and limits](#r13-test-unique-zone-heading-and-nonheading-line-are-classified-deterministically). |
+| `test_two_zone_patterns_matching_one_line_are_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 7 | See [verified scenario and limits](#r13-test-two-zone-patterns-matching-one-line-are-ambiguous). |
+| `test_two_article_patterns_matching_one_line_are_ambiguous` | none | pytest.raises(<br>        PlanningRegulationStructureError,<br>        match=r"ARTICLE\[0\].*ARTICLE\[1\]",<br>    ) | 0 | See [verified scenario and limits](#r13-test-two-article-patterns-matching-one-line-are-ambiguous). |
+| `test_general_and_article_cross_category_match_is_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 2 | See [verified scenario and limits](#r13-test-general-and-article-cross-category-match-is-ambiguous). |
+| `test_zone_and_general_cross_category_match_is_ambiguous` | none | pytest.raises(PlanningRegulationStructureError) | 2 | See [verified scenario and limits](#r13-test-zone-and-general-cross-category-match-is-ambiguous). |
+| `test_identical_structural_regex_across_groups_is_rejected_by_config` | none | pytest.raises(ValueError, match="reused across groups") | 0 | See [verified scenario and limits](#r13-test-identical-structural-regex-across-groups-is-rejected-by-config). |
+| `test_ambiguous_continuation_candidate_fails_with_record_diagnostic` | none | pytest.raises(PlanningRegulationStructureError) | 5 | See [verified scenario and limits](#r13-test-ambiguous-continuation-candidate-fails-with-record-diagnostic). |
+| `test_source_complete_validator_rejects_changed_ambiguous_grammar` | none | pytest.raises(<br>        PlanningRegulationStructureError,<br>        match="Ambiguous structural heading",<br>    ) | 0 | See [verified scenario and limits](#r13-test-source-complete-validator-rejects-changed-ambiguous-grammar). |
+| `test_normal_muret_compatible_grammar_remains_deterministic` | none | none | 1 | See [verified scenario and limits](#r13-test-normal-muret-compatible-grammar-remains-deterministic). |
+| `test_lossless_partition_mutation_is_rejected` | pytest.mark.parametrize(<br>    ("mutation", "value"),<br>    [<br>        ("section_id", "SECTION-9999"),<br>        ("start_record_id", "RECORD-999999"),<br>        ("source_record_count", 999),<br>        ("source_records_sha256", "f" * 64),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-lossless-partition-mutation-is-rejected). |
+| `test_duplicate_or_reordered_record_partition_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="partition") | 0 | See [verified scenario and limits](#r13-test-duplicate-or-reordered-record-partition-is-rejected). |
+| `test_unsorted_section_pages_are_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="page references") | 0 | See [verified scenario and limits](#r13-test-unsorted-section-pages-are-rejected). |
+| `test_article_parent_semantics_are_enforced` | pytest.mark.parametrize(<br>    "mutation", ["missing_parent", "parent_after", "zone_mismatch"]<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-article-parent-semantics-are-enforced). |
+| `test_wrong_intersection_source_zone_id_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="source-zone") | 0 | See [verified scenario and limits](#r13-test-wrong-intersection-source-zone-id-is-rejected). |
+| `test_intersection_area_cannot_exceed_available_geometry_area` | pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"]) | pytest.raises(PlanningRegulationStructureError, match="exceeds") | 0 | See [verified scenario and limits](#r13-test-intersection-area-cannot-exceed-available-geometry-area). |
+| `test_intersection_upper_bound_uses_shared_relative_tolerance` | pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"]) | pytest.raises(PlanningRegulationStructureError, match="exceeds") | 1 | See [verified scenario and limits](#r13-test-intersection-upper-bound-uses-shared-relative-tolerance). |
+| `test_intersection_hash_columns_are_actual_and_deterministic` | pytest.mark.parametrize(<br>    "optional_columns",<br>    [<br>        (),<br>        ("parcel_metric_area_m2",),<br>        ("zone_area_m2",),<br>        ("parcel_metric_area_m2", "zone_area_m2"),<br>    ],<br>) | none | 1 | See [verified scenario and limits](#r13-test-intersection-hash-columns-are-actual-and-deterministic). |
+| `test_optional_intersection_metric_change_invalidates_existing_result` | pytest.mark.parametrize(<br>    "changed_column",<br>    ["parcel_metric_area_m2", "zone_area_m2"],<br>) | pytest.raises(PlanningRegulationStructureError, match="input hash") | 0 | See [verified scenario and limits](#r13-test-optional-intersection-metric-change-invalidates-existing-result). |
+| `test_intersection_hash_column_lineage_mutation_is_rejected` | none | pytest.raises(PlanningRegulationStructureError, match="hash columns") | 0 | See [verified scenario and limits](#r13-test-intersection-hash-column-lineage-mutation-is-rejected). |
+| `test_zone_mapping_contract_mutations_are_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("mapping_method", "NONE"),<br>        ("matched_section_id", "SECTION-0002"),<br>        ("resolved_zone_chapter_label", "N"),<br>        ("zone_polygon_count", 99),<br>        ("candidate_intersection_count", 0),<br>        ("dominant_candidate_count", 99),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-zone-mapping-contract-mutations-are-rejected). |
+| `test_alias_chain_resolves_to_final_configured_target` | none | none | 3 | See [verified scenario and limits](#r13-test-alias-chain-resolves-to-final-configured-target). |
+| `test_token_boundary_and_longest_match_policy` | none | none | 11 | See [verified scenario and limits](#r13-test-token-boundary-and-longest-match-policy). |
+| `test_topic_evidence_semantic_mutations_are_rejected` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("evidence_scope", "GENERAL_RULE"),<br>        ("zone_chapter_label", "N"),<br>        ("article_number_raw", "999"),<br>        ("topic", "unconfigured"),<br>        ("search_term", "unconfigured"),<br>        ("occurrence_count", 99),<br>        ("raw_context", "fabricated"),<br>        ("first_match_normalized_start", 999),<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-topic-evidence-semantic-mutations-are-rejected). |
+| `test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected` | none | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-coordinated-topic-evidence-and-hash-mutation-is-rebuilt-and-rejected). |
+| `test_source_complete_validator_rejects_post_build_source_change` | pytest.mark.parametrize(<br>    "source_change", ["alias", "topic", "heading", "zone", "area", "relation"]<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-source-complete-validator-rejects-post-build-source-change). |
+| `test_source_and_result_hash_mutation_is_rejected` | pytest.mark.parametrize(<br>    "hash_field",<br>    [<br>        "structure_config_sha256",<br>        "zones_content_sha256",<br>        "zoning_intersections_content_sha256",<br>        "structure_result_content_sha256",<br>    ],<br>) | pytest.raises(PlanningRegulationStructureError) | 0 | See [verified scenario and limits](#r13-test-source-and-result-hash-mutation-is-rejected). |
 
 ## 8. Public exports and package ownership
 
