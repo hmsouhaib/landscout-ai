@@ -6,17 +6,29 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+- Responsibility: Exercises the synthetic proximity contracts and bounded assertions below, not exhaustive or official-source coverage.
 - Source SHA256: `436de7dd475f09b28356502b0b4eaed66ead17253da7bf6d3869aaf8bbcee728`
+- Source SHA256 basis: `git-content`
+- R14 verification basis: `8afba19df0f6748bf0d5927668b5114e36bb8fb3`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
 - Refreshes permanent STEP 7F.1A.4 regression coverage for enrich grid proximity; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
+## R14 test aliases, fixtures and proof boundary
+
+In this test module, enrich_parcel_grid_proximity is an alias of the private normalized-frame calculator, not the public source API. public_enrich_parcel_grid_proximity names the public three-argument function re-exported by stages. profile_grid_proximity is the public local-result profiler. Every scenario below identifies which boundary it exercises; qualified call tables are not a substitute for that distinction.
+
+SOURCE_CONFIG = load_ign_bdtopo_source_config() reads the checked-in YAML at module import. Assignments are therefore not all effect-free constants. Fourteen local helper functions and 63 test functions are declared; none of these helpers has a pytest.fixture decorator. Several list helpers use argument or default, so [] selects defaults, while [None] creates a null geometry case. _electricity_source instead tests is not None for frames.
+
+The orchestration test uses a nondelegating return_value mock; the failure test uses a raising ValueError sentinel. There is no successful physical-source run or delegating normalizer spy in this file. Physical-role and archive-lineage rejection tests create temporary synthetic six-layer GeoPackages, including a byte-accurate extraction inventory, but only synthetic metadata/path for the named archive. They neither acquire nor byte-verify an official multi-gigabyte IGN archive. Config-lineage defects can be rejected before the physical layer reads.
+
+The many private numerical tests and result-mutation profile tests do not thereby exercise the public source boundary. Geometry equality, Z-presence and selected quantile assertions have the exact limits stated per test. Profiling a mutable result is local envelope/representation checking, not new source authority. No network download, scoring, connection-capacity inference or parcel eligibility decision is asserted here.
+
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Exercises the synthetic proximity contracts and bounded assertions below, not exhaustive or official-source coverage.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -117,9 +129,12 @@ No top-level class/model/dataclass is declared.
 
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r14--geometry-status"></a>
 ### `_geometry_status`
 
-**Purpose:** Implements `geometry status` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._geometry_status`. Source lines 56–63.
+
+**Purpose:** Returns NULL for None, then EMPTY for empty geometry, INVALID for invalid geometry, otherwise VALID. This synthetic classifier has no general runtime type gate and does not modify geometry.
 
 **Exact signature**
 
@@ -188,9 +203,12 @@ def _geometry_status(geometry: object) -> str:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--parcels"></a>
 ### `_parcels`
 
-**Purpose:** Implements `parcels` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._parcels`. Source lines 66–82.
+
+**Purpose:** Builds an EPSG:2154 synthetic GeoDataFrame with parcel_id, source_value and geometry, default square 0..10 and index 100 onward. Geometry, identifier and index arguments use argument-or-default: empty lists select defaults, not zero parcels.
 
 **Exact signature**
 
@@ -358,9 +376,12 @@ def _parcels(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--lines"></a>
 ### `_lines`
 
-**Purpose:** Implements `lines` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._lines`. Source lines 85–125.
+
+**Purpose:** Builds a synthetic normalized line frame, default x=110 line with EXACT 110 kV, CUSTOM_LINE_LAYER and fixed department/edition/archive metadata. List options use argument-or-default, including empty lists. Geometry status is computed locally; raw voltage is formatted from numeric input and upper bounds remain NaN. This is not a physical IGN source.
 
 **Exact signature**
 
@@ -553,9 +574,12 @@ def _lines(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--posts"></a>
 ### `_posts`
 
-**Purpose:** Implements `posts` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._posts`. Source lines 128–160.
+
+**Purpose:** Builds a synthetic normalized polygonal post frame, default square x=110..120, with fixed source metadata and locally observed geometry status. List options use argument-or-default, so empty lists select defaults. No RTE point or official-source acquisition is involved.
 
 **Exact signature**
 
@@ -733,9 +757,12 @@ def _posts(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--electricity-source"></a>
 ### `_electricity_source`
 
-**Purpose:** Implements `electricity source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._electricity_source`. Source lines 163–173.
+
+**Purpose:** Constructs an IgnBdTopoElectricityData placeholder with extraction and summaries cast from None, retaining supplied frames when they are not None. Unlike the list helpers, an empty supplied frame is retained. It is usable only behind the patched normalizer in these scenarios, not proof of physical source validity.
 
 **Exact signature**
 
@@ -817,9 +844,12 @@ def _electricity_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--physical-line-source"></a>
 ### `_physical_line_source`
 
-**Purpose:** Implements `physical line source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._physical_line_source`. Source lines 176–197.
+
+**Purpose:** Constructs one synthetic raw IGN line with cleabs, 225 kV text, date and precision fields in EPSG:2154; it returns a frame and does not itself write a package.
 
 **Exact signature**
 
@@ -904,9 +934,12 @@ def _physical_line_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--physical-post-source"></a>
 ### `_physical_post_source`
 
-**Purpose:** Implements `physical post source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._physical_post_source`. Source lines 200–221.
+
+**Purpose:** Constructs the synthetic raw polygonal IGN post schema in EPSG:2154; it returns a frame without a network or file read.
 
 **Exact signature**
 
@@ -991,9 +1024,12 @@ def _physical_post_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--physical-summary"></a>
 ### `_physical_summary`
 
-**Purpose:** Implements `physical summary` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._physical_summary`. Source lines 224–251.
+
+**Purpose:** Summarizes the supplied in-memory frame: feature/column/dtype/CRS counts and sorted non-null geometry types. No independent disk read occurs in this helper.
 
 **Exact signature**
 
@@ -1099,9 +1135,12 @@ def _physical_summary(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--physical-electricity-source"></a>
 ### `_physical_electricity_source`
 
-**Purpose:** Implements `physical electricity source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._physical_electricity_source`. Source lines 254–423.
+
+**Purpose:** Creates a real temporary six-layer GeoPackage (configured line/post, alternate line/post, road and department), reads its layer inventory, hashes its bytes and writes a schema-3 extraction marker with the actual file inventory. The flag chooses configured or alternate electricity roles; selected layers are reread and summarized. The enclosing download metadata has synthetic a-times-64 archive SHA and an archive path, but no archive bytes are created or verified. This is local fixture integrity, not official IGN acquisition.
 
 **Exact signature**
 
@@ -1172,8 +1211,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | `gpd.read_file`<br>`geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction_path.mkdir`<br>`(extraction_path / ".landscout-extraction.json").write_text` |
+| Filesystem/archive read or metadata access | `pyogrio.list_layers` reads the layer inventory;  `gpd.read_file`<br>`geopackage_path.read_bytes` |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe` writes six GPKG layers;  `extraction_path.mkdir`<br>`(extraction_path / ".landscout-extraction.json").write_text` |
 | Hashing/byte identity | `sha256(payload).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -1359,9 +1398,12 @@ def _physical_electricity_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--alternate-role-electricity-source"></a>
 ### `_alternate_role_electricity_source`
 
-**Purpose:** Implements `alternate role electricity source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._alternate_role_electricity_source`. Source lines 426–429.
+
+**Purpose:** Delegates to the temporary physical fixture with alternate_roles=True, binding alternate electricity roles to a real synthetic GeoPackage for public rejection.
 
 **Exact signature**
 
@@ -1425,9 +1467,12 @@ def _alternate_role_electricity_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--configured-role-electricity-source"></a>
 ### `_configured_role_electricity_source`
 
-**Purpose:** Implements `configured role electricity source` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._configured_role_electricity_source`. Source lines 432–435.
+
+**Purpose:** Delegates to the same temporary physical fixture with alternate_roles=False, binding configured roles before tests alter archive metadata. It does not download or create the named archive.
 
 **Exact signature**
 
@@ -1491,9 +1536,12 @@ def _configured_role_electricity_source(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--two-parcel-two-voltage-result"></a>
 ### `_two_parcel_two_voltage_result`
 
-**Purpose:** Implements `two parcel two voltage result` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result`. Source lines 438–455.
+
+**Purpose:** Calls the private normalized-frame calculator (the short test alias) with two parcels ordered PARCEL-2 then PARCEL-1 and lines at 275/110 kV. Returns its two-parcel, four-row voltage result for local profile mutations; it does not invoke the public source boundary.
 
 **Exact signature**
 
@@ -1614,9 +1662,12 @@ def _two_parcel_two_voltage_result() -> GridProximityResult:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--mutate-parcel-result"></a>
 ### `_mutate_parcel_result`
 
-**Purpose:** Implements `mutate parcel result` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._mutate_parcel_result`. Source lines 458–466.
+
+**Purpose:** Copies result.parcels, casts one named column to object, changes row label 0, then dataclasses.replace creates a new frozen envelope retaining the other table and coverage. This mutates synthetic result evidence without a hash/reseal or physical-source read.
 
 **Exact signature**
 
@@ -1709,9 +1760,12 @@ def _mutate_parcel_result(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14--mutate-voltage-result"></a>
 ### `_mutate_voltage_result`
 
-**Purpose:** Implements `mutate voltage result` within the file role: Provides complete unit and regression coverage for the `enrich_grid_proximity` contracts exercised in this file.
+Qualified owner: `tests.unit.test_enrich_grid_proximity._mutate_voltage_result`. Source lines 469–477.
+
+**Purpose:** Copies the voltage table, casts one named column to object, changes row label 0 and replaces that field in the frozen envelope. Other fields remain shared; no canonical hash exists here to recompute.
 
 **Exact signature**
 
@@ -1794,9 +1848,12 @@ def _mutate_voltage_result(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-clean-high-level-api-is-exported"></a>
 ### `test_clean_high_level_api_is_exported`
 
-**Purpose:** Regression invariant: clean high level api is exported. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_clean_high_level_api_is_exported`. Source lines 480–484.
+
+**Purpose:** Checks identity and stages.__all__ membership of the two public functions only. It does not execute either function or prove the complete eight-name package export set.
 
 **Exact signature**
 
@@ -1858,9 +1915,12 @@ def test_clean_high_level_api_is_exported() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-public-proximity-normalizes-verified-source-exactly-once"></a>
 ### `test_public_proximity_normalizes_verified_source_exactly_once`
 
-**Purpose:** Regression invariant: public proximity normalizes verified source exactly once. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_public_proximity_normalizes_verified_source_exactly_once`. Source lines 487–503.
+
+**Purpose:** Calls the public three-argument API with a placeholder bundle while patch supplies normalized synthetic frames as return_value. Asserts one normalizer call with the exact source/config arguments and selected LINE-1/POST-1 IDs. This nondelegating mock proves orchestration, not physical verification or disk-read count.
 
 **Exact signature**
 
@@ -1897,7 +1957,7 @@ Outbound call expressions and conservative ownership:
 | `_electricity_source` | `tests.unit.test_enrich_grid_proximity._electricity_source` |
 | `NormalizedIgnElectricityData` | `landscout.stages.normalize_grid_ign.NormalizedIgnElectricityData` |
 | `patch` | `unittest.mock.patch` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `normalizer.assert_called_once_with` | `unresolved local/third-party receiver; no ownership inferred` |
 
 **Source-observed side-effect matrix**
@@ -1941,9 +2001,12 @@ def test_public_proximity_normalizes_verified_source_exactly_once() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-public-proximity-rejects-wrong-source-boundary-types"></a>
 ### `test_public_proximity_rejects_wrong_source_boundary_types`
 
-**Purpose:** Regression invariant: public proximity rejects wrong source boundary types. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_public_proximity_rejects_wrong_source_boundary_types`. Source lines 507–526.
+
+**Purpose:** Calls the public API with a plain DataFrame for parcels or object() for source/config. Each of three cases expects GridProximityError and explicitly asserts the patched normalizer was never called; the corresponding initial type gate precedes source reconstruction.
 
 **Exact signature**
 
@@ -1983,7 +2046,7 @@ Outbound call expressions and conservative ownership:
 | `object` | `unresolved local/third-party receiver; no ownership inferred` |
 | `patch` | `unittest.mock.patch` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `cast` | `typing.cast` |
 | `normalizer.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -2032,9 +2095,12 @@ def test_public_proximity_rejects_wrong_source_boundary_types(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-caller-crafted-normalized-grid-frame-is-not-a-public-source"></a>
 ### `test_caller_crafted_normalized_grid_frame_is_not_a_public_source`
 
-**Purpose:** Regression invariant: caller crafted normalized grid frame is not a public source. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_caller_crafted_normalized_grid_frame_is_not_a_public_source`. Source lines 529–555.
+
+**Purpose:** Verifies four plausible textual lineage/role values on a synthetic line frame, then casts that frame as a source argument to the public API. Expects the electricity-source type error before the patched normalizer is called. Metadata equality here is not hashing or archive verification.
 
 **Exact signature**
 
@@ -2081,7 +2147,7 @@ Outbound call expressions and conservative ownership:
 | `forged_lines["spatial_role"].eq` | `unresolved local/third-party receiver; no ownership inferred` |
 | `patch` | `unittest.mock.patch` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `cast` | `typing.cast` |
 | `normalizer.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -2095,8 +2161,8 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
-| Hashing/byte identity | `forged_lines["source_archive_sha256"].eq("a" * 64).all`<br>`forged_lines["source_archive_sha256"].eq` |
-| CRS/geometry/spatial calculation | `forged_lines["spatial_role"].eq("PROXY_GEOMETRY").all` |
+| Hashing/byte identity | No hash computation: .eq on the supplied archive SHA compares strings. |
+| CRS/geometry/spatial calculation | No spatial calculation: .eq on spatial_role compares strings. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -2137,9 +2203,12 @@ def test_caller_crafted_normalized_grid_frame_is_not_a_public_source() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-public-proximity-reproduces-configured-electricity-roles"></a>
 ### `test_public_proximity_reproduces_configured_electricity_roles`
 
-**Purpose:** Regression invariant: public proximity reproduces configured electricity roles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_public_proximity_reproduces_configured_electricity_roles`. Source lines 558–568.
+
+**Purpose:** Creates the real temporary alternate-role fixture, asserts the alternate layer names, then calls the public API and expects GridProximityError without a message constraint. The real normalizer rejects roles inconsistent with configured rediscovery; this is a rejection test, not successful configured-source enrichment.
 
 **Exact signature**
 
@@ -2178,7 +2247,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_alternate_role_electricity_source` | `tests.unit.test_enrich_grid_proximity._alternate_role_electricity_source` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 
 **Source-observed side-effect matrix**
@@ -2216,9 +2285,12 @@ def test_public_proximity_reproduces_configured_electricity_roles(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-public-proximity-rejects-archive-lineage-differing-from-config"></a>
 ### `test_public_proximity_rejects_archive_lineage_differing_from_config`
 
-**Purpose:** Regression invariant: public proximity rejects archive lineage differing from config. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_public_proximity_rejects_archive_lineage_differing_from_config`. Source lines 606–626.
+
+**Purpose:** Creates a configured-role temporary fixture, replaces download metadata in eleven parameter cases (provider, product, edition, version, projection spelling, package/archive format, source/checksum URL, checksum fields or archive size), then calls the public API. Expects GridProximityError and an uncalled private-computation mock. Config/archive lineage validation can fail before physical extraction validation; the named archive is not present.
 
 **Exact signature**
 
@@ -2292,7 +2364,7 @@ Outbound call expressions and conservative ownership:
 | `replace` | `dataclasses.replace` |
 | `patch` | `unittest.mock.patch` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `computation.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
@@ -2343,9 +2415,12 @@ def test_public_proximity_rejects_archive_lineage_differing_from_config(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-source-normalization-failure-stops-grid-computation"></a>
 ### `test_source_normalization_failure_stops_grid_computation`
 
-**Purpose:** Regression invariant: source normalization failure stops grid computation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_source_normalization_failure_stops_grid_computation`. Source lines 629–642.
+
+**Purpose:** Calls the public API with a patched normalizer raising ValueError as a sentinel; asserts GridProximityError and exactly one normalizer invocation. This is neither a delegating spy nor an actual changed-source case; no separate computation spy is asserted.
 
 **Exact signature**
 
@@ -2379,7 +2454,7 @@ Outbound call expressions and conservative ownership:
 | `patch` | `unittest.mock.patch` |
 | `ValueError` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `normalizer.assert_called_once_with` | `unresolved local/third-party receiver; no ownership inferred` |
 
@@ -2421,9 +2496,12 @@ def test_source_normalization_failure_stops_grid_computation() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-separated-distance-uses-parcel-edge-not-centroid"></a>
 ### `test_separated_distance_uses_parcel_edge_not_centroid`
 
-**Purpose:** Regression invariant: separated distance uses parcel edge not centroid. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_separated_distance_uses_parcel_edge_not_centroid`. Source lines 645–653.
+
+**Purpose:** Calls the private calculator with the default square, line and polygonal post. Asserts both proxy distances are 100 m, measuring parcel edges rather than centroid distances.
 
 **Exact signature**
 
@@ -2493,9 +2571,12 @@ def test_separated_distance_uses_parcel_edge_not_centroid() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-touching-line-has-zero-distance"></a>
 ### `test_touching_line_has_zero_distance`
 
-**Purpose:** Regression invariant: touching line has zero distance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_touching_line_has_zero_distance`. Source lines 656–661.
+
+**Purpose:** Calls the private calculator with a line touching the parcel edge and asserts exactly zero nearest-line distance.
 
 **Exact signature**
 
@@ -2561,9 +2642,12 @@ def test_touching_line_has_zero_distance() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-post-distance-uses-parcel-and-post-polygons"></a>
 ### `test_post_distance_uses_parcel_and_post_polygons`
 
-**Purpose:** Regression invariant: post distance uses parcel and post polygons. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_post_distance_uses_parcel_and_post_polygons`. Source lines 664–669.
+
+**Purpose:** Calls the private calculator with a polygonal post 50 m from the parcel edge and asserts 50 m; it does not use a centroid or RTE point.
 
 **Exact signature**
 
@@ -2630,9 +2714,12 @@ def test_post_distance_uses_parcel_and_post_polygons() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-epsg4326-input-is-calculated-in-lambert93-and-preserved"></a>
 ### `test_epsg4326_input_is_calculated_in_lambert93_and_preserved`
 
-**Purpose:** Regression invariant: epsg4326 input is calculated in lambert93 and preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_epsg4326_input_is_calculated_in_lambert93_and_preserved`. Source lines 672–685.
+
+**Purpose:** Transforms the synthetic parcel to EPSG:4326, calls the private calculator and asserts approximately 100 m (absolute tolerance 1e-6), unchanged CRS and zero-tolerance geometry equality after index reset. This is not an explicit M/Z ordinate or byte comparison.
 
 **Exact signature**
 
@@ -2713,9 +2800,12 @@ def test_epsg4326_input_is_calculated_in_lambert93_and_preserved() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-epsg2154-parcel-input-remains-epsg2154"></a>
 ### `test_epsg2154_parcel_input_remains_epsg2154`
 
-**Purpose:** Regression invariant: epsg2154 parcel input remains epsg2154. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_epsg2154_parcel_input_remains_epsg2154`. Source lines 688–692.
+
+**Purpose:** Calls the private calculator with Lambert-93 parcels; asserts output EPSG:2154 and 100 m nearest-line distance.
 
 **Exact signature**
 
@@ -2781,9 +2871,12 @@ def test_epsg2154_parcel_input_remains_epsg2154() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-valid-parcel-id-is-preserved-exactly"></a>
 ### `test_valid_parcel_id_is_preserved_exactly`
 
-**Purpose:** Regression invariant: valid parcel id is preserved exactly. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_valid_parcel_id_is_preserved_exactly`. Source lines 695–700.
+
+**Purpose:** Calls the private calculator with the supplied FR31 identifier and asserts exact retention, not canonical Cadastre decomposition.
 
 **Exact signature**
 
@@ -2849,9 +2942,12 @@ def test_valid_parcel_id_is_preserved_exactly() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-public-proximity-rejects-generated-parcel-column-before-normalization"></a>
 ### `test_public_proximity_rejects_generated_parcel_column_before_normalization`
 
-**Purpose:** Regression invariant: public proximity rejects generated parcel column before normalization. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_public_proximity_rejects_generated_parcel_column_before_normalization`. Source lines 703–721.
+
+**Purpose:** Adds nearest_line_proxy_distance_m=123 to parcels, calls the public API and expects the generated-column collision error; asserts the patched normalizer was not called.
 
 **Exact signature**
 
@@ -2886,7 +2982,7 @@ Outbound call expressions and conservative ownership:
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `patch` | `unittest.mock.patch` |
 | `pytest.raises` | `pytest.raises` |
-| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_parcel_grid_proximity` |
+| `public_enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity` (via package re-export) |
 | `_electricity_source` | `tests.unit.test_enrich_grid_proximity._electricity_source` |
 | `normalize.assert_not_called` | `unresolved local/third-party receiver; no ownership inferred` |
 
@@ -2933,9 +3029,12 @@ def test_public_proximity_rejects_generated_parcel_column_before_normalization()
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-invalid-parcel-id-hygiene-is-rejected"></a>
 ### `test_invalid_parcel_id_hygiene_is_rejected`
 
-**Purpose:** Regression invariant: invalid parcel id hygiene is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_invalid_parcel_id_hygiene_is_rejected`. Source lines 728–732.
+
+**Purpose:** Calls the private calculator with None, empty/blank/edge-spaced strings or integer 123 as parcel_id. All six cases expect GridProximityError matching parcel_id.
 
 **Exact signature**
 
@@ -3006,9 +3105,12 @@ def test_invalid_parcel_id_hygiene_is_rejected(identifier: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-supported-parcel-polygon-geometry-is-preserved"></a>
 ### `test_supported_parcel_polygon_geometry_is_preserved`
 
-**Purpose:** Regression invariant: supported parcel polygon geometry is preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_supported_parcel_polygon_geometry_is_preserved`. Source lines 743–747.
+
+**Purpose:** Calls the private calculator for Polygon, MultiPolygon and an XYZ Polygon, checking geom_equals_exact at zero tolerance and has_z equality. These checks do not independently compare every Z value or establish M preservation end to end.
 
 **Exact signature**
 
@@ -3086,9 +3188,12 @@ def test_supported_parcel_polygon_geometry_is_preserved(geometry: object) -> Non
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-semantically-wrong-parcel-geometry-is-rejected"></a>
 ### `test_semantically_wrong_parcel_geometry_is_rejected`
 
-**Purpose:** Regression invariant: semantically wrong parcel geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_semantically_wrong_parcel_geometry_is_rejected`. Source lines 759–761.
+
+**Purpose:** Calls the private calculator with Point, LineString, MultiLineString or GeometryCollection parcels and expects the Polygon/MultiPolygon type guard.
 
 **Exact signature**
 
@@ -3166,9 +3271,12 @@ def test_semantically_wrong_parcel_geometry_is_rejected(geometry: object) -> Non
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-missing-crs-is-rejected"></a>
 ### `test_missing_crs_is_rejected`
 
-**Purpose:** Regression invariant: missing crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_missing_crs_is_rejected`. Source lines 765–771.
+
+**Purpose:** Removes CRS from parcel, line or post frames separately, then calls the private calculator and expects a CRS-related GridProximityError.
 
 **Exact signature**
 
@@ -3238,9 +3346,12 @@ def test_missing_crs_is_rejected(kind: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-wrong-grid-crs-is-rejected"></a>
 ### `test_wrong_grid_crs_is_rejected`
 
-**Purpose:** Regression invariant: wrong grid crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_wrong_grid_crs_is_rejected`. Source lines 775–780.
+
+**Purpose:** Uses EPSG:4326 for lines or posts, calls the private calculator and expects the EPSG:2154 requirement. Geographic parcel input is a separate accepted scenario.
 
 **Exact signature**
 
@@ -3309,9 +3420,12 @@ def test_wrong_grid_crs_is_rejected(kind: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-z-line-has-same-horizontal-distance-as-xy-line"></a>
 ### `test_z_line_has_same_horizontal_distance_as_xy_line`
 
-**Purpose:** Regression invariant: z line has same horizontal distance as xy line. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_z_line_has_same_horizontal_distance_as_xy_line`. Source lines 783–793.
+
+**Purpose:** Calls the private calculator for XY and XYZ lines, compares their horizontal nearest-line distances and asserts the supplied XYZ line still has Z. This is a bounded 2D calculation/input-preservation test, not an M/Z pipeline guarantee.
 
 **Exact signature**
 
@@ -3384,9 +3498,12 @@ def test_z_line_has_same_horizontal_distance_as_xy_line() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-line-tie-is-counted-and-lexical-feature-id-wins"></a>
 ### `test_line_tie_is_counted_and_lexical_feature_id_wins`
 
-**Purpose:** Regression invariant: line tie is counted and lexical feature id wins. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_line_tie_is_counted_and_lexical_feature_id_wins`. Source lines 796–818.
+
+**Purpose:** Calls the private calculator with two 110 kV lines equidistant at 100 m, IDs Z-LINE/A-LINE. Asserts lexical A-LINE selection, two-way ties for broad/global-exact/level results and one retained parcel; no distance epsilon is exercised.
 
 **Exact signature**
 
@@ -3478,9 +3595,12 @@ def test_line_tie_is_counted_and_lexical_feature_id_wins() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-cross-voltage-tie-uses-lexical-global-feature-id"></a>
 ### `test_cross_voltage_tie_uses_lexical_global_feature_id`
 
-**Purpose:** Regression invariant: cross voltage tie uses lexical global feature id. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_cross_voltage_tie_uses_lexical_global_feature_id`. Source lines 821–844.
+
+**Purpose:** Calls the private calculator with equidistant 110/275 kV lines and then the public profiler. Asserts global A-LINE-275 at 100 m with two ties, each level at 100 m with one tie, and profile.tie_count=1 (one tied parcel, not two features).
 
 **Exact signature**
 
@@ -3521,7 +3641,7 @@ Outbound call expressions and conservative ownership:
 | `enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity._enrich_parcel_grid_proximity_from_normalized` |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `_posts` | `tests.unit.test_enrich_grid_proximity._posts` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `pytest.approx` | `pytest.approx` |
 | `result.voltage_level_proximity[<br>        "nearest_line_proxy_distance_m"<br>    ].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.voltage_level_proximity["tie_count"].tolist` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -3536,7 +3656,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `result.voltage_level_proximity[<br>        "nearest_line_proxy_distance_m"<br>    ].tolist` |
+| CRS/geometry/spatial calculation | Numerical proximity is delegated to the private calculator; .tolist/.isna on retained distances are not spatial calculations. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -3574,9 +3694,12 @@ def test_cross_voltage_tie_uses_lexical_global_feature_id() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-nonvalid-grid-geometries-are-excluded-without-row-loss"></a>
 ### `test_nonvalid_grid_geometries_are_excluded_without_row_loss`
 
-**Purpose:** Regression invariant: nonvalid grid geometries are excluded without row loss. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_nonvalid_grid_geometries_are_excluded_without_row_loss`. Source lines 847–859.
+
+**Purpose:** Calls the private calculator with NULL, EMPTY, INVALID and VALID line geometries. Asserts one output parcel and selection of VALID. The row-loss assertion concerns parcels, not retention of all input line rows in the distance catalog.
 
 **Exact signature**
 
@@ -3652,9 +3775,12 @@ def test_nonvalid_grid_geometries_are_excluded_without_row_loss() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-wrong-grid-feature-type-is-rejected"></a>
 ### `test_wrong_grid_feature_type_is_rejected`
 
-**Purpose:** Regression invariant: wrong grid feature type is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_wrong_grid_feature_type_is_rejected`. Source lines 863–868.
+
+**Purpose:** Changes line or post grid_feature_type, calls the private calculator and expects its exact feature-type guard.
 
 **Exact signature**
 
@@ -3723,9 +3849,12 @@ def test_wrong_grid_feature_type_is_rejected(kind: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-duplicate-grid-feature-id-is-rejected"></a>
 ### `test_duplicate_grid_feature_id_is_rejected`
 
-**Purpose:** Regression invariant: duplicate grid feature id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_duplicate_grid_feature_id_is_rejected`. Source lines 872–890.
+
+**Purpose:** Builds duplicate line IDs or duplicate post IDs in two branches, calls the private calculator and expects uniqueness rejection.
 
 **Exact signature**
 
@@ -3809,9 +3938,12 @@ def test_duplicate_grid_feature_id_is_rejected(kind: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-wrong-spatial-role-is-rejected"></a>
 ### `test_wrong_spatial_role_is_rejected`
 
-**Purpose:** Regression invariant: wrong spatial role is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_wrong_spatial_role_is_rejected`. Source lines 894–899.
+
+**Purpose:** Changes the normalized line or post role, calls the private calculator and expects PROXY_GEOMETRY rejection; this does not rediscover physical source roles.
 
 **Exact signature**
 
@@ -3880,9 +4012,12 @@ def test_wrong_spatial_role_is_rejected(kind: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-unsupported-valid-grid-geometry-type-is-rejected"></a>
 ### `test_unsupported_valid_grid_geometry_type_is_rejected`
 
-**Purpose:** Regression invariant: unsupported valid grid geometry type is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_unsupported_valid_grid_geometry_type_is_rejected`. Source lines 911–918.
+
+**Purpose:** Calls the private calculator with valid Point/Polygon as lines or Point/LineString as posts. All four cases expect the role-specific geometry-types error.
 
 **Exact signature**
 
@@ -3967,9 +4102,12 @@ def test_unsupported_valid_grid_geometry_type_is_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-supported-multi-geometries-are-accepted"></a>
 ### `test_supported_multi_geometries_are_accepted`
 
-**Purpose:** Regression invariant: supported multi geometries are accepted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_supported_multi_geometries_are_accepted`. Source lines 921–931.
+
+**Purpose:** Calls the private calculator with MultiLineString and MultiPolygon inputs; asserts only one returned parcel, not an exact distance or source-bound acquisition.
 
 **Exact signature**
 
@@ -4043,9 +4181,12 @@ def test_supported_multi_geometries_are_accepted() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-nearest-any-line-preserves-every-voltage-status"></a>
 ### `test_nearest_any_line_preserves_every_voltage_status`
 
-**Purpose:** Regression invariant: nearest any line preserves every voltage status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_nearest_any_line_preserves_every_voltage_status`. Source lines 937–943.
+
+**Purpose:** Calls the private calculator for EXACT, BELOW, UNKNOWN, DEENERGIZED and UNPARSED. Only EXACT is supplied 110 kV; asserts the broad-line voltage_status is copied. No raw-voltage parser or populated upper-bound assertion is exercised.
 
 **Exact signature**
 
@@ -4116,9 +4257,12 @@ def test_nearest_any_line_preserves_every_voltage_status(status: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-nearest-exact-and-voltage-table-exclude-nonexact-lines"></a>
 ### `test_nearest_exact_and_voltage_table_exclude_nonexact_lines`
 
-**Purpose:** Regression invariant: nearest exact and voltage table exclude nonexact lines. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_nearest_exact_and_voltage_table_exclude_nonexact_lines`. Source lines 946–968.
+
+**Purpose:** Calls the private calculator with a closer BELOW line and farther EXACT 110/275 kV lines. Asserts the broad winner remains BELOW, the exact winner is EXACT-110 at 110 kV, and the long table has the ordered two levels, two rows and exact column order. The fixture upper-bound field remains NaN.
 
 **Exact signature**
 
@@ -4209,9 +4353,12 @@ def test_nearest_exact_and_voltage_table_exclude_nonexact_lines() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-voltage-table-is-exact-ordered-cartesian-product"></a>
 ### `test_voltage_table_is_exact_ordered_cartesian_product`
 
-**Purpose:** Regression invariant: voltage table is exact ordered cartesian product. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_voltage_table_is_exact_ordered_cartesian_product`. Source lines 971–986.
+
+**Purpose:** Uses the private two-parcel/two-voltage helper. Asserts ascending coverage (110,275), four rows, unique pairs and PARCEL-2/PARCEL-1 order inside each level. It does not separately assert the complete inter-level row sequence.
 
 **Exact signature**
 
@@ -4291,9 +4438,12 @@ def test_voltage_table_is_exact_ordered_cartesian_product() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-invalid-exact-voltage-values-are-not-used-as-exact"></a>
 ### `test_invalid_exact_voltage_values_are_not_used_as_exact`
 
-**Purpose:** Regression invariant: invalid exact voltage values are not used as exact. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_invalid_exact_voltage_values_are_not_used_as_exact`. Source lines 989–1000.
+
+**Purpose:** Calls the private calculator with EXACT statuses but values 0, -1, infinity and string 110. Asserts no exact distance and an empty long table. This body does not additionally test booleans or NaN.
 
 **Exact signature**
 
@@ -4343,7 +4493,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `result.parcels["nearest_exact_line_proxy_distance_m"].isna().all`<br>`result.parcels["nearest_exact_line_proxy_distance_m"].isna` |
+| CRS/geometry/spatial calculation | Numerical proximity is delegated to the private calculator; .tolist/.isna on retained distances are not spatial calculations. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -4369,9 +4519,12 @@ def test_invalid_exact_voltage_values_are_not_used_as_exact() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-no-exact-voltage-preserves-parcels-and-returns-empty-long-table"></a>
 ### `test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table`
 
-**Purpose:** Regression invariant: no exact voltage preserves parcels and returns empty long table. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table`. Source lines 1003–1027.
+
+**Purpose:** Calls the private calculator with an UNKNOWN line and None voltage, then the public profiler. Asserts broad-line retention, null exact fields, empty schema-ordered long table, float numeric/nullable Int64 tie dtypes, empty coverage and exact-profile count=0/missing=1. There is one parcel, not zero parcels.
 
 **Exact signature**
 
@@ -4427,7 +4580,7 @@ Outbound call expressions and conservative ownership:
 | `is_float_dtype` | `pandas.api.types.is_float_dtype` |
 | `is_integer_dtype` | `pandas.api.types.is_integer_dtype` |
 | `str` | `unresolved local/third-party receiver; no ownership inferred` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 
 **Source-observed side-effect matrix**
 
@@ -4439,7 +4592,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | `result.parcels["nearest_exact_line_proxy_distance_m"].isna().all`<br>`result.parcels["nearest_exact_line_proxy_distance_m"].isna` |
+| CRS/geometry/spatial calculation | Numerical proximity is delegated to the private calculator; .tolist/.isna on retained distances are not spatial calculations. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -4478,9 +4631,12 @@ def test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table() -> No
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-missing-parcel-column-is-rejected"></a>
 ### `test_missing_parcel_column_is_rejected`
 
-**Purpose:** Regression invariant: missing parcel column is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_missing_parcel_column_is_rejected`. Source lines 1031–1035.
+
+**Purpose:** Drops parcel_id or geometry, calls the private calculator and expects GridProximityError matching the missing column.
 
 **Exact signature**
 
@@ -4549,9 +4705,12 @@ def test_missing_parcel_column_is_rejected(column: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-null-parcel-id-is-rejected"></a>
 ### `test_null_parcel_id_is_rejected`
 
-**Purpose:** Regression invariant: null parcel id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_null_parcel_id_is_rejected`. Source lines 1038–1040.
+
+**Purpose:** Supplies a None parcel_id to the private calculator and expects a parcel_id error; no normalization is invoked.
 
 **Exact signature**
 
@@ -4614,9 +4773,12 @@ def test_null_parcel_id_is_rejected() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-duplicate-parcel-id-is-rejected"></a>
 ### `test_duplicate_parcel_id_is_rejected`
 
-**Purpose:** Regression invariant: duplicate parcel id is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_duplicate_parcel_id_is_rejected`. Source lines 1043–1053.
+
+**Purpose:** Supplies two parcel geometries sharing one identifier to the private calculator and expects uniqueness rejection.
 
 **Exact signature**
 
@@ -4688,9 +4850,12 @@ def test_duplicate_parcel_id_is_rejected() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-bad-parcel-geometry-is-rejected"></a>
 ### `test_bad_parcel_geometry_is_rejected`
 
-**Purpose:** Regression invariant: bad parcel geometry is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_bad_parcel_geometry_is_rejected`. Source lines 1067–1069.
+
+**Purpose:** Calls the private calculator with None, an empty Polygon or an invalid crossing Polygon. Expects respectively null, empty or valid in the error message.
 
 **Exact signature**
 
@@ -4768,9 +4933,12 @@ def test_bad_parcel_geometry_is_rejected(geometry: object, message: str) -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-inputs-are-not-mutated-and-parcel-order-and-ids-are-preserved"></a>
 ### `test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved`
 
-**Purpose:** Regression invariant: inputs are not mutated and parcel order and ids are preserved. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved`. Source lines 1072–1096.
+
+**Purpose:** Calls the private calculator on two parcels with duplicate input index labels [99,99]. Compares all three input frames with deep copies using assert_geodataframe_equal, asserts the original ID order and a returned RangeIndex. It does not promise input-index preservation.
 
 **Exact signature**
 
@@ -4860,9 +5028,12 @@ def test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved() -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-distance-profile-is-threshold-free-and-tracks-ties"></a>
 ### `test_distance_profile_is_threshold_free_and_tracks_ties`
 
-**Purpose:** Regression invariant: distance profile is threshold free and tracks ties. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_distance_profile_is_threshold_free_and_tracks_ties`. Source lines 1099–1126.
+
+**Purpose:** Builds a private result for two parcels then calls the public profiler. Asserts count=2/missing=0, min=50, median=75, max=100 m, one tied parcel and first-level voltage/source count/parcel row count. It does not assert all nine quantile values or a suitability threshold.
 
 **Exact signature**
 
@@ -4907,7 +5078,7 @@ Outbound call expressions and conservative ownership:
 | `LineString` | `shapely.geometry.LineString` |
 | `enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity._enrich_parcel_grid_proximity_from_normalized` |
 | `_posts` | `tests.unit.test_enrich_grid_proximity._posts` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `pytest.approx` | `pytest.approx` |
 
 **Source-observed side-effect matrix**
@@ -4962,9 +5133,12 @@ def test_distance_profile_is_threshold_free_and_tracks_ties() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-missing-voltage-cartesian-row"></a>
 ### `test_profile_rejects_missing_voltage_cartesian_row`
 
-**Purpose:** Regression invariant: profile rejects missing voltage cartesian row. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_missing_voltage_cartesian_row`. Source lines 1129–1134.
+
+**Purpose:** Removes the final long-table row from the private synthetic result and calls the public profiler. Expects GridProximityError; the Cartesian row-count guard can fail before any spatial or identity comparison.
 
 **Exact signature**
 
@@ -4997,7 +5171,7 @@ Outbound call expressions and conservative ownership:
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `result.voltage_level_proximity.iloc[:-1].copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 
 **Source-observed side-effect matrix**
@@ -5030,9 +5204,12 @@ def test_profile_rejects_missing_voltage_cartesian_row() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-unknown-voltage-parcel-with-same-total-count"></a>
 ### `test_profile_rejects_unknown_voltage_parcel_with_same_total_count`
 
-**Purpose:** Regression invariant: profile rejects unknown voltage parcel with same total count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_unknown_voltage_parcel_with_same_total_count`. Source lines 1137–1142.
+
+**Purpose:** Changes long-table row 0 parcel_id to an unknown ID without changing row count; calls the public profiler and expects GridProximityError from the per-level parcel-sequence contract.
 
 **Exact signature**
 
@@ -5065,7 +5242,7 @@ Outbound call expressions and conservative ownership:
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `_mutate_voltage_result` | `tests.unit.test_enrich_grid_proximity._mutate_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 
 **Source-observed side-effect matrix**
 
@@ -5097,9 +5274,12 @@ def test_profile_rejects_unknown_voltage_parcel_with_same_total_count() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-duplicate-parcel-voltage-pair"></a>
 ### `test_profile_rejects_duplicate_parcel_voltage_pair`
 
-**Purpose:** Regression invariant: profile rejects duplicate parcel voltage pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_duplicate_parcel_voltage_pair`. Source lines 1145–1151.
+
+**Purpose:** Copies row 0 parcel_id into row 1 of the long table, calls the public profiler and expects uniqueness rejection before cross-representation comparison.
 
 **Exact signature**
 
@@ -5132,7 +5312,7 @@ Outbound call expressions and conservative ownership:
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `result.voltage_level_proximity.copy` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 
 **Source-observed side-effect matrix**
@@ -5166,9 +5346,12 @@ def test_profile_rejects_duplicate_parcel_voltage_pair() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-voltage-rows-out-of-parcel-order"></a>
 ### `test_profile_rejects_voltage_rows_out_of_parcel_order`
 
-**Purpose:** Regression invariant: profile rejects voltage rows out of parcel order. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_voltage_rows_out_of_parcel_order`. Source lines 1154–1159.
+
+**Purpose:** Reorders long rows [1,0,2,3] and resets index, then calls the public profiler. Expects exact-parcel-set rejection because the per-level parcel sequence changed.
 
 **Exact signature**
 
@@ -5201,7 +5384,7 @@ Outbound call expressions and conservative ownership:
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `result.voltage_level_proximity.iloc[[1, 0, 2, 3]].reset_index` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 
 **Source-observed side-effect matrix**
@@ -5234,9 +5417,12 @@ def test_profile_rejects_voltage_rows_out_of_parcel_order() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-inconsistent-global-exact-distance"></a>
 ### `test_profile_rejects_inconsistent_global_exact_distance`
 
-**Purpose:** Regression invariant: profile rejects inconsistent global exact distance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_inconsistent_global_exact_distance`. Source lines 1162–1172.
+
+**Purpose:** Changes main row 0 global exact distance to 5000 and calls the public profiler. The locally valid number fails reconciliation with level-wise minimum distance, matching exact-line distance.
 
 **Exact signature**
 
@@ -5268,7 +5454,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 
 **Source-observed side-effect matrix**
@@ -5306,9 +5492,12 @@ def test_profile_rejects_inconsistent_global_exact_distance() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-inconsistent-global-exact-identity"></a>
 ### `test_profile_rejects_inconsistent_global_exact_identity`
 
-**Purpose:** Regression invariant: profile rejects inconsistent global exact identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_inconsistent_global_exact_identity`. Source lines 1183–1190.
+
+**Purpose:** Changes main row 0 exact grid ID, source ID or voltage to the other existing level (275), then calls the public profiler. Each case expects inconsistent evidence against the level winner; the voltage remains in the coverage inventory.
 
 **Exact signature**
 
@@ -5353,7 +5542,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -5389,9 +5578,12 @@ def test_profile_rejects_inconsistent_global_exact_identity(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-inconsistent-global-exact-metadata"></a>
 ### `test_profile_rejects_inconsistent_global_exact_metadata`
 
-**Purpose:** Regression invariant: profile rejects inconsistent global exact metadata. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_inconsistent_global_exact_metadata`. Source lines 1203–1210.
+
+**Purpose:** Changes main row 0 exact manager, asset state, department, edition or archive SHA string; calls the public profiler and expects inconsistency with retained level metadata. This compares representations, not physical bytes or SHA authenticity.
 
 **Exact signature**
 
@@ -5438,7 +5630,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -5474,9 +5666,12 @@ def test_profile_rejects_inconsistent_global_exact_metadata(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-inconsistent-global-exact-tie-count"></a>
 ### `test_profile_rejects_inconsistent_global_exact_tie_count`
 
-**Purpose:** Regression invariant: profile rejects inconsistent global exact tie count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_inconsistent_global_exact_tie_count`. Source lines 1213–1219.
+
+**Purpose:** Changes main row 0 exact ties to 2 where level winners imply 1; public profiling rejects tie-count inconsistency rather than numeric validity.
 
 **Exact signature**
 
@@ -5508,7 +5703,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 
 **Source-observed side-effect matrix**
@@ -5542,9 +5737,12 @@ def test_profile_rejects_inconsistent_global_exact_tie_count() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-required-match-tie-count"></a>
 ### `test_profile_rejects_bad_required_match_tie_count`
 
-**Purpose:** Regression invariant: profile rejects bad required match tie count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_required_match_tie_count`. Source lines 1242–1248.
+
+**Purpose:** Mutates each of the three main tie columns with 0, -1, 1.5, infinity, string 2, None or 10**10000 (21 cases) and calls the public profiler. Expects tie_count/match rejection from numeric or missing-match rules; this parametrization contains no boolean.
 
 **Exact signature**
 
@@ -5599,7 +5797,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5636,9 +5834,12 @@ def test_profile_rejects_bad_required_match_tie_count(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-long-table-tie-count"></a>
 ### `test_profile_rejects_bad_long_table_tie_count`
 
-**Purpose:** Regression invariant: profile rejects bad long table tie count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_long_table_tie_count`. Source lines 1263–1267.
+
+**Purpose:** Mutates long-table row 0 tie_count with the same seven invalid/absent/overflowing values and calls the public profiler; expects tie_count/match rejection.
 
 **Exact signature**
 
@@ -5683,7 +5884,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_voltage_result` | `tests.unit.test_enrich_grid_proximity._mutate_voltage_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5718,9 +5919,12 @@ def test_profile_rejects_bad_long_table_tie_count(value: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-missing-main-match-feature-id"></a>
 ### `test_profile_rejects_missing_main_match_feature_id`
 
-**Purpose:** Regression invariant: profile rejects missing main match feature id. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_missing_main_match_feature_id`. Source lines 1281–1285.
+
+**Purpose:** Sets each main broad/exact/post grid/source ID column to None at row 0 (six cases). The public profiler rejects required matched-row identity before comparing retained exact representations.
 
 **Exact signature**
 
@@ -5764,7 +5968,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -5797,9 +6001,12 @@ def test_profile_rejects_missing_main_match_feature_id(column: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-required-match-distance"></a>
 ### `test_profile_rejects_bad_required_match_distance`
 
-**Purpose:** Regression invariant: profile rejects bad required match distance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_required_match_distance`. Source lines 1297–1303.
+
+**Purpose:** Mutates main broad distance to None or string 100, exact distance to infinity, or post distance to -1. Calls the public profiler and expects GridProximityError without a specific message; missing-match and finite/nonnegative guards differ by case.
 
 **Exact signature**
 
@@ -5844,7 +6051,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5880,9 +6087,12 @@ def test_profile_rejects_bad_required_match_distance(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-exact-match-voltage"></a>
 ### `test_profile_rejects_bad_exact_match_voltage`
 
-**Purpose:** Regression invariant: profile rejects bad exact match voltage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_exact_match_voltage`. Source lines 1310–1316.
+
+**Purpose:** Mutates main exact voltage to None, 0, -1, infinity, string 110 or out-of-inventory 999. Public profiling rejects with voltage/match; positive-number validation and level-membership rejection are distinct.
 
 **Exact signature**
 
@@ -5919,7 +6129,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -5955,9 +6165,12 @@ def test_profile_rejects_bad_exact_match_voltage(value: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-result-parcel-id"></a>
 ### `test_profile_rejects_bad_result_parcel_id`
 
-**Purpose:** Regression invariant: profile rejects bad result parcel id. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_result_parcel_id`. Source lines 1319–1323.
+
+**Purpose:** Changes main row 0 parcel_id to an edge-spaced string and calls the public profiler; expects parcel_id hygiene rejection before result reconciliation.
 
 **Exact signature**
 
@@ -5989,7 +6202,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 
 **Source-observed side-effect matrix**
@@ -6021,9 +6234,12 @@ def test_profile_rejects_bad_result_parcel_id() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-missing-required-proximity-column"></a>
 ### `test_profile_rejects_missing_required_proximity_column`
 
-**Purpose:** Regression invariant: profile rejects missing required proximity column. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_missing_required_proximity_column`. Source lines 1326–1331.
+
+**Purpose:** Drops nearest_line_grid_feature_id from the main result and calls the public profiler; expects Missing proximity before match validation.
 
 **Exact signature**
 
@@ -6056,7 +6272,7 @@ Outbound call expressions and conservative ownership:
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `result.parcels.drop` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 
 **Source-observed side-effect matrix**
@@ -6089,9 +6305,12 @@ def test_profile_rejects_missing_required_proximity_column() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-nondeterministic-or-duplicate-coverage"></a>
 ### `test_profile_rejects_nondeterministic_or_duplicate_coverage`
 
-**Purpose:** Regression invariant: profile rejects nondeterministic or duplicate coverage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_nondeterministic_or_duplicate_coverage`. Source lines 1335–1345.
+
+**Purpose:** Reverses the coverage tuple or appends a duplicate record, then calls the public profiler. Expects coverage rejection for nonascending or duplicate levels.
 
 **Exact signature**
 
@@ -6129,7 +6348,7 @@ Outbound call expressions and conservative ownership:
 | `tuple` | `unresolved local/third-party receiver; no ownership inferred` |
 | `reversed` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -6168,9 +6387,12 @@ def test_profile_rejects_nondeterministic_or_duplicate_coverage(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-invalid-voltage-coverage-level"></a>
 ### `test_profile_rejects_invalid_voltage_coverage_level`
 
-**Purpose:** Regression invariant: profile rejects invalid voltage coverage level. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_invalid_voltage_coverage_level`. Source lines 1358–1363.
+
+**Purpose:** Replaces coverage with one record whose level is 0, -1, infinity, string 110 or 10**10000. Calls the public profiler and expects coverage rejection; the invalid level is checked before the changed coverage size could invalidate the Cartesian row count.
 
 **Exact signature**
 
@@ -6212,9 +6434,9 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
-| `VoltageLevelCoverage` | `landscout.stages.VoltageLevelCoverage` |
+| `VoltageLevelCoverage` | `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage` (via package re-export) |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6250,9 +6472,12 @@ def test_profile_rejects_invalid_voltage_coverage_level(voltage_kv: object) -> N
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-invalid-voltage-coverage-feature-count"></a>
 ### `test_profile_rejects_invalid_voltage_coverage_feature_count`
 
-**Purpose:** Regression invariant: profile rejects invalid voltage coverage feature count. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_invalid_voltage_coverage_feature_count`. Source lines 1367–1376.
+
+**Purpose:** Replaces coverage with one record whose source count is 0, -1, 1.5, infinity, True or string 2. Calls the public profiler and expects line_feature_count rejection before the ensuing coverage/table mismatch; this is not a physical line recount.
 
 **Exact signature**
 
@@ -6287,9 +6512,9 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
-| `VoltageLevelCoverage` | `landscout.stages.VoltageLevelCoverage` |
+| `VoltageLevelCoverage` | `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage` (via package re-export) |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `replace` | `dataclasses.replace` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6328,9 +6553,12 @@ def test_profile_rejects_invalid_voltage_coverage_feature_count(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-invalid-long-table-voltage"></a>
 ### `test_profile_rejects_invalid_long_table_voltage`
 
-**Purpose:** Regression invariant: profile rejects invalid long table voltage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_invalid_long_table_voltage`. Source lines 1383–1387.
+
+**Purpose:** Changes long row 0 voltage to None, 0, -1, infinity, string 110 or out-of-inventory 220. Calls the public profiler and expects Voltage proximity rejection from value or level-inventory checks.
 
 **Exact signature**
 
@@ -6367,7 +6595,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_voltage_result` | `tests.unit.test_enrich_grid_proximity._mutate_voltage_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6401,9 +6629,12 @@ def test_profile_rejects_invalid_long_table_voltage(value: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-missing-long-table-match-lineage"></a>
 ### `test_profile_rejects_missing_long_table_match_lineage`
 
-**Purpose:** Regression invariant: profile rejects missing long table match lineage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_missing_long_table_match_lineage`. Source lines 1400–1404.
+
+**Purpose:** Sets long row 0 grid ID, source ID, department, edition or archive SHA to None in five cases, then calls the public profiler. Expects required match/lineage rejection, not a physical package check.
 
 **Exact signature**
 
@@ -6446,7 +6677,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_voltage_result` | `tests.unit.test_enrich_grid_proximity._mutate_voltage_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -6479,9 +6710,12 @@ def test_profile_rejects_missing_long_table_match_lineage(column: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-bad-long-table-distance"></a>
 ### `test_profile_rejects_bad_long_table_distance`
 
-**Purpose:** Regression invariant: profile rejects bad long table distance. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_bad_long_table_distance`. Source lines 1417–1423.
+
+**Purpose:** Changes long row 0 distance to None, -1, infinity, string 100 or 10**10000; calls the public profiler and expects GridProximityError without a specific message.
 
 **Exact signature**
 
@@ -6524,7 +6758,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_two_parcel_two_voltage_result` | `tests.unit.test_enrich_grid_proximity._two_parcel_two_voltage_result` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_voltage_result` | `tests.unit.test_enrich_grid_proximity._mutate_voltage_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 | `float` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6561,9 +6795,12 @@ def test_profile_rejects_bad_long_table_distance(value: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-allows-consistent-missing-manager-and-asset-status"></a>
 ### `test_profile_allows_consistent_missing_manager_and_asset_status`
 
-**Purpose:** Regression invariant: profile allows consistent missing manager and asset status. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_allows_consistent_missing_manager_and_asset_status`. Source lines 1426–1438.
+
+**Purpose:** Sets synthetic line manager and asset state to None before private calculation, then calls the public profiler. Asserts one parcel and consistent nulls in global-exact and level-wise metadata; these optional fields are not required source identities.
 
 **Exact signature**
 
@@ -6601,7 +6838,7 @@ Outbound call expressions and conservative ownership:
 | `enrich_parcel_grid_proximity` | `landscout.stages.enrich_grid_proximity._enrich_parcel_grid_proximity_from_normalized` |
 | `_parcels` | `tests.unit.test_enrich_grid_proximity._parcels` |
 | `_posts` | `tests.unit.test_enrich_grid_proximity._posts` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `result.parcels["nearest_exact_line_manager_name"].isna().all` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.parcels["nearest_exact_line_manager_name"].isna` | `unresolved local/third-party receiver; no ownership inferred` |
 | `result.parcels["nearest_exact_line_asset_status_raw"].isna().all` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -6648,9 +6885,12 @@ def test_profile_allows_consistent_missing_manager_and_asset_status() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-profile-rejects-nonnull-exact-field-without-exact-coverage"></a>
 ### `test_profile_rejects_nonnull_exact_field_without_exact_coverage`
 
-**Purpose:** Regression invariant: profile rejects nonnull exact field without exact coverage. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_profile_rejects_nonnull_exact_field_without_exact_coverage`. Source lines 1451–1461.
+
+**Purpose:** Builds a private result without exact lines, changes one exact distance/grid ID/source ID/tie/voltage field to nonnull and calls the public profiler. Expects unmatched/entirely rejection; a nonnull distance can fail the all-unmatched guard before the all-null-fields check.
 
 **Exact signature**
 
@@ -6699,7 +6939,7 @@ Outbound call expressions and conservative ownership:
 | `_lines` | `tests.unit.test_enrich_grid_proximity._lines` |
 | `_posts` | `tests.unit.test_enrich_grid_proximity._posts` |
 | `pytest.raises` | `pytest.raises` |
-| `profile_grid_proximity` | `landscout.stages.profile_grid_proximity` |
+| `profile_grid_proximity` | `landscout.stages.enrich_grid_proximity.profile_grid_proximity` (via package re-export) |
 | `_mutate_parcel_result` | `tests.unit.test_enrich_grid_proximity._mutate_parcel_result` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
@@ -6738,9 +6978,12 @@ def test_profile_rejects_nonnull_exact_field_without_exact_coverage(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r14-test-no-valid-required-grid-feature-is-rejected"></a>
 ### `test_no_valid_required_grid_feature_is_rejected`
 
-**Purpose:** Regression invariant: no valid required grid feature is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_enrich_grid_proximity.test_no_valid_required_grid_feature_is_rejected`. Source lines 1465–1470.
+
+**Purpose:** Calls the private calculator with a line or post list containing None and expects No VALID. The fixture uses [None], not an empty list that would select the helper default.
 
 **Exact signature**
 
@@ -6817,71 +7060,71 @@ def test_no_valid_required_grid_feature_is_rejected(kind: str) -> None:
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+| Test | Parametrization | Expected exception contexts | Python assert statements (excludes assertion helper calls) | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_clean_high_level_api_is_exported` | none | none | 4 | Proves clean high level api is exported using the exact source reproduced in section 7. |
-| `test_public_proximity_normalizes_verified_source_exactly_once` | none | none | 2 | Proves public proximity normalizes verified source exactly once using the exact source reproduced in section 7. |
-| `test_public_proximity_rejects_wrong_source_boundary_types` | pytest.mark.parametrize("argument", ["parcels", "electricity_source", "source_config"]) | pytest.raises(GridProximityError) | 0 | Proves public proximity rejects wrong source boundary types using the exact source reproduced in section 7. |
-| `test_caller_crafted_normalized_grid_frame_is_not_a_public_source` | none | pytest.raises(<br>            GridProximityError,<br>            match="IgnBdTopoElectricityData\|electricity source",<br>        ) | 4 | Proves caller crafted normalized grid frame is not a public source using the exact source reproduced in section 7. |
-| `test_public_proximity_reproduces_configured_electricity_roles` | none | pytest.raises(GridProximityError) | 2 | Proves public proximity reproduces configured electricity roles using the exact source reproduced in section 7. |
-| `test_public_proximity_rejects_archive_lineage_differing_from_config` | pytest.mark.parametrize(<br>    "archive_changes",<br>    [<br>        pytest.param({"provider": "IGN"}, id="provider"),<br>        pytest.param({"product": "BDTOPO"}, id="product"),<br>        pytest.param({"edition": "2026-06-16"}, id="edition"),<br>        pytest.param({"product_version": "3.6"}, id="product-version"),<br>        pytest.param(<br>            {"projection": "urn:ogc:def:crs:EPSG::2154"},<br>            id="projection",<br>        ),<br>        pytest.param({"package_format": "SHP"}, id="package-format"),<br>        pytest.param({"archive_format": "zip"}, id="archive-format"),<br>        pytest.param(<br>            {"source_url": "https://example.test/other-package.7z"},<br>            id="source-url",<br>        ),<br>        pytest.param(<br>            {"checksum_url": "https://example.test/other-package.md5"},<br>            id="checksum-url",<br>        ),<br>        pytest.param(<br>            {<br>                "official_checksum_algorithm": "sha256",<br>                "official_checksum": "b" * 64,<br>                "official_checksum_validated": True,<br>            },<br>            id="official-checksum",<br>        ),<br>        pytest.param(<br>            {"file_size": (SOURCE_CONFIG.expected_archive_size_bytes or 1) + 1},<br>            id="archive-size",<br>        ),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | Proves public proximity rejects archive lineage differing from config using the exact source reproduced in section 7. |
-| `test_source_normalization_failure_stops_grid_computation` | none | pytest.raises(GridProximityError) | 0 | Proves source normalization failure stops grid computation using the exact source reproduced in section 7. |
-| `test_separated_distance_uses_parcel_edge_not_centroid` | none | none | 2 | Proves separated distance uses parcel edge not centroid using the exact source reproduced in section 7. |
-| `test_touching_line_has_zero_distance` | none | none | 1 | Proves touching line has zero distance using the exact source reproduced in section 7. |
-| `test_post_distance_uses_parcel_and_post_polygons` | none | none | 1 | Proves post distance uses parcel and post polygons using the exact source reproduced in section 7. |
-| `test_epsg4326_input_is_calculated_in_lambert93_and_preserved` | none | none | 3 | Proves epsg4326 input is calculated in lambert93 and preserved using the exact source reproduced in section 7. |
-| `test_epsg2154_parcel_input_remains_epsg2154` | none | none | 2 | Proves epsg2154 parcel input remains epsg2154 using the exact source reproduced in section 7. |
-| `test_valid_parcel_id_is_preserved_exactly` | none | none | 1 | Proves valid parcel id is preserved exactly using the exact source reproduced in section 7. |
-| `test_public_proximity_rejects_generated_parcel_column_before_normalization` | none | pytest.raises(GridProximityError, match="collides.*generated") | 0 | Proves public proximity rejects generated parcel column before normalization using the exact source reproduced in section 7. |
-| `test_invalid_parcel_id_hygiene_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " PARCEL-1", "PARCEL-1 ", 123],<br>) | pytest.raises(GridProximityError, match="parcel_id") | 0 | Proves invalid parcel id hygiene is rejected using the exact source reproduced in section 7. |
-| `test_supported_parcel_polygon_geometry_is_preserved` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),<br>        Polygon([(0, 0, 5), (0, 10, 5), (10, 10, 5), (10, 0, 5), (0, 0, 5)]),<br>    ],<br>) | none | 2 | Proves supported parcel polygon geometry is preserved using the exact source reproduced in section 7. |
-| `test_semantically_wrong_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Point(1, 1),<br>        LineString([(0, 0), (10, 10)]),<br>        MultiLineString([[(0, 0), (10, 10)]]),<br>        GeometryCollection([Point(1, 1)]),<br>    ],<br>) | pytest.raises(GridProximityError, match="Polygon\|MultiPolygon") | 0 | Proves semantically wrong parcel geometry is rejected using the exact source reproduced in section 7. |
-| `test_missing_crs_is_rejected` | pytest.mark.parametrize("kind", ["parcel", "line", "post"]) | pytest.raises(GridProximityError, match="CRS") | 0 | Proves missing crs is rejected using the exact source reproduced in section 7. |
-| `test_wrong_grid_crs_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="2154") | 0 | Proves wrong grid crs is rejected using the exact source reproduced in section 7. |
-| `test_z_line_has_same_horizontal_distance_as_xy_line` | none | none | 2 | Proves z line has same horizontal distance as xy line using the exact source reproduced in section 7. |
-| `test_line_tie_is_counted_and_lexical_feature_id_wins` | none | none | 8 | Proves line tie is counted and lexical feature id wins using the exact source reproduced in section 7. |
-| `test_cross_voltage_tie_uses_lexical_global_feature_id` | none | none | 7 | Proves cross voltage tie uses lexical global feature id using the exact source reproduced in section 7. |
-| `test_nonvalid_grid_geometries_are_excluded_without_row_loss` | none | none | 2 | Proves nonvalid grid geometries are excluded without row loss using the exact source reproduced in section 7. |
-| `test_wrong_grid_feature_type_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="grid_feature_type") | 0 | Proves wrong grid feature type is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_grid_feature_id_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="unique") | 0 | Proves duplicate grid feature id is rejected using the exact source reproduced in section 7. |
-| `test_wrong_spatial_role_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="PROXY_GEOMETRY") | 0 | Proves wrong spatial role is rejected using the exact source reproduced in section 7. |
-| `test_unsupported_valid_grid_geometry_type_is_rejected` | pytest.mark.parametrize(<br>    ("kind", "geometry"),<br>    [<br>        ("line", Point(100, 0)),<br>        ("line", Polygon([(100, 0), (100, 5), (105, 5), (105, 0), (100, 0)])),<br>        ("post", Point(100, 0)),<br>        ("post", LineString([(100, 0), (100, 10)])),<br>    ],<br>) | pytest.raises(GridProximityError, match="geometry types") | 0 | Proves unsupported valid grid geometry type is rejected using the exact source reproduced in section 7. |
-| `test_supported_multi_geometries_are_accepted` | none | none | 1 | Proves supported multi geometries are accepted using the exact source reproduced in section 7. |
-| `test_nearest_any_line_preserves_every_voltage_status` | pytest.mark.parametrize(<br>    "status", ["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]<br>) | none | 1 | Proves nearest any line preserves every voltage status using the exact source reproduced in section 7. |
-| `test_nearest_exact_and_voltage_table_exclude_nonexact_lines` | none | none | 6 | Proves nearest exact and voltage table exclude nonexact lines using the exact source reproduced in section 7. |
-| `test_voltage_table_is_exact_ordered_cartesian_product` | none | none | 4 | Proves voltage table is exact ordered cartesian product using the exact source reproduced in section 7. |
-| `test_invalid_exact_voltage_values_are_not_used_as_exact` | none | none | 2 | Proves invalid exact voltage values are not used as exact using the exact source reproduced in section 7. |
-| `test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` | none | none | 15 | Proves no exact voltage preserves parcels and returns empty long table using the exact source reproduced in section 7. |
-| `test_missing_parcel_column_is_rejected` | pytest.mark.parametrize("column", ["parcel_id", "geometry"]) | pytest.raises(GridProximityError, match=column) | 0 | Proves missing parcel column is rejected using the exact source reproduced in section 7. |
-| `test_null_parcel_id_is_rejected` | none | pytest.raises(GridProximityError, match="parcel_id") | 0 | Proves null parcel id is rejected using the exact source reproduced in section 7. |
-| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(GridProximityError, match="unique") | 0 | Proves duplicate parcel id is rejected using the exact source reproduced in section 7. |
-| `test_bad_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "message"),<br>    [<br>        (None, "null"),<br>        (Polygon(), "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(GridProximityError, match=message) | 0 | Proves bad parcel geometry is rejected using the exact source reproduced in section 7. |
-| `test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` | none | none | 2 | Proves inputs are not mutated and parcel order and ids are preserved using the exact source reproduced in section 7. |
-| `test_distance_profile_is_threshold_free_and_tracks_ties` | none | none | 10 | Proves distance profile is threshold free and tracks ties using the exact source reproduced in section 7. |
-| `test_profile_rejects_missing_voltage_cartesian_row` | none | pytest.raises(GridProximityError) | 0 | Proves profile rejects missing voltage cartesian row using the exact source reproduced in section 7. |
-| `test_profile_rejects_unknown_voltage_parcel_with_same_total_count` | none | pytest.raises(GridProximityError) | 0 | Proves profile rejects unknown voltage parcel with same total count using the exact source reproduced in section 7. |
-| `test_profile_rejects_duplicate_parcel_voltage_pair` | none | pytest.raises(GridProximityError, match="unique") | 0 | Proves profile rejects duplicate parcel voltage pair using the exact source reproduced in section 7. |
-| `test_profile_rejects_voltage_rows_out_of_parcel_order` | none | pytest.raises(GridProximityError, match="exact parcel set") | 0 | Proves profile rejects voltage rows out of parcel order using the exact source reproduced in section 7. |
-| `test_profile_rejects_inconsistent_global_exact_distance` | none | pytest.raises(GridProximityError, match="exact-line distance") | 0 | Proves profile rejects inconsistent global exact distance using the exact source reproduced in section 7. |
-| `test_profile_rejects_inconsistent_global_exact_identity` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_grid_feature_id", "OTHER-LINE"),<br>        ("nearest_exact_line_source_feature_id", "OTHER-SOURCE"),<br>        ("nearest_exact_line_voltage_kv", 275.0),<br>    ],<br>) | pytest.raises(GridProximityError, match="inconsistent") | 0 | Proves profile rejects inconsistent global exact identity using the exact source reproduced in section 7. |
-| `test_profile_rejects_inconsistent_global_exact_metadata` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_manager_name", "OTHER MANAGER"),<br>        ("nearest_exact_line_asset_status_raw", "OTHER STATUS"),<br>        ("nearest_exact_line_source_department_code", "32"),<br>        ("nearest_exact_line_source_edition", "2026-09-15"),<br>        ("nearest_exact_line_source_archive_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(GridProximityError, match="inconsistent") | 0 | Proves profile rejects inconsistent global exact metadata using the exact source reproduced in section 7. |
-| `test_profile_rejects_inconsistent_global_exact_tie_count` | none | pytest.raises(GridProximityError, match="tie count") | 0 | Proves profile rejects inconsistent global exact tie count using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_required_match_tie_count` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        0,<br>        -1,<br>        1.5,<br>        float("inf"),<br>        "2",<br>        None,<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>); pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_tie_count",<br>        "nearest_exact_line_tie_count",<br>        "nearest_post_tie_count",<br>    ],<br>) | pytest.raises(GridProximityError, match="tie_count\|match") | 0 | Proves profile rejects bad required match tie count using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_long_table_tie_count` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        0,<br>        -1,<br>        1.5,<br>        float("inf"),<br>        "2",<br>        None,<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError, match="tie_count\|match") | 0 | Proves profile rejects bad long table tie count using the exact source reproduced in section 7. |
-| `test_profile_rejects_missing_main_match_feature_id` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_grid_feature_id",<br>        "nearest_line_source_feature_id",<br>        "nearest_exact_line_grid_feature_id",<br>        "nearest_exact_line_source_feature_id",<br>        "nearest_post_grid_feature_id",<br>        "nearest_post_source_feature_id",<br>    ],<br>) | pytest.raises(GridProximityError, match="require") | 0 | Proves profile rejects missing main match feature id using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_required_match_distance` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_line_proxy_distance_m", None),<br>        ("nearest_line_proxy_distance_m", "100"),<br>        ("nearest_exact_line_proxy_distance_m", float("inf")),<br>        ("nearest_post_proxy_distance_m", -1),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | Proves profile rejects bad required match distance using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_exact_match_voltage` | pytest.mark.parametrize(<br>    "value",<br>    [None, 0, -1, float("inf"), "110", 999.0],<br>) | pytest.raises(GridProximityError, match="voltage\|match") | 0 | Proves profile rejects bad exact match voltage using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_result_parcel_id` | none | pytest.raises(GridProximityError, match="parcel_id") | 0 | Proves profile rejects bad result parcel id using the exact source reproduced in section 7. |
-| `test_profile_rejects_missing_required_proximity_column` | none | pytest.raises(GridProximityError, match="Missing proximity") | 0 | Proves profile rejects missing required proximity column using the exact source reproduced in section 7. |
-| `test_profile_rejects_nondeterministic_or_duplicate_coverage` | pytest.mark.parametrize("mutation", ["reversed", "duplicate"]) | pytest.raises(GridProximityError, match="coverage") | 0 | Proves profile rejects nondeterministic or duplicate coverage using the exact source reproduced in section 7. |
-| `test_profile_rejects_invalid_voltage_coverage_level` | pytest.mark.parametrize(<br>    "voltage_kv",<br>    [<br>        0,<br>        -1,<br>        float("inf"),<br>        "110",<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError, match="coverage") | 0 | Proves profile rejects invalid voltage coverage level using the exact source reproduced in section 7. |
-| `test_profile_rejects_invalid_voltage_coverage_feature_count` | pytest.mark.parametrize("feature_count", [0, -1, 1.5, float("inf"), True, "2"]) | pytest.raises(GridProximityError, match="line_feature_count") | 0 | Proves profile rejects invalid voltage coverage feature count using the exact source reproduced in section 7. |
-| `test_profile_rejects_invalid_long_table_voltage` | pytest.mark.parametrize(<br>    "value",<br>    [None, 0, -1, float("inf"), "110", 220.0],<br>) | pytest.raises(GridProximityError, match="Voltage proximity") | 0 | Proves profile rejects invalid long table voltage using the exact source reproduced in section 7. |
-| `test_profile_rejects_missing_long_table_match_lineage` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_grid_feature_id",<br>        "nearest_line_source_feature_id",<br>        "source_department_code",<br>        "source_edition",<br>        "source_archive_sha256",<br>    ],<br>) | pytest.raises(GridProximityError, match="require") | 0 | Proves profile rejects missing long table match lineage using the exact source reproduced in section 7. |
-| `test_profile_rejects_bad_long_table_distance` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        None,<br>        -1,<br>        float("inf"),<br>        "100",<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | Proves profile rejects bad long table distance using the exact source reproduced in section 7. |
-| `test_profile_allows_consistent_missing_manager_and_asset_status` | none | none | 5 | Proves profile allows consistent missing manager and asset status using the exact source reproduced in section 7. |
-| `test_profile_rejects_nonnull_exact_field_without_exact_coverage` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_proxy_distance_m", 1.0),<br>        ("nearest_exact_line_grid_feature_id", "LINE"),<br>        ("nearest_exact_line_source_feature_id", "SOURCE"),<br>        ("nearest_exact_line_tie_count", 1),<br>        ("nearest_exact_line_voltage_kv", 110.0),<br>    ],<br>) | pytest.raises(GridProximityError, match="unmatched\|entirely") | 0 | Proves profile rejects nonnull exact field without exact coverage using the exact source reproduced in section 7. |
-| `test_no_valid_required_grid_feature_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="No VALID") | 0 | Proves no valid required grid feature is rejected using the exact source reproduced in section 7. |
+| `test_clean_high_level_api_is_exported` | none | none | 4 | See [verified scenario and limits](#r14-test-clean-high-level-api-is-exported). |
+| `test_public_proximity_normalizes_verified_source_exactly_once` | none | none | 2 | See [verified scenario and limits](#r14-test-public-proximity-normalizes-verified-source-exactly-once). |
+| `test_public_proximity_rejects_wrong_source_boundary_types` | pytest.mark.parametrize("argument", ["parcels", "electricity_source", "source_config"]) | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-public-proximity-rejects-wrong-source-boundary-types). |
+| `test_caller_crafted_normalized_grid_frame_is_not_a_public_source` | none | pytest.raises(<br>            GridProximityError,<br>            match="IgnBdTopoElectricityData\|electricity source",<br>        ) | 4 | See [verified scenario and limits](#r14-test-caller-crafted-normalized-grid-frame-is-not-a-public-source). |
+| `test_public_proximity_reproduces_configured_electricity_roles` | none | pytest.raises(GridProximityError) | 2 | See [verified scenario and limits](#r14-test-public-proximity-reproduces-configured-electricity-roles). |
+| `test_public_proximity_rejects_archive_lineage_differing_from_config` | pytest.mark.parametrize(<br>    "archive_changes",<br>    [<br>        pytest.param({"provider": "IGN"}, id="provider"),<br>        pytest.param({"product": "BDTOPO"}, id="product"),<br>        pytest.param({"edition": "2026-06-16"}, id="edition"),<br>        pytest.param({"product_version": "3.6"}, id="product-version"),<br>        pytest.param(<br>            {"projection": "urn:ogc:def:crs:EPSG::2154"},<br>            id="projection",<br>        ),<br>        pytest.param({"package_format": "SHP"}, id="package-format"),<br>        pytest.param({"archive_format": "zip"}, id="archive-format"),<br>        pytest.param(<br>            {"source_url": "https://example.test/other-package.7z"},<br>            id="source-url",<br>        ),<br>        pytest.param(<br>            {"checksum_url": "https://example.test/other-package.md5"},<br>            id="checksum-url",<br>        ),<br>        pytest.param(<br>            {<br>                "official_checksum_algorithm": "sha256",<br>                "official_checksum": "b" * 64,<br>                "official_checksum_validated": True,<br>            },<br>            id="official-checksum",<br>        ),<br>        pytest.param(<br>            {"file_size": (SOURCE_CONFIG.expected_archive_size_bytes or 1) + 1},<br>            id="archive-size",<br>        ),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-public-proximity-rejects-archive-lineage-differing-from-config). |
+| `test_source_normalization_failure_stops_grid_computation` | none | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-source-normalization-failure-stops-grid-computation). |
+| `test_separated_distance_uses_parcel_edge_not_centroid` | none | none | 2 | See [verified scenario and limits](#r14-test-separated-distance-uses-parcel-edge-not-centroid). |
+| `test_touching_line_has_zero_distance` | none | none | 1 | See [verified scenario and limits](#r14-test-touching-line-has-zero-distance). |
+| `test_post_distance_uses_parcel_and_post_polygons` | none | none | 1 | See [verified scenario and limits](#r14-test-post-distance-uses-parcel-and-post-polygons). |
+| `test_epsg4326_input_is_calculated_in_lambert93_and_preserved` | none | none | 3 | See [verified scenario and limits](#r14-test-epsg4326-input-is-calculated-in-lambert93-and-preserved). |
+| `test_epsg2154_parcel_input_remains_epsg2154` | none | none | 2 | See [verified scenario and limits](#r14-test-epsg2154-parcel-input-remains-epsg2154). |
+| `test_valid_parcel_id_is_preserved_exactly` | none | none | 1 | See [verified scenario and limits](#r14-test-valid-parcel-id-is-preserved-exactly). |
+| `test_public_proximity_rejects_generated_parcel_column_before_normalization` | none | pytest.raises(GridProximityError, match="collides.*generated") | 0 | See [verified scenario and limits](#r14-test-public-proximity-rejects-generated-parcel-column-before-normalization). |
+| `test_invalid_parcel_id_hygiene_is_rejected` | pytest.mark.parametrize(<br>    "identifier",<br>    [None, "", "   ", " PARCEL-1", "PARCEL-1 ", 123],<br>) | pytest.raises(GridProximityError, match="parcel_id") | 0 | See [verified scenario and limits](#r14-test-invalid-parcel-id-hygiene-is-rejected). |
+| `test_supported_parcel_polygon_geometry_is_preserved` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),<br>        MultiPolygon([Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]),<br>        Polygon([(0, 0, 5), (0, 10, 5), (10, 10, 5), (10, 0, 5), (0, 0, 5)]),<br>    ],<br>) | none | 2 | See [verified scenario and limits](#r14-test-supported-parcel-polygon-geometry-is-preserved). |
+| `test_semantically_wrong_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    "geometry",<br>    [<br>        Point(1, 1),<br>        LineString([(0, 0), (10, 10)]),<br>        MultiLineString([[(0, 0), (10, 10)]]),<br>        GeometryCollection([Point(1, 1)]),<br>    ],<br>) | pytest.raises(GridProximityError, match="Polygon\|MultiPolygon") | 0 | See [verified scenario and limits](#r14-test-semantically-wrong-parcel-geometry-is-rejected). |
+| `test_missing_crs_is_rejected` | pytest.mark.parametrize("kind", ["parcel", "line", "post"]) | pytest.raises(GridProximityError, match="CRS") | 0 | See [verified scenario and limits](#r14-test-missing-crs-is-rejected). |
+| `test_wrong_grid_crs_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="2154") | 0 | See [verified scenario and limits](#r14-test-wrong-grid-crs-is-rejected). |
+| `test_z_line_has_same_horizontal_distance_as_xy_line` | none | none | 2 | See [verified scenario and limits](#r14-test-z-line-has-same-horizontal-distance-as-xy-line). |
+| `test_line_tie_is_counted_and_lexical_feature_id_wins` | none | none | 8 | See [verified scenario and limits](#r14-test-line-tie-is-counted-and-lexical-feature-id-wins). |
+| `test_cross_voltage_tie_uses_lexical_global_feature_id` | none | none | 7 | See [verified scenario and limits](#r14-test-cross-voltage-tie-uses-lexical-global-feature-id). |
+| `test_nonvalid_grid_geometries_are_excluded_without_row_loss` | none | none | 2 | See [verified scenario and limits](#r14-test-nonvalid-grid-geometries-are-excluded-without-row-loss). |
+| `test_wrong_grid_feature_type_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="grid_feature_type") | 0 | See [verified scenario and limits](#r14-test-wrong-grid-feature-type-is-rejected). |
+| `test_duplicate_grid_feature_id_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="unique") | 0 | See [verified scenario and limits](#r14-test-duplicate-grid-feature-id-is-rejected). |
+| `test_wrong_spatial_role_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="PROXY_GEOMETRY") | 0 | See [verified scenario and limits](#r14-test-wrong-spatial-role-is-rejected). |
+| `test_unsupported_valid_grid_geometry_type_is_rejected` | pytest.mark.parametrize(<br>    ("kind", "geometry"),<br>    [<br>        ("line", Point(100, 0)),<br>        ("line", Polygon([(100, 0), (100, 5), (105, 5), (105, 0), (100, 0)])),<br>        ("post", Point(100, 0)),<br>        ("post", LineString([(100, 0), (100, 10)])),<br>    ],<br>) | pytest.raises(GridProximityError, match="geometry types") | 0 | See [verified scenario and limits](#r14-test-unsupported-valid-grid-geometry-type-is-rejected). |
+| `test_supported_multi_geometries_are_accepted` | none | none | 1 | See [verified scenario and limits](#r14-test-supported-multi-geometries-are-accepted). |
+| `test_nearest_any_line_preserves_every_voltage_status` | pytest.mark.parametrize(<br>    "status", ["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]<br>) | none | 1 | See [verified scenario and limits](#r14-test-nearest-any-line-preserves-every-voltage-status). |
+| `test_nearest_exact_and_voltage_table_exclude_nonexact_lines` | none | none | 6 | See [verified scenario and limits](#r14-test-nearest-exact-and-voltage-table-exclude-nonexact-lines). |
+| `test_voltage_table_is_exact_ordered_cartesian_product` | none | none | 4 | See [verified scenario and limits](#r14-test-voltage-table-is-exact-ordered-cartesian-product). |
+| `test_invalid_exact_voltage_values_are_not_used_as_exact` | none | none | 2 | See [verified scenario and limits](#r14-test-invalid-exact-voltage-values-are-not-used-as-exact). |
+| `test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` | none | none | 15 | See [verified scenario and limits](#r14-test-no-exact-voltage-preserves-parcels-and-returns-empty-long-table). |
+| `test_missing_parcel_column_is_rejected` | pytest.mark.parametrize("column", ["parcel_id", "geometry"]) | pytest.raises(GridProximityError, match=column) | 0 | See [verified scenario and limits](#r14-test-missing-parcel-column-is-rejected). |
+| `test_null_parcel_id_is_rejected` | none | pytest.raises(GridProximityError, match="parcel_id") | 0 | See [verified scenario and limits](#r14-test-null-parcel-id-is-rejected). |
+| `test_duplicate_parcel_id_is_rejected` | none | pytest.raises(GridProximityError, match="unique") | 0 | See [verified scenario and limits](#r14-test-duplicate-parcel-id-is-rejected). |
+| `test_bad_parcel_geometry_is_rejected` | pytest.mark.parametrize(<br>    ("geometry", "message"),<br>    [<br>        (None, "null"),<br>        (Polygon(), "empty"),<br>        (<br>            Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)]),<br>            "valid",<br>        ),<br>    ],<br>) | pytest.raises(GridProximityError, match=message) | 0 | See [verified scenario and limits](#r14-test-bad-parcel-geometry-is-rejected). |
+| `test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` | none | none | 2 | See [verified scenario and limits](#r14-test-inputs-are-not-mutated-and-parcel-order-and-ids-are-preserved). |
+| `test_distance_profile_is_threshold_free_and_tracks_ties` | none | none | 10 | See [verified scenario and limits](#r14-test-distance-profile-is-threshold-free-and-tracks-ties). |
+| `test_profile_rejects_missing_voltage_cartesian_row` | none | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-profile-rejects-missing-voltage-cartesian-row). |
+| `test_profile_rejects_unknown_voltage_parcel_with_same_total_count` | none | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-profile-rejects-unknown-voltage-parcel-with-same-total-count). |
+| `test_profile_rejects_duplicate_parcel_voltage_pair` | none | pytest.raises(GridProximityError, match="unique") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-duplicate-parcel-voltage-pair). |
+| `test_profile_rejects_voltage_rows_out_of_parcel_order` | none | pytest.raises(GridProximityError, match="exact parcel set") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-voltage-rows-out-of-parcel-order). |
+| `test_profile_rejects_inconsistent_global_exact_distance` | none | pytest.raises(GridProximityError, match="exact-line distance") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-inconsistent-global-exact-distance). |
+| `test_profile_rejects_inconsistent_global_exact_identity` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_grid_feature_id", "OTHER-LINE"),<br>        ("nearest_exact_line_source_feature_id", "OTHER-SOURCE"),<br>        ("nearest_exact_line_voltage_kv", 275.0),<br>    ],<br>) | pytest.raises(GridProximityError, match="inconsistent") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-inconsistent-global-exact-identity). |
+| `test_profile_rejects_inconsistent_global_exact_metadata` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_manager_name", "OTHER MANAGER"),<br>        ("nearest_exact_line_asset_status_raw", "OTHER STATUS"),<br>        ("nearest_exact_line_source_department_code", "32"),<br>        ("nearest_exact_line_source_edition", "2026-09-15"),<br>        ("nearest_exact_line_source_archive_sha256", "b" * 64),<br>    ],<br>) | pytest.raises(GridProximityError, match="inconsistent") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-inconsistent-global-exact-metadata). |
+| `test_profile_rejects_inconsistent_global_exact_tie_count` | none | pytest.raises(GridProximityError, match="tie count") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-inconsistent-global-exact-tie-count). |
+| `test_profile_rejects_bad_required_match_tie_count` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        0,<br>        -1,<br>        1.5,<br>        float("inf"),<br>        "2",<br>        None,<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>); pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_tie_count",<br>        "nearest_exact_line_tie_count",<br>        "nearest_post_tie_count",<br>    ],<br>) | pytest.raises(GridProximityError, match="tie_count\|match") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-required-match-tie-count). |
+| `test_profile_rejects_bad_long_table_tie_count` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        0,<br>        -1,<br>        1.5,<br>        float("inf"),<br>        "2",<br>        None,<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError, match="tie_count\|match") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-long-table-tie-count). |
+| `test_profile_rejects_missing_main_match_feature_id` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_grid_feature_id",<br>        "nearest_line_source_feature_id",<br>        "nearest_exact_line_grid_feature_id",<br>        "nearest_exact_line_source_feature_id",<br>        "nearest_post_grid_feature_id",<br>        "nearest_post_source_feature_id",<br>    ],<br>) | pytest.raises(GridProximityError, match="require") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-missing-main-match-feature-id). |
+| `test_profile_rejects_bad_required_match_distance` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_line_proxy_distance_m", None),<br>        ("nearest_line_proxy_distance_m", "100"),<br>        ("nearest_exact_line_proxy_distance_m", float("inf")),<br>        ("nearest_post_proxy_distance_m", -1),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-required-match-distance). |
+| `test_profile_rejects_bad_exact_match_voltage` | pytest.mark.parametrize(<br>    "value",<br>    [None, 0, -1, float("inf"), "110", 999.0],<br>) | pytest.raises(GridProximityError, match="voltage\|match") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-exact-match-voltage). |
+| `test_profile_rejects_bad_result_parcel_id` | none | pytest.raises(GridProximityError, match="parcel_id") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-result-parcel-id). |
+| `test_profile_rejects_missing_required_proximity_column` | none | pytest.raises(GridProximityError, match="Missing proximity") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-missing-required-proximity-column). |
+| `test_profile_rejects_nondeterministic_or_duplicate_coverage` | pytest.mark.parametrize("mutation", ["reversed", "duplicate"]) | pytest.raises(GridProximityError, match="coverage") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-nondeterministic-or-duplicate-coverage). |
+| `test_profile_rejects_invalid_voltage_coverage_level` | pytest.mark.parametrize(<br>    "voltage_kv",<br>    [<br>        0,<br>        -1,<br>        float("inf"),<br>        "110",<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError, match="coverage") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-invalid-voltage-coverage-level). |
+| `test_profile_rejects_invalid_voltage_coverage_feature_count` | pytest.mark.parametrize("feature_count", [0, -1, 1.5, float("inf"), True, "2"]) | pytest.raises(GridProximityError, match="line_feature_count") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-invalid-voltage-coverage-feature-count). |
+| `test_profile_rejects_invalid_long_table_voltage` | pytest.mark.parametrize(<br>    "value",<br>    [None, 0, -1, float("inf"), "110", 220.0],<br>) | pytest.raises(GridProximityError, match="Voltage proximity") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-invalid-long-table-voltage). |
+| `test_profile_rejects_missing_long_table_match_lineage` | pytest.mark.parametrize(<br>    "column",<br>    [<br>        "nearest_line_grid_feature_id",<br>        "nearest_line_source_feature_id",<br>        "source_department_code",<br>        "source_edition",<br>        "source_archive_sha256",<br>    ],<br>) | pytest.raises(GridProximityError, match="require") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-missing-long-table-match-lineage). |
+| `test_profile_rejects_bad_long_table_distance` | pytest.mark.parametrize(<br>    "value",<br>    [<br>        None,<br>        -1,<br>        float("inf"),<br>        "100",<br>        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),<br>    ],<br>) | pytest.raises(GridProximityError) | 0 | See [verified scenario and limits](#r14-test-profile-rejects-bad-long-table-distance). |
+| `test_profile_allows_consistent_missing_manager_and_asset_status` | none | none | 5 | See [verified scenario and limits](#r14-test-profile-allows-consistent-missing-manager-and-asset-status). |
+| `test_profile_rejects_nonnull_exact_field_without_exact_coverage` | pytest.mark.parametrize(<br>    ("column", "value"),<br>    [<br>        ("nearest_exact_line_proxy_distance_m", 1.0),<br>        ("nearest_exact_line_grid_feature_id", "LINE"),<br>        ("nearest_exact_line_source_feature_id", "SOURCE"),<br>        ("nearest_exact_line_tie_count", 1),<br>        ("nearest_exact_line_voltage_kv", 110.0),<br>    ],<br>) | pytest.raises(GridProximityError, match="unmatched\|entirely") | 0 | See [verified scenario and limits](#r14-test-profile-rejects-nonnull-exact-field-without-exact-coverage). |
+| `test_no_valid_required_grid_feature_is_rejected` | pytest.mark.parametrize("kind", ["line", "post"]) | pytest.raises(GridProximityError, match="No VALID") | 0 | See [verified scenario and limits](#r14-test-no-valid-required-grid-feature-is-rejected). |
 
 ## 8. Public exports and package ownership
 

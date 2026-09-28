@@ -9117,10 +9117,16 @@
       "source_sha256": "7131d0b980dad7b5c73a4c7cf2d0bd6f9fe5572c089ad39c4a592c02098c9015",
       "documentation_path": "docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
       "read_complete": true,
-      "status": "READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Read exact imports, test aliases, package re-exports and public coverage caller; followed delegated physical revalidation through normalizer/IGN source sections. No dependency closure credit."
+      ],
+      "contract_review": [
+        "R14 complete source/test/prose reconciliation, retaining prior READ evidence. Public physical-source normalization, private numerical calculation and local-result profiling remain distinct. Temporary synthetic GPKG evidence does not certify an official archive; bounded test limits are recorded in R14_IGN_GRID_PROXIMITY.md."
+      ],
+      "test_references": [
+        "tests/unit/test_enrich_grid_proximity.py"
+      ],
       "symbols": [
         {
           "qualified_name": "GridProximityError",
@@ -9130,10 +9136,10 @@
             158
           ],
           "signature_sha256": "5a105eb5eda91015c4e9b6c45f07f14753bdc1626f6bd33d9418ebd577bcbcf9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityerror",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "ValueError subclass for unsafe grid-proximity inputs/results. No fields or custom initializer; public enrichment preserves this error and wraps other Exceptions, while the private calculator and profiler have no outer wrapper."
           ],
           "test_references": []
         },
@@ -9145,10 +9151,10 @@
             166
           ],
           "signature_sha256": "1cd8ba5a309fd51d916380c2720fb48bb464b4d54df8495ac9c5bd1eb0afed6f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltagelevelcoverage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen dataclass with two required fields, describing the number of VALID EXACT source lines at one positive finite voltage. Constructor annotations are not runtime validators; _validate_voltage_coverage checks supplied records. Coverage is not electrical capacity."
           ],
           "test_references": []
         },
@@ -9160,10 +9166,10 @@
             165
           ],
           "signature_sha256": "9a69eb4eb54a74ecbcffdf543ce22d90304c69e7a1dec192f98f2cc58f26b28b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltagelevelcoverage-voltage-kv",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float annotation, no default. Exact voltage in kV; builder emits float and validator requires a non-boolean positive finite Real."
           ],
           "test_references": []
         },
@@ -9175,10 +9181,10 @@
             166
           ],
           "signature_sha256": "c7275165808fe50ba9a26e63c12f93600ca88530630e8177f535cd119ecf19e8",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltagelevelcoverage-line-feature-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int annotation, no default. Number of VALID EXACT lines at this level; validator requires positive Integral excluding bool, without recounting the physical source."
           ],
           "test_references": []
         },
@@ -9190,10 +9196,10 @@
             175
           ],
           "signature_sha256": "7fd6833bb2f4c9475d701af0df3f6a34249976b8447426c2b958bc1f0c9a173c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityresult",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen dataclass with three required fields. Field assignment is frozen but both contained DataFrames remain mutable; builders produce tuple coverage. Local result validation is not an immutable artifact seal or independent physical-source reconstruction."
           ],
           "test_references": []
         },
@@ -9205,10 +9211,10 @@
             173
           ],
           "signature_sha256": "3ba865416777c701681539c5022c23763600601dd993d74f273c69c3553e329a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityresult-parcels",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required GeoDataFrame, no default. Original parcel columns/geometries/CRS and row order plus mapped proximity columns, returned on a reset RangeIndex; the frame remains mutable."
           ],
           "test_references": []
         },
@@ -9220,10 +9226,10 @@
             174
           ],
           "signature_sha256": "880196840f2a65edb9b61bbedb0eba66563efd5a4935c5cc8f81a33aaf893237",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityresult-voltage-level-proximity",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required DataFrame, no default. Eleven-column table built level-major then original parcel order, or schema-correct empty table without exact levels; mutable, no geometry column."
           ],
           "test_references": []
         },
@@ -9235,10 +9241,10 @@
             175
           ],
           "signature_sha256": "b0eafc7052109e1b5a9ac059336b9ec677579ce1766c92cd461c0ae50b29a5de",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityresult-voltage-level-coverage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required tuple[VoltageLevelCoverage, ...] annotation, no default. Builder emits unique ascending exact levels and source counts, or (). Local validation checks records and order but not exact tuple type."
           ],
           "test_references": []
         },
@@ -9250,10 +9256,10 @@
             196
           ],
           "signature_sha256": "c26290c65c93db7ceeceda4c4de622624b149de4c580cd3ff736e836b275678f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen dataclass with fifteen required fields: counts, minimum, nine quantiles, maximum and zero/tied-row counts. Values are descriptive metre statistics, nullable when no distances are present; annotations alone do not validate arbitrary construction."
           ],
           "test_references": []
         },
@@ -9265,10 +9271,10 @@
             182
           ],
           "signature_sha256": "3eac77cfbe4d05ca954d50eb9235202f69868ae93aed7bbe3595ba3625228aaa",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Number of present validated distance values, not total parcels or source features."
           ],
           "test_references": []
         },
@@ -9280,10 +9286,10 @@
             183
           ],
           "signature_sha256": "8f97be66afb9d8562fe28259c001b15a5b152cf9330d97b10b0f325b8aa5403b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-missing-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Number of missing distance values in the supplied Series."
           ],
           "test_references": []
         },
@@ -9295,10 +9301,10 @@
             184
           ],
           "signature_sha256": "9ea3bc097c16399bc31a016a1d29ef7741c47d60b3a172ccac2d42d48d851e8d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-minimum",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Minimum present distance in metres, or None when count is zero."
           ],
           "test_references": []
         },
@@ -9310,10 +9316,10 @@
             185
           ],
           "signature_sha256": "170c8ccd6845fabab8f6aa91bd7de6ef7c3c3c3d730e016115b00a781d23860d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p01",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 1th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9325,10 +9331,10 @@
             186
           ],
           "signature_sha256": "f39f61972f5f4d1f4457a9315d9ce2cfe20ab70639bdac12f5a4c7b7c79052d1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p05",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 5th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9340,10 +9346,10 @@
             187
           ],
           "signature_sha256": "87be20c64543eedbda2e10583e3b8aaf1dd28b0af0b2853ebce77652a12bede5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p10",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 10th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9355,10 +9361,10 @@
             188
           ],
           "signature_sha256": "5bdcab39c03226c0a0faef9f7da603ac9f466a10b859c614ba919795738963bb",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p25",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 25th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9370,10 +9376,10 @@
             189
           ],
           "signature_sha256": "9664fb7603d01e49a75edbd7735012a61149331a1b8b498762932ccca59603b8",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p50",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 50th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9385,10 +9391,10 @@
             190
           ],
           "signature_sha256": "de024c0ec9197a2d7e79d9e53a64b6dc85aed159c48bd99b92fe9c9ad79d88b5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p75",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 75th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9400,10 +9406,10 @@
             191
           ],
           "signature_sha256": "9ee87a58106690b0e1d7b6be13fbae00c91041410fe2e568460894946fc358b8",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p90",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 90th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9415,10 +9421,10 @@
             192
           ],
           "signature_sha256": "a1c1975d1b994e49512d4d38033bb1f4e9a3437e9d37f376a8c5ac3541334aae",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p95",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 95th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9430,10 +9436,10 @@
             193
           ],
           "signature_sha256": "c4d4dc066f7bc7b8d727135ef16333200dd1b8272f60ed7fb1ec090ecba14b45",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-p99",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Pandas 99th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold."
           ],
           "test_references": []
         },
@@ -9445,10 +9451,10 @@
             194
           ],
           "signature_sha256": "8f79cb3626cfd1a1f01f3d46defada5a11df635d51137f514f98a8eb4837cd30",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-maximum",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float | None, no default. Maximum present distance in metres, or None when count is zero."
           ],
           "test_references": []
         },
@@ -9460,10 +9466,10 @@
             195
           ],
           "signature_sha256": "2acf3f3a5fcf2378599aea68c0717cd1df19a44d3a79e1bb7fc3e00e3619fc49",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-zero-distance-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Count of present distances exactly equal to zero; no tolerance or access inference."
           ],
           "test_references": []
         },
@@ -9475,10 +9481,10 @@
             196
           ],
           "signature_sha256": "b31a2270d4ec6dec8428f6656861a111bc3755e10b87d8a05853ac92310434bf",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-distanceprofile-tie-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Count of matched rows with tie count greater than one, not the sum of tied feature counts."
           ],
           "test_references": []
         },
@@ -9490,10 +9496,10 @@
             206
           ],
           "signature_sha256": "d7f3b9f9fab4be5b75875cabc8f57624689d4af8b6b3ea9e3b3900325d75fe65",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltageleveldistanceprofile",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen dataclass with four required fields combining an exact voltage, source line count, long-table parcel-row count and DistanceProfile. Counts do not represent connection capacity."
           ],
           "test_references": []
         },
@@ -9505,10 +9511,10 @@
             203
           ],
           "signature_sha256": "9a69eb4eb54a74ecbcffdf543ce22d90304c69e7a1dec192f98f2cc58f26b28b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltageleveldistanceprofile-voltage-kv",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required float, no default. The exact coverage voltage in kV for this level summary."
           ],
           "test_references": []
         },
@@ -9520,10 +9526,10 @@
             204
           ],
           "signature_sha256": "c7275165808fe50ba9a26e63c12f93600ca88530630e8177f535cd119ecf19e8",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltageleveldistanceprofile-line-feature-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Retained source coverage count, not a fresh source recount or grid capacity."
           ],
           "test_references": []
         },
@@ -9535,10 +9541,10 @@
             205
           ],
           "signature_sha256": "2ec4886d8cd844258ca0efcde1777cc54d3c732483237ea1a4365c41eb0c0cb7",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltageleveldistanceprofile-parcel-proximity-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Number of long-table rows in this level slice; validated Cartesian coverage makes it equal to parcel count."
           ],
           "test_references": []
         },
@@ -9550,10 +9556,10 @@
             206
           ],
           "signature_sha256": "1c16a14e65c43b2b5c0fa3c216bc4a6ae3503396067ed472a68a3f20d08de2fe",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-voltageleveldistanceprofile-distance",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required DistanceProfile, no default. Descriptive distribution of nearest-line distances for this exact voltage level."
           ],
           "test_references": []
         },
@@ -9565,10 +9571,10 @@
             217
           ],
           "signature_sha256": "9849053de59e1c23ca318d6966c9160429173370ba1cb1a405bdcbcd033ff36d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen dataclass with five required fields: parcel count, three distance summaries and the tuple of ascending voltage-level profiles produced by the profiler. There is no score, threshold or source reacquisition."
           ],
           "test_references": []
         },
@@ -9580,10 +9586,10 @@
             213
           ],
           "signature_sha256": "b2d18b70f2708ca9f450a8b28162aa9f302dc4411fdd2193549b7ed4fe585625",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile-parcel-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required int, no default. Length of the validated enriched parcel frame."
           ],
           "test_references": []
         },
@@ -9595,10 +9601,10 @@
             214
           ],
           "signature_sha256": "7082cde14444887762d268b59568578e737ea992446dc7fe9d0acf1e2bb021c5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile-nearest-line",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required DistanceProfile, no default. Distances to the nearest VALID line regardless of voltage status."
           ],
           "test_references": []
         },
@@ -9610,10 +9616,10 @@
             215
           ],
           "signature_sha256": "0b7d975586689c53656b7adbf7d017b9dde0a4d2a9de9b0d9fce9faf151e8d1b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile-nearest-exact-line",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required DistanceProfile, no default. Distances to the nearest VALID positive-finite EXACT-voltage line, or entirely missing if no exact coverage."
           ],
           "test_references": []
         },
@@ -9625,10 +9631,10 @@
             216
           ],
           "signature_sha256": "64613839bafdc6ad086ba02c28ecdc317e674a543f05a88f159f768adc3fb818",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile-nearest-post",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required DistanceProfile, no default. Distances to VALID polygonal transformation-post proxies, not RTE connection points."
           ],
           "test_references": []
         },
@@ -9640,10 +9646,10 @@
             217
           ],
           "signature_sha256": "e318618722e4578066ece4ef6df5e4719effa95c523bf90309764d7466c70934",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-gridproximityprofile-voltage-levels",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required tuple[VoltageLevelDistanceProfile, ...], no default. Builder returns profiles in ascending validated coverage order, or ()."
           ],
           "test_references": []
         },
@@ -9655,11 +9661,10 @@
             226
           ],
           "signature_sha256": "d94a7a14e701497ff7128d2bfc4cf196e495eeb96989f1b2943268c0f9394e85",
-          "status": "READ",
-          "documentation_anchor": "_validated_crs",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validated-crs",
           "review_notes": [
-            "Requires non-null readable CRS metadata and returns pyproj's parsed CRS, wrapping parse errors with the supplied label. It accepts readable geographic or projected parcel CRSs; role-specific Lambert-93 validation is separate.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires non-null readable CRS metadata and returns pyproj's parsed CRS, wrapping parse errors with the supplied label. It accepts readable geographic or projected parcel CRSs; role-specific Lambert-93 validation is separate."
           ],
           "test_references": []
         },
@@ -9671,11 +9676,10 @@
             233
           ],
           "signature_sha256": "a14fa9e8f5fdf5dca240d2c60086462065aea0500237d976fea14cf65806a2d4",
-          "status": "READ",
-          "documentation_anchor": "_require_lambert93",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--require-lambert93",
           "review_notes": [
-            "Parses the CRS through `_validated_crs` and requires a projected CRS equivalent to EPSG:2154. It performs no reprojection.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Parses the CRS through `_validated_crs` and requires a projected CRS equivalent to EPSG:2154. It performs no reprojection."
           ],
           "test_references": []
         },
@@ -9687,11 +9691,10 @@
             240
           ],
           "signature_sha256": "4fac6235aa402eff4d2c02e480f17ecc47b245d67dfe38d96c965a6de82ab3b5",
-          "status": "READ",
-          "documentation_anchor": "_validate_active_geometry",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-active-geometry",
           "review_notes": [
-            "Requires an existing column literally named geometry and requires that column to be the frame's active geometry. It does not inspect coordinate values or repair the frame.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires an existing column literally named geometry and requires that column to be the frame's active geometry. It does not inspect coordinate values or repair the frame."
           ],
           "test_references": []
         },
@@ -9703,11 +9706,10 @@
             261
           ],
           "signature_sha256": "9922bd63e74f3b56ed55a7c5c97279c28ab2e334e63acee56019712e2f715c6d",
-          "status": "READ",
-          "documentation_anchor": "_validate_id_values",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-id-values",
           "review_notes": [
-            "Requires non-null, nonempty, edge-trimmed `isinstance(str)` values and, when requested, uniqueness. It is not the canonical Cadastre identifier decomposition/commune contract and does not reject all string subclasses or interior control characters.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires non-null, nonempty, edge-trimmed `isinstance(str)` values and, when requested, uniqueness. It is not the canonical Cadastre identifier decomposition/commune contract and does not reject all string subclasses or interior control characters."
           ],
           "test_references": []
         },
@@ -9719,11 +9721,10 @@
             286
           ],
           "signature_sha256": "02eb1031011991ce1fa145df1e55388cf6df3cfd09048e683eae48a5e50c3b4e",
-          "status": "READ",
-          "documentation_anchor": "_validate_parcels",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-parcels",
           "review_notes": [
-            "Requires parcel_id plus active geometry, readable CRS, unique hygienic IDs and non-null/nonempty/valid Polygon or MultiPolygon geometries. Unlike the Cadastre shape stages, it does not call the complete twelve-column canonical Cadastre validator or verify area_m2; it does not reject Z coordinates before calculation copies are flattened.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires parcel_id plus active geometry, readable CRS, unique hygienic IDs and non-null/nonempty/valid Polygon or MultiPolygon geometries. Unlike the Cadastre shape stages, it does not call the complete twelve-column canonical Cadastre validator or verify area_m2; it does not reject Z coordinates before calculation copies are flattened."
           ],
           "test_references": []
         },
@@ -9735,11 +9736,10 @@
             295
           ],
           "signature_sha256": "3e53eb9807aae76aebbd6e4a951b23897b4ee06e5f15ec55998e49d6976f5dde",
-          "status": "READ",
-          "documentation_anchor": "_reject_parcel_output_collisions",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--reject-parcel-output-collisions",
           "review_notes": [
-            "Rejects any input column that would collide with a generated proximity field before new values can overwrite caller evidence. It does not drop or rename a conflicting column.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Rejects any input column that would collide with a generated proximity field before new values can overwrite caller evidence. It does not drop or rename a conflicting column."
           ],
           "test_references": []
         },
@@ -9751,11 +9751,10 @@
             306
           ],
           "signature_sha256": "c718336852b9670b023b6c4ad0f48598f0d8003cbc2969c562f6c8039bd818b8",
-          "status": "READ",
-          "documentation_anchor": "_observed_geometry_status",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--observed-geometry-status",
           "review_notes": [
-            "Builds a fresh disjoint VALID/NULL/EMPTY/INVALID classification from actual geometry, for comparison to declared normalized status. It does not remove or modify the supplied geometry.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Builds a fresh disjoint VALID/NULL/EMPTY/INVALID classification from actual geometry, for comparison to declared normalized status. It does not remove or modify the supplied geometry."
           ],
           "test_references": []
         },
@@ -9767,11 +9766,10 @@
             362
           ],
           "signature_sha256": "ed159fa5ecf8c8bc497cbe9ef06b99e480b229eda765d0dd138dd8cb30d79370",
-          "status": "READ",
-          "documentation_anchor": "_validate_grid",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-grid",
           "review_notes": [
-            "Requires the role-specific normalized schema, active geometry and Lambert-93 CRS; verifies non-null unique grid IDs, exact feature type and proxy role, and declared status equal to freshly observed status. It rejects unsupported VALID geometry families, then returns a reset-index copy containing only VALID features for distance use. The full factual normalized source remains unchanged.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires the role-specific normalized schema, active geometry and Lambert-93 CRS; verifies non-null unique grid IDs, exact feature type and proxy role, and declared status equal to freshly observed status. It rejects unsupported VALID geometry families, then returns a reset-index copy containing only VALID features for distance use. The full factual normalized source remains unchanged."
           ],
           "test_references": []
         },
@@ -9783,11 +9781,10 @@
             372
           ],
           "signature_sha256": "2bb00a3b89c386a99b2e78c63843f866343dfd899c75409301605091f9b76391",
-          "status": "READ",
-          "documentation_anchor": "_finite_real_as_float",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--finite-real-as-float",
           "review_notes": [
-            "Rejects booleans and non-Real objects; converts a Real scalar to float while handling conversion failure, and returns only finite results. Missing/unsupported/overflowing values return None, not coerced numeric evidence.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Rejects booleans and non-Real objects; converts a Real scalar to float while handling conversion failure, and returns only finite results. Missing/unsupported/overflowing values return None, not coerced numeric evidence."
           ],
           "test_references": []
         },
@@ -9799,11 +9796,10 @@
             377
           ],
           "signature_sha256": "06a05017967d58916b7328961425034fe371de6d39c19337d1fc6769dc6f55da",
-          "status": "READ",
-          "documentation_anchor": "_is_positive_finite_number",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--is-positive-finite-number",
           "review_notes": [
-            "Uses `_finite_real_as_float` and returns true only for a finite value strictly greater than zero. It is used to select genuine exact-voltage evidence and to validate persisted coverage, not to infer voltage from text.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Uses `_finite_real_as_float` and returns true only for a finite value strictly greater than zero. It is used to select genuine exact-voltage evidence and to validate persisted coverage, not to infer voltage from text."
           ],
           "test_references": []
         },
@@ -9815,11 +9811,10 @@
             382
           ],
           "signature_sha256": "cff5bf6a6523c5c5113253e7164e0a6b86ed336ae564ae5c0c81a62164c86dfb",
-          "status": "READ",
-          "documentation_anchor": "_calculation_geometries",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--calculation-geometries",
           "review_notes": [
-            "Extracts geometry-array values and returns an object array of `force_2d` copies. This removes Z/M for horizontal calculations without replacing source/output geometry; CRS transformation is handled by the enclosing workflow.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Extracts geometry-array values and returns an object array of `force_2d` copies. This removes Z/M for horizontal calculations without replacing source/output geometry; CRS transformation is handled by the enclosing workflow."
           ],
           "test_references": []
         },
@@ -9831,11 +9826,10 @@
             397
           ],
           "signature_sha256": "e9dac743169700699c4609c9ce6da3cf007a4b2235a428fa36f79745577b78dd",
-          "status": "READ",
-          "documentation_anchor": "_empty_nearest_result",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--empty-nearest-result",
           "review_notes": [
-            "Creates one nullable match row per parcel on a RangeIndex: float64 NaN distances/numeric voltage fields, nullable Int64 tie counts and object missing values for other requested attributes. It represents unavailable optional exact-voltage matches, not zero distance or zero ties.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Creates one nullable match row per parcel on a RangeIndex: float64 NaN distances/numeric voltage fields, nullable Int64 tie counts and object missing values for other requested attributes. It represents unavailable optional exact-voltage matches, not zero distance or zero ties."
           ],
           "test_references": []
         },
@@ -9847,11 +9841,10 @@
             448
           ],
           "signature_sha256": "0258d12f0d934a9a9e9cf6d47db697552ab4209b6a2d2505f17a0d66a16095a9",
-          "status": "READ",
-          "documentation_anchor": "_nearest_feature_rows",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--nearest-feature-rows",
           "review_notes": [
-            "Allows empty features only for the explicitly optional branch, and handles zero parcels without building a query. Otherwise it builds an STRtree from 2D feature copies and queries all equidistant nearest matches with distances. It sorts by parcel position, distance and lexical grid feature ID, counts every tie, selects the first representative and verifies complete parcel-position coverage. It returns copied representative metadata plus distance and tie count in input parcel order; it does not return a list of all tied IDs or approximate ties with a tolerance.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Allows empty features only for the explicitly optional branch. There is no zero-parcel early return: for nonempty features it builds an STRtree from 2D feature copies and queries all equidistant nearest matches with distances. It sorts by parcel position, distance and lexical grid feature ID, counts every tie, selects the first representative and verifies complete parcel-position coverage. It returns copied representative metadata plus distance and tie count in input parcel order; it does not return a list of all tied IDs or approximate ties with a tolerance."
           ],
           "test_references": []
         },
@@ -9863,11 +9856,10 @@
             457
           ],
           "signature_sha256": "5ffe0dff818bd8f33d811e3ed417822449110040d2368fcf525be1a78fe5aec5",
-          "status": "READ",
-          "documentation_anchor": "_attach_matches",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--attach-matches",
           "review_notes": [
-            "Appends each mapped match column to the supplied internal parcel-output copy after resetting match indices. This helper intentionally mutates its parcel argument; the public workflow has copied the original frame and checked collisions beforehand.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Appends each mapped match column to the supplied internal parcel-output copy after resetting match indices. This helper intentionally mutates its parcel argument; the public workflow has copied the original frame and checked collisions beforehand."
           ],
           "test_references": []
         },
@@ -9879,11 +9871,10 @@
             467
           ],
           "signature_sha256": "80ce1498d01201dc4bf25e56ea58582b1836e5cebf08bab0b8da65308cd5650f",
-          "status": "READ",
-          "documentation_anchor": "_validate_distance_values",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-distance-values",
           "review_notes": [
-            "Ignores missing distances but requires every present value to be a finite non-boolean Real with value at least zero. This validates scalar evidence; it does not calculate spatial distance or enforce whether a given row should have a match.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Ignores missing distances but requires every present value to be a finite non-boolean Real with value at least zero. This validates scalar evidence; it does not calculate spatial distance or enforce whether a given row should have a match."
           ],
           "test_references": []
         },
@@ -9895,11 +9886,10 @@
             475
           ],
           "signature_sha256": "b21dfdd32d36107b279d15d80e4b21a0e5b48ba43b4674d5bf1f34485a5dab78",
-          "status": "READ",
-          "documentation_anchor": "_is_missing_scalar",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--is-missing-scalar",
           "review_notes": [
-            "Recognizes None and scalar pandas missing values while excluding nonscalar containers from ambiguous pandas null truth evaluation. It supports tie-state validation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Recognizes None and scalar pandas missing values while excluding nonscalar containers from ambiguous pandas null truth evaluation. It supports tie-state validation."
           ],
           "test_references": []
         },
@@ -9911,11 +9901,10 @@
             499
           ],
           "signature_sha256": "21cb408b753265f4fc8032ba50a6afa2d51781d672f2d01ee1bfc77166e817ed",
-          "status": "READ",
-          "documentation_anchor": "_validate_tie_counts",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-tie-counts",
           "review_notes": [
-            "Requires equal match/tie sequence lengths. Unmatched rows must have missing tie counts; matched rows require a finite non-boolean numeric value at least one with an integral float value. This admits integral floats as well as integer scalars; it is not an exact built-in-int type gate.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires equal match/tie sequence lengths. Unmatched rows must have missing tie counts; matched rows require a finite non-boolean numeric value at least one with an integral float value. This admits integral floats as well as integer scalars; it is not an exact built-in-int type gate."
           ],
           "test_references": []
         },
@@ -9927,11 +9916,10 @@
             553
           ],
           "signature_sha256": "bd79c4c0afab483b69e38e31b047e0510b8e186b985b57339dad3921f5bff4c7",
-          "status": "READ",
-          "documentation_anchor": "_validate_match_integrity",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-match-integrity",
           "review_notes": [
-            "Checks required distance/ID/tie/optional-voltage fields and requires either all rows matched or all unmatched according to the caller's contract. It validates present distances and match-aligned ties, requires IDs for matched rows and positive finite voltage when requested, or requires all match-dependent attributes to be null when unavailable. It does not compare the selected ID to source bytes.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Checks required distance/ID/tie/optional-voltage fields and requires either all rows matched or all unmatched according to the caller's contract. It validates present distances and match-aligned ties, requires IDs for matched rows and positive finite voltage when requested, or requires all match-dependent attributes to be null when unavailable. It does not compare the selected ID to source bytes."
           ],
           "test_references": []
         },
@@ -9943,11 +9931,10 @@
             580
           ],
           "signature_sha256": "531e8ad8f988d07854b8c980addbddacf9522f8f672affcc82d68e0370e25a24",
-          "status": "READ",
-          "documentation_anchor": "_validate_voltage_coverage",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-voltage-coverage",
           "review_notes": [
-            "Iterates coverage records, requiring the expected dataclass family, finite positive voltage and a positive Integral (not bool) feature count; returns unique ascending float levels. It checks the in-memory inventory, not current physical line counts.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Iterates coverage records, requiring the expected dataclass family, finite positive voltage and a positive Integral (not bool) feature count; returns unique ascending float levels. It checks the in-memory inventory, not current physical line counts."
           ],
           "test_references": []
         },
@@ -9959,11 +9946,10 @@
             642
           ],
           "signature_sha256": "16a35dfd1ec76a92ee6af1c811329aac89a692c6f12637724c555c2c70589b1b",
-          "status": "READ",
-          "documentation_anchor": "_validate_voltage_table",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-voltage-table",
           "review_notes": [
-            "Requires the long-table columns and exactly parcel_count times voltage-level-count rows. It validates positive finite levels, hygienic IDs, unique parcel/voltage pairs, exact level inventory and, for each level, the complete original parcel-ID sequence. Every long-table row must have a valid match, tie count and mandatory source identity. This checks a Cartesian coverage relation, not a spatial re-query.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires the long-table columns and exactly parcel_count times voltage-level-count rows. It validates positive finite levels, hygienic IDs, unique parcel/voltage pairs, exact level inventory and, for each level, the complete original parcel-ID sequence. Every long-table row must have a valid match, tie count and mandatory source identity. This checks a Cartesian coverage relation, not a spatial re-query."
           ],
           "test_references": []
         },
@@ -9975,11 +9961,10 @@
             655
           ],
           "signature_sha256": "ca72936e4e9b296fd5b6b2cce2ec0df31193e4f8be5f3bf852903f00e1b916f4",
-          "status": "READ",
-          "documentation_anchor": "_null_safe_series_equal",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--null-safe-series-equal",
           "review_notes": [
-            "Resets both indices, rejects unequal lengths, then compares values positionally with paired missing values treated as equal. It does not require identical pandas dtypes or matching original indices.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Resets both indices, rejects unequal lengths, then compares values positionally with paired missing values treated as equal. It does not require identical pandas dtypes or matching original indices."
           ],
           "test_references": []
         },
@@ -9991,11 +9976,10 @@
             745
           ],
           "signature_sha256": "cf984e9cb4a84325bea013c345d3852a194dcf50774669bc166344d47c229376",
-          "status": "READ",
-          "documentation_anchor": "_validate_exact_representation_consistency",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-exact-representation-consistency",
           "review_notes": [
-            "For nonempty exact-voltage coverage, builds candidate winners from every voltage-level row, maps original parcel positions and sorts by position/distance/lexical grid ID. It reconstructs each global exact nearest representative, sums tie counts across all levels at the exact same minimum distance and compares global distance, selected ID/source/voltage/manager/state/lineage and total ties. It compares two retained representations, not physical nearest-neighbour truth; absent exact coverage is validated by the enclosing result contract.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "For nonempty exact-voltage coverage, builds candidate winners from every voltage-level row, maps original parcel positions and sorts by position/distance/lexical grid ID. It reconstructs each global exact nearest representative, sums tie counts across all levels at the exact same minimum distance and compares global distance, selected ID/source/voltage/manager/state/lineage and total ties. It compares two retained representations, not physical nearest-neighbour truth; absent exact coverage is validated by the enclosing result contract."
           ],
           "test_references": []
         },
@@ -10007,11 +9991,10 @@
             808
           ],
           "signature_sha256": "d39c731d6c1bc2a828b6a2b8e47e97f5592d1c11a29a8e5ad18524f327e46f81",
-          "status": "READ",
-          "documentation_anchor": "_validate_result_contract",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-result-contract",
           "review_notes": [
-            "Validates parcel geometry/IDs, generated columns and the ascending coverage inventory; requires all broad-line/post matches and either all exact-line matches or an entirely null exact branch. It validates the complete long table and reconciles global exact matches against its level-wise representation. This local result integrity is reused by profiling and does not reread IGN.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Validates parcel geometry/IDs, generated columns and the ascending coverage inventory; requires all broad-line/post matches and either all exact-line matches or an entirely null exact branch. It validates the complete long table and reconciles global exact matches against its level-wise representation. This local result integrity is reused by profiling and does not reread IGN."
           ],
           "test_references": []
         },
@@ -10023,11 +10006,10 @@
             832
           ],
           "signature_sha256": "561768b44f5e10ba9b20d1adb8edf0f761b13572d86320825dc6fe1f303a9c2f",
-          "status": "READ",
-          "documentation_anchor": "_validate_output_integrity",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--validate-output-integrity",
           "review_notes": [
-            "Applies the full local result contract, then verifies unchanged parcel count, IDs/order, equivalent original CRS and geometry via zero-tolerance `geom_equals_exact`. That spatial predicate is an XY geometry comparison, not byte-exact WKB or an explicit Z/M ordinate comparison; original geometry is preserved by copying in the implementation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Applies the full local result contract, then verifies unchanged parcel count, IDs/order, equivalent original CRS and geometry via zero-tolerance `geom_equals_exact`. That spatial predicate is an XY geometry comparison, not byte-exact WKB or an explicit Z/M ordinate comparison; original geometry is preserved by copying in the implementation."
           ],
           "test_references": []
         },
@@ -10039,11 +10021,10 @@
             889
           ],
           "signature_sha256": "933a0964228fa8bde254f487db1b65246ac6a25d24fdbc167cda07c8a819cde4",
-          "status": "READ",
-          "documentation_anchor": "_voltage_level_table",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--voltage-level-table",
           "review_notes": [
-            "Discovers ascending unique exact-voltage levels from already selected VALID exact lines. For each, records source line count and queries one deterministic nearest representative for every parcel, then appends the fixed eleven-column table in level-then-parcel order. No exact levels yields an empty schema-correct table with float64 distance/voltage and nullable Int64 ties. Transformation posts do not enter this voltage table.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Discovers ascending unique exact-voltage levels from already selected VALID exact lines. For each, records source line count and queries one deterministic nearest representative for every parcel, then appends the fixed eleven-column table in level-then-parcel order. No exact levels yields an empty schema-correct table with float64 distance/voltage and nullable Int64 ties. Transformation posts do not enter this voltage table."
           ],
           "test_references": []
         },
@@ -10055,11 +10036,10 @@
             966
           ],
           "signature_sha256": "6864047480b741f9702718bdcd3544acb6cc67692c5d2269cb02f98196c54a4e",
-          "status": "READ",
-          "documentation_anchor": "_enrich_parcel_grid_proximity_from_normalized",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--enrich-parcel-grid-proximity-from-normalized",
           "review_notes": [
-            "Private numerical boundary: validates parcels, output collisions and both normalized role catalogs, requiring at least one VALID line and post. It copies/reset-indexes parcels, transforms calculation copies to EPSG:2154 and flattens coordinates for planar polygon-to-line/polygon-to-post distance. It appends broad-line, optional positive-finite EXACT-line and post representatives, builds all exact-voltage level rows and coverage, then validates output integrity. It preserves source geometry and all parcel columns; direct private calls are not source-complete acquisition validation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Private numerical boundary: validates parcels, output collisions and both normalized role catalogs, requiring at least one VALID line and post. It copies/reset-indexes parcels, transforms calculation copies to EPSG:2154 and flattens coordinates for planar polygon-to-line/polygon-to-post distance. It appends broad-line, optional positive-finite EXACT-line and post representatives, builds all exact-voltage level rows and coverage, then validates output integrity. It preserves source geometry and all parcel columns; direct private calls are not source-complete acquisition validation."
           ],
           "test_references": []
         },
@@ -10071,11 +10051,10 @@
             1004
           ],
           "signature_sha256": "ccd1737db872bf0204f1a5ccc10040afd6afd1d4bdf3710e69e8926a8171eaf5",
-          "status": "READ",
-          "documentation_anchor": "enrich_parcel_grid_proximity",
+          "status": "CHECKED",
+          "documentation_anchor": "r14-enrich-parcel-grid-proximity",
           "review_notes": [
-            "Public source-complete boundary: requires a parcel GeoDataFrame and exact electricity/config envelope types, validates parcel geometry/IDs and output collisions, normalizes the supplied source exactly once through independent physical revalidation, requires the exact normalizer result type and delegates the planar enrichment. Existing GridProximityError is preserved and expected lower-level failures are wrapped. It does not infer connection feasibility, available capacity, ownership or a distance-based parcel score.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Public source-complete boundary: requires a parcel GeoDataFrame and exact electricity/config envelope types, validates parcel geometry/IDs and output collisions, normalizes the supplied source exactly once through independent physical revalidation, requires the exact normalizer result type and delegates the planar enrichment. Existing GridProximityError is preserved and every other Exception is wrapped with its cause. It does not infer connection feasibility, available capacity, ownership or a distance-based parcel score."
           ],
           "test_references": []
         },
@@ -10087,11 +10066,10 @@
             1048
           ],
           "signature_sha256": "c061039b429e9cd14e010a253c5f94a9280274550f7362495e4e655f2d022ded",
-          "status": "READ",
-          "documentation_anchor": "_distance_profile",
+          "status": "CHECKED",
+          "documentation_anchor": "r14--distance-profile",
           "review_notes": [
-            "Validates present nonnegative finite distances, counts missing values and returns null quantiles when there are no matches. Otherwise it computes min, eleven-boundary percentile summaries through max, exact zero-distance count and the number of matched rows whose tie count is greater than one. `tie_count` in this summary is a count of tied rows, not a sum of tied feature counts; no spatial query is performed.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Validates present nonnegative finite distances, counts missing values and returns null quantiles when there are no matches. Otherwise it computes minimum, nine pandas quantiles (p01/p05/p10/p25/p50/p75/p90/p95/p99) over present float64 distances, and maximum, exact zero-distance count and the number of matched rows whose tie count is greater than one. `tie_count` in this summary is a count of tied rows, not a sum of tied feature counts; no spatial query is performed."
           ],
           "test_references": []
         },
@@ -10103,18 +10081,51 @@
             1092
           ],
           "signature_sha256": "bd87876ba41ca5fe680a76a6e0515b5e51caa401e5fd4cf4ea933bf56c584560",
-          "status": "READ",
-          "documentation_anchor": "profile_grid_proximity",
+          "status": "CHECKED",
+          "documentation_anchor": "r14-profile-grid-proximity",
           "review_notes": [
-            "First validates the retained result's local schema, coverage and cross-representation consistency. It profiles broad line, global exact line and post distances, then each ascending voltage-level slice with its recorded source line count and row count. All summaries are threshold-free; validation does not reacquire or physically revalidate IGN source data.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "First validates the retained result's local schema, coverage and cross-representation consistency. It first builds each ascending voltage-level profile with its recorded source line count and row count, then constructs the returned broad-line, global-exact-line and post summaries. There is no outer exception wrapper or explicit exact-result-type gate. All summaries are threshold-free; validation does not reacquire or physically revalidate IGN source data."
           ],
           "test_references": []
         }
       ],
       "findings": [],
       "documentation_read_complete": true,
-      "documentation_status": "READ"
+      "documentation_status": "CORRECTED",
+      "r14_prior_evidence": {
+        "commit": "8afba19df0f6748bf0d5927668b5114e36bb8fb3",
+        "file_row_without_symbols": {
+          "path": "src/landscout/stages/enrich_grid_proximity.py",
+          "role": "production",
+          "source_sha256": "7131d0b980dad7b5c73a4c7cf2d0bd6f9fe5572c089ad39c4a592c02098c9015",
+          "documentation_path": "docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": [],
+          "documentation_read_complete": true,
+          "documentation_status": "READ"
+        },
+        "symbols_sha256": "45e45d4fa3e9bded6733050abeaf74d4a476dc0baf5ce5f929144895bf625737"
+      },
+      "read_ranges": [
+        [
+          1,
+          1092
+        ]
+      ],
+      "source_sha256_basis": "git-content",
+      "documentation_sha256": "fe1ab0f83c66805ac47c2f6aa6d3af9be9ea37fddad5b796bdc9d583e92020d4",
+      "documentation_sha256_basis": "git-content",
+      "r14_provenance": {
+        "receipt": "docs/code/audit/R14_IGN_GRID_PROXIMITY.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R14.txt",
+        "review": "PENDING",
+        "source_commit": "8afba19df0f6748bf0d5927668b5114e36bb8fb3",
+        "companion_evidence": "embedded_documentation_status; no separate companion owner row"
+      }
     },
     {
       "path": "src/landscout/stages/enrich_shape.py",
@@ -16054,10 +16065,78 @@
       "source_sha256": "436de7dd475f09b28356502b0b4eaed66ead17253da7bf6d3869aaf8bbcee728",
       "documentation_path": "docs/code/files/tests/unit/test_enrich_grid_proximity.py.md",
       "read_complete": true,
-      "status": "READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Read exact imports, test aliases, package re-exports and public coverage caller; followed delegated physical revalidation through normalizer/IGN source sections. No dependency closure credit."
+      ],
+      "contract_review": [
+        "R14 complete source/test/prose reconciliation, retaining prior READ evidence. Public physical-source normalization, private numerical calculation and local-result profiling remain distinct. Temporary synthetic GPKG evidence does not certify an official archive; bounded test limits are recorded in R14_IGN_GRID_PROXIMITY.md."
+      ],
+      "test_references": [
+        "tests/unit/test_enrich_grid_proximity.py::test_clean_high_level_api_is_exported",
+        "tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once",
+        "tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types",
+        "tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source",
+        "tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles",
+        "tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config",
+        "tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation",
+        "tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid",
+        "tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance",
+        "tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons",
+        "tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved",
+        "tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154",
+        "tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly",
+        "tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_generated_parcel_column_before_normalization",
+        "tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved",
+        "tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line",
+        "tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins",
+        "tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id",
+        "tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss",
+        "tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted",
+        "tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status",
+        "tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines",
+        "tests/unit/test_enrich_grid_proximity.py::test_voltage_table_is_exact_ordered_cartesian_product",
+        "tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact",
+        "tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table",
+        "tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected",
+        "tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved",
+        "tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_voltage_cartesian_row",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_duplicate_parcel_voltage_pair",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_voltage_rows_out_of_parcel_order",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_required_proximity_column",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nondeterministic_or_duplicate_coverage",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status",
+        "tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage",
+        "tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected"
+      ],
       "symbols": [
         {
           "qualified_name": "_geometry_status",
@@ -16067,10 +16146,10 @@
             63
           ],
           "signature_sha256": "86c60a3e202697db3818f9a407260c8771042bfa8fabec2805e36d21fe459e24",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--geometry-status",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Returns NULL for None, then EMPTY for empty geometry, INVALID for invalid geometry, otherwise VALID. This synthetic classifier has no general runtime type gate and does not modify geometry."
           ],
           "test_references": []
         },
@@ -16082,10 +16161,10 @@
             82
           ],
           "signature_sha256": "73841f18c7eceeb5ecc1d9fec0b0d9eda736414eb05ec9c18d86faf303a33780",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--parcels",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds an EPSG:2154 synthetic GeoDataFrame with parcel_id, source_value and geometry, default square 0..10 and index 100 onward. Geometry, identifier and index arguments use argument-or-default: empty lists select defaults, not zero parcels."
           ],
           "test_references": []
         },
@@ -16097,10 +16176,10 @@
             125
           ],
           "signature_sha256": "8ffcc9d73502ba0842409a44cff887b4851b8976201042eccd10a98043504353",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--lines",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds a synthetic normalized line frame, default x=110 line with EXACT 110 kV, CUSTOM_LINE_LAYER and fixed department/edition/archive metadata. List options use argument-or-default, including empty lists. Geometry status is computed locally; raw voltage is formatted from numeric input and upper bounds remain NaN. This is not a physical IGN source."
           ],
           "test_references": []
         },
@@ -16112,10 +16191,10 @@
             160
           ],
           "signature_sha256": "919dcd01c2fe10b1f40e5604f8adf6482a926942945ae471b826312bcf0bb7be",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--posts",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds a synthetic normalized polygonal post frame, default square x=110..120, with fixed source metadata and locally observed geometry status. List options use argument-or-default, so empty lists select defaults. No RTE point or official-source acquisition is involved."
           ],
           "test_references": []
         },
@@ -16127,10 +16206,10 @@
             173
           ],
           "signature_sha256": "a6536afacfbc74069bad12329ac51dbde7c3aec598ddd0bf10254b4725c23f81",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--electricity-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Constructs an IgnBdTopoElectricityData placeholder with extraction and summaries cast from None, retaining supplied frames when they are not None. Unlike the list helpers, an empty supplied frame is retained. It is usable only behind the patched normalizer in these scenarios, not proof of physical source validity."
           ],
           "test_references": []
         },
@@ -16142,10 +16221,10 @@
             197
           ],
           "signature_sha256": "5258bf6be58af8c0b30589da4bc886c64e985e444af1b351d2bd8161bfc30c24",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--physical-line-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Constructs one synthetic raw IGN line with cleabs, 225 kV text, date and precision fields in EPSG:2154; it returns a frame and does not itself write a package."
           ],
           "test_references": []
         },
@@ -16157,10 +16236,10 @@
             221
           ],
           "signature_sha256": "92e05883c490e9a5037a886ebb7bbfb04157f0bf77f329e71f4c07cbbd22233c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--physical-post-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Constructs the synthetic raw polygonal IGN post schema in EPSG:2154; it returns a frame without a network or file read."
           ],
           "test_references": []
         },
@@ -16172,10 +16251,10 @@
             251
           ],
           "signature_sha256": "8e045ee3dcaa75ddcf8366031f6b04b815684044282484ea94cb8fcc9015005e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--physical-summary",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Summarizes the supplied in-memory frame: feature/column/dtype/CRS counts and sorted non-null geometry types. No independent disk read occurs in this helper."
           ],
           "test_references": []
         },
@@ -16187,10 +16266,10 @@
             423
           ],
           "signature_sha256": "97d7b2e3a991a40db9c38f98220720e284b77d44c25b7d20d7a8fbf4c0977bff",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--physical-electricity-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Creates a real temporary six-layer GeoPackage (configured line/post, alternate line/post, road and department), reads its layer inventory, hashes its bytes and writes a schema-3 extraction marker with the actual file inventory. The flag chooses configured or alternate electricity roles; selected layers are reread and summarized. The enclosing download metadata has synthetic a-times-64 archive SHA and an archive path, but no archive bytes are created or verified. This is local fixture integrity, not official IGN acquisition."
           ],
           "test_references": []
         },
@@ -16202,10 +16281,10 @@
             429
           ],
           "signature_sha256": "ab5ee68723a9d0b6dab6b2dda98c660bfbf888c8de9afcb34b5a6edd3bb3dd72",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--alternate-role-electricity-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Delegates to the temporary physical fixture with alternate_roles=True, binding alternate electricity roles to a real synthetic GeoPackage for public rejection."
           ],
           "test_references": []
         },
@@ -16217,10 +16296,10 @@
             435
           ],
           "signature_sha256": "9ec56c145b474cc98391438edec38347c46168cd731b401f3d96421053ecf3e2",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--configured-role-electricity-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Delegates to the same temporary physical fixture with alternate_roles=False, binding configured roles before tests alter archive metadata. It does not download or create the named archive."
           ],
           "test_references": []
         },
@@ -16232,10 +16311,10 @@
             455
           ],
           "signature_sha256": "78c0d88c59e404a7d736859e2064f6421ffc811f24d916cf3d6d344138d15a41",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--two-parcel-two-voltage-result",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private normalized-frame calculator (the short test alias) with two parcels ordered PARCEL-2 then PARCEL-1 and lines at 275/110 kV. Returns its two-parcel, four-row voltage result for local profile mutations; it does not invoke the public source boundary."
           ],
           "test_references": []
         },
@@ -16247,10 +16326,10 @@
             466
           ],
           "signature_sha256": "358d95b7158777b2c207a4e294a909d8d2ea381f603ef4847b274fa8f1528c5f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--mutate-parcel-result",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Copies result.parcels, casts one named column to object, changes row label 0, then dataclasses.replace creates a new frozen envelope retaining the other table and coverage. This mutates synthetic result evidence without a hash/reseal or physical-source read."
           ],
           "test_references": []
         },
@@ -16262,10 +16341,10 @@
             477
           ],
           "signature_sha256": "10e727d9a4f033733fef9cad1ffe239292ed5a4e734d6992a6fbe78d240a4857",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14--mutate-voltage-result",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Copies the voltage table, casts one named column to object, changes row label 0 and replaces that field in the frozen envelope. Other fields remain shared; no canonical hash exists here to recompute."
           ],
           "test_references": []
         },
@@ -16277,10 +16356,10 @@
             484
           ],
           "signature_sha256": "1a656fb994c34f6f9c0f5f170cebc35d9ae359b724eb72903f6b31354ef1117e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-clean-high-level-api-is-exported",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Checks identity and stages.__all__ membership of the two public functions only. It does not execute either function or prove the complete eight-name package export set."
           ],
           "test_references": []
         },
@@ -16292,10 +16371,10 @@
             503
           ],
           "signature_sha256": "daa2bfb33fcbab70fb9e70e96347bebaa5a747a72a88bd6825f0d7a2bae44375",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-public-proximity-normalizes-verified-source-exactly-once",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the public three-argument API with a placeholder bundle while patch supplies normalized synthetic frames as return_value. Asserts one normalizer call with the exact source/config arguments and selected LINE-1/POST-1 IDs. This nondelegating mock proves orchestration, not physical verification or disk-read count."
           ],
           "test_references": []
         },
@@ -16307,10 +16386,10 @@
             526
           ],
           "signature_sha256": "5ba710bf3d2b2c18b3348e5b43aa6e3e486393fb5e6919d46c4f576197c2a787",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-public-proximity-rejects-wrong-source-boundary-types",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the public API with a plain DataFrame for parcels or object() for source/config. Each of three cases expects GridProximityError and explicitly asserts the patched normalizer was never called; the corresponding initial type gate precedes source reconstruction."
           ],
           "test_references": []
         },
@@ -16322,10 +16401,10 @@
             555
           ],
           "signature_sha256": "6f1f89269a7c2c9c972d044def7be7bf8242a29b2baf35979caa7aed0feaf9e5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-caller-crafted-normalized-grid-frame-is-not-a-public-source",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Verifies four plausible textual lineage/role values on a synthetic line frame, then casts that frame as a source argument to the public API. Expects the electricity-source type error before the patched normalizer is called. Metadata equality here is not hashing or archive verification."
           ],
           "test_references": []
         },
@@ -16337,10 +16416,10 @@
             568
           ],
           "signature_sha256": "dae93fe2c3b8c5d7bca364ca4188719f96c15e527393090c0a06e3997af6b89b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-public-proximity-reproduces-configured-electricity-roles",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Creates the real temporary alternate-role fixture, asserts the alternate layer names, then calls the public API and expects GridProximityError without a message constraint. The real normalizer rejects roles inconsistent with configured rediscovery; this is a rejection test, not successful configured-source enrichment."
           ],
           "test_references": []
         },
@@ -16352,10 +16431,10 @@
             626
           ],
           "signature_sha256": "30b1b6e57c9aa049adbaf121d60665421d72192bb0ab4cc1a5f11c58766fa01b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-public-proximity-rejects-archive-lineage-differing-from-config",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Creates a configured-role temporary fixture, replaces download metadata in eleven parameter cases (provider, product, edition, version, projection spelling, package/archive format, source/checksum URL, checksum fields or archive size), then calls the public API. Expects GridProximityError and an uncalled private-computation mock. Config/archive lineage validation can fail before physical extraction validation; the named archive is not present."
           ],
           "test_references": []
         },
@@ -16367,10 +16446,10 @@
             642
           ],
           "signature_sha256": "46ca6ebd2b88fec94d96821bc9098858d73d2779e2b95be508ea9980324a2094",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-source-normalization-failure-stops-grid-computation",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the public API with a patched normalizer raising ValueError as a sentinel; asserts GridProximityError and exactly one normalizer invocation. This is neither a delegating spy nor an actual changed-source case; no separate computation spy is asserted."
           ],
           "test_references": []
         },
@@ -16382,10 +16461,10 @@
             653
           ],
           "signature_sha256": "61904c19400beb6d42f79833826df9ed22bf18ef44ade0a4f77afd91ba1ac359",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-separated-distance-uses-parcel-edge-not-centroid",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with the default square, line and polygonal post. Asserts both proxy distances are 100 m, measuring parcel edges rather than centroid distances."
           ],
           "test_references": []
         },
@@ -16397,10 +16476,10 @@
             661
           ],
           "signature_sha256": "3ce20f10aa9b799fe05d264a67c3ced49b90ece8cf2c76f1c4f4985bd0f7e620",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-touching-line-has-zero-distance",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with a line touching the parcel edge and asserts exactly zero nearest-line distance."
           ],
           "test_references": []
         },
@@ -16412,10 +16491,10 @@
             669
           ],
           "signature_sha256": "882d9a0d262e476758380924cc9467cfd78d487dc5e70bf7af7a49063ad06635",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-post-distance-uses-parcel-and-post-polygons",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with a polygonal post 50 m from the parcel edge and asserts 50 m; it does not use a centroid or RTE point."
           ],
           "test_references": []
         },
@@ -16427,10 +16506,10 @@
             685
           ],
           "signature_sha256": "31242dc90f98269f045dc43cec6fe1dc1e4627f2b0feccddc6782fccf072e347",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-epsg4326-input-is-calculated-in-lambert93-and-preserved",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Transforms the synthetic parcel to EPSG:4326, calls the private calculator and asserts approximately 100 m (absolute tolerance 1e-6), unchanged CRS and zero-tolerance geometry equality after index reset. This is not an explicit M/Z ordinate or byte comparison."
           ],
           "test_references": []
         },
@@ -16442,10 +16521,10 @@
             692
           ],
           "signature_sha256": "c03835e967b3d70ad9877495e182674570f918b4b140de7cf1cba51e1234e63f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-epsg2154-parcel-input-remains-epsg2154",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with Lambert-93 parcels; asserts output EPSG:2154 and 100 m nearest-line distance."
           ],
           "test_references": []
         },
@@ -16457,10 +16536,10 @@
             700
           ],
           "signature_sha256": "22380e5e3db81d0a796beeac04c9ca273912360335e89ba550bb4dacd430eefa",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-valid-parcel-id-is-preserved-exactly",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with the supplied FR31 identifier and asserts exact retention, not canonical Cadastre decomposition."
           ],
           "test_references": []
         },
@@ -16472,10 +16551,10 @@
             721
           ],
           "signature_sha256": "b0ee1c00b46663fc195e8170cbdc5a911edc99044beb9d571d63788442f3ebc0",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-public-proximity-rejects-generated-parcel-column-before-normalization",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Adds nearest_line_proxy_distance_m=123 to parcels, calls the public API and expects the generated-column collision error; asserts the patched normalizer was not called."
           ],
           "test_references": []
         },
@@ -16487,10 +16566,10 @@
             732
           ],
           "signature_sha256": "fbf1d4537ac9c573a2c23d95b766f942c755470a80e987aa27c41b662e4ab62d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-invalid-parcel-id-hygiene-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with None, empty/blank/edge-spaced strings or integer 123 as parcel_id. All six cases expect GridProximityError matching parcel_id."
           ],
           "test_references": []
         },
@@ -16502,10 +16581,10 @@
             747
           ],
           "signature_sha256": "d400a93dfbf0df1dab41b6054571d6615184753272becbdd5219301bf0cd0975",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-supported-parcel-polygon-geometry-is-preserved",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator for Polygon, MultiPolygon and an XYZ Polygon, checking geom_equals_exact at zero tolerance and has_z equality. These checks do not independently compare every Z value or establish M preservation end to end."
           ],
           "test_references": []
         },
@@ -16517,10 +16596,10 @@
             761
           ],
           "signature_sha256": "04c309d80651df833b1072f0c5871ea7b1bda4af00c906045561ac8bc406d94c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-semantically-wrong-parcel-geometry-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with Point, LineString, MultiLineString or GeometryCollection parcels and expects the Polygon/MultiPolygon type guard."
           ],
           "test_references": []
         },
@@ -16532,10 +16611,10 @@
             771
           ],
           "signature_sha256": "b52c08f0a3dcfeea520b737b9eb6965345d6036572f591fd3ab622b767f2fab7",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-missing-crs-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Removes CRS from parcel, line or post frames separately, then calls the private calculator and expects a CRS-related GridProximityError."
           ],
           "test_references": []
         },
@@ -16547,10 +16626,10 @@
             780
           ],
           "signature_sha256": "9012e17e499772a961f85d949ab9ed3c2bc77649098bffb3808e1b201b4874a9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-wrong-grid-crs-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Uses EPSG:4326 for lines or posts, calls the private calculator and expects the EPSG:2154 requirement. Geographic parcel input is a separate accepted scenario."
           ],
           "test_references": []
         },
@@ -16562,10 +16641,10 @@
             793
           ],
           "signature_sha256": "9fee36ff128319809b9cb4a750607fd4f801d928b1a073ce341835b771e09def",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-z-line-has-same-horizontal-distance-as-xy-line",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator for XY and XYZ lines, compares their horizontal nearest-line distances and asserts the supplied XYZ line still has Z. This is a bounded 2D calculation/input-preservation test, not an M/Z pipeline guarantee."
           ],
           "test_references": []
         },
@@ -16577,10 +16656,10 @@
             818
           ],
           "signature_sha256": "5cf00a228490b93497bc00ba2e94b964100f66ffdec19ace3d93afe84040fe15",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-line-tie-is-counted-and-lexical-feature-id-wins",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with two 110 kV lines equidistant at 100 m, IDs Z-LINE/A-LINE. Asserts lexical A-LINE selection, two-way ties for broad/global-exact/level results and one retained parcel; no distance epsilon is exercised."
           ],
           "test_references": []
         },
@@ -16592,10 +16671,10 @@
             844
           ],
           "signature_sha256": "727956b7a9aeb010bfd924c8872b6d69d8401bc5a10e5cf6d71af711cf558564",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-cross-voltage-tie-uses-lexical-global-feature-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with equidistant 110/275 kV lines and then the public profiler. Asserts global A-LINE-275 at 100 m with two ties, each level at 100 m with one tie, and profile.tie_count=1 (one tied parcel, not two features)."
           ],
           "test_references": []
         },
@@ -16607,10 +16686,10 @@
             859
           ],
           "signature_sha256": "acd2d755344acff810af273895102a1d617f96f915f24eb62b9bbe393cdcaf01",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-nonvalid-grid-geometries-are-excluded-without-row-loss",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with NULL, EMPTY, INVALID and VALID line geometries. Asserts one output parcel and selection of VALID. The row-loss assertion concerns parcels, not retention of all input line rows in the distance catalog."
           ],
           "test_references": []
         },
@@ -16622,10 +16701,10 @@
             868
           ],
           "signature_sha256": "166dfe177a402b791f8b7d2d237a195904e8f4c286716fcf27027f1271d5e2db",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-wrong-grid-feature-type-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes line or post grid_feature_type, calls the private calculator and expects its exact feature-type guard."
           ],
           "test_references": []
         },
@@ -16637,10 +16716,10 @@
             890
           ],
           "signature_sha256": "c32d73078b428a80e14c8bc4de4527fa0dbb9844c48b1ca7b735f3d0616e718c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-duplicate-grid-feature-id-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds duplicate line IDs or duplicate post IDs in two branches, calls the private calculator and expects uniqueness rejection."
           ],
           "test_references": []
         },
@@ -16652,10 +16731,10 @@
             899
           ],
           "signature_sha256": "2af7e271521879b3a2b4a39f6402b516537683b6cef0cdc2ad4ace2bff1c6bd4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-wrong-spatial-role-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes the normalized line or post role, calls the private calculator and expects PROXY_GEOMETRY rejection; this does not rediscover physical source roles."
           ],
           "test_references": []
         },
@@ -16667,10 +16746,10 @@
             918
           ],
           "signature_sha256": "db75f3375eb7387dd172e535805a34d8ec9cba52dd320f8a52c4d4834ae4204e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-unsupported-valid-grid-geometry-type-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with valid Point/Polygon as lines or Point/LineString as posts. All four cases expect the role-specific geometry-types error."
           ],
           "test_references": []
         },
@@ -16682,10 +16761,10 @@
             931
           ],
           "signature_sha256": "b69f4102bbff7f84c5b1fbcf555397fc06d2aaa10de21d584619a0463238d5aa",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-supported-multi-geometries-are-accepted",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with MultiLineString and MultiPolygon inputs; asserts only one returned parcel, not an exact distance or source-bound acquisition."
           ],
           "test_references": []
         },
@@ -16697,10 +16776,10 @@
             943
           ],
           "signature_sha256": "7c66b2f93e746cb0f3f98a65fe4e3bb6a4472523e08103c63afd1ab9de02287b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-nearest-any-line-preserves-every-voltage-status",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator for EXACT, BELOW, UNKNOWN, DEENERGIZED and UNPARSED. Only EXACT is supplied 110 kV; asserts the broad-line voltage_status is copied. No raw-voltage parser or populated upper-bound assertion is exercised."
           ],
           "test_references": []
         },
@@ -16712,10 +16791,10 @@
             968
           ],
           "signature_sha256": "fb2e1158eee1650101dee8acfc6e13c57af45653fd6b3a86f6eb4b1d1d397d09",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-nearest-exact-and-voltage-table-exclude-nonexact-lines",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with a closer BELOW line and farther EXACT 110/275 kV lines. Asserts the broad winner remains BELOW, the exact winner is EXACT-110 at 110 kV, and the long table has the ordered two levels, two rows and exact column order. The fixture upper-bound field remains NaN."
           ],
           "test_references": []
         },
@@ -16727,10 +16806,10 @@
             986
           ],
           "signature_sha256": "3cdd636ed30c50c0d1e6078ac557223bfbfe8f3110a1d12602f7d61c1673fe45",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-voltage-table-is-exact-ordered-cartesian-product",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Uses the private two-parcel/two-voltage helper. Asserts ascending coverage (110,275), four rows, unique pairs and PARCEL-2/PARCEL-1 order inside each level. It does not separately assert the complete inter-level row sequence."
           ],
           "test_references": []
         },
@@ -16742,10 +16821,10 @@
             1000
           ],
           "signature_sha256": "2b8bd76b295cc64ca884f50e8749e6d19439cdf442e40928ce312eb1ee475b84",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-invalid-exact-voltage-values-are-not-used-as-exact",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with EXACT statuses but values 0, -1, infinity and string 110. Asserts no exact distance and an empty long table. This body does not additionally test booleans or NaN."
           ],
           "test_references": []
         },
@@ -16757,10 +16836,10 @@
             1027
           ],
           "signature_sha256": "35c4b1bb55b52c30724004b17319c8c58d2364d1d71c556c2e9ae35225f8fde4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-no-exact-voltage-preserves-parcels-and-returns-empty-long-table",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with an UNKNOWN line and None voltage, then the public profiler. Asserts broad-line retention, null exact fields, empty schema-ordered long table, float numeric/nullable Int64 tie dtypes, empty coverage and exact-profile count=0/missing=1. There is one parcel, not zero parcels."
           ],
           "test_references": []
         },
@@ -16772,10 +16851,10 @@
             1035
           ],
           "signature_sha256": "86f8564704e6e40a2551dbf1c897cc82a2fbb769c405a612d40ceee9a19bc3e4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-missing-parcel-column-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Drops parcel_id or geometry, calls the private calculator and expects GridProximityError matching the missing column."
           ],
           "test_references": []
         },
@@ -16787,10 +16866,10 @@
             1040
           ],
           "signature_sha256": "d2b8f55a1d239d61a076f4123b8aa7bc9c95048722e6671757c0c9a1face5e1e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-null-parcel-id-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Supplies a None parcel_id to the private calculator and expects a parcel_id error; no normalization is invoked."
           ],
           "test_references": []
         },
@@ -16802,10 +16881,10 @@
             1053
           ],
           "signature_sha256": "541c7ef9be2d4a6b5b41570d927d981e32d84119776ede4e1bc8de6295c36c1d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-duplicate-parcel-id-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Supplies two parcel geometries sharing one identifier to the private calculator and expects uniqueness rejection."
           ],
           "test_references": []
         },
@@ -16817,10 +16896,10 @@
             1069
           ],
           "signature_sha256": "0972ec6a8132b7252141bc7b1a954b111e1979f68edd034afc4e3b9f2eb9ac04",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-bad-parcel-geometry-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with None, an empty Polygon or an invalid crossing Polygon. Expects respectively null, empty or valid in the error message."
           ],
           "test_references": []
         },
@@ -16832,10 +16911,10 @@
             1096
           ],
           "signature_sha256": "ef0adfb69c3453c2a436afbe394b1e5a8de0ea542276f8b8fef709182a6e85cd",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-inputs-are-not-mutated-and-parcel-order-and-ids-are-preserved",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator on two parcels with duplicate input index labels [99,99]. Compares all three input frames with deep copies using assert_geodataframe_equal, asserts the original ID order and a returned RangeIndex. It does not promise input-index preservation."
           ],
           "test_references": []
         },
@@ -16847,10 +16926,10 @@
             1126
           ],
           "signature_sha256": "ab7e565fe79c8d748f40cbc0cfc9aa8104d1bd97a91451e07fff3e44603e77e5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-distance-profile-is-threshold-free-and-tracks-ties",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds a private result for two parcels then calls the public profiler. Asserts count=2/missing=0, min=50, median=75, max=100 m, one tied parcel and first-level voltage/source count/parcel row count. It does not assert all nine quantile values or a suitability threshold."
           ],
           "test_references": []
         },
@@ -16862,10 +16941,10 @@
             1134
           ],
           "signature_sha256": "e34c786e26f60dbf35cc9c8acc571ac7f5ce622366309aff48b75f890cb4ecfa",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-missing-voltage-cartesian-row",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Removes the final long-table row from the private synthetic result and calls the public profiler. Expects GridProximityError; the Cartesian row-count guard can fail before any spatial or identity comparison."
           ],
           "test_references": []
         },
@@ -16877,10 +16956,10 @@
             1142
           ],
           "signature_sha256": "a0b7eb2f3767540900ae10b3212b7629f02ca011431ccb9f4bd3ab35e92caefb",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-unknown-voltage-parcel-with-same-total-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes long-table row 0 parcel_id to an unknown ID without changing row count; calls the public profiler and expects GridProximityError from the per-level parcel-sequence contract."
           ],
           "test_references": []
         },
@@ -16892,10 +16971,10 @@
             1151
           ],
           "signature_sha256": "cd35fb09b40099787f55d0e22d289f0a0a4e6d29312ff8516b711d9680318ba3",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-duplicate-parcel-voltage-pair",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Copies row 0 parcel_id into row 1 of the long table, calls the public profiler and expects uniqueness rejection before cross-representation comparison."
           ],
           "test_references": []
         },
@@ -16907,10 +16986,10 @@
             1159
           ],
           "signature_sha256": "a6ef6b7615ed14fafe33d8fd00f8f30410f189a5e2d8231ef25e91ca6d01dd21",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-voltage-rows-out-of-parcel-order",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reorders long rows [1,0,2,3] and resets index, then calls the public profiler. Expects exact-parcel-set rejection because the per-level parcel sequence changed."
           ],
           "test_references": []
         },
@@ -16922,10 +17001,10 @@
             1172
           ],
           "signature_sha256": "015b53ca020590118eebf22a53d31ba3f193dcbb32e8c8aa67be932f7dd68839",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-inconsistent-global-exact-distance",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes main row 0 global exact distance to 5000 and calls the public profiler. The locally valid number fails reconciliation with level-wise minimum distance, matching exact-line distance."
           ],
           "test_references": []
         },
@@ -16937,10 +17016,10 @@
             1190
           ],
           "signature_sha256": "8f83507a59a8ce1378d6aa2bc1184dc87d38224d73e34beefd58f3f39a6e432f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-inconsistent-global-exact-identity",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes main row 0 exact grid ID, source ID or voltage to the other existing level (275), then calls the public profiler. Each case expects inconsistent evidence against the level winner; the voltage remains in the coverage inventory."
           ],
           "test_references": []
         },
@@ -16952,10 +17031,10 @@
             1210
           ],
           "signature_sha256": "7836168ee55bd56c5b0664240f79cdbc1bb37a832ba7c32f1c905d57b5196d33",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-inconsistent-global-exact-metadata",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes main row 0 exact manager, asset state, department, edition or archive SHA string; calls the public profiler and expects inconsistency with retained level metadata. This compares representations, not physical bytes or SHA authenticity."
           ],
           "test_references": []
         },
@@ -16967,10 +17046,10 @@
             1219
           ],
           "signature_sha256": "3a2cb9a520a26f702bd7c3887a8edb486dd42995df5b8be99d69277ebcc99a47",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-inconsistent-global-exact-tie-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes main row 0 exact ties to 2 where level winners imply 1; public profiling rejects tie-count inconsistency rather than numeric validity."
           ],
           "test_references": []
         },
@@ -16982,10 +17061,10 @@
             1248
           ],
           "signature_sha256": "1568af3b781713ab1489d836a48a110d0bd8b62a80bb758058da9c412b422218",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-required-match-tie-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mutates each of the three main tie columns with 0, -1, 1.5, infinity, string 2, None or 10**10000 (21 cases) and calls the public profiler. Expects tie_count/match rejection from numeric or missing-match rules; this parametrization contains no boolean."
           ],
           "test_references": []
         },
@@ -16997,10 +17076,10 @@
             1267
           ],
           "signature_sha256": "edd94c81cdf5c80f0f595dfa1024cee8276431525e5729374491e482639f3083",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-long-table-tie-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mutates long-table row 0 tie_count with the same seven invalid/absent/overflowing values and calls the public profiler; expects tie_count/match rejection."
           ],
           "test_references": []
         },
@@ -17012,10 +17091,10 @@
             1285
           ],
           "signature_sha256": "54ffd506112e6ab098f8801eaa64bf546aca34c1c5b4ab9268148ac8782c4e66",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-missing-main-match-feature-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Sets each main broad/exact/post grid/source ID column to None at row 0 (six cases). The public profiler rejects required matched-row identity before comparing retained exact representations."
           ],
           "test_references": []
         },
@@ -17027,10 +17106,10 @@
             1303
           ],
           "signature_sha256": "e08efc13bf21619e20d4037c2f557308902b701c9611129b9cb38a429bff80f1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-required-match-distance",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mutates main broad distance to None or string 100, exact distance to infinity, or post distance to -1. Calls the public profiler and expects GridProximityError without a specific message; missing-match and finite/nonnegative guards differ by case."
           ],
           "test_references": []
         },
@@ -17042,10 +17121,10 @@
             1316
           ],
           "signature_sha256": "1f8ee6e6b2ef626afceb3dbbf3a86557ac0c22c4d79cb8c14666e98d83f06786",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-exact-match-voltage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mutates main exact voltage to None, 0, -1, infinity, string 110 or out-of-inventory 999. Public profiling rejects with voltage/match; positive-number validation and level-membership rejection are distinct."
           ],
           "test_references": []
         },
@@ -17057,10 +17136,10 @@
             1323
           ],
           "signature_sha256": "40fd5c167f94cd1d4a3e431bbd871e0cebddf632b728bf0a61961190c0442f7c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-result-parcel-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes main row 0 parcel_id to an edge-spaced string and calls the public profiler; expects parcel_id hygiene rejection before result reconciliation."
           ],
           "test_references": []
         },
@@ -17072,10 +17151,10 @@
             1331
           ],
           "signature_sha256": "ab86c85cdd7b231ff1dd53a34941f70433385aa4bd03847e81e7f40f66bfc456",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-missing-required-proximity-column",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Drops nearest_line_grid_feature_id from the main result and calls the public profiler; expects Missing proximity before match validation."
           ],
           "test_references": []
         },
@@ -17087,10 +17166,10 @@
             1345
           ],
           "signature_sha256": "cb074e413770f423b88bb7653b15a1fbea2270f4f578647d1fc6329bd7a2e8c5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-nondeterministic-or-duplicate-coverage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reverses the coverage tuple or appends a duplicate record, then calls the public profiler. Expects coverage rejection for nonascending or duplicate levels."
           ],
           "test_references": []
         },
@@ -17102,10 +17181,10 @@
             1363
           ],
           "signature_sha256": "561ef1bec7bf88e25a1924004b5a1b2b356a39c93062d877c929773089d93344",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-invalid-voltage-coverage-level",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Replaces coverage with one record whose level is 0, -1, infinity, string 110 or 10**10000. Calls the public profiler and expects coverage rejection; the invalid level is checked before the changed coverage size could invalidate the Cartesian row count."
           ],
           "test_references": []
         },
@@ -17117,10 +17196,10 @@
             1376
           ],
           "signature_sha256": "bd55ff7cbfe885f717bfe66f7f8ba9230f24b79823afee970fb489c26ea70211",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-invalid-voltage-coverage-feature-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Replaces coverage with one record whose source count is 0, -1, 1.5, infinity, True or string 2. Calls the public profiler and expects line_feature_count rejection before the ensuing coverage/table mismatch; this is not a physical line recount."
           ],
           "test_references": []
         },
@@ -17132,10 +17211,10 @@
             1387
           ],
           "signature_sha256": "6c7e95497b3bbba780d2012f16650c23c567876d642ffc6192885bc5048798cb",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-invalid-long-table-voltage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes long row 0 voltage to None, 0, -1, infinity, string 110 or out-of-inventory 220. Calls the public profiler and expects Voltage proximity rejection from value or level-inventory checks."
           ],
           "test_references": []
         },
@@ -17147,10 +17226,10 @@
             1404
           ],
           "signature_sha256": "d2454e43c180788cc907497a2799b253287ef8e8ad93f8cb23b725e6cda40c17",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-missing-long-table-match-lineage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Sets long row 0 grid ID, source ID, department, edition or archive SHA to None in five cases, then calls the public profiler. Expects required match/lineage rejection, not a physical package check."
           ],
           "test_references": []
         },
@@ -17162,10 +17241,10 @@
             1423
           ],
           "signature_sha256": "17bb75e910aa9e925afffb39b218ec5184bb0ffe5b5b75010124b5df84901224",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-bad-long-table-distance",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes long row 0 distance to None, -1, infinity, string 100 or 10**10000; calls the public profiler and expects GridProximityError without a specific message."
           ],
           "test_references": []
         },
@@ -17177,10 +17256,10 @@
             1438
           ],
           "signature_sha256": "038743c84cb3ababbbab5885b599e2d3352476a06538f3de8f43cc06d99bc753",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-allows-consistent-missing-manager-and-asset-status",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Sets synthetic line manager and asset state to None before private calculation, then calls the public profiler. Asserts one parcel and consistent nulls in global-exact and level-wise metadata; these optional fields are not required source identities."
           ],
           "test_references": []
         },
@@ -17192,10 +17271,10 @@
             1461
           ],
           "signature_sha256": "c3d5a1831a6a129f27f41b77886a8fb94d16c6d0779b864660569ca187d3b4f0",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-profile-rejects-nonnull-exact-field-without-exact-coverage",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds a private result without exact lines, changes one exact distance/grid ID/source ID/tie/voltage field to nonnull and calls the public profiler. Expects unmatched/entirely rejection; a nonnull distance can fail the all-unmatched guard before the all-null-fields check."
           ],
           "test_references": []
         },
@@ -17207,17 +17286,51 @@
             1470
           ],
           "signature_sha256": "1bebd861d5973770dfd8ed1f8de1d10b9b3ed739b93af081c0c48863c557c3c9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r14-test-no-valid-required-grid-feature-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls the private calculator with a line or post list containing None and expects No VALID. The fixture uses [None], not an empty list that would select the helper default."
           ],
           "test_references": []
         }
       ],
       "findings": [],
-      "documentation_read_complete": false,
-      "documentation_status": "NOT_READ"
+      "documentation_read_complete": true,
+      "documentation_status": "CORRECTED",
+      "r14_prior_evidence": {
+        "commit": "8afba19df0f6748bf0d5927668b5114e36bb8fb3",
+        "file_row_without_symbols": {
+          "path": "tests/unit/test_enrich_grid_proximity.py",
+          "role": "test",
+          "source_sha256": "436de7dd475f09b28356502b0b4eaed66ead17253da7bf6d3869aaf8bbcee728",
+          "documentation_path": "docs/code/files/tests/unit/test_enrich_grid_proximity.py.md",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": [],
+          "documentation_read_complete": false,
+          "documentation_status": "NOT_READ"
+        },
+        "symbols_sha256": "e6f24ab99577f2e89e5bfe61111b2825cf479474cbca9e5fc5c239d0c299bd8c"
+      },
+      "read_ranges": [
+        [
+          1,
+          1470
+        ]
+      ],
+      "source_sha256_basis": "git-content",
+      "documentation_sha256": "9cf3e33155a3bcc0f8f4e1858668ac6d83ef84c8da8eb142eadf33f8992c6054",
+      "documentation_sha256_basis": "git-content",
+      "r14_provenance": {
+        "receipt": "docs/code/audit/R14_IGN_GRID_PROXIMITY.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R14.txt",
+        "review": "PENDING",
+        "source_commit": "8afba19df0f6748bf0d5927668b5114e36bb8fb3",
+        "companion_evidence": "embedded_documentation_status; no separate companion owner row"
+      }
     },
     {
       "path": "tests/unit/test_enrich_shape.py",

@@ -1,0 +1,225 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R14
+
+Audit documentaire regroupé de la proximité électrique IGN
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : 8afba19df0f6748bf0d5927668b5114e36bb8fb3
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique et contexte
+
+Terminer la documentation du composant de proximité électrique IGN, de ses tests existants et de leurs deux compagnons, comme un lot cohérent. Le prochain NOT_READ identifié par R13 est le compagnon des tests de ce composant ; cela ne permet pas de présumer les statuts des trois autres unités.
+
+Les quatre unités à examiner sont :
+
+src/landscout/stages/enrich_grid_proximity.py
+
+tests/unit/test_enrich_grid_proximity.py
+
+docs/code/files/src/landscout/stages/enrich_grid_proximity.py.md
+
+docs/code/files/tests/unit/test_enrich_grid_proximity.py.md
+
+Les deux Python, les autres tests, les configurations, les dépendances, les algorithmes et l'auditeur restent strictement inchangés. Corriger l'explication lorsque celle-ci ne correspond pas au code, jamais modifier le test ou la production pour la rendre vraie.
+
+LandScout est BESS-first ; Muret est un terrain d'essai, pas l'identité définitive du produit. Une distance à une géométrie IGN est un diagnostic de proximité, pas la preuve d'une capacité disponible, d'un raccordement possible, d'un coût, d'une autorisation, d'un accès légal ou d'une faisabilité BESS. Un poste de transformation représenté dans IGN n'est pas automatiquement un point de raccordement RTE.
+
+Souhaib décide du produit. ChatGPT reste en lecture/revue et rédige les tickets ; Codex implémente les seules modifications autorisées, publie sur recovery puis s'arrête. Un ticket à la fois. Ni CHECKED, ni un hash, ni un rapport Codex ne constituent une approbation indépendante.
+
+1. Reçu fourni de la revue indépendante R13
+
+Cette section est une déclaration fournie par le reviewer ChatGPT. Elle n'est pas une nouvelle exécution Codex, une signature cryptographique ou une certification globale.
+
+Verdict : APPROVED — périmètre documentaire R13. Aucun correctif R13.1 préalable.
+
+Commit examiné : 8afba19df0f6748bf0d5927668b5114e36bb8fb3.
+Parent : ddaf1458bf0b0be56bcae8ee0b7452ab7a23d679.
+Message : docs: audit planning regulation structure reference.
+Tree : 084dfd49eb2a8bf64b29c955dedd52bbf21016a5.
+
+Le contrôle distant a confirmé un descendant direct, sept chemins documentaires et aucun changement applicatif/tests/configuration/auditeur, avec main inchangé. Il ne prouve pas la propreté du checkout Windows, de l'index local ou des fichiers ignorés.
+
+Le reviewer a relu le source de structure 1–2512 et les tests 1–1646, en reprenant les passages utiles tronqués. Il a confronté les notices fonctionnelles, les modèles/champs, le graphe d'appels, les retours et les principales descriptions des gardes aux corps et assertions. Les blocs de code répétés ne sont pas présentés comme une deuxième revue indépendante. Les signatures complètes, matrices générées, liens et snapshots n'ont pas fait l'objet d'une nouvelle vérification mécanique exhaustive.
+
+Contrats acceptés : huit exports, versions configuration2/section3/manifeste4, constructeur à quatre entrées puis reconstruction par le validateur, distinction None/DataFrame des interfaces de validation, index fourni distinct d'une relecture du PDF/GPU, partition des enregistrements/TOC/blancs, regex brutes distinctes de la normalisation, aliases exacts, dominance factuelle non résolue rejetée, recherche thématique locale aux fragments, offsets de caractères et marge normalisée, hashes sélectionnés sans garantie de dtype/index-class, config figée et tableaux mutables. Le drapeau TOC a bien un défaut False ; les copies précèdent les contrôles d'identité après les contrôles de type/colonnes ; l'absence de tout record est distincte d'un record blanc.
+
+Les tests restent synthétiques. Leurs limites R13-T01..T05 sont conservées : configurations/helpers versus reconstruction publique, défauts combinés, hashes périmés avant sémantique des parents, contexte falsifié rehashé mais rejeté avant la comparaison finale, assertions bornées sur fragments et mappings. Aucun nouveau défaut applicatif n'est établi dans cette revue.
+
+La réponse du commit pour planning.json a donné ses métadonnées sans patch. Le reviewer ne revendique donc ni inspection exhaustive des notes propriétaires, ni recomptage indépendant des transitions, ni vérification des 217 mappings/106 fichiers protégés/303 chemins hors périmètre. Ces contrôles restent les preuves locales consignées.
+
+Aucun pytest, import applicatif, chargeur, pipeline GPU/EP/PDF, auditeur INDEX ou rendu visuel n'a été exécuté par le reviewer. Les 118 passes / 6,40 s / sortie0, sans avertissement/skip/xfail rapporté, restent l'exécution locale R13. L'auditeur local a donné 10 218 constats / sortie1 / completed=true, manifeste f1e37d11bf6e99e14a690d7726399baf52b8e72e82cec7b1859b6d37952b073b. Comparaison rapportée à R12.1 : 10 216 occurrences inchangées, cinq retirées, deux ajoutées. Le reçu a été complété ensuite ; aucun audit du commit final byte-identique n'est inféré.
+
+Progression locale enregistrée : 103/245 fichiers et 2 834/4 769 symboles, reste 142 fichiers et 1 935 symboles. L'approbation n'ajoute aucun crédit. Dernière frontière fonctionnelle approuvée : 7F.1B.4, avec lacune du reçu original conservée. A-001..A-004, anciennes limites, R3/R9/R10/R11/R12/R13-T, OPEN R5-D01, cold-start/visuel/global et revue sémantique exhaustive 7F.1C.1 restent ouverts selon leur état.
+
+Consigner ce verdict successoriellement dans CURRENT_STATE par référence à cette section. Ne pas réécrire les anciens reçus PENDING comme s'ils avaient été approuvés avant cette revue.
+
+2. Readiness, propriété réelle et préservation
+
+Lire AGENTS.md, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, l'autorité de préservation, le reçu R13 et le ticket reçu. Réutiliser les autres documents historiques déjà lus seulement si leur identité n'a pas changé.
+
+Vérifier racine, branche, HEAD, suivi, véritable référence serveur, index/worktree, opérations Git et main. Exiger les références en tête. Une reprise interrompue de CE ticket conserve son travail identifiable ; ne pas réinitialiser l'audit.
+
+Pas de reset, restore, clean, stash, rebase, amend, squash, merge ou force-push pour forcer la base. Rapporter une divergence en préservant les fichiers. L'exception de propriété Git déjà autorisée ne s'utilise qu'après l'erreur effective, pour cette commande et ce chemin exact : aucune confiance wildcard/persistante, modification d'ACL ou de protection Windows.
+
+Retrouver les quatre chemins dans la matrice originale et chaque fragment. Un transferred_to sans contrepartie n'est pas un propriétaire réel. Documenter les états initiaux exacts, lire les notes existantes et réutiliser leur travail. Ne remettre aucune unité à NOT_READ par commodité et ne compter aucune unité déjà clôturée.
+
+Repères Git consultés pour préparer le ticket, à vérifier :
+
+Fichier protégé
+
+OID Git
+
+src/landscout/stages/enrich_grid_proximity.py
+
+cdc98d5da0b58e420beff08175c2f67ac71e2070
+
+tests/unit/test_enrich_grid_proximity.py
+
+151b6bc7df1aeeab6bbdb653dc5b2ebfbeddc196
+
+Conserver les 106 fichiers protégés selon l'autorité existante. Comparer tous les chemins initiaux hors autorisation ; recalculer leur nombre, ne pas recopier 303. Nommer séparément Git/index/checkout ; conserver les deux exceptions EOL historiques et les 13 observations whitespace héritées, sans normaliser leurs fichiers.
+
+3. Périmètre d'écriture
+
+Autorisés :
+
+Les deux compagnons de proximité électrique indiqués en section0.
+
+Le ou les fragments propriétaires réellement identifiés : ces quatre unités seulement, notes/références/fingerprints et provenance compacte ; aucune promotion des dépendances.
+
+Nouveau docs/code/audit/R14_IGN_GRID_PROXIMITY.md.
+
+Archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R14.txt de l'instruction effectivement reçue.
+
+DOCUMENTATION_AUDIT.md et CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS n'est modifiable que pour un nouveau constat applicatif concret, prouvé et non dupliqué ; un nom de test trop large ou une limite d'enveloppe connue n'est pas automatiquement un bug.
+
+Interdits : Python/tests, configurations et source snapshots, autres compagnons, anciens tickets/reçus, dépendances, auditeur, coverage.json/matrice globale, caches, données réelles, scripts permanents, pipeline CI/PR. Ne pas corriger R5-D01 dans ce lot. Ne pas étendre le lot au normaliseur, à la couverture départementale ou aux routes.
+
+4. Lire le composant entier, documenter les interfaces réelles
+
+Lire source et tests intégralement puis chaque explication existante. Réutiliser ce qui est exact. Pour chaque symbole : nom qualifié/propriétaire, signature réelle, arguments requis/défauts, retour, unités/nulls/types, ordre des gardes, appels, exceptions locales et enveloppes publiques, copies/mutations, I/O réel et effets délégués.
+
+Les imports, constantes, mappings de colonnes et éventuels exports sont documentés sans augmenter le dénominateur historique. Ne pas inventer un all, une API d'artefacts ou une version de manifeste sur le modèle du composant planning.
+
+Dépendances : lire seulement les parties réellement nécessaires d'ign_bdtopo_fr, normalize_grid_ign, assess_grid_coverage et stages/init.py, ainsi que les helpers importés par les tests. Consigner les plages effectivement lues sans clôturer ces unités. Un appel au normaliseur doit être suivi suffisamment loin pour expliquer sa revalidation physique déléguée ; ne pas le qualifier de simple validation de chaînes SHA.
+
+5. Point critique — trois frontières différentes
+
+5.1 API publique de proximité
+
+Repère lu dans le code actuel :
+
+enrich_parcel_grid_proximity(
+    parcels: gpd.GeoDataFrame,
+    electricity_source: IgnBdTopoElectricityData,
+    source_config: IgnBdTopoSourceConfig,
+) -> GridProximityResult
+
+Contrôler l'ordre réel : type des parcelles, types exacts du bundle et de la config, validation parcellaire/collisions, appel au normaliseur, type exact de son résultat, calcul privé et retour. Le normaliseur est appelé une fois par cette API ; cela ne donne pas le nombre total de fichiers lus en interne.
+
+Ne pas ressusciter comme interface de production l'ancien couple de GeoDataFrames normalisés librement fournis. La config et la source physique constituent la frontière d'entrée publique.
+
+5.2 Calcul privé sur des tableaux normalisés
+
+Le helper _enrich_parcel_grid_proximity_from_normalized accepte les tableaux et effectue contrôles/calculs. Expliquer ses garanties propres, sans lui attribuer l'acquisition ou la reconstruction physique apportée en amont par l'API publique.
+
+5.3 Profilage descriptif
+
+profile_grid_proximity(result) vérifie son contrat de résultat puis produit des statistiques. Expliquer ses validations et retours exacts. Une distribution de distances et ses quantiles ne sont pas un score de pertinence, une capacité réseau ou une nouvelle relecture IGN.
+
+6. Algorithmes, géométries, tensions et résultats
+
+Comparer la documentation à chaque implémentation, notamment :
+
+CRS d'entrée des parcelles versus CRS métrique de calcul EPSG:2154 ; copies de calcul force_2d versus données retournées ; vérifier le vrai comportement de l'index, sans promettre sa conservation s'il est réinitialisé.
+
+Domaines des statuts géométriques, comparaison déclaré/observé, types lignes et postes, filtrage des géométries utilisables, cas vide/interdit/optionnel. Un proxy de poste peut être polygonal : ne pas le décrire comme un simple point RTE.
+
+STRtree, query_nearest, recherche de tous les ex aequo, ordre de départage, tie_count, distance nulle, objets multilignes/multipolygones. Distinguer égalité de distance et tolérance si une tolérance existe réellement ; ne pas en ajouter une dans la prose.
+
+Voisin le plus proche parmi toutes les lignes versus parmi les seules tensions exactes ; distinction voltage_kv, voltage_upper_bound_kv, valeur brute et statut. Ni borne ni inconnu ne deviennent une tension exacte par interprétation documentaire.
+
+Tableau dynamique par tension : ordre des niveaux, parcelles, identités, dtypes et cas sans tension exacte. Couverture du niveau = compte source correspondant, pas capacité d'accueil électrique.
+
+Colonnes ajoutées par mappings, collisions, attributs propagés, forme/ordre du résultat, données originales effectivement préservées. Distinguer dataclass figée, tuple et DataFrame encore mutable.
+
+Validation des nombres, booléens, valeurs non finies, entiers débordants, vrais nulls et scalarité. Ne pas réduire une garde numérique à la seule annotation.
+
+DistanceProfile : count/missing_count, quantiles, minimum/maximum, zero_distance_count et sens exact du compteur de ties. Identifier la population des quantiles, pas un seuil de décision.
+
+Vérifier les engagements et comparaisons réellement présents. Ne pas inventer les domaines SHA, manifests, chargeurs Parquet ou signatures canoniques du pipeline planning. Les données source retenues doivent rester distinctes d'une garantie autonome sur la véracité d'un résultat fourni.
+
+7. Tests — éviter la confusion public/privé
+
+Les imports du fichier actuel comprennent :
+
+from landscout.stages import (
+    enrich_parcel_grid_proximity as public_enrich_parcel_grid_proximity,
+)
+from landscout.stages.enrich_grid_proximity import (
+    _enrich_parcel_grid_proximity_from_normalized as enrich_parcel_grid_proximity,
+)
+
+Ainsi, un appel au nom court enrich_parcel_grid_proximity DANS CE TEST peut viser le calcul privé, et non la frontière publique physique. Chaque notice doit dire quelle fonction est réellement appelée. Ce repère n'autorise pas à classer tout le fichier comme privé : lire ses autres scénarios et la vraie chaîne de fixtures.
+
+Autre repère : SOURCE_CONFIG = load_ign_bdtopo_source_config() est une lecture de configuration à l'import, pas une constante sans effet. Les fixtures utilisent parfois values = argument or default : une liste vide peut donc déclencher le défaut au lieu de produire une collection vide. Décrire les cas effectivement construits.
+
+Lire chaque assertion, paramétrisation, branche, patch et helper. Séparer : construction de GPKG synthétique, mocks/patchs du normaliseur, spy déléguant, no-op compteur, sentinelle levante, intégrité physique de fixture et archive officielle. Décrire colonnes/valeurs/indices exacts modifiés et le premier rejet possible ; ne pas attribuer au test nommé une preuve absente de ses assertions.
+
+Un test Z de calcul 2D ne prouve pas automatiquement une garantie M/Z de bout en bout. Un dataframe_equal n'est pas une nouvelle acquisition. Un compteur d'invocations ne compte pas les lectures disque. Une cohérence de source metadata simulée n'est pas une vérification réelle du paquet IGN de plusieurs gigaoctets.
+
+8. Validation ciblée unique, sans acquisition réelle
+
+Après correction des notices, une seule exécution du fichier existant dans l'environnement installé :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r14-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_enrich_grid_proximity.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R14 focused pytest failed: $code" }
+
+Capturer le nombre réel de cas, les éventuels warnings/skips/xfails, la durée et la sortie native après cleanup. Pas de nombre prédéfini ni de retry silencieux. Si la validation échoue, préserver le travail et rapporter ; aucune correction d'environnement ou de production improvisée.
+
+Pas de full pytest, tests R13 relancés, téléchargement IGN/RTE/GPU/EP, pipeline Muret, recherche juridique, uv sync/install ou modification de dépendance. Les I/O synthétiques prévues par le fichier de tests sont autorisées ; n'inventer ni nettoyage de tous les temporaires ni usage exclusif du basetemp sans le constater.
+
+9. Cohérence documentaire et comptage
+
+Avant publication, comparer manuellement chaque explication et sa note au corps réel, puis vérifier avec des contrôles temporaires hors dépôt : JSON strict, sources/signatures/plages, ancre unique et bonne section, liens internes/entrants, code blocks, tableaux, Unicode, snapshots complets, en-têtes SHA/basis et empreintes des compagnons.
+
+Une phrase lisible prime sur un nouvel inventaire géant. Conserver les liens utiles et éviter des blocs répétés de consommateurs générés lorsqu'ils n'ajoutent rien à la compréhension. Ne pas confondre nettoyage d'explications avec suppression d'une preuve historique.
+
+Base enregistrée : 103/245 fichiers, 2 834/4 769 symboles. Les quatre statuts initiaux doivent être constatés dans leurs propriétaires réels. Ne préassigner ni 107 fichiers finaux, ni un gain de symboles. Dépendances déjà lues, ticket, reçu, approbation et déclarations n'ajoutent aucun crédit. Garder les anciens états comme histoire, pas comme doublons d'unités.
+
+Pas de fusion/régénération de coverage.json ou de la matrice pour diminuer les erreurs. Rendu visuel uniquement avec un outil déjà disponible ; sinon laisser PENDING sans confondre syntaxe Markdown et contrôle visuel.
+
+10. Un candidat INDEX et un reçu non circulaire
+
+Staging explicite des seuls chemins relus. Préparer les explications/exports/notes avant l'auditeur. Une seule exécution complète de l'outil inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r14-candidate.stdout.txt 2> C:\souhaib\r14-candidate.stderr.txt
+
+Conserver stdout/stderr, exit/completed, métriques et manifeste exact path/mode/OID. Comparer aux vrais logs du candidat R13 si disponibles ; 10 218 n'est pas une cible. S'ils manquent, signaler l'absence plutôt que reconstituer un comparatif depuis le seul total.
+
+Exit1/completed=true peut décrire PARTIAL. Exit2/timeout/interruption n'est pas une validation finie. Ne modifier ni l'auditeur ni les statuts pour forcer le vert. Distinguer constats d'inventaire, faux positifs documentés et véritables incohérences ; ne pas effacer une chaîne exacte de domaine uniquement pour supprimer un diagnostic.
+
+Compléter idéalement le nouveau reçu seul après le run ; contrôler séparément son préfixe/suffixe et les chemins/bytes modifiés. Aucun second audit fictif, total final inventé, future self-SHA ou boucle de réécriture. Toute autre modification post-audit doit être identifiée et contrôlée explicitement.
+
+11. Publication et arrêt
+
+Publier seulement un lot réellement terminé ; sinon préserver et retourner PARTIAL avec le premier élément inachevé. Ne pas annoncer une lecture complète interrompue. Ne pas lancer le prochain composant.
+
+git commit -m "docs: audit IGN grid proximity reference"
+git push origin recovery/docs-continuity-1-partial
+
+Pas de git add global/commit -a, amend, rebase, merge, PR, force-push ou push main. Après commit : lire SHA réel, statut propre, suivi et référence serveur ; confirmer main inchangé.
+
+Rapport final : chemins/SHAs, propriétaires et statuts initiaux réels, lectures et contrats public/privé, corrections de notices, limites de preuve, exécution ciblée et code final, contrôles statiques, candidat INDEX/delta final, préservation et prochaine unité uniquement identifiée.
+
+Libellé : DOCS.CONTINUITY.1.R14 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Le reçu fourni d'approbation R13 n'est pas une auto-approbation R14.

@@ -8,11 +8,29 @@
 - Domain: factual transformation, evidence, or policy boundary
 - Responsibility: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
 - Source SHA256: `7131d0b980dad7b5c73a4c7cf2d0bd6f9fe5572c089ad39c4a592c02098c9015`
+- Source SHA256 basis: `git-content`
+- R14 verification basis: `8afba19df0f6748bf0d5927668b5114e36bb8fb3`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
-- Revalidates the source config at the public boundary before source-complete electricity enrichment.
+- Checks exact config type here and delegates config reconstruction and physical source revalidation to the normalizer before electricity enrichment.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## R14 boundary map and delegated I/O
+
+The public enrich_parcel_grid_proximity takes three required arguments: parcels, electricity_source and source_config. Within one try block it checks GeoDataFrame membership for parcels, exact source/config types, parcel validity and output-column collisions, invokes normalize_ign_electricity once, checks its exact NormalizedIgnElectricityData result type, then calls _enrich_parcel_grid_proximity_from_normalized with the two normalized catalogs. It preserves GridProximityError and wraps every other Exception. One normalizer call does not mean one disk read.
+
+The normalizer delegates fresh reconstruction to load_ign_bdtopo_electricity: reconstruct/revalidate the supplied config; compare archive metadata with that config; validate the local extraction marker, unique GeoPackage, byte hashes, layer inventory and complete extracted-entry inventory; rediscover all configured roles; reread the two physical electricity layers; repeat file/inventory postconditions. It compares supplied versus fresh frames (columns/dtypes/index/active geometry/CRS, exact nongeometry values and WKB/attrs) and summaries before factual normalization. The named archive's metadata is checked here, but its .7z bytes are not reread by this chain. These delegated operations are local filesystem/GPKG I/O and hashing, not a download or mere SHA-string comparison. A malformed supplied bundle can fail before physical reads.
+
+The private helper accepts normalized frames directly and owns the numerical/frame checks, not that physical reconstruction. It requires at least one VALID line and post even for zero parcels; only the exact-voltage branch may have no features. It copies/reset-indexes parcel output and calculates with EPSG:2154 force_2d copies. Original geometry, CRS, columns and row order remain in the output; the original index does not. Source line/post frames are not mutated. Polygonal post proxies are not automatically RTE connection points.
+
+STRtree query_nearest requests all nearest matches; stable sorting by parcel position, distance and lexical grid ID chooses one representative. tie_count counts all matches at the same nearest distance, with no added epsilon. Broad-line evidence includes every voltage status; the exact subset requires EXACT plus a non-boolean positive finite Real voltage_kv. Neither voltage_upper_bound_kv nor raw text is promoted to exact evidence. The existing mappings below specify every propagated column and collision target; the level table has eleven columns, ascending voltages and original parcel order within each level.
+
+profile_grid_proximity first validates the supplied local result, then builds level profiles and returns the broad/exact/post summaries. It has no physical-source argument, no outer exception wrapper and no exact envelope-type gate. Generated-column presence, match/null/numeric rules, Cartesian level rows and global-exact/level-wise consistency are checked; this is not a fresh nearest-neighbour query, a canonical hash seal or proof that arbitrary retained metadata is true. Optional manager/state nulls can agree. Broad-line/post results are not independently reconstructed from IGN here.
+
+Five frozen dataclasses prevent field reassignment, not mutation of contained frames. Their fields have no defaults and annotations are not constructor-time validators. The source module declares no __all__, hash domain, artifact loader or manifest/schema version. The package re-exports six classes (including GridProximityError) and the two public functions. The coverage consumer calls the public three-argument enrichment before its separate coverage workflow; contextual reading grants that dependency no audit closure.
+
+The [test companion](../../../tests/unit/test_enrich_grid_proximity.py.md) distinguishes private numerical calls, public mocked orchestration, real temporary GPKG rejection and local profile checks. Distances/quantiles are factual proxy evidence only: no connection feasibility, available capacity, ownership, legal access or parcel score is inferred.
 
 ## 2. Purpose and architectural position
 
@@ -435,7 +453,18 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ## 5. Classes, models, dataclasses, and fields
 
+<a id="r14-gridproximityerror"></a>
 ### `GridProximityError`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.GridProximityError`. Source lines 157–158.
+
+Exact declaration:
+
+```python
+class GridProximityError(ValueError):
+```
+
+ValueError subclass for unsafe grid-proximity inputs/results. No fields or custom initializer; public enrichment preserves this error and wraps other Exceptions, while the private calculator and profiler have no outer wrapper.
 
 **Source purpose:** Raised when grid-proximity inputs or results are unsafe.
 
@@ -504,7 +533,18 @@ class GridProximityError(ValueError):
     """Raised when grid-proximity inputs or results are unsafe."""
 ```
 
+<a id="r14-voltagelevelcoverage"></a>
 ### `VoltageLevelCoverage`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage`. Source lines 162–166.
+
+Exact declaration:
+
+```python
+class VoltageLevelCoverage:
+```
+
+Frozen dataclass with two required fields, describing the number of VALID EXACT source lines at one positive finite voltage. Constructor annotations are not runtime validators; _validate_voltage_coverage checks supplied records. Coverage is not electrical capacity.
 
 **Source purpose:** Source-line coverage for one dynamically observed exact voltage.
 
@@ -553,7 +593,40 @@ class VoltageLevelCoverage:
     line_feature_count: int
 ```
 
+<a id="r14-voltagelevelcoverage-voltage-kv"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage.voltage_kv`
+
+Source lines 165–165.
+
+```python
+voltage_kv: float
+```
+
+Required float annotation, no default. Exact voltage in kV; builder emits float and validator requires a non-boolean positive finite Real.
+
+<a id="r14-voltagelevelcoverage-line-feature-count"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelCoverage.line_feature_count`
+
+Source lines 166–166.
+
+```python
+line_feature_count: int
+```
+
+Required int annotation, no default. Number of VALID EXACT lines at this level; validator requires positive Integral excluding bool, without recounting the physical source.
+
+<a id="r14-gridproximityresult"></a>
 ### `GridProximityResult`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.GridProximityResult`. Source lines 170–175.
+
+Exact declaration:
+
+```python
+class GridProximityResult:
+```
+
+Frozen dataclass with three required fields. Field assignment is frozen but both contained DataFrames remain mutable; builders produce tuple coverage. Local result validation is not an immutable artifact seal or independent physical-source reconstruction.
 
 **Source purpose:** Frozen envelope containing mutable enriched-parcel and long-table DataFrames plus an ordered tuple of frozen voltage-coverage records. The tuple records line counts for observed VALID exact levels; the mutable frames are rechecked by the public profiler and are not immutable source manifests.
 
@@ -610,7 +683,51 @@ class GridProximityResult:
     voltage_level_coverage: tuple[VoltageLevelCoverage, ...]
 ```
 
+<a id="r14-gridproximityresult-parcels"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityResult.parcels`
+
+Source lines 173–173.
+
+```python
+parcels: gpd.GeoDataFrame
+```
+
+Required GeoDataFrame, no default. Original parcel columns/geometries/CRS and row order plus mapped proximity columns, returned on a reset RangeIndex; the frame remains mutable.
+
+<a id="r14-gridproximityresult-voltage-level-proximity"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityResult.voltage_level_proximity`
+
+Source lines 174–174.
+
+```python
+voltage_level_proximity: pd.DataFrame
+```
+
+Required DataFrame, no default. Eleven-column table built level-major then original parcel order, or schema-correct empty table without exact levels; mutable, no geometry column.
+
+<a id="r14-gridproximityresult-voltage-level-coverage"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityResult.voltage_level_coverage`
+
+Source lines 175–175.
+
+```python
+voltage_level_coverage: tuple[VoltageLevelCoverage, ...]
+```
+
+Required tuple[VoltageLevelCoverage, ...] annotation, no default. Builder emits unique ascending exact levels and source counts, or (). Local validation checks records and order but not exact tuple type.
+
+<a id="r14-distanceprofile"></a>
 ### `DistanceProfile`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.DistanceProfile`. Source lines 179–196.
+
+Exact declaration:
+
+```python
+class DistanceProfile:
+```
+
+Frozen dataclass with fifteen required fields: counts, minimum, nine quantiles, maximum and zero/tied-row counts. Values are descriptive metre statistics, nullable when no distances are present; annotations alone do not validate arbitrary construction.
 
 **Source purpose:** Frozen scalar summary: present/missing row counts; minimum, nine interior percentiles and maximum; exact-zero count; and the number of matched rows with more than one nearest feature. Missing distributions have None quantiles. The summary `tie_count` is not the total number of tied features.
 
@@ -677,7 +794,183 @@ class DistanceProfile:
     tie_count: int
 ```
 
+<a id="r14-distanceprofile-count"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.count`
+
+Source lines 182–182.
+
+```python
+count: int
+```
+
+Required int, no default. Number of present validated distance values, not total parcels or source features.
+
+<a id="r14-distanceprofile-missing-count"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.missing_count`
+
+Source lines 183–183.
+
+```python
+missing_count: int
+```
+
+Required int, no default. Number of missing distance values in the supplied Series.
+
+<a id="r14-distanceprofile-minimum"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.minimum`
+
+Source lines 184–184.
+
+```python
+minimum: float | None
+```
+
+Required float | None, no default. Minimum present distance in metres, or None when count is zero.
+
+<a id="r14-distanceprofile-p01"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p01`
+
+Source lines 185–185.
+
+```python
+p01: float | None
+```
+
+Required float | None, no default. Pandas 1th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p05"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p05`
+
+Source lines 186–186.
+
+```python
+p05: float | None
+```
+
+Required float | None, no default. Pandas 5th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p10"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p10`
+
+Source lines 187–187.
+
+```python
+p10: float | None
+```
+
+Required float | None, no default. Pandas 10th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p25"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p25`
+
+Source lines 188–188.
+
+```python
+p25: float | None
+```
+
+Required float | None, no default. Pandas 25th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p50"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p50`
+
+Source lines 189–189.
+
+```python
+p50: float | None
+```
+
+Required float | None, no default. Pandas 50th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p75"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p75`
+
+Source lines 190–190.
+
+```python
+p75: float | None
+```
+
+Required float | None, no default. Pandas 75th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p90"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p90`
+
+Source lines 191–191.
+
+```python
+p90: float | None
+```
+
+Required float | None, no default. Pandas 90th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p95"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p95`
+
+Source lines 192–192.
+
+```python
+p95: float | None
+```
+
+Required float | None, no default. Pandas 95th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-p99"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.p99`
+
+Source lines 193–193.
+
+```python
+p99: float | None
+```
+
+Required float | None, no default. Pandas 99th percentile of present float64 distances in metres using default quantile interpolation, or None when count is zero; not a decision threshold.
+
+<a id="r14-distanceprofile-maximum"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.maximum`
+
+Source lines 194–194.
+
+```python
+maximum: float | None
+```
+
+Required float | None, no default. Maximum present distance in metres, or None when count is zero.
+
+<a id="r14-distanceprofile-zero-distance-count"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.zero_distance_count`
+
+Source lines 195–195.
+
+```python
+zero_distance_count: int
+```
+
+Required int, no default. Count of present distances exactly equal to zero; no tolerance or access inference.
+
+<a id="r14-distanceprofile-tie-count"></a>
+#### `landscout.stages.enrich_grid_proximity.DistanceProfile.tie_count`
+
+Source lines 196–196.
+
+```python
+tie_count: int
+```
+
+Required int, no default. Count of matched rows with tie count greater than one, not the sum of tied feature counts.
+
+<a id="r14-voltageleveldistanceprofile"></a>
 ### `VoltageLevelDistanceProfile`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile`. Source lines 200–206.
+
+Exact declaration:
+
+```python
+class VoltageLevelDistanceProfile:
+```
+
+Frozen dataclass with four required fields combining an exact voltage, source line count, long-table parcel-row count and DistanceProfile. Counts do not represent connection capacity.
 
 **Source purpose:** Distance distribution and source coverage for one exact voltage.
 
@@ -722,7 +1015,62 @@ class VoltageLevelDistanceProfile:
     distance: DistanceProfile
 ```
 
+<a id="r14-voltageleveldistanceprofile-voltage-kv"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile.voltage_kv`
+
+Source lines 203–203.
+
+```python
+voltage_kv: float
+```
+
+Required float, no default. The exact coverage voltage in kV for this level summary.
+
+<a id="r14-voltageleveldistanceprofile-line-feature-count"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile.line_feature_count`
+
+Source lines 204–204.
+
+```python
+line_feature_count: int
+```
+
+Required int, no default. Retained source coverage count, not a fresh source recount or grid capacity.
+
+<a id="r14-voltageleveldistanceprofile-parcel-proximity-count"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile.parcel_proximity_count`
+
+Source lines 205–205.
+
+```python
+parcel_proximity_count: int
+```
+
+Required int, no default. Number of long-table rows in this level slice; validated Cartesian coverage makes it equal to parcel count.
+
+<a id="r14-voltageleveldistanceprofile-distance"></a>
+#### `landscout.stages.enrich_grid_proximity.VoltageLevelDistanceProfile.distance`
+
+Source lines 206–206.
+
+```python
+distance: DistanceProfile
+```
+
+Required DistanceProfile, no default. Descriptive distribution of nearest-line distances for this exact voltage level.
+
+<a id="r14-gridproximityprofile"></a>
 ### `GridProximityProfile`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity.GridProximityProfile`. Source lines 210–217.
+
+Exact declaration:
+
+```python
+class GridProximityProfile:
+```
+
+Frozen dataclass with five required fields: parcel count, three distance summaries and the tuple of ascending voltage-level profiles produced by the profiler. There is no score, threshold or source reacquisition.
 
 **Source purpose:** Threshold-free parcel and voltage-level proximity profiles.
 
@@ -770,9 +1118,67 @@ class GridProximityProfile:
 ```
 
 
+<a id="r14-gridproximityprofile-parcel-count"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityProfile.parcel_count`
+
+Source lines 213–213.
+
+```python
+parcel_count: int
+```
+
+Required int, no default. Length of the validated enriched parcel frame.
+
+<a id="r14-gridproximityprofile-nearest-line"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityProfile.nearest_line`
+
+Source lines 214–214.
+
+```python
+nearest_line: DistanceProfile
+```
+
+Required DistanceProfile, no default. Distances to the nearest VALID line regardless of voltage status.
+
+<a id="r14-gridproximityprofile-nearest-exact-line"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityProfile.nearest_exact_line`
+
+Source lines 215–215.
+
+```python
+nearest_exact_line: DistanceProfile
+```
+
+Required DistanceProfile, no default. Distances to the nearest VALID positive-finite EXACT-voltage line, or entirely missing if no exact coverage.
+
+<a id="r14-gridproximityprofile-nearest-post"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityProfile.nearest_post`
+
+Source lines 216–216.
+
+```python
+nearest_post: DistanceProfile
+```
+
+Required DistanceProfile, no default. Distances to VALID polygonal transformation-post proxies, not RTE connection points.
+
+<a id="r14-gridproximityprofile-voltage-levels"></a>
+#### `landscout.stages.enrich_grid_proximity.GridProximityProfile.voltage_levels`
+
+Source lines 217–217.
+
+```python
+voltage_levels: tuple[VoltageLevelDistanceProfile, ...]
+```
+
+Required tuple[VoltageLevelDistanceProfile, ...], no default. Builder returns profiles in ascending validated coverage order, or ().
+
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r14--validated-crs"></a>
 ### `_validated_crs`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validated_crs`. Source lines 220–226.
 
 **Purpose:** Requires non-null readable CRS metadata and returns pyproj's parsed CRS, wrapping parse errors with the supplied label. It accepts readable geographic or projected parcel CRSs; role-specific Lambert-93 validation is separate.
 
@@ -826,7 +1232,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | CRS.from_user_input parses metadata; no transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -847,7 +1253,10 @@ def _validated_crs(value: object, label: str) -> CRS:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--require-lambert93"></a>
 ### `_require_lambert93`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._require_lambert93`. Source lines 229–233.
 
 **Purpose:** Parses the CRS through `_validated_crs` and requires a projected CRS equivalent to EPSG:2154. It performs no reprojection.
 
@@ -897,7 +1306,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Filesystem/archive read or metadata access | None directly present. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Delegates CRS parsing, constructs EPSG:2154 and checks projected/equivalent CRS; no transformation. |
 | External process/environment | None directly present. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
@@ -916,7 +1325,10 @@ def _require_lambert93(value: object, label: str) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-active-geometry"></a>
 ### `_validate_active_geometry`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_active_geometry`. Source lines 236–240.
 
 **Purpose:** Requires an existing column literally named geometry and requires that column to be the frame's active geometry. It does not inspect coordinate values or repair the frame.
 
@@ -985,7 +1397,10 @@ def _validate_active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-id-values"></a>
 ### `_validate_id_values`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_id_values`. Source lines 243–261.
 
 **Purpose:** Requires non-null, nonempty, edge-trimmed `isinstance(str)` values and, when requested, uniqueness. It is not the canonical Cadastre identifier decomposition/commune contract and does not reject all string subclasses or interior control characters.
 
@@ -1087,7 +1502,10 @@ def _validate_id_values(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-parcels"></a>
 ### `_validate_parcels`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_parcels`. Source lines 264–286.
 
 **Purpose:** Requires parcel_id plus active geometry, readable CRS, unique hygienic IDs and non-null/nonempty/valid Polygon or MultiPolygon geometries. Unlike the Cadastre shape stages, it does not call the complete twelve-column canonical Cadastre validator or verify area_m2; it does not reject Z coordinates before calculation copies are flattened.
 
@@ -1191,7 +1609,10 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--reject-parcel-output-collisions"></a>
 ### `_reject_parcel_output_collisions`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._reject_parcel_output_collisions`. Source lines 289–295.
 
 **Purpose:** Rejects any input column that would collide with a generated proximity field before new values can overwrite caller evidence. It does not drop or rename a conflicting column.
 
@@ -1263,7 +1684,10 @@ def _reject_parcel_output_collisions(parcels: gpd.GeoDataFrame) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--observed-geometry-status"></a>
 ### `_observed_geometry_status`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._observed_geometry_status`. Source lines 298–306.
 
 **Purpose:** Builds a fresh disjoint VALID/NULL/EMPTY/INVALID classification from actual geometry, for comparison to declared normalized status. It does not remove or modify the supplied geometry.
 
@@ -1333,7 +1757,10 @@ def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-grid"></a>
 ### `_validate_grid`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_grid`. Source lines 309–362.
 
 **Purpose:** Requires the role-specific normalized schema, active geometry and Lambert-93 CRS; verifies non-null unique grid IDs, exact feature type and proxy role, and declared status equal to freshly observed status. It rejects unsupported VALID geometry families, then returns a reset-index copy containing only VALID features for distance use. The full factual normalized source remains unchanged.
 
@@ -1498,7 +1925,10 @@ def _validate_grid(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--finite-real-as-float"></a>
 ### `_finite_real_as_float`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._finite_real_as_float`. Source lines 365–372.
 
 **Purpose:** Rejects booleans and non-Real objects; converts a Real scalar to float while handling conversion failure, and returns only finite results. Missing/unsupported/overflowing values return None, not coerced numeric evidence.
 
@@ -1573,7 +2003,10 @@ def _finite_real_as_float(value: object) -> float | None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--is-positive-finite-number"></a>
 ### `_is_positive_finite_number`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._is_positive_finite_number`. Source lines 375–377.
 
 **Purpose:** Uses `_finite_real_as_float` and returns true only for a finite value strictly greater than zero. It is used to select genuine exact-voltage evidence and to validate persisted coverage, not to infer voltage from text.
 
@@ -1639,7 +2072,10 @@ def _is_positive_finite_number(value: object) -> bool:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--calculation-geometries"></a>
 ### `_calculation_geometries`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._calculation_geometries`. Source lines 380–382.
 
 **Purpose:** Extracts geometry-array values and returns an object array of `force_2d` copies. This removes Z/M for horizontal calculations without replacing source/output geometry; CRS transformation is handled by the enclosing workflow.
 
@@ -1705,7 +2141,10 @@ def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--empty-nearest-result"></a>
 ### `_empty_nearest_result`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._empty_nearest_result`. Source lines 385–397.
 
 **Purpose:** Creates one nullable match row per parcel on a RangeIndex: float64 NaN distances/numeric voltage fields, nullable Int64 tie counts and object missing values for other requested attributes. It represents unavailable optional exact-voltage matches, not zero distance or zero ties.
 
@@ -1784,9 +2223,12 @@ def _empty_nearest_result(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--nearest-feature-rows"></a>
 ### `_nearest_feature_rows`
 
-**Purpose:** Allows empty features only for the explicitly optional branch, and handles zero parcels without building a query. Otherwise it builds an STRtree from 2D feature copies and queries all equidistant nearest matches with distances. It sorts by parcel position, distance and lexical grid feature ID, counts every tie, selects the first representative and verifies complete parcel-position coverage. It returns copied representative metadata plus distance and tie count in input parcel order; it does not return a list of all tied IDs or approximate ties with a tolerance.
+Qualified owner: `landscout.stages.enrich_grid_proximity._nearest_feature_rows`. Source lines 400–448.
+
+**Purpose:** Allows empty features only for the explicitly optional branch. There is no zero-parcel early return: for nonempty features it builds an STRtree from 2D feature copies and queries all equidistant nearest matches with distances. It sorts by parcel position, distance and lexical grid feature ID, counts every tie, selects the first representative and verifies complete parcel-position coverage. It returns copied representative metadata plus distance and tie count in input parcel order; it does not return a list of all tied IDs or approximate ties with a tolerance.
 
 **Exact signature**
 
@@ -1930,7 +2372,10 @@ def _nearest_feature_rows(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--attach-matches"></a>
 ### `_attach_matches`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._attach_matches`. Source lines 451–457.
 
 **Purpose:** Appends each mapped match column to the supplied internal parcel-output copy after resetting match indices. This helper intentionally mutates its parcel argument; the public workflow has copied the original frame and checked collisions beforehand.
 
@@ -2003,7 +2448,10 @@ def _attach_matches(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-distance-values"></a>
 ### `_validate_distance_values`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_distance_values`. Source lines 460–467.
 
 **Purpose:** Ignores missing distances but requires every present value to be a finite non-boolean Real with value at least zero. This validates scalar evidence; it does not calculate spatial distance or enforce whether a given row should have a match.
 
@@ -2081,7 +2529,10 @@ def _validate_distance_values(values: pd.Series, label: str) -> None:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--is-missing-scalar"></a>
 ### `_is_missing_scalar`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._is_missing_scalar`. Source lines 470–475.
 
 **Purpose:** Recognizes None and scalar pandas missing values while excluding nonscalar containers from ambiguous pandas null truth evaluation. It supports tie-state validation.
 
@@ -2151,7 +2602,10 @@ def _is_missing_scalar(value: object) -> bool:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-tie-counts"></a>
 ### `_validate_tie_counts`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_tie_counts`. Source lines 478–499.
 
 **Purpose:** Requires equal match/tie sequence lengths. Unmatched rows must have missing tie counts; matched rows require a finite non-boolean numeric value at least one with an integral float value. This admits integral floats as well as integer scalars; it is not an exact built-in-int type gate.
 
@@ -2249,7 +2703,10 @@ def _validate_tie_counts(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-match-integrity"></a>
 ### `_validate_match_integrity`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_match_integrity`. Source lines 502–553.
 
 **Purpose:** Checks required distance/ID/tie/optional-voltage fields and requires either all rows matched or all unmatched according to the caller's contract. It validates present distances and match-aligned ties, requires IDs for matched rows and positive finite voltage when requested, or requires all match-dependent attributes to be null when unavailable. It does not compare the selected ID to source bytes.
 
@@ -2405,7 +2862,10 @@ def _validate_match_integrity(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-voltage-coverage"></a>
 ### `_validate_voltage_coverage`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_voltage_coverage`. Source lines 556–580.
 
 **Purpose:** Iterates coverage records, requiring the expected dataclass family, finite positive voltage and a positive Integral (not bool) feature count; returns unique ascending float levels. It checks the in-memory inventory, not current physical line counts.
 
@@ -2507,7 +2967,10 @@ def _validate_voltage_coverage(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-voltage-table"></a>
 ### `_validate_voltage_table`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_voltage_table`. Source lines 583–642.
 
 **Purpose:** Requires the long-table columns and exactly parcel_count times voltage-level-count rows. It validates positive finite levels, hygienic IDs, unique parcel/voltage pairs, exact level inventory and, for each level, the complete original parcel-ID sequence. Every long-table row must have a valid match, tie count and mandatory source identity. This checks a Cartesian coverage relation, not a spatial re-query.
 
@@ -2658,7 +3121,10 @@ def _validate_voltage_table(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--null-safe-series-equal"></a>
 ### `_null_safe_series_equal`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._null_safe_series_equal`. Source lines 645–655.
 
 **Purpose:** Resets both indices, rejects unequal lengths, then compares values positionally with paired missing values treated as equal. It does not require identical pandas dtypes or matching original indices.
 
@@ -2739,7 +3205,10 @@ def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-exact-representation-consistency"></a>
 ### `_validate_exact_representation_consistency`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_exact_representation_consistency`. Source lines 658–745.
 
 **Purpose:** For nonempty exact-voltage coverage, builds candidate winners from every voltage-level row, maps original parcel positions and sorts by position/distance/lexical grid ID. It reconstructs each global exact nearest representative, sums tie counts across all levels at the exact same minimum distance and compares global distance, selected ID/source/voltage/manager/state/lineage and total ties. It compares two retained representations, not physical nearest-neighbour truth; absent exact coverage is validated by the enclosing result contract.
 
@@ -2933,7 +3402,10 @@ def _validate_exact_representation_consistency(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-result-contract"></a>
 ### `_validate_result_contract`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_result_contract`. Source lines 748–808.
 
 **Purpose:** Validates parcel geometry/IDs, generated columns and the ascending coverage inventory; requires all broad-line/post matches and either all exact-line matches or an entirely null exact branch. It validates the complete long table and reconciles global exact matches against its level-wise representation. This local result integrity is reused by profiling and does not reread IGN.
 
@@ -3074,7 +3546,10 @@ def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--validate-output-integrity"></a>
 ### `_validate_output_integrity`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._validate_output_integrity`. Source lines 811–832.
 
 **Purpose:** Applies the full local result contract, then verifies unchanged parcel count, IDs/order, equivalent original CRS and geometry via zero-tolerance `geom_equals_exact`. That spatial predicate is an XY geometry comparison, not byte-exact WKB or an explicit Z/M ordinate comparison; original geometry is preserved by copying in the implementation.
 
@@ -3173,7 +3648,10 @@ def _validate_output_integrity(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--voltage-level-table"></a>
 ### `_voltage_level_table`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._voltage_level_table`. Source lines 835–889.
 
 **Purpose:** Discovers ascending unique exact-voltage levels from already selected VALID exact lines. For each, records source line count and queries one deterministic nearest representative for every parcel, then appends the fixed eleven-column table in level-then-parcel order. No exact levels yields an empty schema-correct table with float64 distance/voltage and nullable Int64 ties. Transformation posts do not enter this voltage table.
 
@@ -3311,7 +3789,10 @@ def _voltage_level_table(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--enrich-parcel-grid-proximity-from-normalized"></a>
 ### `_enrich_parcel_grid_proximity_from_normalized`
+
+Qualified owner: `landscout.stages.enrich_grid_proximity._enrich_parcel_grid_proximity_from_normalized`. Source lines 892–966.
 
 **Purpose:** Private numerical boundary: validates parcels, output collisions and both normalized role catalogs, requiring at least one VALID line and post. It copies/reset-indexes parcels, transforms calculation copies to EPSG:2154 and flattens coordinates for planar polygon-to-line/polygon-to-post distance. It appends broad-line, optional positive-finite EXACT-line and post representatives, builds all exact-voltage level rows and coverage, then validates output integrity. It preserves source geometry and all parcel columns; direct private calls are not source-complete acquisition validation.
 
@@ -3549,9 +4030,12 @@ def _enrich_parcel_grid_proximity_from_normalized(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14-enrich-parcel-grid-proximity"></a>
 ### `enrich_parcel_grid_proximity`
 
-**Purpose:** Public source-complete boundary: requires a parcel GeoDataFrame and exact electricity/config envelope types, validates parcel geometry/IDs and output collisions, normalizes the supplied source exactly once through independent physical revalidation, requires the exact normalizer result type and delegates the planar enrichment. Existing GridProximityError is preserved and expected lower-level failures are wrapped. It does not infer connection feasibility, available capacity, ownership or a distance-based parcel score.
+Qualified owner: `landscout.stages.enrich_grid_proximity.enrich_parcel_grid_proximity`. Source lines 969–1004.
+
+**Purpose:** Public source-complete boundary: requires a parcel GeoDataFrame and exact electricity/config envelope types, validates parcel geometry/IDs and output collisions, normalizes the supplied source exactly once through independent physical revalidation, requires the exact normalizer result type and delegates the planar enrichment. Existing GridProximityError is preserved and every other Exception is wrapped with its cause. It does not infer connection feasibility, available capacity, ownership or a distance-based parcel score.
 
 **Exact signature**
 
@@ -3626,7 +4110,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
-| Filesystem/archive read or metadata access | Delegated `normalize_ign_electricity` independently revalidates the local archive/extraction and rereads physical source layers. |
+| Filesystem/archive read or metadata access | Delegated `normalize_ign_electricity` independently revalidates the local archive-metadata/extraction and rereads physical source layers. |
 | Filesystem/archive write or publication | None directly present. |
 | Hashing/byte identity | Delegated source-complete normalization recomputes physical identity; this wrapper does not hash directly. |
 | CRS/geometry/spatial calculation | Delegated parcel validation, EPSG:2154 calculation copies and STRtree queries. |
@@ -3679,9 +4163,12 @@ def enrich_parcel_grid_proximity(
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14--distance-profile"></a>
 ### `_distance_profile`
 
-**Purpose:** Validates present nonnegative finite distances, counts missing values and returns null quantiles when there are no matches. Otherwise it computes min, eleven-boundary percentile summaries through max, exact zero-distance count and the number of matched rows whose tie count is greater than one. `tie_count` in this summary is a count of tied rows, not a sum of tied feature counts; no spatial query is performed.
+Qualified owner: `landscout.stages.enrich_grid_proximity._distance_profile`. Source lines 1007–1048.
+
+**Purpose:** Validates present nonnegative finite distances, counts missing values and returns null quantiles when there are no matches. Otherwise it computes minimum, nine pandas quantiles (p01/p05/p10/p25/p50/p75/p90/p95/p99) over present float64 distances, and maximum, exact zero-distance count and the number of matched rows whose tie count is greater than one. `tie_count` in this summary is a count of tied rows, not a sum of tied feature counts; no spatial query is performed.
 
 **Exact signature**
 
@@ -3803,9 +4290,12 @@ def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:
 
 - The stage is limited to the factual transformation, proxy evidence, diagnostic, or policy application stated in its role. It does not create cross-criterion ranking, scoring, ownership/contact, or legal authorization.
 
+<a id="r14-profile-grid-proximity"></a>
 ### `profile_grid_proximity`
 
-**Purpose:** First validates the retained result's local schema, coverage and cross-representation consistency. It profiles broad line, global exact line and post distances, then each ascending voltage-level slice with its recorded source line count and row count. All summaries are threshold-free; validation does not reacquire or physically revalidate IGN source data.
+Qualified owner: `landscout.stages.enrich_grid_proximity.profile_grid_proximity`. Source lines 1051–1092.
+
+**Purpose:** First validates the retained result's local schema, coverage and cross-representation consistency. It first builds each ascending voltage-level profile with its recorded source line count and row count, then constructs the returned broad-line, global-exact-line and post summaries. There is no outer exception wrapper or explicit exact-result-type gate. All summaries are threshold-free; validation does not reacquire or physically revalidate IGN source data.
 
 **Exact signature**
 
