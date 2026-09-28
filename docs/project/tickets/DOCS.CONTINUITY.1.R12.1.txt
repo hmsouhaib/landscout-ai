@@ -1,0 +1,203 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R12.1
+
+Corriger six notices de tests CNIG et leurs notes de revue, sans rouvrir le composant
+
+Dépôt : C:\souhaib\landscout-ai / hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD requis : 0b97c6cc25cc3475438fd31f1fbf2ba18414b210
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Un seul objectif
+
+Corriger cinq groupes d'écarts documentaires, correspondant à six notices existantes dans le compagnon des tests du résolveur CNIG. Corriger les notes propriétaires correspondantes lorsqu'elles reprennent ces écarts. Conserver toutes les lectures, preuves et parties exactes de R12.
+
+Ce n'est PAS une nouvelle implémentation du résolveur, une nouvelle revue complète de ses 194 symboles, un nouvel audit global ou le prochain composant. Aucun test ne doit être modifié pour correspondre à sa notice. Aucun correctif de production n'est autorisé.
+
+LandScout reste un moteur BESS-first d'origination et de préanalyse, Muret un terrain d'essai. La résolution exacte d'un code CNIG n'est ni une décision BESS, ni une permission juridique, ni une classification ICPE, ni un score.
+
+Souhaib décide du produit. ChatGPT reste reviewer et auteur de tickets en lecture seule. Codex modifie seulement les documents autorisés, publie sur recovery et s'arrête. Un ticket à la fois ; un hash, CHECKED ou un rapport Codex n'est pas une approbation indépendante.
+
+1. Reçu fourni de la revue indépendante R12
+
+Déclaration du reviewer ChatGPT à archiver comme telle : elle n'est ni une exécution Codex, ni une signature cryptographique, ni un certificat global.
+
+Verdict : CORRECTION_REQUIRED — documentation R12 uniquement. Les contrats architecturaux examinés sont cohérents, mais six notices de tests contiennent les cinq groupes d'écarts ci-dessous. Aucun nouveau défaut applicatif n'est établi par ces constats.
+
+Commit examiné : 0b97c6cc25cc3475438fd31f1fbf2ba18414b210. Parent direct : fa3e2132ed314ee6f62f62612b017d71e08c0f34. Message : docs: audit CNIG feature code resolver reference. Tree GitHub : b7de6b983f5e69ca592466bd2862834c07e436c1.
+
+La comparaison distante retrouve un seul descendant et neuf chemins documentaires autorisés, sans changement de Python, tests, configurations ou auditeur. Main distant est inchangé. Cela ne prouve pas la propreté du checkout Windows, de son index ou des fichiers ignorés.
+
+Lecture indépendante effectuée : résolveur 1–1177 ; tests 1–2310 ; explications et déclarations des deux compagnons ; common/planning_feature_schema.py 1–262 et common/frame_integrity.py 1–37 ; gpu_fr.py 1–130 pour le propriétaire du manifeste. Les snapshots répétés n'ont pas été indépendamment reconstruits ni rehashés. Les deux petits diffs R11 ont été confrontés aux corps inchangés déjà revus et à l'instruction exacte R12.
+
+Éléments cohérents à préserver : sept exports, profil2/résultat5, lookup exact famille/type/sous-type sans fallback, vrais nulls versus littéraux A-004, profil figé et cinq tableaux mutables, signatures de schéma/dtype/index dans les hashes, frontières complète et locale séparées, conservation des objets sans relation, fixtures physiques synthétiques et limites R12-T01..T05. Une enveloppe locale vide avec un dictionnaire non vide n'est pas la preuve d'une reconstruction complète des sources.
+
+Les deux corrections R11 sont acceptées dans les paragraphes effectivement revus : _validate_parcels exige douze noms ; le test des sorties affirme six schémas non parcellaires, catalogue de preuves compris. Ne pas rouvrir ni modifier ces compagnons dans ce ticket. La synchronisation exhaustive de leurs notes est une preuve locale rapportée.
+
+Limite propriétaire : la lecture bornée actuelle de planning.json a retourné un corps vide avec ses métadonnées, OID e5a65dc205f616a0372fe58ee5fea9c1a2a38479. Le reviewer ne prétend PAS avoir retrouvé les erreurs dans les notes actuelles ou recompté leurs statuts. Codex doit les inspecter localement, pas présumer qu'elles répètent toutes les notices.
+
+Aucun pytest, import applicatif, loader/résolveur, pipeline GPU/EP, auditeur INDEX ou rendu visuel n'a été exécuté par le reviewer. Aucun contrôle exhaustif des 194 mappings, snapshots, 106 fichiers protégés ou 297 chemins hors périmètre n'est revendiqué. Les 170 passes / 52,75 s / sortie0 sans avertissement/skip/xfail rapporté sont l'exécution locale R12, pas une réexécution indépendante.
+
+L'auditeur local R12 rapporte 10 221 constats, completed=true, sortie1, manifeste dc0806f472991c642bfcc92614ae06f4f33d76e42fe961ac2567758c8f8da77d. Son reçu est complété après le run. Aucun final=candidat ni nouveau total final-tree n'est déduit.
+
+Progression locale enregistrée : 99/245 fichiers, 2 617/4 769 symboles ; autres unités ouvertes 146 fichiers/2 152 symboles. Le lot R12 demeure en attente d'acceptation indépendante de ses corrections. Les mêmes unités ne gagnent aucun crédit supplémentaire et leurs lectures ne sont pas annulées.
+
+2. Départ et préservation
+
+Lire AGENTS.md, WORKING_RULES.md, CURRENT_STATE.md, DOCUMENTATION_AUDIT.md, le reçu R12, le présent ticket et l'autorité de préservation existante. Ne pas reconstituer l'historique depuis la seule phrase « completed ».
+
+Vérifier racine réelle, branche, HEAD, index/worktree, opérations Git, ref de suivi et vraie ref serveur. Exiger le départ ci-dessus et main inchangé. Si cette correction a elle-même été interrompue, préserver son travail identifiable et reprendre son premier élément inachevé ; ne pas réinitialiser l'audit.
+
+Pas de reset, restore, clean, stash, rebase, amend, squash ou merge pour forcer l'état. Une divergence non expliquée est rapportée en préservant le travail. Après une erreur effective de propriété seulement, l'exception par commande pour le chemin exact déjà autorisé reste disponible ; aucune confiance wildcard/persistante ni modification de protection/ACL.
+
+Identités à vérifier, puis préserver :
+
+Fichier
+
+OID Git de départ
+
+src/landscout/stages/resolve_planning_feature_codes.py
+
+0205c2e41d57f978b4be91eeddb1577be7f4a447
+
+tests/unit/test_resolve_planning_feature_codes.py
+
+44fd1331e011d98b46b926d6529571ade927e9b6
+
+Compagnon source du résolveur, non modifiable ici
+
+a7c928d817cac36e84e6af87bfc9e0322f9a95ee
+
+Compagnon tests du résolveur à corriger
+
+7f8f7cc263b66cf71e62bdeb05dc458a8b010613
+
+Comparer les 106 fichiers protégés et tous les chemins initiaux hors périmètre, nombre recalculé. Conserver les deux exceptions EOL historiques (YAML de zonage écrit et ticket RESUME) et les 13 observations whitespace héritées. Ne normaliser aucune source ou archive.
+
+3. Cinq groupes de corrections — six notices existantes
+
+Toutes les notices concernées sont dans :
+docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md.
+
+La source à lire pour les corps ci-dessous est le test inchangé au même HEAD. Les plages sont celles du Python, pas celles du Markdown.
+
+R12-D01 — nom de la couche physique synthétique
+
+Symbole : _planning_document, source 220–336.
+
+La notice dit « write and reread synthetic ZONE_URBA ». Le corps fait :
+
+zoning_path = extraction_root / "zones.gpkg"
+# to_file(..., layer="ZONE", ...)
+# read_file(..., layer="ZONE", ...)
+reference = GpuSpatialLayerReference(zoning_path, "ZONE", "GPKG")
+zoning = GpuInspectedLayer("zoning", reference, zoning_data, summary)
+
+Distinguer fichier zones.gpkg, couche physique ZONE et rôle logique zoning. Ne pas renommer la fixture ni remplacer ce nom par une convention générale CNIG. Préserver les explications exactes sur les fichiers temporaires, le GPU synthétique et l'absence de téléchargement officiel.
+
+R12-D02 — assertions de codes attribuées au mauvais catalogue
+
+Symbole : test_exact_family_pair_resolution_and_leading_zeros, source 728–745.
+
+La notice affirme un nombre de lignes de surface et des codes bruts de surface 07/00. Le corps affirme seulement :
+
+Le label de la surface GPU:doc-1:prescription_surface:P-1 vaut Prescription seven.
+
+Le label de GPU:doc-1:information_surface:I-1 vaut Information two.
+
+Le premier label de ligne vaut Prescription seven subtype four.
+
+Sur cette ligne, type_code_raw == "07" et subtype_code_raw == "04".
+
+L'ensemble des statuts des surfaces vaut {"RESOLVED_OFFICIAL"}.
+
+Il n'y a ni len(surface) == 2 ni assertion directe sur le couple brut de surface 07/00. Deux accès par identifiant ne constituent pas une assertion de cardinalité. Décrire ces cinq assertions sans ajouter de test. Conserver le fait que la signification du point n'est pas affirmée ici.
+
+R12-D03 — colonne effectivement dupliquée
+
+Symbole : test_duplicate_catalog_columns_are_rejected, source 1146–1153.
+
+La notice nomme label_raw. Le code est :
+
+duplicate = pd.concat([surface, surface[["planning_feature_id"]]], axis=1)
+duplicate = gpd.GeoDataFrame(duplicate, geometry="geometry", crs=surface.crs)
+
+La colonne dupliquée est planning_feature_id. Préserver l'exception attendue PlanningFeatureCodeError, regex duplicate|columns, et la distinction colonne dupliquée versus identifiant de ligne dupliqué.
+
+R12-D04 — mutation coordonnée de relation inventée
+
+Symbole : test_planning_feature_ids_are_globally_unique_across_catalogs, source 1329–1338.
+
+La notice annonce la modification de l'ID de ligne et de l'ID de sa relation. Le corps ne copie et ne modifie que le catalogue de lignes :
+
+line = line.copy(deep=True)
+line.loc[line.index[0], "planning_feature_id"] = surface.iloc[0]["planning_feature_id"]
+# resolve(..., line, ..., relations, ...)  # relations inchangées
+
+Supprimer l'affirmation d'une relation modifiée. Garder la limite juste : la regex unique|catalog|deterministic ne prouve pas que seule la garde d'unicité globale a été atteinte ; une identité déterministe incohérente peut faire échouer le contrôle auparavant. Ne pas transformer ce test en reproduction d'une falsification coordonnée.
+
+R12-D05 — manifeste réellement écrit et exclu de l'inventaire
+
+Symboles : _physical_inventory, source 151–164, et _write_extraction_manifest, source 167–190.
+
+Les deux notices nomment extraction_manifest.json. Elles utilisent pourtant la constante importée de landscout.sources.gpu_fr :
+
+EXTRACTION_MANIFEST_NAME = ".landscout-gpu-extraction.json"
+
+Le writer écrit root / EXTRACTION_MANIFEST_NAME. L'inventaire exclut uniquement le fichier vérifiant :
+
+path.parent == root and path.name == EXTRACTION_MANIFEST_NAME
+
+Les candidats proviennent de root.rglob("*") et item.is_file(), puis sont triés par str. Ne pas décrire une exclusion universelle de tous les fichiers homonymes à toutes les profondeurs ; ne pas inventer un contrôle lstat ou un rejet des symlinks. Relier le nom à son propriétaire réel plutôt qu'à un littéral supposé.
+
+4. Notes propriétaires et écritures autorisées
+
+Retrouver chaque symbole par son nom qualifié exact dans planning.json. Lire sa note actuelle. Si elle répète l'erreur, corriger la même explication ; sinon conserver son texte et le signaler. Préserver les références historiques et ajouter une provenance compacte vers le reçu R12.1. Mettre à jour le fingerprint du seul compagnon modifié.
+
+Chemins autorisés, six au maximum dans le périmètre normal :
+
+docs/code/files/tests/unit/test_resolve_planning_feature_codes.py.md : uniquement les six notices ci-dessus, et un lien compact de correction si nécessaire.
+
+docs/code/audit/reviews/planning.json : uniquement leurs six notes effectivement concernées, le fingerprint de ce compagnon et la provenance compacte.
+
+docs/code/audit/R12_1_CNIG_DOCUMENTATION_FIDELITY.md : nouveau reçu.
+
+docs/project/tickets/DOCS.CONTINUITY.1.R12.1.txt : instruction exacte reçue.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md.
+
+docs/project/CURRENT_STATE.md.
+
+Ne pas modifier le compagnon source du résolveur, les compagnons R11 déjà corrigés, les sources Python/tests, les YAML, les dépendances, l'auditeur, les anciens tickets/reçus, le backlog applicatif, les caches ou les autres compagnons. Ne pas fusionner/régénérer coverage.json ou la matrice. Aucun nouveau script permanent ni CI/PR.
+
+Conserver R12-T01..T05, A-001..A-004, les cinq anciennes limites, R3-T01..04, R9-T01..04, R10-T01..04, R11-T01..05, R5-D01, cold-start/visuel/finalisation et revue sémantique 7F.1C.1. Aucun A-005 n'est créé à partir de ces fautes de prose. Dernière frontière fonctionnelle approuvée : 7F.1B.4.
+
+5. Validation bornée, sans répétition coûteuse
+
+Ne pas relire intégralement les autres unités ni relancer les 170 tests inchangés. Pas de pytest, import applicatif, source pipeline, recherche juridique, uv sync/install, linter/formateur Python ou réparation d'environnement pour ces six paragraphes.
+
+Relire les six corps, les notes correspondantes et la définition du nom de manifeste. Vérifier manuellement chaque assertion/mutation et son propriétaire avant contrôle mécanique. Une recherche/remplacement globale de label_raw, ZONE_URBA ou d'autres identifiants est interdite : ces chaînes peuvent être légitimes ailleurs.
+
+Contrôles temporaires hors dépôt permis : différence ciblée de prose, JSON strict, signatures/plages/ancres préservées, snapshot complet inchangé, source SHA/basis identiques, fingerprint du compagnon correct, liens/tables/fences/Unicode, préservation de tous les chemins non autorisés. Vérifier les 102 mappings existants des tests sans régénérer leurs notes ou ajouter du crédit ; les 92 symboles source sont hors changement.
+
+Aucun gain de couverture : conserver les unités et lectures acquises et les totaux locaux 99/245 et 2 617/4 769. Enregistrer la correction locale sans s'attribuer l'approbation indépendante ; ne pas remettre arbitrairement toutes les unités à NOT_READ.
+
+Après staging explicite, une seule exécution de l'auditeur INDEX inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r12-1-candidate.stdout.txt 2> C:\souhaib\r12-1-candidate.stderr.txt
+
+Capturer sortie native, completed, métriques et manifeste path/mode/OID. exit1/completed=true peut refléter PARTIAL ; timeout/interruption/exit2 ne vaut pas un audit terminé. Comparer les diagnostics au candidat R12 retenu lorsque ses logs sont disponibles ; les 10 221 constats ne sont pas une cible et le commit R12 final diffère de ce candidat par son reçu.
+
+Compléter seulement le nouveau reçu après ce run, puis vérifier son delta exact. Ne pas fabriquer un total sur le commit final, une deuxième exécution ou une boucle de self-SHA. Si le comparatif ancien n'est pas accessible, le signaler plutôt que le reconstruire depuis son seul total. Nouveau diff propre ; observations historiques inchangées et explicitement distinctes.
+
+6. Publication et arrêt
+
+Publier uniquement ce correctif terminé sur recovery, staging par chemins explicites. Aucun git add global, commit -a, amend, force-push, merge, PR ou push main.
+
+git commit -m "docs: correct CNIG resolver test reference fidelity"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier SHA réel, worktree/index propre, référence de suivi et vraie référence serveur concordantes, main inchangé. Rapporter les fichiers réels, cinq groupes/six notices, notes effectivement modifiées ou déjà exactes, contrôles, candidat/delta et limites. Les 170 passes restent historiques R12 ; aucun nouveau succès runtime n'est annoncé.
+
+Libellé : DOCS.CONTINUITY.1.R12.1 completed — global audit PARTIAL; review pending.
+
+Puis STOP. Le groupe structure/tests suivant reste identifié mais non autorisé. Ne pas produire ou commencer R13 soi-même.

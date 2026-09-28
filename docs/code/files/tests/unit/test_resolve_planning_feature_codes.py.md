@@ -156,7 +156,7 @@ Source lines 151–164. Kind: function. Owner: `tests.unit.test_resolve_planning
 def _physical_inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
 ```
 
-Read every sorted regular file under root except extraction_manifest.json; record relative POSIX path, extension/size/SHA and spatial category. Returns tuple of file records; real synthetic file I/O, not official archive evidence.
+Enumerate root.rglob("*"), retain candidates for which item.is_file() is true, then sort by str. Exclude only paths satisfying path.parent == root and path.name == EXTRACTION_MANIFEST_NAME; the imported `landscout.sources.gpu_fr.EXTRACTION_MANIFEST_NAME` equals ".landscout-gpu-extraction.json". A same-named file below another directory is not excluded by this condition. Read each retained file to record relative POSIX path, extension/size/SHA and spatial category; return a tuple of file records. No lstat or explicit symlink-rejection guard is implemented here. This is real synthetic file I/O, not official archive evidence.
 
 <a id="_write_extraction_manifest"></a>
 
@@ -173,7 +173,7 @@ def _write_extraction_manifest(
 ) -> None:
 ```
 
-Write schema2 extraction_manifest.json from archive SHA and inventory relative paths/sizes/hashes as compact sorted JSON UTF-8. Real synthetic filesystem write; no production extraction operation.
+Write schema-2 JSON to root / EXTRACTION_MANIFEST_NAME, using the imported `landscout.sources.gpu_fr.EXTRACTION_MANIFEST_NAME` value ".landscout-gpu-extraction.json". Include archive SHA and inventory relative paths/sizes/hashes as compact sorted JSON UTF-8. This is a real synthetic filesystem write, not a production extraction operation.
 
 <a id="_layer_summary"></a>
 
@@ -202,7 +202,7 @@ def _planning_document(
 ) -> GpuPlanningDocument:
 ```
 
-Create fresh tempfile.mkdtemp(prefix="landscout-code-source-") outside the explicit pytest basetemp; write and reread related GPKGs through Pyogrio, make references/summaries, write and reread synthetic ZONE_URBA, inventory and extraction manifest. Load checked-in GPU config, alter match tokens via dumped payload, revalidate/hash config, discover spatial references and return synthetic GpuPlanningDocument. Uses fictional archive metadata/path rather than archive acquisition. No helper cleanup is declared; no blanket all-files-under-basetemp claim.
+Create fresh tempfile.mkdtemp(prefix="landscout-code-source-") outside the explicit pytest basetemp; write and reread related GPKGs through Pyogrio, make references/summaries, write and reread physical layer ZONE in zones.gpkg and wrap it as logical role zoning, then build the inventory and extraction manifest. Load checked-in GPU config, alter match tokens via dumped payload, revalidate/hash config, discover spatial references and return synthetic GpuPlanningDocument. Uses fictional archive metadata/path rather than archive acquisition. No helper cleanup is declared; no blanket all-files-under-basetemp claim.
 
 <a id="_base_row"></a>
 
@@ -405,7 +405,7 @@ Source lines 728–745. Kind: function. Owner: `tests.unit.test_resolve_planning
 def test_exact_family_pair_resolution_and_leading_zeros() -> None:
 ```
 
-Resolve active fixtures; assert two surface rows and selected surface raw07/00, configured label/status, and line subtype04/label. Point meaning is not asserted here. No wildcard or legal-status inference.
+Resolve active fixtures and index surfaces by planning_feature_id. Assert that GPU:doc-1:prescription_surface:P-1 has official_code_label "Prescription seven" and GPU:doc-1:information_surface:I-1 has "Information two". Assert that the first line has official_code_label "Prescription seven subtype four", type_code_raw "07" and subtype_code_raw "04"; assert that the set of surface official_code_status values is {"RESOLVED_OFFICIAL"}. The two surface-ID lookups are not a cardinality assertion, and no raw surface 07/00 pair is directly asserted. Point meaning is not asserted here. No wildcard or legal-status inference.
 
 <a id="test_no_type_only_or_cross_family_fallback_and_unknown_is_retained"></a>
 
@@ -1067,7 +1067,7 @@ Source lines 1146–1153. Kind: function. Owner: `tests.unit.test_resolve_planni
 def test_duplicate_catalog_columns_are_rejected() -> None:
 ```
 
-Duplicate label_raw column via concat; resolve rejects duplicate/columns. Does not test duplicate row identity.
+Duplicate the surface planning_feature_id column with pd.concat([surface, surface[["planning_feature_id"]]], axis=1), then wrap as GeoDataFrame with the original geometry and CRS. Resolving this catalog must raise PlanningFeatureCodeError matching "duplicate|columns". This tests a duplicated column, not duplicate row identity.
 
 Exact expected-exception contexts:
 
@@ -1318,7 +1318,7 @@ Source lines 1329–1338. Kind: function. Owner: `tests.unit.test_resolve_planni
 def test_planning_feature_ids_are_globally_unique_across_catalogs() -> None:
 ```
 
-Replace line feature ID and matching relation ID with surface ID; resolve expects unique/catalog/deterministic. Deterministic per-row identity guard can reject before global uniqueness, so the message alternative does not isolate that guard.
+Deep-copy only the line catalog and replace its first planning_feature_id with the first surface planning_feature_id; pass relations unchanged to the resolver. Expect PlanningFeatureCodeError matching "unique|catalog|deterministic". Deterministic per-row identity guard can reject before global uniqueness, so the message alternative does not isolate that guard. This is not a coordinated catalog/relation mutation.
 
 Exact expected-exception contexts:
 
