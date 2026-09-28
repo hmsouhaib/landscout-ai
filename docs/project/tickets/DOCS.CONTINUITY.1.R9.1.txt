@@ -1,0 +1,225 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R9.1
+
+Corriger les scénarios, responsabilités des helpers et limites des preuves dans la référence d’application BESS/CNIG
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt GitHub : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD de départ requis : 99465475a479a765941b6d20cbade0cf570186ab
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique — terminer la fidélité de R9, pas refaire son audit
+
+La synthèse R9 décrit correctement une grande partie des contrats d’application. La revue indépendante relève quelques notices locales qui décrivent une autre mutation, une autre exception ou une preuve que le test ne contient pas. Corriger ensemble ces explications et leurs notes propriétaires, en conservant le lot regroupé.
+
+AUCUN changement Python, test, configuration, algorithme, schéma, hash applicatif, auditeur ou dépendance n’est autorisé. Ne modifier aucun test pour le faire correspondre à sa notice. Ces écarts documentaires ne justifient pas de créer A-005 ou de réparer un défaut applicatif dans ce ticket.
+
+Souhaib décide du produit. ChatGPT est reviewer/architecte et auteur des tickets, en lecture seule. Codex corrige et publie dans ce périmètre, puis s’arrête. Une clôture locale CHECKED n’est pas une approbation indépendante.
+
+Conserver les bons apports : propagation sans agrégation parcellaire, exact UNKNOWN distinct d’un code non résolu, validation de tous les objets y compris sans relation, quatre chemins de confiance, métadonnées figées versus frames mutables, lecture des bytes capturées sans postcondition de chemin, distinction des fixtures synthétiques et des sources officielles.
+
+1. Reçu fourni de revue indépendante R9
+
+Cette section est la déclaration du reviewer ChatGPT ; l’archiver comme telle. Ce n’est pas une exécution Codex, une signature cryptographique ou un certificat global.
+
+Verdict : CORRECTION_REQUIRED — documentation R9 uniquement.
+Commit examiné : 99465475a479a765941b6d20cbade0cf570186ab.
+Parent : 05d6ffce1726774be5b956080323e92f43aef825.
+Message : docs: audit BESS CNIG policy application reference.
+
+La comparaison distante retrouve un descendant direct et sept fichiers documentaires, sans changement applicatif. Main reste inchangé. Cette lecture ne vérifie pas la propreté du checkout Windows.
+
+Le reviewer a lu les 1 350 lignes du module d’application, les 2 397 lignes de ses tests, comparé les explications des compagnons aux corps/appels/assertions correspondants et consulté le ticket/reçu. Les extraits pertinents du helper d’agrégation partagé ont été lus pour la précision de contexte D07, sans rouvrir le lot R8. Les anciens travaux sont réutilisés, pas effacés.
+
+Les métadonnées Git des Python restent :
+
+source : 3d542b089b9763f4ed1b212e1253a9fe87c865ac ;
+
+tests : 5c2fed792f0df5b1fd9b95417dafcda6c3094eca.
+
+Aucun pytest, import/loader applicatif, pipeline GPU/EP, auditeur INDEX ou rendu visuel n’a été exécuté par le reviewer pour R9. Il n’a pas réattesté exhaustivement les 219 mappings, snapshots, SHA de compagnons, 106 fichiers protégés, 291 chemins hors périmètre ni les manifests locaux.
+
+Limite du registre : les tentatives de lecture du planning.json complet par le connecteur n’ont pas fourni son corps (erreur de lecture brute puis réponses bornées vides avec métadonnées). Le reviewer n’affirme pas avoir retrouvé les phrases erronées dans ses notes actuelles. Leur vérification et leur synchronisation sont donc explicitement requises ici, sans présupposer une duplication.
+
+Les 221 passes en 184,49 s, exit 0 et absence d’avertissement/skip/xfail restent les résultats locaux R9 rapportés. Le candidat INDEX R9 a terminé avec exit 1 / completed=true / 10 270 constats. Après ce run, trois chemins ont changé selon le reçu : sept noms exportés entourés de backticks (+14 octets), leur fingerprint de compagnon dans le registre, puis le reçu. Ce nombre n’est donc pas un nouveau total final-tree, et aucun second audit global n’est inféré.
+
+Clôture locale enregistrée : 87/245 fichiers et 2 011/4 769 symboles ; 158 fichiers et 2 758 symboles restent ouverts. Le présent correctif porte sur les mêmes quatre unités ; il ajoute zéro crédit. R9 reste en correction indépendante ; R9.1 sera à revoir après publication.
+
+Conserver A-001..A-004, les cinq limites historiques, R3-T01..04, R9-T01..04, OPEN R5-D01, acceptations cold-start/rendu/finale et revue sémantique exhaustive 7F.1C.1. Dernière frontière fonctionnelle approuvée : 7F.1B.4.
+
+2. Reprise et périmètre autorisé
+
+Lire AGENTS, WORKING_RULES, RESUME, CURRENT_STATE, DOCUMENTATION_AUDIT, le reçu R9, le présent ticket et l’autorité de préservation. Établir racine, branche, HEAD, index/worktree, opérations Git, référence de suivi et vraie référence distante.
+
+Exiger la base ci-dessus, arbre/index propre et main inchangé. Si reprise interrompue de CE ticket, reconnaître et préserver ses changements ; ne pas les effacer. Pas de reset, restore, clean, stash, rebase, amend, squash, merge, PR ou changement de sécurité. Exception safe.directory uniquement après l’erreur constatée, par commande et chemin exact déjà autorisés, jamais wildcard ou confiance persistante.
+
+Sept chemins d’écriture uniquement :
+
+docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md
+
+docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md
+
+docs/code/audit/reviews/planning.json — seulement les quatre unités R9, leurs notes concernées, fingerprints de compagnons et provenance de correction.
+
+docs/code/audit/R9_1_APPLICATION_FIDELITY.md — nouveau reçu.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md
+
+docs/project/CURRENT_STATE.md
+
+docs/project/tickets/DOCS.CONTINUITY.1.R9.1.txt — archive exacte de l’instruction reçue.
+
+Sources, tests, YAML, auditeur, BACKLOG, anciens tickets/reçus, autre compagnon, coverage.json et matrice globale sont hors périmètre. Pas de régénération ni fusion globale des fragments, pas de nouveau checker permanent. Garder les preuves antérieures sans recopier inutilement des milliers de lignes.
+
+Préserver l’identité des deux Python ; SHA256 Git rapportés dans R9 à contrôler contre les bytes :
+
+source : 76b4f4d2fa3dbe09442718810c0a113cc8d7b4b1c2ffa3f7f07fcc4f3a250a61 ;
+
+tests : 563c9382062de5406384bd574df5ca169dde642ae768102c4973bd8d9be68184.
+
+Comparer aussi les 106 fichiers protégés et tous les chemins initiaux hors périmètre à leur autorité/départ. Recalculer le nombre exact, ne pas reprendre mécaniquement 291. Conserver les deux exceptions de fins de ligne Git/checkout et les 13 observations whitespace historiques.
+
+3. Corrections localisées, toutes regroupées
+
+Les plages ci-dessous sont celles des Python inchangés. Relire chaque corps complet, son appel effectif et les assertions ; ne pas déduire le scénario du seul nom. Réutiliser la lecture R9 pour les sections non modifiées. Les résumés anglais ci-dessous exposent le comportement observé, pas du code à implémenter.
+
+R9-D01 — test_lineage_defect_fast_fails_before_policy_source_validation
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [1820, 1842].
+
+Écart courant : Coordinated referenced document mutation (including ID).
+
+Comportement du code : Selects an unreferenced feature with _zero_relation_feature, copies its catalog, changes only source_archive_sha256 at that row to "f" * 64, and reseals the application through _replace_application_frame. The document and feature ID are not changed. A no-op policy-source counter remains zero after the full application validator raises BessPlanningFeatureApplicationError; the test does not require one exact error message.
+
+Correction documentaire : Describe the unreferenced-feature archive-lineage mutation, its exact changed column/value, the reseal, the controlled-error assertion and the zero source-validator-call assertion.
+
+R9-D02 — _z_geometry
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [348, 359].
+
+Écart courant : Diagonal LineString/MultiLineString; unknown kind raises AssertionError.
+
+Comportement du code : Creates a horizontal XYZ line from (0, 0, 7) to (2, 0, 7), a square Polygon at Z=7 and Point(1,1,7), plus their Multi counterparts. Returns a direct dictionary lookup [kind]. An unknown string key raises KeyError, not AssertionError. Existing callers use six supported strings.
+
+Correction documentaire : State the actual coordinates and dictionary lookup behavior; do not invent a regression test for the unsupported key.
+
+R9-D03 — test_application_feature_prefix_has_exact_canonical_schema, test_application_relation_prefix_has_exact_canonical_schema
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [[1707, 1749], [1764, 1797]].
+
+Écart courant : The feature notice says object official code; the relation notice says categorical official status.
+
+Comportement du code : The official-object feature case casts official_legal_reference to object. The official-category relation case casts official_code_label to category. Neither case casts type/subtype codes or official_code_status.
+
+Correction documentaire : Name both actual columns and dtypes explicitly in the notices and corresponding owner notes.
+
+R9-D04 — test_relations_inherit_only_from_referenced_enriched_feature
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [626, 639].
+
+Écart courant : Every relation policy cell is compared with its referenced feature, with the qualification "nulls handled".
+
+Comportement du code : Uses the ordinary synthetic application fixture and direct == assertions on all POLICY_COLUMNS. The test contains neither a null-safe comparison helper nor an explicit unresolved/null fixture. Production null-safe behavior and the separate unknown-pair test are not additional assertions of this test.
+
+Correction documentaire : Retain the positive direct-equality proof; remove the unsupported null-handling claim or link separately to the actual production guard and the specifically relevant separate test, without transferring their coverage.
+
+R9-D05 — _policy_values
+
+Fichier : src/landscout/stages/apply_bess_planning_feature_policy.py ; lignes : [460, 486].
+
+Écart courant : Absent entry gives UNRESOLVED_CODE_PAIR.
+
+Comportement du code : Copies the application_status argument into bess_cnig_policy_application_status independently of row. row is None controls the six null decision values. _apply_feature_catalog chooses APPLIED_EXACT_POLICY or UNRESOLVED_CODE_PAIR before calling the helper.
+
+Correction documentaire : Distinguish status selection by the caller from suffix construction by this helper. Do not add a new validator or claim a new production defect.
+
+R9-D06 — test_artifact_loader_parses_only_verified_bytes
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [[1445, 1488], [1464, 1470]].
+
+Écart courant : Parent notice says the path is replaced immediately after returning the captured payload.
+
+Comportement du code : The hook calls original_read_bytes, overwrites the target once, sets replaced=True, and only then returns the original captured payload. The nested notice already describes that order correctly.
+
+Correction documentaire : Align the parent wording to capture -> replace -> return original bytes -> decode. Preserve the existing explicit absence of a final path-state guarantee.
+
+R9-D07 — Ownership, setup and limits
+
+Fichier : tests/unit/test_apply_bess_planning_feature_policy.py ; lignes : [143, 155].
+
+Écart courant : Unqualified comparison to aggregation R8's two-parcel/three-relation fixture.
+
+Comportement du code : R8 _aggregation_fixture calls this same _application_fixture and therefore shares its base source fixture. Separate R8 _build_from_relations scenarios construct different synthetic parcels and caller-supplied relations; the relation count is not a universal R8-fixture constant.
+
+Correction documentaire : Remove the ambiguous comparison or name the separate helper and scenario precisely. Do not change or reopen the approved R8 companions.
+
+4. Exigences pour éviter un deuxième cycle sur les mêmes erreurs
+
+D01 est une erreur de scénario de test ; D02 comprend une erreur de contrat d’exception. D03 précise des colonnes différentes, D04 borne les assertions, D05 distingue helper et caller. D06/D07 sont des précisions de chronologie/contexte ; ne pas les présenter comme de nouveaux défauts de production de même gravité.
+
+Pour D01, le reçu doit montrer explicitement : _zero_relation_feature → copie du catalogue → source_archive_sha256 = "f" * 64 → reseal → erreur du validateur → calls == 0. Aucun changement de source_document_id ou planning_feature_id n’est réalisé par ce test. Ne pas reprendre l’explication d’un autre scénario de mutation coordonnée.
+
+Pour D02, utiliser la géométrie réelle et le dictionnaire [kind]. Ne pas ajouter un nouveau test d’entrée inconnue, un assert ou une garde. Le comportement d’une clé inconnue est décrit depuis le corps, pas depuis une exécution inexistante.
+
+Pour D04, retirer l’affirmation de prise en charge des nulls DANS ce test. Une référence distincte au helper de production _null_safe_equal ou au test du code inconnu est possible, mais ne transfère pas leurs assertions à la boucle de comparaisons directes.
+
+Pour D05, le champ de statut reprend application_status. La présence de row commande les six valeurs décisionnelles. _apply_feature_catalog décide le statut avant l’appel ; _policy_values ne valide pas leur cohérence. La chaîne de production garde ses contrôles existants.
+
+Pour D06, la séquence réelle est capture → remplacement du chemin → retour des bytes initiales → décodage. La notice imbriquée est déjà correcte ; corriger la phrase parente sans changer le test ni promettre une stabilité finale du fichier.
+
+Pour D07, R8 _aggregation_fixture utilise _application_fixture ; les autres jeux de parcelles viennent de _build_from_relations et des arguments du scénario. Supprimer le contraste générique suffit ; aucun changement de compagnon R8 n’est autorisé.
+
+Vérifier les notes propriétaires de chaque symbole courant et les résumés de fichier : si elles reprennent les phrases erronées, les corriger au même passage. Conserver les anciennes preuves comme historiques, sans les supprimer d’anciens reçus. Ne prétendre pas avoir vérifié une note uniquement parce que sa signature et son ancre sont exactes.
+
+5. Contrôles finaux du petit delta
+
+Ne pas régénérer intégralement les compagnons. Conserver les 109/110 identités de symboles, signatures et snapshots existants. Contrôler les 219 mappings vers leur BON titre qualifié, occurrence unique de l’ID, plage et signature ; les déclarations hors inventaire n’ajoutent pas de crédit.
+
+Un contrôle borné du candidat final doit comparer :
+
+les sept constats et les notes effectivement concernées au code inchangé ;
+
+les anciennes formulations dans la documentation courante, séparées de leurs occurrences historiques ;
+
+les snapshots complets et SHA avec base Git/index/checkout explicite ;
+
+liens entrants/sortants, Unicode, tables et fences ;
+
+les quatre seules unités modifiées du registre, leurs historiques préservés et les fingerprints de compagnons ;
+
+les fichiers protégés/hors périmètre et le nouveau diff, distinct du cumul historique.
+
+Les scripts temporaires restent hors Git et n’importent pas l’application. Un contrôle AST ou de liens n’est ni une revue sémantique ni un rendu visuel. Renderer déjà présent seulement ; sinon PENDING sans installation.
+
+6. Pas de nouveau pytest ni de pipeline
+
+Les 221 passes / 184,49 s / exit 0 restent l’exécution historique R9. Ne pas les relancer dans ce correctif de prose. Pas de full pytest, loader/compilateur, import applicatif de reproduction, GPU/EP, téléchargement, uv sync, dépendance, linter/formateur Python ou environnement modifié.
+
+Après staging explicite et contrôle ciblé, une seule exécution complète de l’auditeur INDEX inchangé est autorisée :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r9-1-candidate.stdout.txt 2> C:\souhaib\r9-1-candidate.stderr.txt
+
+Conserver completed/exit, métriques, stdout et manifeste path/mode/OID. Comparer les constats complets pertinents, pas uniquement le total. Le candidat R9 à 10 270 précédait ses sept corrections d’exports et ses trois deltas : ne pas traiter son total comme celui du commit final, ni le prendre pour cible de R9.1.
+
+Exit 1 / completed=true peut correspondre à PARTIAL. Exit 2, timeout ou interruption est un contrôle non terminé. Ne changer ni coverage, ni auditeur, ni statuts pour rendre artificiellement vert le contrôle.
+
+Préparer les autres documents avant ce run, puis compléter idéalement seulement le reçu et contrôler son delta exact. Si un autre fichier change après, nommer précisément les bytes et les contrôles ciblés ; ne pas déclarer final=candidat ou inventer une deuxième exécution. Pas de boucle auto-référentielle pour inclure le reçu dans sa propre preuve.
+
+7. Continuité, publication et arrêt
+
+Enregistrer dans CURRENT_STATE le verdict R9 CORRECTION_REQUIRED depuis la section 1 de ce ticket et R9.1 en attente de revue après publication. Garder les reçus R9/R8.1 et les approbations antérieures inchangés. Corriger les mêmes unités ajoute zéro crédit : 87/245 fichiers, 2 011/4 769 symboles enregistrés ; 158/2 758 restent les autres unités ouvertes.
+
+A-001..A-004, R9-T01..04 et toutes les réserves listées dans la section 1 restent ouvertes. R10 (compilateur BESS/CNIG) est identifié seulement, non autorisé avant revue indépendante. Aucune prochaine fonctionnalité.
+
+Si le delta est terminé et les preuves cohérentes, stage UNIQUEMENT les sept chemins autorisés. Pas de git add global, commit -a, amend, squash, rebase, merge, PR, force-push ou push main.
+
+git commit -m "docs: correct policy application reference fidelity"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier après publication le SHA final, index/worktree propre, suivi et vrai serveur concordants, main inchangé. Ne pas inscrire un futur self-SHA dans le reçu. Préserver et rapporter un blocage plutôt que forcer une finalisation.
+
+Rapport final : SHA départ/final/main ; sept chemins réels ; tableau D01..D07 et notes corrigées ; petites précisions distinguées des erreurs de scénario/exception ; sources et tests intacts ; contrôles locaux réellement effectués ; aucun nouveau pytest ; auditeur/candidat/delta final ; progression inchangée ; réserves et limites préservées.
+
+Libellé : DOCS.CONTINUITY.1.R9.1 completed — global audit PARTIAL; review pending.
+
+Puis STOP pour revue indépendante. Ne pas commencer R10 ni un autre travail.

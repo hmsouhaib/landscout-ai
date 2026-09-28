@@ -5,7 +5,7 @@
 - Source SHA256 basis: `git-content`
 - Source lines: 2397; Git blob at R9 start: `5c2fed792f0df5b1fd9b95417dafcda6c3094eca`
 
-Git/index/checkout source bytes are unchanged; the full source snapshot below is exact UTF-8 LF. Semantic local closure is not independent approval. [R9 evidence](../../../../../docs/code/audit/R9_BESS_CNIG_APPLICATION.md).
+Git/index/checkout source bytes are unchanged; the full source snapshot below is exact UTF-8 LF. Semantic local closure is not independent approval. [R9.1 corrections; review pending](../../../../../docs/code/audit/R9_1_APPLICATION_FIDELITY.md). [R9 evidence](../../../../../docs/code/audit/R9_BESS_CNIG_APPLICATION.md).
 
 ## Ownership, setup and limits
 
@@ -13,7 +13,7 @@ This file tests [application propagation](../../src/landscout/stages/apply_bess_
 
 Standard-library imports cover importlib/inspect, JSON, Mapping, dataclass fields/replace, SHA, BytesIO and Path. GeoPandas/Pandas/Pytest/Shapely and their assertion helpers are third-party owners. Imports spelled `test_bess_planning_feature_policy` and `test_resolve_planning_feature_codes` are repository test helpers: qualified documentation owners are tests.unit.test_bess_planning_feature_policy and tests.unit.test_resolve_planning_feature_codes. Application imports include the importable ArtifactRecord as well as public APIs; _load_application_artifacts is the real production loader alias, distinct from this file's adapter. Repository stages and frame_integrity are not external packages.
 
-The fixture chain is _application_fixture → tests.unit.test_bess_planning_feature_policy._compiled_fixture → tests.unit.test_resolve_planning_feature_codes._integration_inputs/_planning_document. It constructs and writes physical temporary GeoPackages through Pyogrio, rereads them, writes an extraction inventory/manifest and binds a modified synthetic source config; normalization/coding/policy/application then use public source-bound paths. Archive metadata is fabricated (synthetic.zip, one byte, repeated-a hash); this is not official GPU acquisition. The four synthetic related objects are prescription surface square(0,0)-(2,2), information surface square(3,0)-(5,2), prescription line(0,1)-(2,1), information point(10,10). There is ONE parcel equal to the first square (index91 named parcel_row); this is not aggregation R8's two-parcel/three-relation fixture. The application catalogs contain unreferenced information surface/point objects.
+The fixture chain is _application_fixture → tests.unit.test_bess_planning_feature_policy._compiled_fixture → tests.unit.test_resolve_planning_feature_codes._integration_inputs/_planning_document. It constructs and writes physical temporary GeoPackages through Pyogrio, rereads them, writes an extraction inventory/manifest and binds a modified synthetic source config; normalization/coding/policy/application then use public source-bound paths. Archive metadata is fabricated (synthetic.zip, one byte, repeated-a hash); this is not official GPU acquisition. The four synthetic related objects are prescription surface square(0,0)-(2,2), information surface square(3,0)-(5,2), prescription line(0,1)-(2,1), information point(10,10). There is ONE parcel equal to the first square (index91 named parcel_row). The application catalogs contain unreferenced information surface/point objects.
 
 The normal policy is synthetic_bess_cnig_feature_policy_v1 built from the synthetic dictionary, rotating configured statuses/confidences with source locks. The separate _checked_in_policy_result reads checked-in policy/CNIG configs, replaces a coded envelope's identities/dictionary to those locks and privately builds the policy table; it is NOT a public physical validation of the actual Muret snapshot. _small_catalog is a deliberately minimal Point-based five-column catalog for private propagation tests, not a canonical complete application catalog. Empty-upstream helpers copy empty typed frames/dictionaries/tables and reseal; they do not read a real source.
 
@@ -33,7 +33,7 @@ R9-T02: test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering
 
 _write_application_artifacts is a TEST helper returning (manifest Path, role→Path dict, manifest dict), not three paths and not a public writer. It writes four synthetic Parquets with stored index and a strict schema2 manifest. Most tests call _application_fixture and therefore indirectly perform physical synthetic GPKG reads/writes before instrumentation is installed. Mutation helpers copy frames before assignment and reseal only the specified envelopes. They can intentionally violate source truth while keeping local hashes consistent. Geometry replacement is adversarial test setup, not production geometry repair.
 
-The source/test full snapshots and all qualified symbol bindings are retained below. Signatures/parametrizations are mechanically quoted; their semantic notices follow manually inspected setup, call order and assertions. No real cache/Muret/GPU/EP download/open, legal research, full-suite run, scoring or environment repair is evidence of this bounded audit. Independent R9 review and visual rendering remain pending.
+The source/test full snapshots and all qualified symbol bindings are retained below. Signatures/parametrizations are mechanically quoted; their semantic notices follow manually inspected setup, call order and assertions. No real cache/Muret/GPU/EP download/open, legal research, full-suite run, scoring or environment repair is evidence of this bounded audit. The supplied R9 review requires documentary correction; independent R9.1 review and visual rendering remain pending.
 
 Inventory: 72 top-level tests, 110 original symbols (including helpers/nested callbacks); parametrized collected cases are reported only after execution.
 
@@ -279,7 +279,7 @@ Source lines 348–359. Kind: function. Owner: `tests.unit.test_apply_bess_plann
 def _z_geometry(kind: str) -> object:
 ```
 
-Return Z=7 geometry for one of six kind strings: square Polygon/MultiPolygon, diagonal LineString/MultiLineString or Point/MultiPoint; unknown kind raises AssertionError. Used in local dimensional tests. No M/ZM generation or I/O.
+Construct a square Polygon with vertices (0,0,7), (2,0,7), (2,2,7), (0,2,7), a horizontal LineString from (0,0,7) to (2,0,7), Point(1,1,7), and their Multi counterparts. Return the direct dictionary lookup [kind]; an unknown string key raises KeyError, as read from the body, not demonstrated by a separate test. The dimensional-test caller supplies the six supported kind strings. No M/ZM generation or I/O.
 
 <a id="symbol-test-exact-policy-is-applied-to-every-feature-and-relation"></a>
 ### `tests.unit.test_apply_bess_planning_feature_policy.test_exact_policy_is_applied_to_every_feature_and_relation`
@@ -462,7 +462,7 @@ Source lines 626–639. Kind: function. Owner: `tests.unit.test_apply_bess_plann
 def test_relations_inherit_only_from_referenced_enriched_feature() -> None:
 ```
 
-Map all enriched catalog rows by planning_feature_id and assert every relation's18 policy cells match its referenced feature (nulls handled). This is object-based inheritance, not a new code/parcel lookup.
+Use the ordinary synthetic _application_fixture, map all enriched catalog rows by planning_feature_id and directly assert == for every relation's 18 POLICY_COLUMNS against its referenced feature. This proves object-based inheritance for that fixture, not a new code/parcel lookup. There is no null-safe comparison helper or explicit unresolved/null fixture in this test; production null-safe checks and the separate unknown-pair test do not add assertions here.
 
 <a id="symbol-test-complete-relation-facts-must-match-referenced-feature"></a>
 ### `tests.unit.test_apply_bess_planning_feature_policy.test_complete_relation_facts_must_match_referenced_feature`
@@ -1201,7 +1201,7 @@ def test_artifact_loader_parses_only_verified_bytes(
 ) -> None:
 ```
 
-Capture original relation Parquet bytes; patched read_bytes replaces its path immediately after returning captured payload, while patched pd.read_parquet records BytesIO and delegates. Assert replacement occurred, observed buffer matches verified bytes, and loaded relation frame equals original. Does not assert path unchanged or a post-read path-integrity guarantee.
+Capture original relation Parquet bytes; patched read_bytes calls original_read_bytes, overwrites the target once, sets replaced=True, and only then returns the original captured payload. Patched pd.read_parquet records BytesIO and delegates decoding: capture -> replace path -> return original bytes -> decode. Assert replacement occurred, observed buffer matches verified bytes, and loaded relation frame equals original. Does not assert path unchanged or a post-read path-integrity guarantee.
 
 <a id="symbol-test-artifact-loader-parses-only-verified-bytes-replace-after-read"></a>
 ### `tests.unit.test_apply_bess_planning_feature_policy.test_artifact_loader_parses_only_verified_bytes.replace_after_read`
@@ -1373,7 +1373,7 @@ def test_application_feature_prefix_has_exact_canonical_schema(
 ) -> None:
 ```
 
-Ten role/mutation combinations: missing/extra/reordered prefix, object area/length/count, object official code, index name/int32, malformed empty point. Reseal then envelope raises schema/dtype/index. All-null optional raw variants have separate scenario; no prefix normalization is done here.
+Ten role/mutation combinations: missing/extra/reordered prefix, object area/length/count, official_legal_reference cast to object in the official-object case, index name/int32, malformed empty point. That case does not cast type/subtype codes or official_code_status. Reseal then envelope raises schema/dtype/index. All-null optional raw variants have separate scenario; no prefix normalization is done here.
 
 Exact decorators/parametrization (not extra closure units):
 
@@ -1406,7 +1406,7 @@ def test_application_relation_prefix_has_exact_canonical_schema(
 ) -> None:
 ```
 
-Seven mutations: missing/extra/reordered factual columns, object float/count, categorical official status, malformed empty relations. Reseal; local envelope schema/dtype failure. Empty frames still require exact schema.
+Seven mutations: missing/extra/reordered factual columns, object float/count, official_code_label cast to category in the official-category case, malformed empty relations. That case does not cast type/subtype codes or official_code_status. Reseal; local envelope schema/dtype failure. Empty frames still require exact schema.
 
 Exact decorators/parametrization (not extra closure units):
 
@@ -1449,7 +1449,7 @@ def test_lineage_defect_fast_fails_before_policy_source_validation(
 ) -> None:
 ```
 
-Coordinated referenced document mutation (including ID), no-op heavy counter; full validator raises application error and calls0. Broad raises proves local stopping, not one selected error message.
+Select an unreferenced feature with _zero_relation_feature, copy its catalog, change only source_archive_sha256 at that row to "f" * 64, and reseal through _replace_application_frame. Neither source_document_id nor planning_feature_id changes. Replace the policy-source validator with a no-op counter; the full application validator must raise BessPlanningFeatureApplicationError and calls == 0. The broad raises assertion does not require one exact error message.
 
 <a id="symbol-test-lineage-defect-fast-fails-before-policy-source-validation-counted"></a>
 ### `tests.unit.test_apply_bess_planning_feature_policy.test_lineage_defect_fast_fails_before_policy_source_validation.counted`

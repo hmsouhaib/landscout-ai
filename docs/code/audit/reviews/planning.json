@@ -594,7 +594,7 @@
     },
     {
       "path": "docs/code/files/src/landscout/stages/apply_bess_planning_feature_policy.py.md",
-      "source_sha256": "4ab525f64e5fdf91100f64bbb9234eb13a786f046d4bb5f710db4a9c1d128859",
+      "source_sha256": "16385c0a1e12e585cd73d49b15b5eb1ff9b53aeadc62255728d415130f5bb743",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -606,7 +606,7 @@
         "R9 manual source/body/assertion comparison: exact code propagation, unresolved versus applied UNKNOWN, all-feature intrinsic validation, relation agreement/metrics, four trust paths, immutable metadata versus mutable frames, distinct propagated/canonical/raw-byte hashes and exact public wrapping.",
         "Sole planning.json owner confirmed in original matrix and all fragments. Historical transfer intention had no matching extension row; compact prior metadata and exact prior-symbol fingerprint/commit retained without duplicating219 symbol rows.",
         "R9 test limits include read_text sentinel versus actual read_bytes, broad/earlier guards, row-reversal actual location, Point-only M/ZM, counters versus spies, synthetic physical files and captured bytes versus path postcondition. No production/test/config changes or new application finding.",
-        "Local semantic closure only; independent R9 review pending, global audit PARTIAL; no coverage/matrix merge."
+        "Local semantic closure only. Supplied R9 verdict: CORRECTION_REQUIRED, documentation only. R9.1 corrects the same units; independent review pending, global audit PARTIAL, zero new closure credit; no coverage/matrix merge."
       ],
       "test_references": [
         "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -636,7 +636,15 @@
         "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty review notes. Exact identities/fingerprints retained in current rows; complete prior arrays remain retrievable at the explicit Git commit/fragment. No materialized extension counterpart."
       },
-      "r9_source_sha256_basis": "git-content"
+      "r9_source_sha256_basis": "git-content",
+      "r9_1_resolution": {
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R9.1.txt",
+        "receipt": "docs/code/audit/R9_1_APPLICATION_FIDELITY.md",
+        "starting_commit": "99465475a479a765941b6d20cbade0cf570186ab",
+        "corrected_symbol_notes": [],
+        "scope": "D01..D07 grouped prose correction; affected owner notes actually read and compared to unchanged bodies/callers/assertions. D07 removes the generic R8 fixture contrast only in the test companion. D06 nested notice is unchanged. File summaries contain none of the seven erroneous symbol formulations.",
+        "history": "r9_prior_evidence retained exactly; prior notes remain in starting Git commit. No symbol identity/signature/range/status or source snapshot change; no additional closure; no new pytest or application finding."
+      }
     },
     {
       "path": "docs/code/files/src/landscout/stages/bess_planning_feature_policy.py.md",
@@ -878,7 +886,7 @@
     },
     {
       "path": "docs/code/files/tests/unit/test_apply_bess_planning_feature_policy.py.md",
-      "source_sha256": "8a348aad59e4de4904107d68d1190258693742a303d6972492a52f250a1197da",
+      "source_sha256": "d48ecbde385ba1c110f07b9903521debf503e1cf7fa04d24d3d2282eafca6a9f",
       "documentation_path": null,
       "role": "companion",
       "read_complete": true,
@@ -890,7 +898,7 @@
         "R9 manual source/body/assertion comparison: exact code propagation, unresolved versus applied UNKNOWN, all-feature intrinsic validation, relation agreement/metrics, four trust paths, immutable metadata versus mutable frames, distinct propagated/canonical/raw-byte hashes and exact public wrapping.",
         "Sole planning.json owner confirmed in original matrix and all fragments. Historical transfer intention had no matching extension row; compact prior metadata and exact prior-symbol fingerprint/commit retained without duplicating219 symbol rows.",
         "R9 test limits include read_text sentinel versus actual read_bytes, broad/earlier guards, row-reversal actual location, Point-only M/ZM, counters versus spies, synthetic physical files and captured bytes versus path postcondition. No production/test/config changes or new application finding.",
-        "Local semantic closure only; independent R9 review pending, global audit PARTIAL; no coverage/matrix merge."
+        "Local semantic closure only. Supplied R9 verdict: CORRECTION_REQUIRED, documentation only. R9.1 corrects the same units; independent review pending, global audit PARTIAL, zero new closure credit; no coverage/matrix merge."
       ],
       "test_references": [
         "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -920,7 +928,15 @@
         "symbols_canonical_json_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty review notes. Exact identities/fingerprints retained in current rows; complete prior arrays remain retrievable at the explicit Git commit/fragment. No materialized extension counterpart."
       },
-      "r9_source_sha256_basis": "git-content"
+      "r9_source_sha256_basis": "git-content",
+      "r9_1_resolution": {
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R9.1.txt",
+        "receipt": "docs/code/audit/R9_1_APPLICATION_FIDELITY.md",
+        "starting_commit": "99465475a479a765941b6d20cbade0cf570186ab",
+        "corrected_symbol_notes": [],
+        "scope": "D01..D07 grouped prose correction; affected owner notes actually read and compared to unchanged bodies/callers/assertions. D07 removes the generic R8 fixture contrast only in the test companion. D06 nested notice is unchanged. File summaries contain none of the seven erroneous symbol formulations.",
+        "history": "r9_prior_evidence retained exactly; prior notes remain in starting Git commit. No symbol identity/signature/range/status or source snapshot change; no additional closure; no new pytest or application finding."
+      }
     },
     {
       "path": "docs/code/files/tests/unit/test_bess_planning_feature_policy.py.md",
@@ -7174,7 +7190,7 @@
         "R9 manual source/body/assertion comparison: exact code propagation, unresolved versus applied UNKNOWN, all-feature intrinsic validation, relation agreement/metrics, four trust paths, immutable metadata versus mutable frames, distinct propagated/canonical/raw-byte hashes and exact public wrapping.",
         "Sole planning.json owner confirmed in original matrix and all fragments. Historical transfer intention had no matching extension row; compact prior metadata and exact prior-symbol fingerprint/commit retained without duplicating219 symbol rows.",
         "R9 test limits include read_text sentinel versus actual read_bytes, broad/earlier guards, row-reversal actual location, Point-only M/ZM, counters versus spies, synthetic physical files and captured bytes versus path postcondition. No production/test/config changes or new application finding.",
-        "Local semantic closure only; independent R9 review pending, global audit PARTIAL; no coverage/matrix merge."
+        "Local semantic closure only. Supplied R9 verdict: CORRECTION_REQUIRED, documentation only. R9.1 corrects the same units; independent review pending, global audit PARTIAL, zero new closure credit; no coverage/matrix merge."
       ],
       "test_references": [
         "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -8509,7 +8525,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--policy-values",
           "review_notes": [
-            "Create one 18-key suffix dict from policy lineage and optional entry: exact match copies six decisions; absent entry gives UNRESOLVED_CODE_PAIR and six None values. All flags False, scopes/profile/config/result hash propagated. Pure helper for catalogs; it does not infer a decision from feature text."
+            "Create one 18-key suffix dict: copy application_status into bess_cnig_policy_application_status independently of row; row is None gives six None decision values, otherwise copy the six decisions. _apply_feature_catalog chooses APPLIED_EXACT_POLICY or UNRESOLVED_CODE_PAIR before calling this helper. _policy_values does not validate coherence between row and status. All flags False, scopes/profile/config/result hash propagated; no decision is inferred from feature text."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -8840,7 +8856,17 @@
         "symbols_canonical_json_sha256": "6e5a4572055023bbd9907520436272d0049acb2255f344e3a8f086f85887f070",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty review notes. Exact identities/fingerprints retained in current rows; complete prior arrays remain retrievable at the explicit Git commit/fragment. No materialized extension counterpart."
       },
-      "r9_source_sha256_basis": "git-content"
+      "r9_source_sha256_basis": "git-content",
+      "r9_1_resolution": {
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R9.1.txt",
+        "receipt": "docs/code/audit/R9_1_APPLICATION_FIDELITY.md",
+        "starting_commit": "99465475a479a765941b6d20cbade0cf570186ab",
+        "corrected_symbol_notes": [
+          "_policy_values"
+        ],
+        "scope": "D01..D07 grouped prose correction; affected owner notes actually read and compared to unchanged bodies/callers/assertions. D07 removes the generic R8 fixture contrast only in the test companion. D06 nested notice is unchanged. File summaries contain none of the seven erroneous symbol formulations.",
+        "history": "r9_prior_evidence retained exactly; prior notes remain in starting Git commit. No symbol identity/signature/range/status or source snapshot change; no additional closure; no new pytest or application finding."
+      }
     },
     {
       "path": "src/landscout/stages/bess_planning_feature_policy.py",
@@ -19907,7 +19933,7 @@
         "R9 manual source/body/assertion comparison: exact code propagation, unresolved versus applied UNKNOWN, all-feature intrinsic validation, relation agreement/metrics, four trust paths, immutable metadata versus mutable frames, distinct propagated/canonical/raw-byte hashes and exact public wrapping.",
         "Sole planning.json owner confirmed in original matrix and all fragments. Historical transfer intention had no matching extension row; compact prior metadata and exact prior-symbol fingerprint/commit retained without duplicating219 symbol rows.",
         "R9 test limits include read_text sentinel versus actual read_bytes, broad/earlier guards, row-reversal actual location, Point-only M/ZM, counters versus spies, synthetic physical files and captured bytes versus path postcondition. No production/test/config changes or new application finding.",
-        "Local semantic closure only; independent R9 review pending, global audit PARTIAL; no coverage/matrix merge."
+        "Local semantic closure only. Supplied R9 verdict: CORRECTION_REQUIRED, documentation only. R9.1 corrects the same units; independent review pending, global audit PARTIAL, zero new closure credit; no coverage/matrix merge."
       ],
       "test_references": [
         "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -20072,7 +20098,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol--z-geometry",
           "review_notes": [
-            "Return Z=7 geometry for one of six kind strings: square Polygon/MultiPolygon, diagonal LineString/MultiLineString or Point/MultiPoint; unknown kind raises AssertionError. Used in local dimensional tests. No M/ZM generation or I/O."
+            "Construct a square Polygon with vertices (0,0,7), (2,0,7), (2,2,7), (0,2,7), a horizontal LineString from (0,0,7) to (2,0,7), Point(1,1,7), and their Multi counterparts. Return the direct dictionary lookup [kind]; an unknown string key raises KeyError, as read from the body, not demonstrated by a separate test. The dimensional-test caller supplies the six supported kind strings. No M/ZM generation or I/O."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -20267,7 +20293,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-relations-inherit-only-from-referenced-enriched-feature",
           "review_notes": [
-            "Map all enriched catalog rows by planning_feature_id and assert every relation's18 policy cells match its referenced feature (nulls handled). This is object-based inheritance, not a new code/parcel lookup."
+            "Use the ordinary synthetic _application_fixture, map all enriched catalog rows by planning_feature_id and directly assert == for every relation's 18 POLICY_COLUMNS against its referenced feature. This proves object-based inheritance for that fixture, not a new code/parcel lookup. There is no null-safe comparison helper or explicit unresolved/null fixture in this test; production null-safe checks and the separate unknown-pair test do not add assertions here."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -20897,7 +20923,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-artifact-loader-parses-only-verified-bytes",
           "review_notes": [
-            "Capture original relation Parquet bytes; patched read_bytes replaces its path immediately after returning captured payload, while patched pd.read_parquet records BytesIO and delegates. Assert replacement occurred, observed buffer matches verified bytes, and loaded relation frame equals original. Does not assert path unchanged or a post-read path-integrity guarantee."
+            "Capture original relation Parquet bytes; patched read_bytes calls original_read_bytes, overwrites the target once, sets replaced=True, and only then returns the original captured payload. Patched pd.read_parquet records BytesIO and delegates decoding: capture -> replace path -> return original bytes -> decode. Assert replacement occurred, observed buffer matches verified bytes, and loaded relation frame equals original. Does not assert path unchanged or a post-read path-integrity guarantee."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -21077,7 +21103,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-application-feature-prefix-has-exact-canonical-schema",
           "review_notes": [
-            "Ten role/mutation combinations: missing/extra/reordered prefix, object area/length/count, object official code, index name/int32, malformed empty point. Reseal then envelope raises schema/dtype/index. All-null optional raw variants have separate scenario; no prefix normalization is done here."
+            "Ten role/mutation combinations: missing/extra/reordered prefix, object area/length/count, official_legal_reference cast to object in the official-object case, index name/int32, malformed empty point. That case does not cast type/subtype codes or official_code_status. Reseal then envelope raises schema/dtype/index. All-null optional raw variants have separate scenario; no prefix normalization is done here."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -21092,7 +21118,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-application-relation-prefix-has-exact-canonical-schema",
           "review_notes": [
-            "Seven mutations: missing/extra/reordered factual columns, object float/count, categorical official status, malformed empty relations. Reseal; local envelope schema/dtype failure. Empty frames still require exact schema."
+            "Seven mutations: missing/extra/reordered factual columns, object float/count, official_code_label cast to category in the official-category case, malformed empty relations. That case does not cast type/subtype codes or official_code_status. Reseal; local envelope schema/dtype failure. Empty frames still require exact schema."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -21122,7 +21148,7 @@
           "status": "CHECKED",
           "documentation_anchor": "symbol-test-lineage-defect-fast-fails-before-policy-source-validation",
           "review_notes": [
-            "Coordinated referenced document mutation (including ID), no-op heavy counter; full validator raises application error and calls0. Broad raises proves local stopping, not one selected error message."
+            "Select an unreferenced feature with _zero_relation_feature, copy its catalog, change only source_archive_sha256 at that row to \"f\" * 64, and reseal through _replace_application_frame. Neither source_document_id nor planning_feature_id changes. Replace the policy-source validator with a no-op counter; the full application validator must raise BessPlanningFeatureApplicationError and calls == 0. The broad raises assertion does not require one exact error message."
           ],
           "test_references": [
             "tests/unit/test_apply_bess_planning_feature_policy.py"
@@ -21588,7 +21614,22 @@
         "symbols_canonical_json_sha256": "0de4d2678e0081580638b0baf3038ef44adb6a69a00b4a648c6aa81b1a746246",
         "symbol_history": "All original symbols NOT_READ, null anchors, empty review notes. Exact identities/fingerprints retained in current rows; complete prior arrays remain retrievable at the explicit Git commit/fragment. No materialized extension counterpart."
       },
-      "r9_source_sha256_basis": "git-content"
+      "r9_source_sha256_basis": "git-content",
+      "r9_1_resolution": {
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R9.1.txt",
+        "receipt": "docs/code/audit/R9_1_APPLICATION_FIDELITY.md",
+        "starting_commit": "99465475a479a765941b6d20cbade0cf570186ab",
+        "corrected_symbol_notes": [
+          "_z_geometry",
+          "test_relations_inherit_only_from_referenced_enriched_feature",
+          "test_artifact_loader_parses_only_verified_bytes",
+          "test_application_feature_prefix_has_exact_canonical_schema",
+          "test_application_relation_prefix_has_exact_canonical_schema",
+          "test_lineage_defect_fast_fails_before_policy_source_validation"
+        ],
+        "scope": "D01..D07 grouped prose correction; affected owner notes actually read and compared to unchanged bodies/callers/assertions. D07 removes the generic R8 fixture contrast only in the test companion. D06 nested notice is unchanged. File summaries contain none of the seven erroneous symbol formulations.",
+        "history": "r9_prior_evidence retained exactly; prior notes remain in starting Git commit. No symbol identity/signature/range/status or source snapshot change; no additional closure; no new pytest or application finding."
+      }
     },
     {
       "path": "tests/unit/test_bess_planning_feature_policy.py",

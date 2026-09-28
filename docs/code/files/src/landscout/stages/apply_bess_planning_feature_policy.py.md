@@ -5,7 +5,7 @@
 - Source SHA256 basis: `git-content`
 - Source lines: 1350; Git blob at R9 start: `3d542b089b9763f4ed1b212e1253a9fe87c865ac`
 
-Git/index/checkout source bytes are unchanged; the full source snapshot below is exact UTF-8 LF. Semantic local closure is not independent approval. [R9 evidence](../../../../../../docs/code/audit/R9_BESS_CNIG_APPLICATION.md).
+Git/index/checkout source bytes are unchanged; the full source snapshot below is exact UTF-8 LF. Semantic local closure is not independent approval. [R9.1 corrections; review pending](../../../../../../docs/code/audit/R9_1_APPLICATION_FIDELITY.md). [R9 evidence](../../../../../../docs/code/audit/R9_BESS_CNIG_APPLICATION.md).
 
 ## Scope, owners and public interfaces
 
@@ -1261,7 +1261,7 @@ def _policy_values(
 ) -> dict[str, object]:
 ```
 
-Create one 18-key suffix dict from policy lineage and optional entry: exact match copies six decisions; absent entry gives UNRESOLVED_CODE_PAIR and six None values. All flags False, scopes/profile/config/result hash propagated. Pure helper for catalogs; it does not infer a decision from feature text.
+Create one 18-key suffix dict: copy application_status into bess_cnig_policy_application_status independently of row; row is None gives six None decision values, otherwise copy the six decisions. _apply_feature_catalog chooses APPLIED_EXACT_POLICY or UNRESOLVED_CODE_PAIR before calling this helper. _policy_values does not validate coherence between row and status. All flags False, scopes/profile/config/result hash propagated; no decision is inferred from feature text.
 
 <a id="symbol--assign-policy-columns"></a>
 ### `landscout.stages.apply_bess_planning_feature_policy._assign_policy_columns`
