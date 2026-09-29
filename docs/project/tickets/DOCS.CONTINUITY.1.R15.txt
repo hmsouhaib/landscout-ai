@@ -1,0 +1,227 @@
+LANDSCOUT — DOCS.CONTINUITY.1.R15
+
+Audit regroupé de l'adaptateur IGN BD TOPO et de ses tests, avec deux retouches R14 bornées
+
+Dépôt local : C:\souhaib\landscout-ai
+Dépôt distant : hmsouhaib/landscout-ai
+Branche autorisée : recovery/docs-continuity-1-partial
+HEAD requis : 8bef62ab9b6eef185bab526a046b4a7dbbea42a1
+Main à préserver : aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02
+
+0. Objectif unique et contexte
+
+Terminer la vérification documentaire du composant d'acquisition, extraction et chargement IGN BD TOPO, en traitant ensemble source, tests et compagnons. Réutiliser les lectures, notes et brouillons existants après vérification de leur base. Ne pas redémarrer l'audit global.
+
+Quatre unités à réconcilier, sans présumer leur statut ou leur propriétaire :
+
+src/landscout/sources/ign_bdtopo_fr.py
+
+tests/unit/test_ign_bdtopo_fr.py
+
+docs/code/files/src/landscout/sources/ign_bdtopo_fr.py.md
+
+docs/code/files/tests/unit/test_ign_bdtopo_fr.py.md
+
+Le reçu R14 identifie le compagnon du test IGN comme premier NOT_READ restant ; cela ne signifie pas que les trois autres unités sont NOT_READ. Leurs statuts réels, notes et éventuels états documentaires imbriqués font foi. Aucune unité déjà clôturée ne regagne du crédit.
+
+Deux seuls paragraphes du compagnon de tests de proximité sont également autorisés à être rectifiés selon la section 3. Cette annexe ne rouvre pas le lot R14.
+
+LandScout reste BESS-first. Muret est un terrain d'essai. Les géométries IGN sont des proxies : ni capacité disponible, ni point RTE garanti, ni accès légal/poids lourd, ni autorisation, ni scoring ne découlent de cet adaptateur. Dernière frontière fonctionnelle approuvée : 7F.1B.4. Le dossier 7F.1C.1 reste une recherche dont la revue sémantique exhaustive est inachevée.
+
+Souhaib décide du produit. ChatGPT est reviewer/auteur de tickets en lecture seule. Codex modifie les seuls documents autorisés et publie sur recovery, puis s'arrête. Un ticket à la fois ; aucun CHECKED, hash ou rapport Codex ne vaut approbation indépendante. CI/PR et fusion vers main restent différées.
+
+1. Reçu fourni de revue indépendante R14
+
+Déclaration de ChatGPT à archiver comme déclaration de reviewer, pas comme exécution Codex, signature cryptographique ou certification globale.
+
+APPROVED — périmètre documentaire R14, avec deux réserves éditoriales mineures non bloquantes R14-REV01 et R14-REV02. Aucun R14.1 préalable. Audit global PARTIAL.
+
+Commit examiné : 8bef62ab9b6eef185bab526a046b4a7dbbea42a1.
+Parent direct : 8afba19df0f6748bf0d5927668b5114e36bb8fb3.
+Message : docs: audit IGN grid proximity reference.
+Tree Git : b6b7ed587522d72f3ef0f5207b07c19a11d4443a.
+Comparaison distante : un descendant direct, sept fichiers documentaires, aucun changement de code/tests/configurations/auditeur. Références distantes consultées ; cela ne prouve pas la propreté du checkout Windows, de l'index ou des fichiers ignorés.
+
+Le reviewer a lu le source proximité 1–1092 et les tests 1–1470, confronté les explications architecturales, notices de classes/champs, 29 notices de fonctions et 77 notices de tests/helpers aux corps et assertions. Les blocs répétant les sources n'ont pas été indépendamment reconstruits/rehashés ; tous les tableaux générés de dépendances et de liens n'ont pas fait l'objet d'un nouveau contrôle mécanique exhaustif.
+
+Lectures contextuelles : normalize_grid_ign.py 1–290, 430–735 et 725–798 ; ign_bdtopo_fr.py 1–240, 1370–1660, 1910–2155 et 2280–2368. Préparation de R15 : tests/unit/test_ign_bdtopo_fr.py 1–230 seulement. Ces lectures ne clôturent pas l'adaptateur ou ses tests.
+
+Contrats acceptés : API publique à trois entrées versus calcul privé et profiler local ; normalisation appelée une fois avec reconstruction physique déléguée ; métadonnées d'archive distinctes d'une relecture des octets .7z ; calcul EPSG:2154/force_2d sur copies ; conservation des géométries/CRS/colonnes/ordre avec nouvel index ; lignes/postes utilisables requis, branche tension exacte optionnelle ; ex aequo et cohérence global-exact/par-niveau ; statistiques descriptives sans seuil ; dataclasses figées mais DataFrames mutables ; mocks non délégants et fixtures physiques synthétiques distingués.
+
+Les deux réserves de la section 3 sont présentes au commit R14. Les identifiants REV évitent une collision avec R14-D01..D04, déjà utilisés dans le reçu local pour ses propres groupes de correction. Aucun nouveau défaut applicatif n'est établi.
+
+Limite du registre : le point d'accès commit a fourni les métadonnées de foundations.json sans patch ; la lecture bornée a retourné un corps vide, OID 00f4d104844121473ca42500b805be91e3a90269. Le reviewer ne prétend ni avoir trouvé les deux erreurs dans les notes actuelles, ni avoir recompté les transitions. Codex doit les lire avant toute correction.
+
+Aucun pytest, import/loader applicatif, pipeline IGN/GPU/EP, auditeur INDEX, rendu visuel ou nouveau cold-start n'a été exécuté par le reviewer. Pas de recalcul complet des SHA/snapshots, des 141 mappings, des 106 fichiers protégés ou des 305 chemins hors périmètre.
+
+Preuves locales rapportées seulement : 174 passes / 9,96 s / exit0 après cleanup, sans warning/skip/xfail rapporté ; INDEX 10 217 constats / completed=true / exit1, manifeste 7e880ed6dd97d41d32f7bfc85b7c2c9c7698224fd9b23c7e41a8b392285f6546. Le reçu seul est complété après le run : ne pas transformer cela en audit du commit final ou second run. Comparaison locale à R13 : 10 215 occurrences communes, trois retirées et deux ajoutées. Le registre global reste volontairement non fusionné ; tous ses diagnostics ne sont ni bénins ni corrigés.
+
+Compteurs rapportés : 107/245 fichiers ; 2 975/4 769 symboles, restent 138 fichiers / 1 794 symboles. L'approbation et les retouches n'ajoutent aucune unité. Préserver R14-T01..05 et toutes les réserves antérieures, notamment A-001..A-004, R5-D01, cold-start/visuel/validation globale, revue sémantique 7F.1C.1 et lacune du reçu original 7F.1B.4.
+
+Consigner le verdict par un renvoi successoral court dans CURRENT_STATE ; ne pas réécrire les anciens reçus PENDING et ne pas recopier toute la chronologie à chaque étape.
+
+2. Départ, propriété et préservation
+
+Lire AGENTS.md, WORKING_RULES, RESUME, CURRENT_STATE, BACKLOG_AND_GAPS, DOCUMENTATION_AUDIT, le reçu R14, l'autorité de préservation et ce ticket. Réutiliser les autres lectures historiques seulement si les octets de leur version sont inchangés.
+
+Vérifier racine réelle, branche, HEAD, suivi, index/worktree, opérations Git et vraie référence serveur. Exiger le HEAD ci-dessus et main inchangé. En cas de reprise interrompue de CE ticket, conserver ses modifications identifiables et reprendre son premier point inachevé ; ne pas écraser ce qui existe.
+
+Pas de reset/restore/clean/stash/rebase/amend/squash/merge/force-push pour forcer l'état. Après une erreur effective de propriété seulement, l'exception par commande et chemin exact déjà autorisée reste possible. Aucune confiance wildcard ou persistante, aucun changement d'ACL, Smart App Control, environnement ou dépendances.
+
+Identités consultées pendant la préparation, à vérifier :
+
+Fichier protégé
+
+OID Git
+
+src/landscout/sources/ign_bdtopo_fr.py
+
+876207e3b1b0ac4c1a245c01fdad91e72e5bb4d3
+
+tests/unit/test_ign_bdtopo_fr.py
+
+560c3ec1774ec514e77f58e1f9a63ec6599de2db
+
+tests/unit/test_enrich_grid_proximity.py
+
+151b6bc7df1aeeab6bbdb653dc5b2ebfbeddc196
+
+Compagnon tests proximité avant les deux retouches
+
+30fe2b2c5986d2bfffd6b732b2ae6812bc6ad9f5
+
+Comparer les 106 fichiers protégés et chaque chemin initial hors périmètre. Recalculer le nombre courant ; ne pas copier 305. Préserver les deux exceptions EOL historiques (YAML de zonage écrit et ticket RESUME) et les treize observations whitespace héritées. Aucune normalisation d'un fichier protégé pour faire correspondre un hash.
+
+3. Deux seules retouches R14
+
+Fichier : docs/code/files/tests/unit/test_enrich_grid_proximity.py.md.
+
+R14-REV01 — assertion de distance inventée
+
+Symbole : test_epsg2154_parcel_input_remains_epsg2154, Python 688–692.
+La notice dit : « asserts output EPSG:2154 and 100 m nearest-line distance ».
+Le corps ne contient que :
+
+result = enrich_parcel_grid_proximity(_parcels(), _lines(), _posts())
+assert result.parcels.crs is not None
+assert result.parcels.crs.to_epsg() == 2154
+
+Supprimer uniquement la prétendue assertion de distance. Décrire CRS non nul et code EPSG 2154 après l'appel du calculateur privé. Ne pas importer la preuve de distance du test voisin. Le bloc exact et l'inventaire d'assertions sont déjà corrects ; ne pas les modifier.
+
+R14-REV02 — nom du prédicat scalaire
+
+Symbole : test_supported_parcel_polygon_geometry_is_preserved, Python 743–747.
+La notice nomme geom_equals_exact. Le corps utilise :
+
+assert result.parcels.geometry.iloc[0].equals_exact(geometry, tolerance=0)
+assert result.parcels.geometry.iloc[0].has_z == geometry.has_z
+
+Nommer equals_exact sur l'objet géométrique scalaire, puis l'égalité de has_z. Conserver la limite : pas de comparaison indépendante de toutes les ordonnées Z/M ou des bytes WKB. Ne pas modifier les tests ou la notice du prédicat GeoSeries réellement utilisé ailleurs.
+
+Lire les deux notes qualifiées dans le propriétaire réel, attendu foundations.json d'après R14. Les corriger seulement si elles reproduisent l'erreur. Préserver toutes les autres notes, preuves, signatures, ancres et états de ce lot. Mettre à jour le seul fingerprint documentaire affecté et une provenance compacte vers le reçu R15. Zéro crédit de couverture pour ces retouches ; leur réalisation locale n'est pas une auto-approbation indépendante.
+
+4. Périmètre d'écriture autorisé
+
+Les deux compagnons IGN du lot principal, uniquement pour des explications vérifiées ; préserver les parties exactes.
+
+Le compagnon des tests de proximité, limité aux deux paragraphes de la section 3.
+
+Le ou les fragments propriétaires réellement établis : quatre unités IGN, leurs notes/fingerprints/transitions/provenance ; deux notes R14 et son fingerprint seulement si nécessaire. Respecter les représentations imbriquées existantes ; ne pas créer de doublons pour obtenir quatre lignes.
+
+Nouveau docs/code/audit/R15_IGN_BDTOPO_SOURCE.md.
+
+Archive exacte docs/project/tickets/DOCS.CONTINUITY.1.R15.txt de l'instruction réellement reçue.
+
+docs/code/audit/DOCUMENTATION_AUDIT.md et docs/project/CURRENT_STATE.md.
+
+BACKLOG_AND_GAPS n'est autorisé que pour un défaut applicatif concret et prouvé, non dupliqué, séparé d'une simple limite de test. Le signaler sans correction de production.
+
+Interdits : Python, tests, YAML, lockfile/dépendances, auditeur, anciens reçus/tickets, autres compagnons, caches/archives/GPKG officiels, nouveaux outils permanents, CI/PR, fusion/régénération globale de coverage.json ou de la matrice. R5-D01 reste hors de cette correction.
+
+5. Lecture et audit sémantique du composant IGN
+
+Lire le source et les tests complets à la version de départ. Réutiliser les notes et passages déjà vérifiés lorsque leurs bytes concordent, mais confronter effectivement chaque explication que ce ticket clôture. Le premier NOT_READ concerne le compagnon de tests ; ne pas convertir automatiquement les autres unités READ en CHECKED.
+
+Recenser les vrais états dans la matrice et les fragments : propriétaire effectif, états du fichier et de son compagnon éventuellement imbriqués, symboles déjà clôturés, lacunes et ancienne preuve. Une intention transferred_to non matérialisée ne crée pas une seconde autorité.
+
+Pour chaque classe, champ, fonction et test : propriétaire qualifié ; signature/defaults/retour exacts ; ordre des gardes et appels ; étapes de l'algorithme ; copie/mutation ; fichiers réellement lus/écrits ; types d'exception locaux et wrappers ; assertions réellement associées. Les annotations de dataclasses ne sont pas des validateurs et les DataFrames restent mutables lorsqu'ils le sont réellement.
+
+Suivre uniquement les passages utiles de safe_http, strict_json, strict_yaml, exports sources, normalisateurs IGN et consommateurs grid/road/coverage. Ne pas leur attribuer de clôture pour cette lecture contextuelle et ne pas recopier le contrat réseau/cache d'un autre adaptateur.
+
+6. Acquisition, cache et extraction : décrire les chemins réels
+
+Établir les modèles et alias de configuration, valeurs par défaut, champs requis/nullables, contraintes qui nettoient effectivement les chaînes versus contraintes strictes, checksum MD5/SHA256, formats 7z/GPKG, versions et dates. Par exemple, la présence du type HttpUrl ne prouve pas seule la politique HTTPS/socket : distinguer validation du modèle et transport commun effectivement appelé.
+
+Lire intégralement les chemins de téléchargement et cache : lecture distante et taille, calcul des digests, checksum configuré, fraîcheur, cache valide/invalide, erreurs, publication des paires et rollback. Décrire quand DNS/HTTP sont réellement évités, sans étendre une assertion de mock à tout accès système. Distinguer contrôles des métadonnées et contrôle physique des octets.
+
+Documenter les protections des membres 7z, chemins et arborescences, découvertes de GeoPackage/couches, publication et reprise d'extraction. Nommer les vrais marqueurs/schémas ; .landscout-extraction.json n'est ni le manifeste GPU ni un ZIP. Expliquer les postconditions, sauvegardes conservées en cas d'échec et les limites de concurrence que le code impose effectivement, sans promesse d'atomicité générale.
+
+Aucun nouveau téléchargement ou contrôle d'une archive officielle n'est autorisé pour écrire ces documents.
+
+7. Chargements et autorité des objets
+
+Établir séparément : chargement brut non fiable ; chargements config-bound électricité/routes/couverture ; revalidation d'objets déjà chargés ; contrôles de fichiers et comparaisons de frames. Le helper _load_untrusted_ign_bdtopo_layer ne devient pas une API de production vérifiée parce qu'un test l'importe sous un nom court.
+
+Repères effectivement consultés : le chargement électricité reçoit extraction et configuration, reconstruit la configuration, compare les métadonnées de l'archive, valide l'extraction, redécouvre les rôles, lit les couches sélectionnées et vérifie la stabilité de l'extraction. La revalidation compare ensuite frames et résumés. Relire les helpers complets avant d'affirmer le détail des contrôles.
+
+Distinguer : octets du GeoPackage/inventaire effectivement hashés ; .7z simplement représenté par ses métadonnées à cette frontière ; lectures gpd/pyogrio par chemin versus snapshot bytes ; CRS/colonnes/dtypes/index/attrs/WKB comparés ; géométries nulles/vides/invalides conservées et résumées ou refusées selon le chemin. Ne pas importer la règle de filtrage VALID du calculateur de distances dans le chargeur brut.
+
+La couverture départementale est une limite de source, pas une capacité électrique. Les routes ne prouvent ni droit d'accès ni accessibilité camion. Nommer exactement les types et rôles de sortie. Le nom d'une version ou d'un hash ne permet pas d'inférer un chargeur ou une vérification non implémentés.
+
+8. Tests : preuves concrètes et limites
+
+Lire toutes les fixtures, paramètres, mocks, callbacks, mutations et assertions, pas seulement les titres. Les passages préparatoires montrent de vrais GPKG/archives synthétiques, des configurations dérivées du YAML et un alias local du lecteur non fiable ; ne pas généraliser ce préambule à tous les tests sans lecture complète.
+
+Pour chaque test, distinguer : modèle seul, helper privé, I/O physique synthétique, transport mocké, acquisition officielle absente, enregistrements construits ou relus, contrôle de résumé ou comparaison exacte. Un mock return_value n'est pas une délégation ; une sentinelle levante n'est pas un compteur de lectures réussi.
+
+Décrire le premier rejet possible et les champs réellement modifiés. Un double échec de publication/rollback doit être distingué d'un simple échec. Une archive, un inventaire ou un hash falsifié/recalculé ne doit pas être déclaré isolément testé si un autre défaut provoque un rejet antérieur. Énumérer les véritables assertions, sans leur ajouter une distance, un appel, une absence de réseau ou une comparaison de bytes qu'elles ne font pas.
+
+Les limites de preuve nouvelles peuvent être consignées sous R15-Txx, sans créer un défaut applicatif à partir du seul manque de test. Ne pas retoucher les tests pour faire correspondre leurs corps à la documentation.
+
+9. Une validation ciblée et les contrôles documentaires
+
+Après correction des compagnons, une seule invocation du test IGN existant, avec environnement installé inchangé :
+
+$root = Join-Path $env:LOCALAPPDATA 'LandScout\pytest-runs'
+New-Item -ItemType Directory -Force -Path $root | Out-Null
+$base = Join-Path $root ('r15-' + [guid]::NewGuid().ToString('N').Substring(0,8))
+uv run --no-sync pytest -q tests/unit/test_ign_bdtopo_fr.py --basetemp "$base"
+$code = $LASTEXITCODE
+if ($code -ne 0) { throw "R15 focused pytest failed: $code" }
+
+Capturer le nombre réel, durée, warnings/skips/xfails et sortie native finale après cleanup. Aucun total préassigné. En cas d'échec, préserver et rapporter sans corriger l'application/l'environnement et sans retry silencieux. Les I/O synthétiques des tests sont autorisés, pas les grandes archives officielles.
+
+Ne pas relancer les 174 tests R14 pour deux retouches de prose. Pas de suite complète, autre pytest, pipeline Muret/GPU/EP, revue juridique, uv sync/install, changements sécurité/dépendances ou outil permanent.
+
+Scripts temporaires hors dépôt permis pour AST/texte/JSON/hash/liens, sans import applicatif supplémentaire. Vérifier signatures/plages, bonne section cible et ancres uniques, notes propriétaires, schémas/champs/retours, snapshots exacts et bases de SHA, exports, tableaux/fences/Unicode, liens entrants/sortants, octets exacts du ticket reçu. Le contrôle des deux retouches R14 reste borné ; leurs autres paragraphes, snapshots et états doivent rester inchangés.
+
+Les trois bases Git/index/checkout doivent être nommées lorsqu'elles diffèrent. Le rendu visuel n'est déclaré réussi que s'il est réellement exercé avec un outil utilisable déjà disponible ; sinon il reste PENDING. Ne pas inventer un contrôle visuel à partir de Markdown parsé.
+
+10. Compteurs, audit INDEX et preuve non circulaire
+
+Point de départ enregistré : 107/245 fichiers ; 2 975/4 769 symboles. Déterminer le gain depuis les vrais états des quatre unités IGN ; aucun gain R14, dépendance, ticket/reçu, approbation ou nouvelle déclaration. Ne pas changer les dénominateurs historiques, reconstruire un inventaire parallèle ou écraser les unités READ restantes.
+
+Conserver A-001..A-004, toutes les limites antérieures dont R14-T01..05, OPEN R5-D01, cold-start/visuel/finalisation et revue 7F.1C.1. Les anciennes mentions PENDING conservent leur valeur historique ; la nouvelle décision se référence successoralement.
+
+Après staging explicite des seuls documents relus, une seule exécution complète de l'auditeur inchangé :
+
+.venv\Scripts\python.exe -B -X utf8 tools/audit_documentation.py --check --progress > C:\souhaib\r15-candidate.stdout.txt 2> C:\souhaib\r15-candidate.stderr.txt
+
+Capturer sortie native, completed, métriques, manifeste exact path/mode/OID et logs complets. Comparer au vrai candidat R14 seulement si ses logs sont disponibles ; 10 217 est une mesure historique, pas une cible. Exit1/completed=true peut refléter PARTIAL ; timeout/interruption/exit2 n'est pas un audit terminé. Ne changer ni l'outil, ni les exclusions, ni le registre global pour obtenir du vert.
+
+Compléter seulement le nouveau reçu après le run et contrôler son delta exact. Un autre changement doit être nommé et contrôlé séparément, sans fausse égalité candidat/commit final. Pas de future self-SHA, second run fictif, total audité du commit final déduit ou réécriture des archives pour supprimer les anciennes observations whitespace.
+
+11. Publication et arrêt
+
+Publier le lot documentaire réellement terminé sur recovery, staging par chemins explicites, sans git add global ou commit -a :
+
+git commit -m "docs: audit IGN BD TOPO source reference"
+git push origin recovery/docs-continuity-1-partial
+
+Vérifier SHA réel, index/worktree propre, suivi et serveur concordants, main inchangé. Si le lot reste partiel, préserver le travail et indiquer le premier élément inachevé ; pas de fausse finalisation.
+
+Rapport : fichiers effectivement modifiés ; propriétaires/états initiaux et finaux ; gain dédupliqué ; corrections et limites concrètes ; statut local des deux retouches R14 et notes déjà exactes/modifiées ; test unique et sortie ; audit candidat et delta ; protection des fichiers ; première unité suivante identifiée seulement.
+
+Libellé : DOCS.CONTINUITY.1.R15 completed — global audit PARTIAL; review pending.
+
+Puis STOP. Aucune implémentation fonctionnelle, aucun autre lot automatique, aucune auto-approbation, PR ou fusion vers main.

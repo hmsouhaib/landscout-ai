@@ -2805,7 +2805,7 @@ def test_epsg4326_input_is_calculated_in_lambert93_and_preserved() -> None:
 
 Qualified owner: `tests.unit.test_enrich_grid_proximity.test_epsg2154_parcel_input_remains_epsg2154`. Source lines 688–692.
 
-**Purpose:** Calls the private calculator with Lambert-93 parcels; asserts output EPSG:2154 and 100 m nearest-line distance.
+**Purpose:** Calls the private calculator with Lambert-93 parcels; asserts that the output CRS is non-null and its EPSG code is 2154. No distance assertion occurs in this test.
 
 **Exact signature**
 
@@ -3110,7 +3110,7 @@ def test_invalid_parcel_id_hygiene_is_rejected(identifier: object) -> None:
 
 Qualified owner: `tests.unit.test_enrich_grid_proximity.test_supported_parcel_polygon_geometry_is_preserved`. Source lines 743–747.
 
-**Purpose:** Calls the private calculator for Polygon, MultiPolygon and an XYZ Polygon, checking geom_equals_exact at zero tolerance and has_z equality. These checks do not independently compare every Z value or establish M preservation end to end.
+**Purpose:** Calls the private calculator for Polygon, MultiPolygon and an XYZ Polygon, checking scalar geometry.equals_exact(geometry, tolerance=0) and has_z equality. These checks do not independently compare every Z/M ordinate or exact WKB bytes.
 
 **Exact signature**
 

@@ -6,17 +6,29 @@
 - File type: Python source
 - Layer: unit/regression test
 - Domain: isolated contract test evidence
-- Responsibility: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+- Responsibility: Exercises the bounded synthetic IGN source contracts and assertions described below, not exhaustive or official-source coverage.
 - Source SHA256: `39d0e303aec55a24866a2c41b32bdb215203b4280fb748421454120eae24f078`
+- Source SHA256 basis: `git-content`
+- R15 verification basis: `8bef62ab9b6eef185bab526a046b4a7dbbea42a1`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
 - Refreshes permanent STEP 7F.1A.4 regression coverage for ign bdtopo fr; the exact fixtures, mutations, calls, controlled failures, and assertions are inventoried below.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
 
+## R15 fixtures, aliases and proof limits
+
+This module declares 76 top-level test functions and one pytest.fixture (source_config). Other helpers, _FakeArchive and nested callbacks are not additional tests or fixtures. A fixture parameter named source_config is an injected IgnBdTopoSourceConfig instance, not the fixture callable's namespace. load_untrusted_ign_bdtopo_layer is an alias of the private raw reader. Public loading tests are identified separately below.
+
+Most I/O scenarios create genuine temporary GeoPackages with Pyogrio and genuine 7z files with py7zr, using a config derived from the checked-in YAML but a synthetic URL. open_safe_https is replaced by a nondelegating BytesIO return_value or a raising sentinel, so these tests do not exercise live DNS/TLS/redirects or acquire an official archive. _FakeArchive/SimpleNamespace scenarios only exercise private member-metadata validation. Publication callbacks that call original_replace really delegate unaffected filesystem operations; the .part-link test instead returns precomputed archive integrity from a nondelegating mock.
+
+Every verified scenario below states its boundary, mutation and assertions. A Python assert count excludes helper calls such as assert_not_called and assert_geodataframe_equal. Model-only failures, extraction cache rebuilds and public-loader failures are different evidence. Adding a physical layer also changes file bytes and can fail the hash gate before layer-inventory comparison. Byte-string tampering with a stale SHA does not independently test semantic attribute validation. Predicate-simulated links are not actual OS links; no general race-free snapshot or exhaustive Z/M/WKB preservation claim follows.
+
+Exact source blocks remain unchanged. No application behavior, checked-in test, config, schema, snapshot, cache or dependency is changed by this documentary audit. The package/export checks in this file are bounded road API assertions, not complete proof of every source export.
+
 ## 2. Purpose and architectural position
 
-Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Exercises the bounded synthetic IGN source contracts and assertions described below, not exhaustive or official-source coverage.
 
 The file belongs to the **unit/regression test** layer and **isolated contract test evidence** domain. Its authority is limited to the declarations, exact qualified relationships, validation paths, and side effects reproduced below.
 
@@ -165,9 +177,18 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ## 5. Classes, models, dataclasses, and fields
 
+<a id="r15--fakearchive"></a>
 ### `_FakeArchive`
 
-**Source purpose:** Defines `_FakeArchive`; its exact fields, decorators, bases, methods, and complete source below are authoritative.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._FakeArchive`. Source lines 1581–1590.
+
+Exact declaration:
+
+```python
+class _FakeArchive:
+```
+
+**Verified purpose:** Mutable fake implementing only needs_password and list. _infos retains the caller list alias and _encrypted the supplied flag; it is not a validated immutable source envelope, file parser or context manager.
 
 - Exact decorators: none.
 - Exact bases: plain object.
@@ -212,9 +233,12 @@ class _FakeArchive:
 
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r15--config-data"></a>
 ### `_config_data`
 
-**Purpose:** Implements `config data` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._config_data`. Source lines 52–54.
+
+**Verified purpose:** Read the checked-in YAML through yaml.safe_load into a mutable test payload. This helper does not use the production duplicate-rejecting YAML loader or construct a validated model.
 
 **Exact signature**
 
@@ -280,9 +304,12 @@ def _config_data() -> dict:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--synthetic-config"></a>
 ### `_synthetic_config`
 
-**Purpose:** Implements `synthetic config` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._synthetic_config`. Source lines 57–74.
+
+**Verified purpose:** Dump the fixture config to JSON-mode values, replace the URL with example.test, remove checksum_url and expected size, optionally pin the supplied SHA256, then model-validate a new config. The original config is not mutated; no network occurs.
 
 **Exact signature**
 
@@ -377,9 +404,9 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `source_config.model_dump` | `tests.unit.test_ign_bdtopo_fr.source_config.model_dump` |
+| `source_config.model_dump` | `pydantic.BaseModel.model_dump` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) (inherited Pydantic method on the injected model) |
 | `content.update` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 
 **Source-observed side-effect matrix**
 
@@ -423,9 +450,12 @@ def _synthetic_config(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--write-gpkg"></a>
 ### `_write_gpkg`
 
-**Purpose:** Implements `write gpkg` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._write_gpkg`. Source lines 77–219.
+
+**Verified purpose:** Create parent directories and real temporary GPKG layers through Pyogrio. Defaults create two electricity layers (valid/null lines and posts); switches add an invalid post, roads and departments. Road kind selects line, multiline or mixed geometries. road_crs or crs and department_codes/geometries or defaults use truthiness, so empty lists select defaults. IDs R_LINE/R_MULTI do not themselves prove geometry kinds. These are synthetic attributes/coordinates, not official IGN data.
 
 **Exact signature**
 
@@ -532,9 +562,9 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | `path.parent.mkdir` |
+| Filesystem/archive write or publication | path.parent.mkdir and pyogrio.write_dataframe create/append genuine synthetic GPKG layers. |
 | Hashing/byte identity | None directly present. |
-| CRS/geometry/spatial calculation | None directly present. |
+| CRS/geometry/spatial calculation | Constructs synthetic LineString/MultiLineString/Polygon/MultiPolygon and GeoDataFrame CRS metadata; no parcel-distance calculation. |
 | External process/environment | None directly present. |
 | In-memory mutation | `geometries.append(invalid)`<br>`object_ids.append("P_INVALID")` |
 | Direct parameter mutation | None directly present. |
@@ -691,9 +721,12 @@ def _write_gpkg(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--pack-7z"></a>
 ### `_pack_7z`
 
-**Purpose:** Implements `pack 7z` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._pack_7z`. Source lines 222–230.
+
+**Verified purpose:** Create parents, write each supplied path/member-name pair to a real py7zr archive in caller order, then return its bytes. This is in-process compression and filesystem I/O, not a subprocess or download.
 
 **Exact signature**
 
@@ -750,10 +783,10 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `py7zr.SevenZipFile`<br>`archive_path.read_bytes` |
-| Filesystem/archive write or publication | `archive_path.parent.mkdir` |
+| Filesystem/archive write or publication | archive_path.parent.mkdir, py7zr.SevenZipFile(mode="w") and archive.write create the 7z file. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
-| External process/environment | `py7zr.SevenZipFile` |
+| External process/environment | In-process py7zr compression; no subprocess launch. |
 | In-memory mutation | None directly present. |
 | Direct parameter mutation | None directly present. |
 
@@ -775,9 +808,12 @@ def _pack_7z(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--synthetic-archive-bytes"></a>
 ### `_synthetic_archive_bytes`
 
-**Purpose:** Implements `synthetic archive bytes` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._synthetic_archive_bytes`. Source lines 233–258.
+
+**Verified purpose:** Write a synthetic GPKG and pack it at BDTOPO_TEST/GPKG/BDTOPO_TEST.gpkg in fixture.7z. Unlike _write_gpkg defaults, this helper defaults to all four physical roles; switches are forwarded. Return real archive bytes, not an official snapshot.
 
 **Exact signature**
 
@@ -929,9 +965,12 @@ def _synthetic_archive_bytes(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--response"></a>
 ### `_response`
 
-**Purpose:** Implements `response` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._response`. Source lines 261–262.
+
+**Verified purpose:** Return a fresh io.BytesIO over supplied bytes for the mocked HTTPS opener. This simulates a context-managed byte stream, not DNS, TLS, response headers, redirects or status validation.
 
 **Exact signature**
 
@@ -1049,9 +1088,12 @@ def _response(content: bytes) -> io.BytesIO:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--metadata-path"></a>
 ### `_metadata_path`
 
-**Purpose:** Implements `metadata path` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._metadata_path`. Source lines 265–266.
+
+**Verified purpose:** Derive the sibling archive-name.metadata.json Path. No existence check, file read or write.
 
 **Exact signature**
 
@@ -1121,9 +1163,12 @@ def _metadata_path(archive_path: Path) -> Path:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--extraction-metadata-path"></a>
 ### `_extraction_metadata_path`
 
-**Purpose:** Implements `extraction metadata path` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._extraction_metadata_path`. Source lines 269–270.
+
+**Verified purpose:** Derive the .landscout-extraction.json child Path. No existence check, file read or write.
 
 **Exact signature**
 
@@ -1191,9 +1236,12 @@ def _extraction_metadata_path(extraction_path: Path) -> Path:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--extracted-fixture"></a>
 ### `_extracted_fixture`
 
-**Purpose:** Implements `extracted fixture` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._extracted_fixture`. Source lines 273–294.
+
+**Verified purpose:** Ordinary helper, not a pytest fixture: build genuine synthetic GPKG/7z bytes and derived config, mock open_safe_https with a nondelegating BytesIO return_value, call public download and extraction, and return config/download/extraction. Archive and GPKG validation run locally; DNS/HTTP/TLS are bypassed.
 
 **Exact signature**
 
@@ -1317,9 +1365,12 @@ def _extracted_fixture(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--expire-cache"></a>
 ### `_expire_cache`
 
-**Purpose:** Implements `expire cache` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._expire_cache`. Source lines 297–303.
+
+**Verified purpose:** Read the JSON sidecar, replace download_timestamp with UTC now minus 365 days, rewrite it and return the rewritten bytes for exact later comparison. Mutates only the synthetic cache, not the frozen download envelope.
 
 **Exact signature**
 
@@ -1399,9 +1450,12 @@ def _expire_cache(metadata_path: Path) -> bytes:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-source-config"></a>
 ### `source_config`
 
-**Purpose:** Implements `source config` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.source_config`. Source lines 307–308.
+
+**Verified purpose:** The sole pytest.fixture in this module; with no explicit scope argument, each requesting test receives a config loaded from checked-in YAML through the public strict loader. Its parameter names elsewhere denote injected model values, not methods of this fixture function.
 
 **Exact signature**
 
@@ -1425,61 +1479,61 @@ def source_config() -> IgnBdTopoSourceConfig:
 **Qualified relationships**
 
 Inbound conservative repository consumers:
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::_synthetic_config` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::_extracted_fixture` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_valid_source_config_loads` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_loaded_ign_source_config_and_nested_models_are_frozen` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_download_revalidates_a_tampered_config_before_network` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_successful_archive_download_persists_sha256` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_fresh_cache_is_reused_without_network` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_stale_recovery_backup_rejects_cache_before_network` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_expired_cache_is_refreshed` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_failed_refresh_preserves_valid_cache` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_corrupt_refresh_preserves_valid_cache` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_metadata_publication_failure_restores_previous_cache_pair` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_official_checksum_mismatch_is_rejected` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_unsafe_parent_archive_member_is_rejected` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_real_layer_names_are_listed_and_discovered` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_missing_electric_line_layer_fails` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_missing_transformation_post_layer_fails` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_ambiguous_electric_line_layers_fail` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_synthetic_archive_extracts_and_discovers_required_layers` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_schema_v3_extraction_metadata_binds_complete_physical_inventory` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_extraction_rejects_forged_download_lineage_before_archive_open` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_same_size_geopackage_tamper_invalidates_extraction_cache` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_forged_extraction_metadata_never_returns_cache_hit` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_linked_extraction_metadata_never_returns_cache_hit` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_malformed_geopackage_sha_is_not_trusted` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_malformed_geopackage_size_is_not_trusted` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_default_extraction_path_is_short_and_content_addressed` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_electricity_loader_retains_both_layer_counts` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_layer_discovery_loads_selected_physical_layer` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_physical_layer_cannot_collide_with_electricity_roles` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_physical_layer_cannot_collide_with_road_role` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_physical_layer_cannot_collide_with_electricity_roles` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_electricity_physical_layers_must_be_distinct` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_missing_road_layer_fails_safely` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_ambiguous_road_layer_fails_safely` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_wrong_archive_config_department` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_changed_layer_inventory` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_geographic_crs` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_loader_preserves_lambert93_lines_unchanged` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_stale_extraction_backup_blocks_before_7z_open` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_extraction_part_link_is_rejected_without_touching_target` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_download_cache_reader_rejects_noncanonical_json_and_refreshes` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_coverage_loader_selects_configured_identity` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_coverage_requires_one_authoritative_feature` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_coverage_requires_configured_identity_field` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_missing_department_coverage_layer_fails` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_department_coverage_layer_discovery_must_be_unambiguous` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_direct_consumers_reject_same_inventory_content_tampering` via `source_config`
-- value/type reference: `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_source_change_after_physical_read` via `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::_synthetic_config` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::_extracted_fixture` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_valid_source_config_loads` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_loaded_ign_source_config_and_nested_models_are_frozen` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_download_revalidates_a_tampered_config_before_network` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_successful_archive_download_persists_sha256` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_fresh_cache_is_reused_without_network` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_stale_recovery_backup_rejects_cache_before_network` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_expired_cache_is_refreshed` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_failed_refresh_preserves_valid_cache` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_corrupt_refresh_preserves_valid_cache` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_metadata_publication_failure_restores_previous_cache_pair` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_official_checksum_mismatch_is_rejected` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_unsafe_parent_archive_member_is_rejected` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_real_layer_names_are_listed_and_discovered` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_missing_electric_line_layer_fails` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_missing_transformation_post_layer_fails` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_ambiguous_electric_line_layers_fail` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_synthetic_archive_extracts_and_discovers_required_layers` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_schema_v3_extraction_metadata_binds_complete_physical_inventory` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_extraction_rejects_forged_download_lineage_before_archive_open` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_same_size_geopackage_tamper_invalidates_extraction_cache` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_forged_extraction_metadata_never_returns_cache_hit` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_linked_extraction_metadata_never_returns_cache_hit` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_malformed_geopackage_sha_is_not_trusted` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_malformed_geopackage_size_is_not_trusted` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_default_extraction_path_is_short_and_content_addressed` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_electricity_loader_retains_both_layer_counts` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_layer_discovery_loads_selected_physical_layer` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_physical_layer_cannot_collide_with_electricity_roles` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_physical_layer_cannot_collide_with_road_role` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_physical_layer_cannot_collide_with_electricity_roles` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_electricity_physical_layers_must_be_distinct` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_missing_road_layer_fails_safely` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_ambiguous_road_layer_fails_safely` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_wrong_archive_config_department` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_changed_layer_inventory` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_geographic_crs` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_loader_preserves_lambert93_lines_unchanged` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_stale_extraction_backup_blocks_before_7z_open` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_extraction_part_link_is_rejected_without_touching_target` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_download_cache_reader_rejects_noncanonical_json_and_refreshes` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_coverage_loader_selects_configured_identity` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_coverage_requires_one_authoritative_feature` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_coverage_requires_configured_identity_field` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_missing_department_coverage_layer_fails` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_department_coverage_layer_discovery_must_be_unambiguous` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_direct_consumers_reject_same_inventory_content_tampering` via parameter `source_config`
+- Fixture-value injection/forwarding (not a direct reference to the fixture callable): `tests.unit.test_ign_bdtopo_fr::test_road_loader_rejects_source_change_after_physical_read` via parameter `source_config`
 
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
@@ -1512,9 +1566,12 @@ def source_config() -> IgnBdTopoSourceConfig:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-valid-source-config-loads"></a>
 ### `test_valid_source_config_loads`
 
-**Purpose:** Regression invariant: valid source config loads. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_valid_source_config_loads`. Source lines 311–320.
+
+**Verified purpose:** Inspect the loaded YAML model: provider contains IGN, department 31, EPSG:2154, GPKG, edition 2026-06-15, road label/tokens and department tokens/identity field. Nine assertions, no archive acquisition or physical-source certification.
 
 **Exact signature**
 
@@ -1556,7 +1613,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1588,9 +1645,12 @@ def test_valid_source_config_loads(source_config: IgnBdTopoSourceConfig) -> None
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-loaded-ign-source-config-and-nested-models-are-frozen"></a>
 ### `test_loaded_ign_source_config_and_nested_models_are_frozen`
 
-**Purpose:** Regression invariant: loaded ign source config and nested models are frozen. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_loaded_ign_source_config_and_nested_models_are_frozen`. Source lines 323–329.
+
+**Verified purpose:** Attempt assignment to department_code and nested road class_label; each must immediately raise ValidationError. These two assignments do not test every nested collection operation or every metadata model.
 
 **Exact signature**
 
@@ -1628,7 +1688,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1657,9 +1717,12 @@ def test_loaded_ign_source_config_and_nested_models_are_frozen(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-download-revalidates-a-tampered-config-before-network"></a>
 ### `test_download_revalidates_a_tampered_config_before_network`
 
-**Purpose:** Regression invariant: download revalidates a tampered config before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_download_revalidates_a_tampered_config_before_network`. Source lines 332–348.
+
+**Verified purpose:** Copy the model and bypass freezing with object.__setattr__ to forge provider, then call public download under a raising opener sentinel. Require IgnBdTopoDownloadError matching config and assert the opener was not called; config reconstruction rejects before acquisition.
 
 **Exact signature**
 
@@ -1695,7 +1758,7 @@ Inbound conservative repository consumers:
 Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
-| `source_config.model_copy` | `tests.unit.test_ign_bdtopo_fr.source_config.model_copy` |
+| `source_config.model_copy` | `pydantic.BaseModel.model_copy` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) (inherited Pydantic method on the injected model) |
 | `object.__setattr__` | `unresolved local/third-party receiver; no ownership inferred` |
 | `patch` | `unittest.mock.patch` |
 | `AssertionError` | `unresolved local/third-party receiver; no ownership inferred` |
@@ -1705,7 +1768,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1744,9 +1807,12 @@ def test_download_revalidates_a_tampered_config_before_network(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-invalid-department-coverage-config-fails"></a>
 ### `test_invalid_department_coverage_config_fails`
 
-**Purpose:** Regression invariant: invalid department coverage config fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_invalid_department_coverage_config_fails`. Source lines 352–362.
+
+**Verified purpose:** Mutate the YAML payload in three cases: missing coverage, blank identity field or empty department match_tokens. Direct model_validate must raise ValidationError; no GPKG or transport boundary is exercised.
 
 **Exact signature**
 
@@ -1780,12 +1846,12 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_config_data` | `tests.unit.test_ign_bdtopo_fr._config_data` |
 | `pytest.raises` | `pytest.raises` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1818,9 +1884,12 @@ def test_invalid_department_coverage_config_fails(mutation: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-missing-required-source-field-fails"></a>
 ### `test_missing_required_source_field_fails`
 
-**Purpose:** Regression invariant: missing required source field fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_missing_required_source_field_fails`. Source lines 366–371.
+
+**Verified purpose:** Remove source_url or edition from the YAML payload and require ValidationError from direct source-model validation. No physical or network access.
 
 **Exact signature**
 
@@ -1854,12 +1923,12 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_config_data` | `tests.unit.test_ign_bdtopo_fr._config_data` |
 | `pytest.raises` | `pytest.raises` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1887,9 +1956,12 @@ def test_missing_required_source_field_fails(field: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-invalid-source-configuration-fails"></a>
 ### `test_invalid_source_configuration_fails`
 
-**Purpose:** Regression invariant: invalid source configuration fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_invalid_source_configuration_fails`. Source lines 384–389.
+
+**Verified purpose:** Direct model validation rejects department 3/XX, EPSG:4326 projection, SHP format or zip archive format. The format Literal can reject before the suffix cross-validator; this is not a transport or archive-content test.
 
 **Exact signature**
 
@@ -1933,12 +2005,12 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_config_data` | `tests.unit.test_ign_bdtopo_fr._config_data` |
 | `pytest.raises` | `pytest.raises` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -1966,9 +2038,12 @@ def test_invalid_source_configuration_fails(field: str, value: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-unknown-source-config-field-is-rejected"></a>
 ### `test_unknown_source_config_field_is_rejected`
 
-**Purpose:** Regression invariant: unknown source config field is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_unknown_source_config_field_is_rejected`. Source lines 392–397.
+
+**Verified purpose:** Add invented to the YAML payload and require ValidationError from the extra-forbid source model. No acquisition.
 
 **Exact signature**
 
@@ -2000,11 +2075,11 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_config_data` | `tests.unit.test_ign_bdtopo_fr._config_data` |
 | `pytest.raises` | `pytest.raises` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2032,9 +2107,12 @@ def test_unknown_source_config_field_is_rejected() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-successful-archive-download-persists-sha256"></a>
 ### `test_successful_archive_download_persists_sha256`
 
-**Purpose:** Regression invariant: successful archive download persists sha256. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_successful_archive_download_persists_sha256`. Source lines 400–419.
+
+**Verified purpose:** Mock the opener with genuine synthetic 7z bytes, run public download, and compare cache_hit=False, saved bytes, size, local SHA and metadata SHA/source URL/absent official checksum. No real HTTPS or positive official-checksum assertion.
 
 **Exact signature**
 
@@ -2090,7 +2168,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2132,9 +2210,12 @@ def test_successful_archive_download_persists_sha256(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-archive-integrity-reports-local-sha256-and-no-fabricated-checksum"></a>
 ### `test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum`
 
-**Purpose:** Regression invariant: archive integrity reports local sha256 and no fabricated checksum. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum`. Source lines 422–438.
+
+**Verified purpose:** Write genuine synthetic 7z bytes locally and call public archive validation. Assert size/local SHA, both official checksum fields None and official_checksum_validated=False. No network and no invented official pin.
 
 **Exact signature**
 
@@ -2183,7 +2264,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2222,9 +2303,12 @@ def test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-fresh-cache-is-reused-without-network"></a>
 ### `test_fresh_cache_is_reused_without_network`
 
-**Purpose:** Regression invariant: fresh cache is reused without network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_fresh_cache_is_reused_without_network`. Source lines 441–462.
+
+**Verified purpose:** Create a synthetic cache with a mocked stream, then replace the opener with an AssertionError sentinel. A second public download returns cache_hit=True and the same path/SHA/timestamp. The sentinel makes any opener call fail; there is no separate call-count assertion and local hashing/CRC still occur.
 
 **Exact signature**
 
@@ -2271,7 +2355,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2315,9 +2399,12 @@ def test_fresh_cache_is_reused_without_network(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-stale-recovery-backup-rejects-cache-before-network"></a>
 ### `test_stale_recovery_backup_rejects_cache_before_network`
 
-**Purpose:** Regression invariant: stale recovery backup rejects cache before network. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_stale_recovery_backup_rejects_cache_before_network`. Source lines 465–491.
+
+**Verified purpose:** Create a valid cache then a sibling archive .bak with sentinel bytes. Public download must fail with the backup/recovery/manual error before the raising opener; assert opener uncalled and exact backup/archive bytes preserved.
 
 **Exact signature**
 
@@ -2370,7 +2457,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2419,9 +2506,12 @@ def test_stale_recovery_backup_rejects_cache_before_network(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-expired-cache-is-refreshed"></a>
 ### `test_expired_cache_is_refreshed`
 
-**Purpose:** Regression invariant: expired cache is refreshed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_expired_cache_is_refreshed`. Source lines 494–519.
+
+**Verified purpose:** Create an old synthetic cache, age metadata by 365 days and offer a different real archive (invalid-post fixture). Assert one mocked opener call, cache miss, exact new bytes, changed SHA and no .part/.bak siblings. No live remote refresh.
 
 **Exact signature**
 
@@ -2474,7 +2564,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2522,9 +2612,12 @@ def test_expired_cache_is_refreshed(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-failed-refresh-preserves-valid-cache"></a>
 ### `test_failed_refresh_preserves_valid_cache`
 
-**Purpose:** Regression invariant: failed refresh preserves valid cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_failed_refresh_preserves_valid_cache`. Source lines 522–547.
+
+**Verified purpose:** After expiring a valid synthetic cache, make the opener raise HTTPError 503. Require IgnBdTopoDownloadError, exact old archive and expired metadata bytes, and no .part/.bak files.
 
 **Exact signature**
 
@@ -2580,7 +2673,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2628,9 +2721,12 @@ def test_failed_refresh_preserves_valid_cache(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-corrupt-new-archive-is-rejected-and-temporary-files-are-cleaned"></a>
 ### `test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned`
 
-**Purpose:** Regression invariant: corrupt new archive is rejected and temporary files are cleaned. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned`. Source lines 550–566.
+
+**Verified purpose:** Offer b"not a 7z archive" through the mocked opener to a new cache. Require IgnBdTopoArchiveError and absence of .7z, .part and .bak files; metadata absence is not separately asserted.
 
 **Exact signature**
 
@@ -2679,7 +2775,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2718,9 +2814,12 @@ def test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-corrupt-refresh-preserves-valid-cache"></a>
 ### `test_corrupt_refresh_preserves_valid_cache`
 
-**Purpose:** Regression invariant: corrupt refresh preserves valid cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_corrupt_refresh_preserves_valid_cache`. Source lines 569–595.
+
+**Verified purpose:** Expire a synthetic cache and offer b"broken refresh". Require IgnBdTopoArchiveError, exact old archive/expired metadata and no .part files. This test has no .bak-absence assertion.
 
 **Exact signature**
 
@@ -2774,7 +2873,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2823,9 +2922,12 @@ def test_corrupt_refresh_preserves_valid_cache(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-metadata-publication-failure-restores-previous-cache-pair"></a>
 ### `test_metadata_publication_failure_restores_previous_cache_pair`
 
-**Purpose:** Regression invariant: metadata publication failure restores previous cache pair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_metadata_publication_failure_restores_previous_cache_pair`. Source lines 598–641.
+
+**Verified purpose:** Refresh a real synthetic cache while a delegating _replace_file callback persistently rejects metadata publication. Require IgnBdTopoDownloadError, injection flag, exact old archive/expired metadata and no .part/.bak siblings. Archive rollback and unchanged old metadata yield the pair; this does not prove a metadata-backup restore operation.
 
 **Exact signature**
 
@@ -2882,7 +2984,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -2948,9 +3050,12 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-metadata-publication-failure-restores-previous-cache-pair-fail-metadata-publication"></a>
 ### `test_metadata_publication_failure_restores_previous_cache_pair.fail_metadata_publication`
 
-**Purpose:** Implements `fail metadata publication` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_metadata_publication_failure_restores_previous_cache_pair.fail_metadata_publication`. Source lines 616–621.
+
+**Verified purpose:** Intercept only .metadata.json.part to the metadata target, set the nonlocal flag and raise PermissionError. Delegate every other replacement to the captured real _replace_file, including archive publication/rollback; not a return_value mock.
 
 **Exact signature**
 
@@ -3016,9 +3121,12 @@ def fail_metadata_publication(source: Path, target: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-publication-and-rollback-failure-preserves-exact-recovery-backups"></a>
 ### `test_publication_and_rollback_failure_preserves_exact_recovery_backups`
 
-**Purpose:** Regression invariant: publication and rollback failure preserves exact recovery backups. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_publication_and_rollback_failure_preserves_exact_recovery_backups`. Source lines 644–684.
+
+**Verified purpose:** Call private _publish_cache_pair on ordinary byte files, not a valid 7z/cache metadata pair. Inject metadata publication and archive rollback failures, require the controlled rollback error and compare both backup bytes to their old originals. It does not assert restored primaries or cleanup.
 
 **Exact signature**
 
@@ -3069,7 +3177,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3132,9 +3240,12 @@ def test_publication_and_rollback_failure_preserves_exact_recovery_backups(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-publication-and-rollback-failure-preserves-exact-recovery-backups-fail-publication-and-rollback"></a>
 ### `test_publication_and_rollback_failure_preserves_exact_recovery_backups.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_publication_and_rollback_failure_preserves_exact_recovery_backups.fail_publication_and_rollback`. Source lines 661–666.
+
+**Verified purpose:** Raise OSError for temporary metadata publication and archive-backup restoration, otherwise delegate to the captured _replace_file. Distinct failure branches force publication plus rollback failure.
 
 **Exact signature**
 
@@ -3200,9 +3311,12 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-cleanup-failure-does-not-mask-double-failure-recovery-error"></a>
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error`
 
-**Purpose:** Regression invariant: cleanup failure does not mask double failure recovery error. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_cleanup_failure_does_not_mask_double_failure_recovery_error`. Source lines 687–739.
+
+**Verified purpose:** Refresh a genuine synthetic cache with delegating publication/rollback failure injection plus conditional Path.unlink failure for temporary metadata. Require the original controlled rollback error and exact two recovery backups, not successful temporary cleanup.
 
 **Exact signature**
 
@@ -3257,7 +3371,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3332,9 +3446,12 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-cleanup-failure-does-not-mask-double-failure-recovery-error-fail-publication-and-rollback"></a>
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`. Source lines 709–716.
+
+**Verified purpose:** Reject metadata publication; when archive-backup restoration is attempted set rollback_failed and raise OSError. Delegate other replacements. The flag enables the later cleanup failure.
 
 **Exact signature**
 
@@ -3402,9 +3519,12 @@ def fail_publication_and_rollback(source: Path, target: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-cleanup-failure-does-not-mask-double-failure-recovery-error-fail-temporary-cleanup"></a>
 ### `test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
 
-**Purpose:** Implements `fail temporary cleanup` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`. Source lines 718–721.
+
+**Verified purpose:** Once rollback_failed is true, deny unlink of exactly temporary_metadata with PermissionError; otherwise delegate original Path.unlink with missing_ok. This callback tests preservation of the primary error, not successful deletion.
 
 **Exact signature**
 
@@ -3467,9 +3587,12 @@ def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-stale-cache-recovery-backup-fails-closed-without-destroying-it"></a>
 ### `test_stale_cache_recovery_backup_fails_closed_without_destroying_it`
 
-**Purpose:** Regression invariant: stale cache recovery backup fails closed without destroying it. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_stale_cache_recovery_backup_fails_closed_without_destroying_it`. Source lines 742–766.
+
+**Verified purpose:** Use private _publish_cache_pair on ordinary byte files with a preexisting archive .bak. Require backup/recovery/manual error and exact unchanged archive, metadata and recovery bytes. No archive parser or network is involved.
 
 **Exact signature**
 
@@ -3520,7 +3643,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3567,9 +3690,12 @@ def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-official-checksum-mismatch-is-rejected"></a>
 ### `test_official_checksum_mismatch_is_rejected`
 
-**Purpose:** Regression invariant: official checksum mismatch is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_official_checksum_mismatch_is_rejected`. Source lines 769–786.
+
+**Verified purpose:** Configure a SHA256 pin of 64 zeroes for real synthetic 7z bytes from a mocked opener. Require archive checksum error, no .7z or .part output. This is a negative SHA256 case, not positive MD5/SHA official verification.
 
 **Exact signature**
 
@@ -3618,7 +3744,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3658,9 +3784,12 @@ def test_official_checksum_mismatch_is_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-unsafe-parent-archive-member-is-rejected"></a>
 ### `test_unsafe_parent_archive_member_is_rejected`
 
-**Purpose:** Regression invariant: unsafe parent archive member is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_unsafe_parent_archive_member_is_rejected`. Source lines 789–813.
+
+**Verified purpose:** Pack a real synthetic GPKG under ../escape.gpkg, successfully download its bytes via a mocked stream, then require unsafe-member ArchiveError from extraction. Assert no escaped file and no top-level .part directory; not a live download.
 
 **Exact signature**
 
@@ -3712,7 +3841,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3759,9 +3888,12 @@ def test_unsafe_parent_archive_member_is_rejected(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-geopackage-is-discovered-recursively"></a>
 ### `test_geopackage_is_discovered_recursively`
 
-**Purpose:** Regression invariant: geopackage is discovered recursively. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_geopackage_is_discovered_recursively`. Source lines 816–820.
+
+**Verified purpose:** Write a genuine synthetic GPKG under nested directories and assert the standalone discovery helper returns exactly that Path. This is discovery, not config/archive-bound loading.
 
 **Exact signature**
 
@@ -3798,7 +3930,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3825,9 +3957,12 @@ def test_geopackage_is_discovered_recursively(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-multiple-geopackages-are-rejected-as-ambiguous"></a>
 ### `test_multiple_geopackages_are_rejected_as_ambiguous`
 
-**Purpose:** Regression invariant: multiple geopackages are rejected as ambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_multiple_geopackages_are_rejected_as_ambiguous`. Source lines 823–828.
+
+**Verified purpose:** Write two real synthetic GPKGs and require ArchiveError from standalone recursive discovery. No layer/config provenance validation is asserted.
 
 **Exact signature**
 
@@ -3865,7 +4000,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3893,9 +4028,12 @@ def test_multiple_geopackages_are_rejected_as_ambiguous(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-real-layer-names-are-listed-and-discovered"></a>
 ### `test_real_layer_names_are_listed_and_discovered`
 
-**Purpose:** Regression invariant: real layer names are listed and discovered. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_real_layer_names_are_listed_and_discovered`. Source lines 831–843.
+
+**Verified purpose:** List/discover a real temporary two-layer GPKG and compare sets of line/post names and the selected names. Real means native physical metadata here, not official IGN bytes; no layer-order or four-role assertion.
 
 **Exact signature**
 
@@ -3940,7 +4078,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -3975,9 +4113,12 @@ def test_real_layer_names_are_listed_and_discovered(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-missing-electric-line-layer-fails"></a>
 ### `test_missing_electric_line_layer_fails`
 
-**Purpose:** Regression invariant: missing electric line layer fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_missing_electric_line_layer_fails`. Source lines 846–853.
+
+**Verified purpose:** Write a synthetic GPKG without the line layer and require LayerError from the public two-electricity-role discovery helper. No feature loading.
 
 **Exact signature**
 
@@ -4018,7 +4159,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4048,9 +4189,12 @@ def test_missing_electric_line_layer_fails(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-missing-transformation-post-layer-fails"></a>
 ### `test_missing_transformation_post_layer_fails`
 
-**Purpose:** Regression invariant: missing transformation post layer fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_missing_transformation_post_layer_fails`. Source lines 856–863.
+
+**Verified purpose:** Write a synthetic GPKG without posts and require LayerError from two-role discovery. No feature loading.
 
 **Exact signature**
 
@@ -4091,7 +4235,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4121,9 +4265,12 @@ def test_missing_transformation_post_layer_fails(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-ambiguous-electric-line-layers-fail"></a>
 ### `test_ambiguous_electric_line_layers_fail`
 
-**Purpose:** Regression invariant: ambiguous electric line layers fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_ambiguous_electric_line_layers_fail`. Source lines 866–885.
+
+**Verified purpose:** Add a second physically matching line layer to a synthetic GPKG and require the ambiguous/found-2 LayerError from electricity discovery.
 
 **Exact signature**
 
@@ -4167,7 +4314,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4209,9 +4356,12 @@ def test_ambiguous_electric_line_layers_fail(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-synthetic-archive-extracts-and-discovers-required-layers"></a>
 ### `test_synthetic_archive_extracts_and_discovers_required_layers`
 
-**Purpose:** Regression invariant: synthetic archive extracts and discovers required layers. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_synthetic_archive_extracts_and_discovers_required_layers`. Source lines 888–907.
+
+**Verified purpose:** Mock transport of a genuine four-role synthetic archive, then call public extraction. Assert GPKG existence and line/post selected names only; no independent exhaustive inventory assertion.
 
 **Exact signature**
 
@@ -4258,7 +4408,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4300,9 +4450,12 @@ def test_synthetic_archive_extracts_and_discovers_required_layers(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-schema-v3-extraction-metadata-binds-complete-physical-inventory"></a>
 ### `test_schema_v3_extraction_metadata_binds_complete_physical_inventory`
 
-**Purpose:** Regression invariant: schema v3 extraction metadata binds complete physical inventory. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_schema_v3_extraction_metadata_binds_complete_physical_inventory`. Source lines 910–941.
+
+**Verified purpose:** Read the real synthetic extraction marker: assert schema 3, physical GPKG size/SHA and matching envelope values, road/department names and at least one entry. Reextract and assert a cache hit with matching size/SHA. Eleven assertions do not independently enumerate every inventory entry.
 
 **Exact signature**
 
@@ -4360,13 +4513,13 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `_extraction_metadata_path(extraction.extraction_path).read_text`<br>`extraction.geopackage_path.stat`<br>`sha256(extraction.geopackage_path.read_bytes()).hexdigest`<br>`extraction.geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `_extraction_metadata_path(extraction.extraction_path).read_text` |
+| Filesystem/archive write or publication | read_text is read-only. Synthetic fixture setup/download/extraction writes through the called helpers; no direct marker write in this test. |
 | Hashing/byte identity | `sha256(extraction.geopackage_path.read_bytes()).hexdigest`<br>`sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -4414,9 +4567,12 @@ def test_schema_v3_extraction_metadata_binds_complete_physical_inventory(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-rejects-forged-download-lineage-before-archive-open"></a>
 ### `test_extraction_rejects_forged_download_lineage_before_archive_open`
 
-**Purpose:** Regression invariant: extraction rejects forged download lineage before archive open. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_rejects_forged_download_lineage_before_archive_open`. Source lines 956–980.
+
+**Verified purpose:** Use dataclasses.replace to forge one of provider/product/department/edition/source URL/filename/official-checksum flag. Public extraction must raise ArchiveError matching config/envelope; SevenZipFile sentinel is explicitly uncalled. Filename can fail path-name consistency before config equality.
 
 **Exact signature**
 
@@ -4478,7 +4634,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4525,9 +4681,12 @@ def test_extraction_rejects_forged_download_lineage_before_archive_open(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-same-size-geopackage-tamper-invalidates-extraction-cache"></a>
 ### `test_same_size_geopackage_tamper_invalidates_extraction_cache`
 
-**Purpose:** Regression invariant: same size geopackage tamper invalidates extraction cache. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_same_size_geopackage_tamper_invalidates_extraction_cache`. Source lines 983–1000.
+
+**Verified purpose:** Flip the last GPKG byte without changing size, then reextract from the still-valid synthetic archive. Assert equal tampered size, cache_hit=False and exact restored original GPKG bytes; no repaired geometry or official source.
 
 **Exact signature**
 
@@ -4575,7 +4734,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4615,9 +4774,12 @@ def test_same_size_geopackage_tamper_invalidates_extraction_cache(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-forged-extraction-metadata-never-returns-cache-hit"></a>
 ### `test_forged_extraction_metadata_never_returns_cache_hit`
 
-**Purpose:** Regression invariant: forged extraction metadata never returns cache hit. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_forged_extraction_metadata_never_returns_cache_hit`. Source lines 1014–1032.
+
+**Verified purpose:** Change one marker field: SHA, size, old schema 1, bool/float schema or parent-traversing package path. Public extraction rebuilds and returns cache_hit=False. Cases can fail model parsing or containment before byte comparison; only the miss is asserted.
 
 **Exact signature**
 
@@ -4678,7 +4840,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4719,9 +4881,12 @@ def test_forged_extraction_metadata_never_returns_cache_hit(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-linked-extraction-metadata-never-returns-cache-hit"></a>
 ### `test_linked_extraction_metadata_never_returns_cache_hit`
 
-**Purpose:** Regression invariant: linked extraction metadata never returns cache hit. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_linked_extraction_metadata_never_returns_cache_hit`. Source lines 1036–1074.
+
+**Verified purpose:** Simulate symlink/junction only for the marker with delegating Path predicates. Public extraction rejects the unsafe marker and SevenZipFile is explicitly uncalled. No actual OS link is created and the failure precedes archive-byte validation.
 
 **Exact signature**
 
@@ -4773,7 +4938,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -4834,9 +4999,12 @@ def test_linked_extraction_metadata_never_returns_cache_hit(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-linked-extraction-metadata-never-returns-cache-hit-simulated-is-symlink"></a>
 ### `test_linked_extraction_metadata_never_returns_cache_hit.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_linked_extraction_metadata_never_returns_cache_hit.simulated_is_symlink`. Source lines 1047–1050.
+
+**Verified purpose:** Return true for the target marker in the symlink case, otherwise call the original Path.is_symlink. This is a predicate simulation, not link creation.
 
 **Exact signature**
 
@@ -4897,9 +5065,12 @@ def simulated_is_symlink(path: Path) -> bool:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-linked-extraction-metadata-never-returns-cache-hit-simulated-is-junction"></a>
 ### `test_linked_extraction_metadata_never_returns_cache_hit.simulated_is_junction`
 
-**Purpose:** Implements `simulated is junction` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_linked_extraction_metadata_never_returns_cache_hit.simulated_is_junction`. Source lines 1052–1055.
+
+**Verified purpose:** Return true for the target marker in the junction case, otherwise call the original Path.is_junction. No actual junction is created.
 
 **Exact signature**
 
@@ -4960,9 +5131,12 @@ def simulated_is_junction(path: Path) -> bool:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-malformed-geopackage-sha-is-not-trusted"></a>
 ### `test_malformed_geopackage_sha_is_not_trusted`
 
-**Purpose:** Regression invariant: malformed geopackage sha is not trusted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_malformed_geopackage_sha_is_not_trusted`. Source lines 1081–1096.
+
+**Verified purpose:** Set marker SHA to empty, abc, uppercase length-64, length-63 or length-65 text. Public extraction rebuilds; assert only cache_hit=False. Canonical model validation rejects before physical hash comparison.
 
 **Exact signature**
 
@@ -5014,7 +5188,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5052,9 +5226,12 @@ def test_malformed_geopackage_sha_is_not_trusted(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-malformed-geopackage-size-is-not-trusted"></a>
 ### `test_malformed_geopackage_size_is_not_trusted`
 
-**Purpose:** Regression invariant: malformed geopackage size is not trusted. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_malformed_geopackage_size_is_not_trusted`. Source lines 1100–1115.
+
+**Verified purpose:** Set marker size to 0, -1, True or string 100. Strict-positive model parsing rejects before physical comparison; public extraction rebuilds and cache_hit=False is the sole assertion.
 
 **Exact signature**
 
@@ -5103,7 +5280,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5141,9 +5318,12 @@ def test_malformed_geopackage_size_is_not_trusted(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-default-extraction-path-is-short-and-content-addressed"></a>
 ### `test_default_extraction_path_is_short_and_content_addressed`
 
-**Purpose:** Regression invariant: default extraction path is short and content addressed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_default_extraction_path_is_short_and_content_addressed`. Source lines 1118–1134.
+
+**Verified purpose:** Download/extract synthetic bytes without explicit extraction_dir; assert cache/x/first-16-SHA path, a 16-character final component and existing GPKG. This tests the convention, not collision freedom of a truncated digest.
 
 **Exact signature**
 
@@ -5191,7 +5371,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5230,9 +5410,12 @@ def test_default_extraction_path_is_short_and_content_addressed(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-layer-loader-retains-crs-counts-and-null-geometries"></a>
 ### `test_layer_loader_retains_crs_counts_and_null_geometries`
 
-**Purpose:** Regression invariant: layer loader retains crs counts and null geometries. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_layer_loader_retains_crs_counts_and_null_geometries`. Source lines 1137–1156.
+
+**Verified purpose:** Call the private untrusted reader alias on a real temporary line layer. Assert EPSG:2154, two IDs in order, one null geometry and summary counts 2/1/0. No source-config/archive binding is exercised.
 
 **Exact signature**
 
@@ -5281,7 +5464,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5323,9 +5506,12 @@ def test_layer_loader_retains_crs_counts_and_null_geometries(tmp_path: Path) -> 
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-invalid-geometry-is-preserved-without-repair"></a>
 ### `test_invalid_geometry_is_preserved_without_repair`
 
-**Purpose:** Regression invariant: invalid geometry is preserved without repair. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_invalid_geometry_is_preserved_without_repair`. Source lines 1159–1176.
+
+**Verified purpose:** Call the private untrusted reader on three synthetic posts including null and invalid geometry. Assert three rows, the selected invalid geometry remains invalid and summary counts 3/1/1. There is no independent exact WKB comparison.
 
 **Exact signature**
 
@@ -5367,7 +5553,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5407,9 +5593,12 @@ def test_invalid_geometry_is_preserved_without_repair(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-geographic-crs-is-rejected"></a>
 ### `test_geographic_crs_is_rejected`
 
-**Purpose:** Regression invariant: geographic crs is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_geographic_crs_is_rejected`. Source lines 1179–1184.
+
+**Verified purpose:** Read an EPSG:4326 synthetic line layer through the private untrusted alias and require LayerError matching CRS/projected/Lambert. Not a source-complete public-loader test.
 
 **Exact signature**
 
@@ -5447,7 +5636,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5475,9 +5664,12 @@ def test_geographic_crs_is_rejected(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-electricity-loader-retains-both-layer-counts"></a>
 ### `test_electricity_loader_retains_both_layer_counts`
 
-**Purpose:** Regression invariant: electricity loader retains both layer counts. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_electricity_loader_retains_both_layer_counts`. Source lines 1187–1209.
+
+**Verified purpose:** Acquire/extract a synthetic archive with invalid post under mocked transport and call public electricity loading with config. Assert two lines, three posts, both EPSG:2154 and one invalid-post summary count. No official source or exhaustive value equality.
 
 **Exact signature**
 
@@ -5529,7 +5721,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5574,9 +5766,12 @@ def test_electricity_loader_retains_both_layer_counts(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-layer-discovery-loads-selected-physical-layer"></a>
 ### `test_road_layer_discovery_loads_selected_physical_layer`
 
-**Purpose:** Regression invariant: road layer discovery loads selected physical layer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_layer_discovery_loads_selected_physical_layer`. Source lines 1212–1232.
+
+**Verified purpose:** Acquire/extract synthetic four-role data and call public road loading. Assert retained extraction identity, physical/logical road names, R_LINE/R_MULTI order and summary PROXY_GEOMETRY. No road access classification.
 
 **Exact signature**
 
@@ -5626,7 +5821,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5669,9 +5864,12 @@ def test_road_layer_discovery_loads_selected_physical_layer(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-physical-layer-cannot-collide-with-electricity-roles"></a>
 ### `test_road_physical_layer_cannot_collide_with_electricity_roles`
 
-**Purpose:** Regression invariant: road physical layer cannot collide with electricity roles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_physical_layer_cannot_collide_with_electricity_roles`. Source lines 1239–1255.
+
+**Verified purpose:** Copy either electricity selector into the road config, reconstruct a valid model and call public road loading on the synthetic extraction. Require LayerError at physical role distinctness; distinct config containers alone do not establish distinct layers.
 
 **Exact signature**
 
@@ -5714,14 +5912,14 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_extracted_fixture` | `tests.unit.test_ign_bdtopo_fr._extracted_fixture` |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.raises` | `pytest.raises` |
 | `ign_bdtopo_fr.load_ign_bdtopo_roads` | `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_roads` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5760,9 +5958,12 @@ def test_road_physical_layer_cannot_collide_with_electricity_roles(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-physical-layer-cannot-collide-with-road-role"></a>
 ### `test_department_physical_layer_cannot_collide_with_road_role`
 
-**Purpose:** Regression invariant: department physical layer cannot collide with road role. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_physical_layer_cannot_collide_with_road_role`. Source lines 1258–1274.
+
+**Verified purpose:** Replace department match_tokens with road tokens, reconstruct the model and call public coverage loading. Physical discovery selects the road twice and raises LayerError before department feature selection.
 
 **Exact signature**
 
@@ -5800,13 +6001,13 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_extracted_fixture` | `tests.unit.test_ign_bdtopo_fr._extracted_fixture` |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.raises` | `pytest.raises` |
 | `load_ign_bdtopo_department_coverage` | `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_department_coverage` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5845,9 +6046,12 @@ def test_department_physical_layer_cannot_collide_with_road_role(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-physical-layer-cannot-collide-with-electricity-roles"></a>
 ### `test_department_physical_layer_cannot_collide_with_electricity_roles`
 
-**Purpose:** Regression invariant: department physical layer cannot collide with electricity roles. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_physical_layer_cannot_collide_with_electricity_roles`. Source lines 1281–1298.
+
+**Verified purpose:** Replace department tokens with line or post tokens; public coverage loading rejects four-role collision after config validation and physical discovery, before selected-feature checks.
 
 **Exact signature**
 
@@ -5890,14 +6094,14 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_extracted_fixture` | `tests.unit.test_ign_bdtopo_fr._extracted_fixture` |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.raises` | `pytest.raises` |
 | `load_ign_bdtopo_department_coverage` | `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_department_coverage` |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -5937,9 +6141,12 @@ def test_department_physical_layer_cannot_collide_with_electricity_roles(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-electricity-physical-layers-must-be-distinct"></a>
 ### `test_electricity_physical_layers_must_be_distinct`
 
-**Purpose:** Regression invariant: electricity physical layers must be distinct. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_electricity_physical_layers_must_be_distinct`. Source lines 1301–1315.
+
+**Verified purpose:** Give the post selector the single token ligne while line tokens remain distinct as phrases. Config validation succeeds but both selectors resolve to the same physical layer; public electricity loading raises LayerError.
 
 **Exact signature**
 
@@ -5977,13 +6184,13 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `_extracted_fixture` | `tests.unit.test_ign_bdtopo_fr._extracted_fixture` |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `pytest.raises` | `pytest.raises` |
 | `load_ign_bdtopo_electricity` | `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_electricity` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6020,9 +6227,12 @@ def test_electricity_physical_layers_must_be_distinct(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-missing-road-layer-fails-safely"></a>
 ### `test_missing_road_layer_fails_safely`
 
-**Purpose:** Regression invariant: missing road layer fails safely. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_missing_road_layer_fails_safely`. Source lines 1318–1336.
+
+**Verified purpose:** Download a genuine synthetic archive omitting roads, then require LayerError from extraction discovery (not from load_ign_bdtopo_roads). Transport is mocked.
 
 **Exact signature**
 
@@ -6067,7 +6277,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6108,9 +6318,12 @@ def test_missing_road_layer_fails_safely(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-ambiguous-road-layer-fails-safely"></a>
 ### `test_ambiguous_road_layer_fails_safely`
 
-**Purpose:** Regression invariant: ambiguous road layer fails safely. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_ambiguous_road_layer_fails_safely`. Source lines 1339–1371.
+
+**Verified purpose:** Add a second road match to a synthetic GPKG, pack/download it with mocked transport and require LayerError during extraction. The fixture also lacks the default-disabled department layer; road ambiguity is checked first and is not an isolated otherwise-valid four-role package.
 
 **Exact signature**
 
@@ -6159,7 +6372,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6214,9 +6427,12 @@ def test_ambiguous_road_layer_fails_safely(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-rejects-wrong-archive-config-department"></a>
 ### `test_road_loader_rejects_wrong_archive_config_department`
 
-**Purpose:** Regression invariant: road loader rejects wrong archive config department. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_rejects_wrong_archive_config_department`. Source lines 1374–1392.
+
+**Verified purpose:** Extract synthetic department-31 data then supply a reconstructed department-32 config to public road loading. Archive/config lineage rejects before current physical GPKG loading; no road attribute is changed.
 
 **Exact signature**
 
@@ -6257,14 +6473,14 @@ Outbound call expressions and conservative ownership:
 | `_response` | `tests.unit.test_ign_bdtopo_fr._response` |
 | `download_ign_bdtopo_archive` | `landscout.sources.ign_bdtopo_fr.download_ign_bdtopo_archive` |
 | `extract_ign_bdtopo_archive` | `landscout.sources.ign_bdtopo_fr.extract_ign_bdtopo_archive` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `pytest.raises` | `pytest.raises` |
 | `ign_bdtopo_fr.load_ign_bdtopo_roads` | `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_roads` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6305,9 +6521,12 @@ def test_road_loader_rejects_wrong_archive_config_department(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-non-electric-layer-loaders-revalidate-mutated-role-config-before-read"></a>
 ### `test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read`
 
-**Purpose:** Regression invariant: non electric layer loaders revalidate mutated role config before read. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read`. Source lines 1396–1425.
+
+**Verified purpose:** Bypass nested model freezing to inject empty road tokens or a blank coverage identity field, then call the corresponding public loader. Require config LayerError and explicitly uncalled gpd.read_file sentinel. This checks boundary reconstruction, not normal assignment mutability.
 
 **Exact signature**
 
@@ -6358,7 +6577,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6410,9 +6629,12 @@ def test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-rejects-changed-layer-inventory"></a>
 ### `test_road_loader_rejects_changed_layer_inventory`
 
-**Purpose:** Regression invariant: road loader rejects changed layer inventory. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_rejects_changed_layer_inventory`. Source lines 1428–1455.
+
+**Verified purpose:** Append a new layer to the physical synthetic GPKG after extraction and call public road loading. Require inventory/changed LayerError. The stale envelope size/SHA makes physical integrity fail before the inventory comparison; the latter is not independently isolated.
 
 **Exact signature**
 
@@ -6461,7 +6683,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6511,9 +6733,12 @@ def test_road_loader_rejects_changed_layer_inventory(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-rejects-geographic-crs"></a>
 ### `test_road_loader_rejects_geographic_crs`
 
-**Purpose:** Regression invariant: road loader rejects geographic crs. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_rejects_geographic_crs`. Source lines 1458–1475.
+
+**Verified purpose:** Extract a synthetic archive whose road layer alone uses EPSG:4326, then require CRS LayerError from public road loading. Metadata extraction may succeed; feature CRS is checked by loading.
 
 **Exact signature**
 
@@ -6559,7 +6784,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6599,9 +6824,12 @@ def test_road_loader_rejects_geographic_crs(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-preserves-lambert93-lines-unchanged"></a>
 ### `test_road_loader_preserves_lambert93_lines_unchanged`
 
-**Purpose:** Regression invariant: road loader preserves lambert93 lines unchanged. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_preserves_lambert93_lines_unchanged`. Source lines 1482–1510.
+
+**Verified purpose:** For homogeneous LineString and MultiLineString fixtures, compare public loaded roads with an independent gpd.read_file using assert_geodataframe_equal(check_crs=True), then assert EPSG:2154 and summary geometry type. Not an explicit byte-WKB/Z/M preservation proof.
 
 **Exact signature**
 
@@ -6659,7 +6887,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6710,9 +6938,12 @@ def test_road_loader_preserves_lambert93_lines_unchanged(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-layer-does-not-change-electricity-loading-or-cache-shape"></a>
 ### `test_road_layer_does_not_change_electricity_loading_or_cache_shape`
 
-**Purpose:** Regression invariant: road layer does not change electricity loading or cache shape. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_layer_does_not_change_electricity_loading_or_cache_shape`. Source lines 1513–1553.
+
+**Verified purpose:** Load electricity from a four-role synthetic extraction. Assert two lines/two posts and their names, road/department marker names and the exact twelve-key schema-3 marker set. Does not test schema-1 download keys or every marker value.
 
 **Exact signature**
 
@@ -6767,13 +6998,13 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `(extraction.extraction_path / ".landscout-extraction.json").read_text` |
-| Filesystem/archive write or publication | `(extraction.extraction_path / ".landscout-extraction.json").read_text` |
+| Filesystem/archive write or publication | read_text is read-only. Synthetic fixture setup/download/extraction writes through the called helpers; no direct marker write in this test. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -6830,9 +7061,12 @@ def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-public-sources-export-only-stable-road-api"></a>
 ### `test_public_sources_export_only_stable_road_api`
 
-**Purpose:** Regression invariant: public sources export only stable road api. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_public_sources_export_only_stable_road_api`. Source lines 1556–1562.
+
+**Verified purpose:** Assert package identity and __all__ membership for IgnBdTopoRoadData/load_ign_bdtopo_roads, and absence of _discover_road_layer and obsolete load_ign_bdtopo_layer. These six checks are not an exhaustive audit of every package export.
 
 **Exact signature**
 
@@ -6871,7 +7105,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -6900,9 +7134,12 @@ def test_public_sources_export_only_stable_road_api() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--archive-info"></a>
 ### `_archive_info`
 
-**Purpose:** Implements `archive info` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._archive_info`. Source lines 1565–1578.
+
+**Verified purpose:** Build SimpleNamespace fake member metadata with filename, complementary file/directory flags, no symlink/encryption, and size or None for directories. No actual archive or filesystem inspection.
 
 **Exact signature**
 
@@ -6989,9 +7226,12 @@ def _archive_info(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--fakearchive---init--"></a>
 ### `_FakeArchive.__init__`
 
-**Purpose:** Implements `init` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._FakeArchive.__init__`. Source lines 1582–1584.
+
+**Verified purpose:** Assign the supplied infos list by reference and encrypted flag to self. Does not copy, validate or open an archive.
 
 **Exact signature**
 
@@ -7050,9 +7290,12 @@ def __init__(self, infos: list[SimpleNamespace], *, encrypted: bool = False):
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--fakearchive-needs-password"></a>
 ### `_FakeArchive.needs_password`
 
-**Purpose:** Implements `needs password` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._FakeArchive.needs_password`. Source lines 1586–1587.
+
+**Verified purpose:** Return the stored encryption flag without I/O.
 
 **Exact signature**
 
@@ -7109,9 +7352,12 @@ def needs_password(self) -> bool:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15--fakearchive-list"></a>
 ### `_FakeArchive.list`
 
-**Purpose:** Implements `list` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr._FakeArchive.list`. Source lines 1589–1590.
+
+**Verified purpose:** Return the same stored mutable member list, not a fresh parsed inventory or copy.
 
 **Exact signature**
 
@@ -7168,9 +7414,12 @@ def list(self) -> list[SimpleNamespace]:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-7z-windows-unsafe-member-names-fail-closed"></a>
 ### `test_7z_windows_unsafe_member_names_fail_closed`
 
-**Purpose:** Regression invariant: 7z windows unsafe member names fail closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_7z_windows_unsafe_member_names_fail_closed`. Source lines 1603–1607.
+
+**Verified purpose:** Pass fake inventory containing data.gpkg and one of CON.txt, trailing dot/space, question mark or newline names to private member validation. Require Windows/unsafe/reserved ArchiveError. No py7zr extraction or actual unsafe file creation.
 
 **Exact signature**
 
@@ -7219,7 +7468,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7246,9 +7495,12 @@ def test_7z_windows_unsafe_member_names_fail_closed(unsafe_name: str) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-7z-casefold-and-nfkc-destination-collisions-fail"></a>
 ### `test_7z_casefold_and_nfkc_destination_collisions_fail`
 
-**Purpose:** Regression invariant: 7z casefold and nfkc destination collisions fail. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_7z_casefold_and_nfkc_destination_collisions_fail`. Source lines 1617–1630.
+
+**Verified purpose:** Pass fake inventory with casefold-equivalent paths or composed/decomposed accent names to private validation. Require collision ArchiveError; tests normalization keys, not filesystem behavior.
 
 **Exact signature**
 
@@ -7298,7 +7550,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7334,9 +7586,12 @@ def test_7z_casefold_and_nfkc_destination_collisions_fail(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-7z-nfkc-separator-destinations-fail-closed"></a>
 ### `test_7z_nfkc_separator_destinations_fail_closed`
 
-**Purpose:** Regression invariant: 7z nfkc separator destinations fail closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_7z_nfkc_separator_destinations_fail_closed`. Source lines 1640–1653.
+
+**Verified purpose:** Pass fake inventory with fullwidth slash/backslash confusable and ordinary paths. NFKC component safety rejects the confusable before an ordinary collision is needed; require Windows/unsafe/collision ArchiveError, not successful extraction.
 
 **Exact signature**
 
@@ -7386,7 +7641,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7422,9 +7677,12 @@ def test_7z_nfkc_separator_destinations_fail_closed(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-7z-parent-file-conflict-fails-closed"></a>
 ### `test_7z_parent_file_conflict_fails_closed`
 
-**Purpose:** Regression invariant: 7z parent file conflict fails closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_7z_parent_file_conflict_fails_closed`. Source lines 1656–1666.
+
+**Verified purpose:** Fake inventory makes parent a file and also supplies parent/child.txt, plus data.gpkg. Private member validation must raise parent-file ArchiveError; no actual conflicting tree.
 
 **Exact signature**
 
@@ -7461,7 +7719,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7494,9 +7752,12 @@ def test_7z_parent_file_conflict_fails_closed() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-7z-encrypted-archive-fails-closed"></a>
 ### `test_7z_encrypted_archive_fails_closed`
 
-**Purpose:** Regression invariant: 7z encrypted archive fails closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_7z_encrypted_archive_fails_closed`. Source lines 1669–1673.
+
+**Verified purpose:** Set the fake archive encrypted flag and require encrypted ArchiveError from private validation. It rejects at needs_password, not by decoding encrypted bytes; list call count is not asserted.
 
 **Exact signature**
 
@@ -7533,7 +7794,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7560,9 +7821,12 @@ def test_7z_encrypted_archive_fails_closed() -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extracted-inventory-mismatch-fails-closed"></a>
 ### `test_extracted_inventory_mismatch_fails_closed`
 
-**Purpose:** Regression invariant: extracted inventory mismatch fails closed. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extracted_inventory_mismatch_fails_closed`. Source lines 1676–1681.
+
+**Verified purpose:** Write three bytes b"bad" to data.gpkg but expect a four-byte file in a manually constructed member record. Private tree comparison raises inventory ArchiveError; no GPKG parser or archive-member hash comparison.
 
 **Exact signature**
 
@@ -7601,7 +7865,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7629,9 +7893,12 @@ def test_extracted_inventory_mismatch_fails_closed(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-stale-extraction-backup-blocks-before-7z-open"></a>
 ### `test_stale_extraction_backup_blocks_before_7z_open`
 
-**Purpose:** Regression invariant: stale extraction backup blocks before 7z open. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_stale_extraction_backup_blocks_before_7z_open`. Source lines 1684–1710.
+
+**Verified purpose:** Create a sibling extraction .bak with sentinel bytes after a real synthetic extraction. Public reextraction must raise manual-recovery ArchiveError, SevenZipFile is explicitly uncalled and sentinel bytes remain. No recovery deletion.
 
 **Exact signature**
 
@@ -7682,13 +7949,13 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `sentinel.read_bytes` |
-| Filesystem/archive write or publication | `extraction.extraction_path.with_name`<br>`backup.mkdir`<br>`sentinel.write_bytes` |
+| Filesystem/archive write or publication | backup.mkdir and sentinel.write_bytes create recovery material. with_name only derives a Path. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -7731,9 +7998,12 @@ def test_stale_extraction_backup_blocks_before_7z_open(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-publication-double-failure-preserves-backup"></a>
 ### `test_extraction_publication_double_failure_preserves_backup`
 
-**Purpose:** Regression invariant: extraction publication double failure preserves backup. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_publication_double_failure_preserves_backup`. Source lines 1713–1740.
+
+**Verified purpose:** Use private directory publication with ordinary old.txt/new.txt trees. Delegate the initial target-to-backup rename but fail temporary publication and backup restoration. Require rollback ArchiveError and exact old.txt bytes in backup; not a 7z extraction test.
 
 **Exact signature**
 
@@ -7780,7 +8050,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -7830,9 +8100,12 @@ def test_extraction_publication_double_failure_preserves_backup(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-publication-double-failure-preserves-backup-fail-publication-and-rollback"></a>
 ### `test_extraction_publication_double_failure_preserves_backup.fail_publication_and_rollback`
 
-**Purpose:** Implements `fail publication and rollback` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_publication_double_failure_preserves_backup.fail_publication_and_rollback`. Source lines 1725–1728.
+
+**Verified purpose:** Raise OSError when source is the temporary or backup directory; otherwise delegate captured _replace_directory. In particular, the initial old-primary-to-backup rename really occurs.
 
 **Exact signature**
 
@@ -7895,9 +8168,12 @@ def fail_publication_and_rollback(source: Path, destination: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target`
 
-**Purpose:** Regression invariant: extraction part link is rejected without touching target. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target`. Source lines 1744–1826.
+
+**Verified purpose:** After genuine synthetic fixture setup, simulate a .part symlink/junction via Path predicates. Compute real archive integrity once, then patch validation with that return_value (not delegation) and extraction SevenZipFile with a sentinel. Require safe-directory ArchiveError, validation called once with exact args, SevenZipFile uncalled, zero protected unlink/rmdir/rmtree counts and unchanged sentinel. No real OS link/junction is created.
 
 **Exact signature**
 
@@ -7958,7 +8234,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8063,9 +8339,12 @@ def test_extraction_part_link_is_rejected_without_touching_target(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target-simulated-is-symlink"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target.simulated_is_symlink`
 
-**Purpose:** Implements `simulated is symlink` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target.simulated_is_symlink`. Source lines 1765–1768.
+
+**Verified purpose:** Report a symlink only for temporary in the symlink case; delegate other paths to the original predicate. No actual link creation.
 
 **Exact signature**
 
@@ -8126,9 +8405,12 @@ def simulated_is_symlink(path: Path) -> bool:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target-simulated-is-junction"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target.simulated_is_junction`
 
-**Purpose:** Implements `simulated is junction` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target.simulated_is_junction`. Source lines 1770–1773.
+
+**Verified purpose:** Report a junction only for temporary in the junction case; delegate other paths to the original predicate. No actual junction creation.
 
 **Exact signature**
 
@@ -8189,9 +8471,12 @@ def simulated_is_junction(path: Path) -> bool:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target-protected-unlink"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target.protected_unlink`
 
-**Purpose:** Implements `protected unlink` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target.protected_unlink`. Source lines 1775–1780.
+
+**Verified purpose:** If called on temporary, increment the nonlocal unlink counter and raise AssertionError; otherwise delegate original unlink with forwarded args/kwargs. Test asserts the protected branch is never reached.
 
 **Exact signature**
 
@@ -8257,9 +8542,12 @@ def protected_unlink(path: Path, *args: object, **kwargs: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target-protected-rmdir"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target.protected_rmdir`
 
-**Purpose:** Implements `protected rmdir` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target.protected_rmdir`. Source lines 1782–1787.
+
+**Verified purpose:** If called on temporary, increment rmdir counter and raise AssertionError; otherwise delegate original rmdir. Test asserts zero protected calls.
 
 **Exact signature**
 
@@ -8325,9 +8613,12 @@ def protected_rmdir(path: Path, *args: object, **kwargs: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-part-link-is-rejected-without-touching-target-protected-rmtree"></a>
 ### `test_extraction_part_link_is_rejected_without_touching_target.protected_rmtree`
 
-**Purpose:** Implements `protected rmtree` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_part_link_is_rejected_without_touching_target.protected_rmtree`. Source lines 1789–1794.
+
+**Verified purpose:** Convert path to Path for target comparison; on temporary increment rmtree counter and raise AssertionError, otherwise delegate original shutil.rmtree. Test asserts zero protected calls; no deletion of a real junction is demonstrated.
 
 **Exact signature**
 
@@ -8394,9 +8685,12 @@ def protected_rmtree(path: object, *args: object, **kwargs: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-duplicate-ign-yaml-key-is-rejected"></a>
 ### `test_duplicate_ign_yaml_key_is_rejected`
 
-**Purpose:** Regression invariant: duplicate ign yaml key is rejected. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_duplicate_ign_yaml_key_is_rejected`. Source lines 1829–1839.
+
+**Verified purpose:** Write a two-provider duplicate-key YAML and call the public config loader. Require DownloadError whose cause text contains duplicate. This parse failure precedes validation of the otherwise incomplete model payload.
 
 **Exact signature**
 
@@ -8438,7 +8732,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8471,9 +8765,12 @@ def test_duplicate_ign_yaml_key_is_rejected(tmp_path: Path) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-ign-cache-schema-version-is-a-strict-integer"></a>
 ### `test_ign_cache_schema_version_is_a_strict_integer`
 
-**Purpose:** Regression invariant: ign cache schema version is a strict integer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_ign_cache_schema_version_is_a_strict_integer`. Source lines 1843–1869.
+
+**Verified purpose:** Directly model-validate a complete _CacheMetadata payload with schema True or 1.0 and require TypeError/ValidationError. Tests exact-int schema parsing, not disk cache reuse or source-config equality.
 
 **Exact signature**
 
@@ -8508,12 +8805,12 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `pytest.raises` | `pytest.raises` |
-| `ign_bdtopo_fr._CacheMetadata.model_validate` | `landscout.sources.ign_bdtopo_fr._CacheMetadata.model_validate` |
+| `ign_bdtopo_fr._CacheMetadata.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr._CacheMetadata`) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8562,9 +8859,12 @@ def test_ign_cache_schema_version_is_a_strict_integer(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-ign-cache-file-size-is-a-strict-integer"></a>
 ### `test_ign_cache_file_size_is_a_strict_integer`
 
-**Purpose:** Regression invariant: ign cache file size is a strict integer. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_ign_cache_file_size_is_a_strict_integer`. Source lines 1873–1897.
+
+**Verified purpose:** Directly validate _CacheMetadata with file_size True, 1.0 or string 1 and require ValidationError. No cache-file or network call.
 
 **Exact signature**
 
@@ -8597,12 +8897,12 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `pytest.raises` | `pytest.raises` |
-| `ign_bdtopo_fr._CacheMetadata.model_validate` | `landscout.sources.ign_bdtopo_fr._CacheMetadata.model_validate` |
+| `ign_bdtopo_fr._CacheMetadata.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr._CacheMetadata`) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8649,9 +8949,12 @@ def test_ign_cache_file_size_is_a_strict_integer(value: object) -> None:
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-ign-cache-json-is-strict-before-model-validation"></a>
 ### `test_ign_cache_json_is_strict_before_model_validation`
 
-**Purpose:** Regression invariant: ign cache json is strict before model validation. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_ign_cache_json_is_strict_before_model_validation`. Source lines 1908–1912.
+
+**Verified purpose:** Directly call the shared loads_strict_json_object imported through the adapter with duplicate keys, NaN or a top-level array. Require ValueError. No metadata model, disk-cache reader or HTTP request is invoked.
 
 **Exact signature**
 
@@ -8693,12 +8996,12 @@ Outbound call expressions and conservative ownership:
 | Exact call expression | Resolved owner |
 |---|---|
 | `pytest.raises` | `pytest.raises` |
-| `ign_bdtopo_fr.loads_strict_json_object` | `landscout.sources.ign_bdtopo_fr.loads_strict_json_object` |
+| `ign_bdtopo_fr.loads_strict_json_object` | `landscout.common.strict_json.loads_strict_json_object` (imported through the adapter) |
 | `pytest.mark.parametrize` | `pytest.mark.parametrize` |
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8725,9 +9028,12 @@ def test_ign_cache_json_is_strict_before_model_validation(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-download-cache-reader-rejects-noncanonical-json-and-refreshes"></a>
 ### `test_download_cache_reader_rejects_noncanonical_json_and_refreshes`
 
-**Purpose:** Regression invariant: download cache reader rejects noncanonical json and refreshes. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_download_cache_reader_rejects_noncanonical_json_and_refreshes`. Source lines 1923–1945.
+
+**Verified purpose:** Create a valid synthetic cache then replace the whole sidecar with duplicate-key/NaN/array JSON. Public download refreshes through one mocked opener call and returns cache_hit=False. The strict parser fails before incomplete model fields matter; no exact refreshed-byte assertion here.
 
 **Exact signature**
 
@@ -8784,7 +9090,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8829,9 +9135,12 @@ def test_download_cache_reader_rejects_noncanonical_json_and_refreshes(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-extraction-cache-reader-rejects-noncanonical-json-and-rebuilds"></a>
 ### `test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds`
 
-**Purpose:** Regression invariant: extraction cache reader rejects noncanonical json and rebuilds. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds`. Source lines 1956–1970.
+
+**Verified purpose:** Replace the synthetic marker with duplicate-key/Infinity/array JSON. Public extraction rebuilds from the local archive and asserts cache_hit=False only; no new download and no independently isolated model-field failure.
 
 **Exact signature**
 
@@ -8884,7 +9193,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -8921,9 +9230,12 @@ def test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-coverage-loader-selects-configured-identity"></a>
 ### `test_department_coverage_loader_selects_configured_identity`
 
-**Purpose:** Regression invariant: department coverage loader selects configured identity. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_coverage_loader_selects_configured_identity`. Source lines 1973–2006.
+
+**Verified purpose:** Acquire/extract synthetic departments 31/32, then public coverage loading selects one row with code 31, mirrored lineage/archive SHA and SOURCE_COVERAGE_BOUNDARY in EPSG:2154. Assert summary source count two, selected count one, identity field and MultiPolygon type. This is source extent, not service capacity.
 
 **Exact signature**
 
@@ -8982,7 +9294,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9038,9 +9350,12 @@ def test_department_coverage_loader_selects_configured_identity(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-coverage-requires-one-authoritative-feature"></a>
 ### `test_department_coverage_requires_one_authoritative_feature`
 
-**Purpose:** Regression invariant: department coverage requires one authoritative feature. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_coverage_requires_one_authoritative_feature`. Source lines 2014–2048.
+
+**Verified purpose:** Build genuine synthetic packages with only department 32 or duplicate department 31 features. Public coverage loading must raise exactly-one/found LayerError after extraction; no arbitrary first-row selection.
 
 **Exact signature**
 
@@ -9096,7 +9411,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9153,9 +9468,12 @@ def test_department_coverage_requires_one_authoritative_feature(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-coverage-requires-configured-identity-field"></a>
 ### `test_department_coverage_requires_configured_identity_field`
 
-**Purpose:** Regression invariant: department coverage requires configured identity field. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_coverage_requires_configured_identity_field`. Source lines 2051–2073.
+
+**Verified purpose:** Use a model-valid config requesting missing_code, extract a normal synthetic archive, then require identity-field LayerError from public coverage loading. Discovery does not validate feature attribute presence.
 
 **Exact signature**
 
@@ -9193,7 +9511,7 @@ Outbound call expressions and conservative ownership:
 | `_synthetic_archive_bytes` | `tests.unit.test_ign_bdtopo_fr._synthetic_archive_bytes` |
 | `_synthetic_config(source_config).model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_synthetic_config` | `tests.unit.test_ign_bdtopo_fr._synthetic_config` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `patch` | `unittest.mock.patch` |
 | `_response` | `tests.unit.test_ign_bdtopo_fr._response` |
 | `download_ign_bdtopo_archive` | `landscout.sources.ign_bdtopo_fr.download_ign_bdtopo_archive` |
@@ -9203,7 +9521,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9248,9 +9566,12 @@ def test_department_coverage_requires_configured_identity_field(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-missing-department-coverage-layer-fails"></a>
 ### `test_missing_department_coverage_layer_fails`
 
-**Purpose:** Regression invariant: missing department coverage layer fails. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_missing_department_coverage_layer_fails`. Source lines 2076–2094.
+
+**Verified purpose:** Create a synthetic archive with department layer disabled, mock its transport and require department/found-0 LayerError during extraction, not later coverage selection.
 
 **Exact signature**
 
@@ -9295,7 +9616,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9336,9 +9657,12 @@ def test_missing_department_coverage_layer_fails(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-department-coverage-layer-discovery-must-be-unambiguous"></a>
 ### `test_department_coverage_layer_discovery_must_be_unambiguous`
 
-**Purpose:** Regression invariant: department coverage layer discovery must be unambiguous. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_department_coverage_layer_discovery_must_be_unambiguous`. Source lines 2097–2129.
+
+**Verified purpose:** Add a second matching department layer to a genuine synthetic four-role GPKG, pack/download and require ambiguous/found-2 LayerError during extraction discovery.
 
 **Exact signature**
 
@@ -9387,7 +9711,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9442,9 +9766,12 @@ def test_department_coverage_layer_discovery_must_be_unambiguous(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-direct-consumers-reject-same-inventory-content-tampering"></a>
 ### `test_direct_consumers_reject_same_inventory_content_tampering`
 
-**Purpose:** Regression invariant: direct consumers reject same inventory content tampering. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_direct_consumers_reject_same_inventory_content_tampering`. Source lines 2140–2183.
+
+**Verified purpose:** For electricity/roads/coverage replace the first HT/Bretelle/Department 31 byte sequence with equal-length text in the physical GPKG, retaining stale integrity metadata. Assert old bytes present and unchanged size, then public loading raises integrity LayerError. The layer parameter is unused and no post-mutation layer relisting is asserted; rejection is physical SHA, not isolated semantic attribute validation. Coverage constructs a second synthetic fixture.
 
 **Exact signature**
 
@@ -9516,13 +9843,13 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `extraction.geopackage_path.stat`<br>`extraction.geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction.geopackage_path.write_bytes`<br>`content.replace` |
+| Filesystem/archive write or publication | extraction.geopackage_path.write_bytes changes the file; content.replace only creates an in-memory bytes value. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9582,9 +9909,12 @@ def test_direct_consumers_reject_same_inventory_content_tampering(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-rejects-source-change-after-physical-read"></a>
 ### `test_road_loader_rejects_source_change_after_physical_read`
 
-**Purpose:** Regression invariant: road loader rejects source change after physical read. Exact mutation, invocation, expected exception, and assertions are reproduced below.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_rejects_source_change_after_physical_read`. Source lines 2186–2209.
+
+**Verified purpose:** Patch gpd.read_file with a delegating callback that reads the genuine synthetic frame and then changes GPKG bytes before returning it. Public road loading must raise changed/integrity/SHA LayerError at the postcondition. No reader-count assertion or general concurrent-snapshot guarantee.
 
 **Exact signature**
 
@@ -9627,7 +9957,7 @@ Outbound call expressions and conservative ownership:
 
 **Source-observed side-effect matrix**
 
-A category is claimed only when the exact call/assignment evidence is listed. Empty evidence means no direct operation of that category is present in this callable.
+The table lists direct lexical operations, excluding nested callback bodies. Fixture/helpers and public adapter calls can perform delegated synthetic I/O; the verified purpose above states the exercised boundary. No real transport occurs under the opener mocks.
 
 | Category | Exact evidence |
 |---|---|
@@ -9673,9 +10003,12 @@ def test_road_loader_rejects_source_change_after_physical_read(
 
 - This file contributes test evidence only; it does not itself acquire production data, change policy meaning, or make parcel decisions.
 
+<a id="r15-test-road-loader-rejects-source-change-after-physical-read-mutate-after-read"></a>
 ### `test_road_loader_rejects_source_change_after_physical_read.mutate_after_read`
 
-**Purpose:** Implements `mutate after read` within the file role: Provides complete unit and regression coverage for the `ign_bdtopo_fr` contracts exercised in this file.
+Qualified owner: `tests.unit.test_ign_bdtopo_fr.test_road_loader_rejects_source_change_after_physical_read.mutate_after_read`. Source lines 2197–2203.
+
+**Verified purpose:** Call the captured real reader with forwarded args/kwargs, read physical GPKG bytes, replace the first Bretelle with BretellX, write them and return the previously read frame. content.replace is an in-memory byte operation; write_bytes mutates the file. It does not update integrity metadata.
 
 **Exact signature**
 
@@ -9720,7 +10053,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `extraction.geopackage_path.read_bytes` |
-| Filesystem/archive write or publication | `extraction.geopackage_path.write_bytes`<br>`content.replace` |
+| Filesystem/archive write or publication | extraction.geopackage_path.write_bytes changes the file; content.replace only creates an in-memory bytes value. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9755,84 +10088,84 @@ def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
 
 ### Per-test regression index
 
-| Test | Parametrization | Expected exception contexts | Assertion count | Exact regression purpose |
+| Test | Parametrization | Expected exception contexts | Python assert statements (excludes assertion helper calls) | Exact regression purpose |
 |---|---|---|---:|---|
-| `test_valid_source_config_loads` | none | none | 9 | Proves valid source config loads using the exact source reproduced in section 7. |
-| `test_loaded_ign_source_config_and_nested_models_are_frozen` | none | pytest.raises(ValidationError); pytest.raises(ValidationError) | 0 | Proves loaded ign source config and nested models are frozen using the exact source reproduced in section 7. |
-| `test_download_revalidates_a_tampered_config_before_network` | none | pytest.raises(IgnBdTopoDownloadError, match="config") | 0 | Proves download revalidates a tampered config before network using the exact source reproduced in section 7. |
-| `test_invalid_department_coverage_config_fails` | pytest.mark.parametrize("mutation", ["missing", "blank_field", "empty_tokens"]) | pytest.raises(ValidationError) | 0 | Proves invalid department coverage config fails using the exact source reproduced in section 7. |
-| `test_missing_required_source_field_fails` | pytest.mark.parametrize("field", ["source_url", "edition"]) | pytest.raises(ValidationError) | 0 | Proves missing required source field fails using the exact source reproduced in section 7. |
-| `test_invalid_source_configuration_fails` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("department_code", "3"),<br>        ("department_code", "XX"),<br>        ("projection", "EPSG:4326"),<br>        ("format", "SHP"),<br>        ("archive_format", "zip"),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | Proves invalid source configuration fails using the exact source reproduced in section 7. |
-| `test_unknown_source_config_field_is_rejected` | none | pytest.raises(ValidationError) | 0 | Proves unknown source config field is rejected using the exact source reproduced in section 7. |
-| `test_successful_archive_download_persists_sha256` | none | none | 7 | Proves successful archive download persists sha256 using the exact source reproduced in section 7. |
-| `test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` | none | none | 5 | Proves archive integrity reports local sha256 and no fabricated checksum using the exact source reproduced in section 7. |
-| `test_fresh_cache_is_reused_without_network` | none | none | 4 | Proves fresh cache is reused without network using the exact source reproduced in section 7. |
-| `test_stale_recovery_backup_rejects_cache_before_network` | none | pytest.raises(IgnBdTopoDownloadError, match="backup\|recovery\|manual") | 2 | Proves stale recovery backup rejects cache before network using the exact source reproduced in section 7. |
-| `test_expired_cache_is_refreshed` | none | none | 6 | Proves expired cache is refreshed using the exact source reproduced in section 7. |
-| `test_failed_refresh_preserves_valid_cache` | none | pytest.raises(IgnBdTopoDownloadError) | 4 | Proves failed refresh preserves valid cache using the exact source reproduced in section 7. |
-| `test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` | none | pytest.raises(IgnBdTopoArchiveError) | 3 | Proves corrupt new archive is rejected and temporary files are cleaned using the exact source reproduced in section 7. |
-| `test_corrupt_refresh_preserves_valid_cache` | none | pytest.raises(IgnBdTopoArchiveError) | 3 | Proves corrupt refresh preserves valid cache using the exact source reproduced in section 7. |
-| `test_metadata_publication_failure_restores_previous_cache_pair` | none | pytest.raises(IgnBdTopoDownloadError) | 5 | Proves metadata publication failure restores previous cache pair using the exact source reproduced in section 7. |
-| `test_publication_and_rollback_failure_preserves_exact_recovery_backups` | none | pytest.raises(IgnBdTopoDownloadError, match="rollback") | 2 | Proves publication and rollback failure preserves exact recovery backups using the exact source reproduced in section 7. |
-| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(IgnBdTopoDownloadError, match="rollback") | 2 | Proves cleanup failure does not mask double failure recovery error using the exact source reproduced in section 7. |
-| `test_stale_cache_recovery_backup_fails_closed_without_destroying_it` | none | pytest.raises(IgnBdTopoDownloadError, match="backup\|recovery\|manual") | 3 | Proves stale cache recovery backup fails closed without destroying it using the exact source reproduced in section 7. |
-| `test_official_checksum_mismatch_is_rejected` | none | pytest.raises(IgnBdTopoArchiveError, match="checksum\|SHA") | 2 | Proves official checksum mismatch is rejected using the exact source reproduced in section 7. |
-| `test_unsafe_parent_archive_member_is_rejected` | none | pytest.raises(IgnBdTopoArchiveError, match="unsafe\|member\|path") | 2 | Proves unsafe parent archive member is rejected using the exact source reproduced in section 7. |
-| `test_geopackage_is_discovered_recursively` | none | none | 1 | Proves geopackage is discovered recursively using the exact source reproduced in section 7. |
-| `test_multiple_geopackages_are_rejected_as_ambiguous` | none | pytest.raises(IgnBdTopoArchiveError, match="GeoPackage\|exactly one\|ambiguous") | 0 | Proves multiple geopackages are rejected as ambiguous using the exact source reproduced in section 7. |
-| `test_real_layer_names_are_listed_and_discovered` | none | none | 4 | Proves real layer names are listed and discovered using the exact source reproduced in section 7. |
-| `test_missing_electric_line_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="electric\|line\|Ligne") | 0 | Proves missing electric line layer fails using the exact source reproduced in section 7. |
-| `test_missing_transformation_post_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="transformation\|post\|Poste") | 0 | Proves missing transformation post layer fails using the exact source reproduced in section 7. |
-| `test_ambiguous_electric_line_layers_fail` | none | pytest.raises(IgnBdTopoLayerError, match="unambiguous\|found 2") | 0 | Proves ambiguous electric line layers fail using the exact source reproduced in section 7. |
-| `test_synthetic_archive_extracts_and_discovers_required_layers` | none | none | 3 | Proves synthetic archive extracts and discovers required layers using the exact source reproduced in section 7. |
-| `test_schema_v3_extraction_metadata_binds_complete_physical_inventory` | none | none | 11 | Proves schema v3 extraction metadata binds complete physical inventory using the exact source reproduced in section 7. |
-| `test_extraction_rejects_forged_download_lineage_before_archive_open` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "UNTRUSTED"),<br>        ("product", "OTHER PRODUCT"),<br>        ("department_code", "32"),<br>        ("edition", "2025-01-01"),<br>        ("source_url", "https://example.test/other.7z"),<br>        ("filename", "other.7z"),<br>        ("official_checksum_validated", True),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="config\|envelope") | 0 | Proves extraction rejects forged download lineage before archive open using the exact source reproduced in section 7. |
-| `test_same_size_geopackage_tamper_invalidates_extraction_cache` | none | none | 3 | Proves same size geopackage tamper invalidates extraction cache using the exact source reproduced in section 7. |
-| `test_forged_extraction_metadata_never_returns_cache_hit` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("geopackage_sha256", "0" * 64),<br>        ("geopackage_size_bytes", 1),<br>        ("schema_version", 1),<br>        ("schema_version", True),<br>        ("schema_version", 1.0),<br>        ("geopackage_relative_path", "../escape.gpkg"),<br>    ],<br>) | none | 1 | Proves forged extraction metadata never returns cache hit using the exact source reproduced in section 7. |
-| `test_linked_extraction_metadata_never_returns_cache_hit` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(IgnBdTopoArchiveError, match="marker\|non-linked") | 0 | Proves linked extraction metadata never returns cache hit using the exact source reproduced in section 7. |
-| `test_malformed_geopackage_sha_is_not_trusted` | pytest.mark.parametrize(<br>    "value",<br>    ["", "abc", "A" * 64, "a" * 63, "a" * 65],<br>) | none | 1 | Proves malformed geopackage sha is not trusted using the exact source reproduced in section 7. |
-| `test_malformed_geopackage_size_is_not_trusted` | pytest.mark.parametrize("value", [0, -1, True, "100"]) | none | 1 | Proves malformed geopackage size is not trusted using the exact source reproduced in section 7. |
-| `test_default_extraction_path_is_short_and_content_addressed` | none | none | 3 | Proves default extraction path is short and content addressed using the exact source reproduced in section 7. |
-| `test_layer_loader_retains_crs_counts_and_null_geometries` | none | none | 8 | Proves layer loader retains crs counts and null geometries using the exact source reproduced in section 7. |
-| `test_invalid_geometry_is_preserved_without_repair` | none | none | 5 | Proves invalid geometry is preserved without repair using the exact source reproduced in section 7. |
-| `test_geographic_crs_is_rejected` | none | pytest.raises(IgnBdTopoLayerError, match="2154\|Lambert\|projected\|CRS") | 0 | Proves geographic crs is rejected using the exact source reproduced in section 7. |
-| `test_electricity_loader_retains_both_layer_counts` | none | none | 5 | Proves electricity loader retains both layer counts using the exact source reproduced in section 7. |
-| `test_road_layer_discovery_loads_selected_physical_layer` | none | none | 5 | Proves road layer discovery loads selected physical layer using the exact source reproduced in section 7. |
-| `test_road_physical_layer_cannot_collide_with_electricity_roles` | pytest.mark.parametrize(<br>    "role",<br>    ["electric_lines", "transformation_posts"],<br>) | pytest.raises(IgnBdTopoLayerError, match="same layer\|collid\|role") | 0 | Proves road physical layer cannot collide with electricity roles using the exact source reproduced in section 7. |
-| `test_department_physical_layer_cannot_collide_with_road_role` | none | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | Proves department physical layer cannot collide with road role using the exact source reproduced in section 7. |
-| `test_department_physical_layer_cannot_collide_with_electricity_roles` | pytest.mark.parametrize(<br>    "role",<br>    ["electric_lines", "transformation_posts"],<br>) | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | Proves department physical layer cannot collide with electricity roles using the exact source reproduced in section 7. |
-| `test_electricity_physical_layers_must_be_distinct` | none | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | Proves electricity physical layers must be distinct using the exact source reproduced in section 7. |
-| `test_missing_road_layer_fails_safely` | none | pytest.raises(IgnBdTopoLayerError, match="road\|route\|found 0") | 0 | Proves missing road layer fails safely using the exact source reproduced in section 7. |
-| `test_ambiguous_road_layer_fails_safely` | none | pytest.raises(IgnBdTopoLayerError, match="road\|route\|found 2") | 0 | Proves ambiguous road layer fails safely using the exact source reproduced in section 7. |
-| `test_road_loader_rejects_wrong_archive_config_department` | none | pytest.raises(IgnBdTopoLayerError, match="department\|archive\|lineage") | 0 | Proves road loader rejects wrong archive config department using the exact source reproduced in section 7. |
-| `test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read` | pytest.mark.parametrize("logical_role", ["road", "coverage"]) | pytest.raises(IgnBdTopoLayerError, match="config") | 0 | Proves non electric layer loaders revalidate mutated role config before read using the exact source reproduced in section 7. |
-| `test_road_loader_rejects_changed_layer_inventory` | none | pytest.raises(IgnBdTopoLayerError, match="inventory\|changed") | 0 | Proves road loader rejects changed layer inventory using the exact source reproduced in section 7. |
-| `test_road_loader_rejects_geographic_crs` | none | pytest.raises(IgnBdTopoLayerError, match="2154\|Lambert\|projected\|CRS") | 0 | Proves road loader rejects geographic crs using the exact source reproduced in section 7. |
-| `test_road_loader_preserves_lambert93_lines_unchanged` | pytest.mark.parametrize(<br>    ("road_geometry_kind", "expected_geometry_type"),<br>    [("line", "LineString"), ("multiline", "MultiLineString")],<br>) | none | 2 | Proves road loader preserves lambert93 lines unchanged using the exact source reproduced in section 7. |
-| `test_road_layer_does_not_change_electricity_loading_or_cache_shape` | none | none | 7 | Proves road layer does not change electricity loading or cache shape using the exact source reproduced in section 7. |
-| `test_public_sources_export_only_stable_road_api` | none | none | 6 | Proves public sources export only stable road api using the exact source reproduced in section 7. |
-| `test_7z_windows_unsafe_member_names_fail_closed` | pytest.mark.parametrize(<br>    "unsafe_name",<br>    [<br>        "CON.txt",<br>        "folder/trailing.",<br>        "folder/edge ",<br>        "folder/bad?.txt",<br>        "folder/control\n.txt",<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="Windows\|unsafe\|reserved") | 0 | Proves 7z windows unsafe member names fail closed using the exact source reproduced in section 7. |
-| `test_7z_casefold_and_nfkc_destination_collisions_fail` | pytest.mark.parametrize(<br>    ("first", "second"),<br>    [<br>        ("Folder/value.txt", "folder/VALUE.txt"),<br>        ("café.txt", "cafe\u0301.txt"),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="collision") | 0 | Proves 7z casefold and nfkc destination collisions fail using the exact source reproduced in section 7. |
-| `test_7z_nfkc_separator_destinations_fail_closed` | pytest.mark.parametrize(<br>    ("confusable", "ordinary"),<br>    [<br>        ("folder\uff0fchild.txt", "folder/child.txt"),<br>        ("folder\uff3cchild.txt", "folder/child.txt"),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="Windows\|unsafe\|collision") | 0 | Proves 7z nfkc separator destinations fail closed using the exact source reproduced in section 7. |
-| `test_7z_parent_file_conflict_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="parent-file") | 0 | Proves 7z parent file conflict fails closed using the exact source reproduced in section 7. |
-| `test_7z_encrypted_archive_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="encrypted") | 0 | Proves 7z encrypted archive fails closed using the exact source reproduced in section 7. |
-| `test_extracted_inventory_mismatch_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="inventory") | 0 | Proves extracted inventory mismatch fails closed using the exact source reproduced in section 7. |
-| `test_stale_extraction_backup_blocks_before_7z_open` | none | pytest.raises(IgnBdTopoArchiveError, match="manual recovery") | 1 | Proves stale extraction backup blocks before 7z open using the exact source reproduced in section 7. |
-| `test_extraction_publication_double_failure_preserves_backup` | none | pytest.raises(IgnBdTopoArchiveError, match="rollback") | 1 | Proves extraction publication double failure preserves backup using the exact source reproduced in section 7. |
-| `test_extraction_part_link_is_rejected_without_touching_target` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(IgnBdTopoArchiveError, match="safe ordinary directory") | 4 | Proves extraction part link is rejected without touching target using the exact source reproduced in section 7. |
-| `test_duplicate_ign_yaml_key_is_rejected` | none | pytest.raises(IgnBdTopoDownloadError) | 1 | Proves duplicate ign yaml key is rejected using the exact source reproduced in section 7. |
-| `test_ign_cache_schema_version_is_a_strict_integer` | pytest.mark.parametrize("schema_version", [True, 1.0]) | pytest.raises((TypeError, ValidationError)) | 0 | Proves ign cache schema version is a strict integer using the exact source reproduced in section 7. |
-| `test_ign_cache_file_size_is_a_strict_integer` | pytest.mark.parametrize("value", [True, 1.0, "1"]) | pytest.raises(ValidationError) | 0 | Proves ign cache file size is a strict integer using the exact source reproduced in section 7. |
-| `test_ign_cache_json_is_strict_before_model_validation` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":1,"schema_version":1}',<br>        b'{"schema_version":NaN}',<br>        b"[]",<br>    ],<br>) | pytest.raises(ValueError) | 0 | Proves ign cache json is strict before model validation using the exact source reproduced in section 7. |
-| `test_download_cache_reader_rejects_noncanonical_json_and_refreshes` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":1,"schema_version":1}',<br>        b'{"schema_version":NaN}',<br>        b"[]",<br>    ],<br>) | none | 2 | Proves download cache reader rejects noncanonical json and refreshes using the exact source reproduced in section 7. |
-| `test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":3,"schema_version":3}',<br>        b'{"schema_version":Infinity}',<br>        b"[]",<br>    ],<br>) | none | 1 | Proves extraction cache reader rejects noncanonical json and rebuilds using the exact source reproduced in section 7. |
-| `test_department_coverage_loader_selects_configured_identity` | none | none | 13 | Proves department coverage loader selects configured identity using the exact source reproduced in section 7. |
-| `test_department_coverage_requires_one_authoritative_feature` | pytest.mark.parametrize(<br>    "department_codes",<br>    [["32"], ["31", "31"]],<br>    ids=["missing", "duplicate"],<br>) | pytest.raises(IgnBdTopoLayerError, match="exactly one\|found") | 0 | Proves department coverage requires one authoritative feature using the exact source reproduced in section 7. |
-| `test_department_coverage_requires_configured_identity_field` | none | pytest.raises(IgnBdTopoLayerError, match="identity field\|missing_code") | 0 | Proves department coverage requires configured identity field using the exact source reproduced in section 7. |
-| `test_missing_department_coverage_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="department\|found 0") | 0 | Proves missing department coverage layer fails using the exact source reproduced in section 7. |
-| `test_department_coverage_layer_discovery_must_be_unambiguous` | none | pytest.raises(IgnBdTopoLayerError, match="unambiguous\|found 2") | 0 | Proves department coverage layer discovery must be unambiguous using the exact source reproduced in section 7. |
-| `test_direct_consumers_reject_same_inventory_content_tampering` | pytest.mark.parametrize(<br>    ("consumer", "layer", "old_bytes", "new_bytes"),<br>    [<br>        ("electricity", LINE_LAYER, b"HT", b"HX"),<br>        ("roads", ROAD_LAYER, b"Bretelle", b"BretellX"),<br>        ("coverage", DEPARTMENT_LAYER, b"Department 31", b"Department 3X"),<br>    ],<br>) | pytest.raises(IgnBdTopoLayerError, match="integrity\|SHA\|physical\|changed") | 2 | Proves direct consumers reject same inventory content tampering using the exact source reproduced in section 7. |
-| `test_road_loader_rejects_source_change_after_physical_read` | none | pytest.raises(IgnBdTopoLayerError, match="changed\|integrity\|SHA") | 0 | Proves road loader rejects source change after physical read using the exact source reproduced in section 7. |
+| `test_valid_source_config_loads` | none | none | 9 | See [verified scenario and limits](#r15-test-valid-source-config-loads). |
+| `test_loaded_ign_source_config_and_nested_models_are_frozen` | none | pytest.raises(ValidationError); pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-loaded-ign-source-config-and-nested-models-are-frozen). |
+| `test_download_revalidates_a_tampered_config_before_network` | none | pytest.raises(IgnBdTopoDownloadError, match="config") | 0 | See [verified scenario and limits](#r15-test-download-revalidates-a-tampered-config-before-network). |
+| `test_invalid_department_coverage_config_fails` | pytest.mark.parametrize("mutation", ["missing", "blank_field", "empty_tokens"]) | pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-invalid-department-coverage-config-fails). |
+| `test_missing_required_source_field_fails` | pytest.mark.parametrize("field", ["source_url", "edition"]) | pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-missing-required-source-field-fails). |
+| `test_invalid_source_configuration_fails` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("department_code", "3"),<br>        ("department_code", "XX"),<br>        ("projection", "EPSG:4326"),<br>        ("format", "SHP"),<br>        ("archive_format", "zip"),<br>    ],<br>) | pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-invalid-source-configuration-fails). |
+| `test_unknown_source_config_field_is_rejected` | none | pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-unknown-source-config-field-is-rejected). |
+| `test_successful_archive_download_persists_sha256` | none | none | 7 | See [verified scenario and limits](#r15-test-successful-archive-download-persists-sha256). |
+| `test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum` | none | none | 5 | See [verified scenario and limits](#r15-test-archive-integrity-reports-local-sha256-and-no-fabricated-checksum). |
+| `test_fresh_cache_is_reused_without_network` | none | none | 4 | See [verified scenario and limits](#r15-test-fresh-cache-is-reused-without-network). |
+| `test_stale_recovery_backup_rejects_cache_before_network` | none | pytest.raises(IgnBdTopoDownloadError, match="backup\|recovery\|manual") | 2 | See [verified scenario and limits](#r15-test-stale-recovery-backup-rejects-cache-before-network). |
+| `test_expired_cache_is_refreshed` | none | none | 6 | See [verified scenario and limits](#r15-test-expired-cache-is-refreshed). |
+| `test_failed_refresh_preserves_valid_cache` | none | pytest.raises(IgnBdTopoDownloadError) | 4 | See [verified scenario and limits](#r15-test-failed-refresh-preserves-valid-cache). |
+| `test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` | none | pytest.raises(IgnBdTopoArchiveError) | 3 | See [verified scenario and limits](#r15-test-corrupt-new-archive-is-rejected-and-temporary-files-are-cleaned). |
+| `test_corrupt_refresh_preserves_valid_cache` | none | pytest.raises(IgnBdTopoArchiveError) | 3 | See [verified scenario and limits](#r15-test-corrupt-refresh-preserves-valid-cache). |
+| `test_metadata_publication_failure_restores_previous_cache_pair` | none | pytest.raises(IgnBdTopoDownloadError) | 5 | See [verified scenario and limits](#r15-test-metadata-publication-failure-restores-previous-cache-pair). |
+| `test_publication_and_rollback_failure_preserves_exact_recovery_backups` | none | pytest.raises(IgnBdTopoDownloadError, match="rollback") | 2 | See [verified scenario and limits](#r15-test-publication-and-rollback-failure-preserves-exact-recovery-backups). |
+| `test_cleanup_failure_does_not_mask_double_failure_recovery_error` | none | pytest.raises(IgnBdTopoDownloadError, match="rollback") | 2 | See [verified scenario and limits](#r15-test-cleanup-failure-does-not-mask-double-failure-recovery-error). |
+| `test_stale_cache_recovery_backup_fails_closed_without_destroying_it` | none | pytest.raises(IgnBdTopoDownloadError, match="backup\|recovery\|manual") | 3 | See [verified scenario and limits](#r15-test-stale-cache-recovery-backup-fails-closed-without-destroying-it). |
+| `test_official_checksum_mismatch_is_rejected` | none | pytest.raises(IgnBdTopoArchiveError, match="checksum\|SHA") | 2 | See [verified scenario and limits](#r15-test-official-checksum-mismatch-is-rejected). |
+| `test_unsafe_parent_archive_member_is_rejected` | none | pytest.raises(IgnBdTopoArchiveError, match="unsafe\|member\|path") | 2 | See [verified scenario and limits](#r15-test-unsafe-parent-archive-member-is-rejected). |
+| `test_geopackage_is_discovered_recursively` | none | none | 1 | See [verified scenario and limits](#r15-test-geopackage-is-discovered-recursively). |
+| `test_multiple_geopackages_are_rejected_as_ambiguous` | none | pytest.raises(IgnBdTopoArchiveError, match="GeoPackage\|exactly one\|ambiguous") | 0 | See [verified scenario and limits](#r15-test-multiple-geopackages-are-rejected-as-ambiguous). |
+| `test_real_layer_names_are_listed_and_discovered` | none | none | 4 | See [verified scenario and limits](#r15-test-real-layer-names-are-listed-and-discovered). |
+| `test_missing_electric_line_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="electric\|line\|Ligne") | 0 | See [verified scenario and limits](#r15-test-missing-electric-line-layer-fails). |
+| `test_missing_transformation_post_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="transformation\|post\|Poste") | 0 | See [verified scenario and limits](#r15-test-missing-transformation-post-layer-fails). |
+| `test_ambiguous_electric_line_layers_fail` | none | pytest.raises(IgnBdTopoLayerError, match="unambiguous\|found 2") | 0 | See [verified scenario and limits](#r15-test-ambiguous-electric-line-layers-fail). |
+| `test_synthetic_archive_extracts_and_discovers_required_layers` | none | none | 3 | See [verified scenario and limits](#r15-test-synthetic-archive-extracts-and-discovers-required-layers). |
+| `test_schema_v3_extraction_metadata_binds_complete_physical_inventory` | none | none | 11 | See [verified scenario and limits](#r15-test-schema-v3-extraction-metadata-binds-complete-physical-inventory). |
+| `test_extraction_rejects_forged_download_lineage_before_archive_open` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("provider", "UNTRUSTED"),<br>        ("product", "OTHER PRODUCT"),<br>        ("department_code", "32"),<br>        ("edition", "2025-01-01"),<br>        ("source_url", "https://example.test/other.7z"),<br>        ("filename", "other.7z"),<br>        ("official_checksum_validated", True),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="config\|envelope") | 0 | See [verified scenario and limits](#r15-test-extraction-rejects-forged-download-lineage-before-archive-open). |
+| `test_same_size_geopackage_tamper_invalidates_extraction_cache` | none | none | 3 | See [verified scenario and limits](#r15-test-same-size-geopackage-tamper-invalidates-extraction-cache). |
+| `test_forged_extraction_metadata_never_returns_cache_hit` | pytest.mark.parametrize(<br>    ("field", "value"),<br>    [<br>        ("geopackage_sha256", "0" * 64),<br>        ("geopackage_size_bytes", 1),<br>        ("schema_version", 1),<br>        ("schema_version", True),<br>        ("schema_version", 1.0),<br>        ("geopackage_relative_path", "../escape.gpkg"),<br>    ],<br>) | none | 1 | See [verified scenario and limits](#r15-test-forged-extraction-metadata-never-returns-cache-hit). |
+| `test_linked_extraction_metadata_never_returns_cache_hit` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(IgnBdTopoArchiveError, match="marker\|non-linked") | 0 | See [verified scenario and limits](#r15-test-linked-extraction-metadata-never-returns-cache-hit). |
+| `test_malformed_geopackage_sha_is_not_trusted` | pytest.mark.parametrize(<br>    "value",<br>    ["", "abc", "A" * 64, "a" * 63, "a" * 65],<br>) | none | 1 | See [verified scenario and limits](#r15-test-malformed-geopackage-sha-is-not-trusted). |
+| `test_malformed_geopackage_size_is_not_trusted` | pytest.mark.parametrize("value", [0, -1, True, "100"]) | none | 1 | See [verified scenario and limits](#r15-test-malformed-geopackage-size-is-not-trusted). |
+| `test_default_extraction_path_is_short_and_content_addressed` | none | none | 3 | See [verified scenario and limits](#r15-test-default-extraction-path-is-short-and-content-addressed). |
+| `test_layer_loader_retains_crs_counts_and_null_geometries` | none | none | 8 | See [verified scenario and limits](#r15-test-layer-loader-retains-crs-counts-and-null-geometries). |
+| `test_invalid_geometry_is_preserved_without_repair` | none | none | 5 | See [verified scenario and limits](#r15-test-invalid-geometry-is-preserved-without-repair). |
+| `test_geographic_crs_is_rejected` | none | pytest.raises(IgnBdTopoLayerError, match="2154\|Lambert\|projected\|CRS") | 0 | See [verified scenario and limits](#r15-test-geographic-crs-is-rejected). |
+| `test_electricity_loader_retains_both_layer_counts` | none | none | 5 | See [verified scenario and limits](#r15-test-electricity-loader-retains-both-layer-counts). |
+| `test_road_layer_discovery_loads_selected_physical_layer` | none | none | 5 | See [verified scenario and limits](#r15-test-road-layer-discovery-loads-selected-physical-layer). |
+| `test_road_physical_layer_cannot_collide_with_electricity_roles` | pytest.mark.parametrize(<br>    "role",<br>    ["electric_lines", "transformation_posts"],<br>) | pytest.raises(IgnBdTopoLayerError, match="same layer\|collid\|role") | 0 | See [verified scenario and limits](#r15-test-road-physical-layer-cannot-collide-with-electricity-roles). |
+| `test_department_physical_layer_cannot_collide_with_road_role` | none | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | See [verified scenario and limits](#r15-test-department-physical-layer-cannot-collide-with-road-role). |
+| `test_department_physical_layer_cannot_collide_with_electricity_roles` | pytest.mark.parametrize(<br>    "role",<br>    ["electric_lines", "transformation_posts"],<br>) | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | See [verified scenario and limits](#r15-test-department-physical-layer-cannot-collide-with-electricity-roles). |
+| `test_electricity_physical_layers_must_be_distinct` | none | pytest.raises(IgnBdTopoLayerError, match="distinct\|role\|same layer") | 0 | See [verified scenario and limits](#r15-test-electricity-physical-layers-must-be-distinct). |
+| `test_missing_road_layer_fails_safely` | none | pytest.raises(IgnBdTopoLayerError, match="road\|route\|found 0") | 0 | See [verified scenario and limits](#r15-test-missing-road-layer-fails-safely). |
+| `test_ambiguous_road_layer_fails_safely` | none | pytest.raises(IgnBdTopoLayerError, match="road\|route\|found 2") | 0 | See [verified scenario and limits](#r15-test-ambiguous-road-layer-fails-safely). |
+| `test_road_loader_rejects_wrong_archive_config_department` | none | pytest.raises(IgnBdTopoLayerError, match="department\|archive\|lineage") | 0 | See [verified scenario and limits](#r15-test-road-loader-rejects-wrong-archive-config-department). |
+| `test_non_electric_layer_loaders_revalidate_mutated_role_config_before_read` | pytest.mark.parametrize("logical_role", ["road", "coverage"]) | pytest.raises(IgnBdTopoLayerError, match="config") | 0 | See [verified scenario and limits](#r15-test-non-electric-layer-loaders-revalidate-mutated-role-config-before-read). |
+| `test_road_loader_rejects_changed_layer_inventory` | none | pytest.raises(IgnBdTopoLayerError, match="inventory\|changed") | 0 | See [verified scenario and limits](#r15-test-road-loader-rejects-changed-layer-inventory). |
+| `test_road_loader_rejects_geographic_crs` | none | pytest.raises(IgnBdTopoLayerError, match="2154\|Lambert\|projected\|CRS") | 0 | See [verified scenario and limits](#r15-test-road-loader-rejects-geographic-crs). |
+| `test_road_loader_preserves_lambert93_lines_unchanged` | pytest.mark.parametrize(<br>    ("road_geometry_kind", "expected_geometry_type"),<br>    [("line", "LineString"), ("multiline", "MultiLineString")],<br>) | none | 2 | See [verified scenario and limits](#r15-test-road-loader-preserves-lambert93-lines-unchanged). |
+| `test_road_layer_does_not_change_electricity_loading_or_cache_shape` | none | none | 7 | See [verified scenario and limits](#r15-test-road-layer-does-not-change-electricity-loading-or-cache-shape). |
+| `test_public_sources_export_only_stable_road_api` | none | none | 6 | See [verified scenario and limits](#r15-test-public-sources-export-only-stable-road-api). |
+| `test_7z_windows_unsafe_member_names_fail_closed` | pytest.mark.parametrize(<br>    "unsafe_name",<br>    [<br>        "CON.txt",<br>        "folder/trailing.",<br>        "folder/edge ",<br>        "folder/bad?.txt",<br>        "folder/control\n.txt",<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="Windows\|unsafe\|reserved") | 0 | See [verified scenario and limits](#r15-test-7z-windows-unsafe-member-names-fail-closed). |
+| `test_7z_casefold_and_nfkc_destination_collisions_fail` | pytest.mark.parametrize(<br>    ("first", "second"),<br>    [<br>        ("Folder/value.txt", "folder/VALUE.txt"),<br>        ("café.txt", "cafe\u0301.txt"),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="collision") | 0 | See [verified scenario and limits](#r15-test-7z-casefold-and-nfkc-destination-collisions-fail). |
+| `test_7z_nfkc_separator_destinations_fail_closed` | pytest.mark.parametrize(<br>    ("confusable", "ordinary"),<br>    [<br>        ("folder\uff0fchild.txt", "folder/child.txt"),<br>        ("folder\uff3cchild.txt", "folder/child.txt"),<br>    ],<br>) | pytest.raises(IgnBdTopoArchiveError, match="Windows\|unsafe\|collision") | 0 | See [verified scenario and limits](#r15-test-7z-nfkc-separator-destinations-fail-closed). |
+| `test_7z_parent_file_conflict_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="parent-file") | 0 | See [verified scenario and limits](#r15-test-7z-parent-file-conflict-fails-closed). |
+| `test_7z_encrypted_archive_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="encrypted") | 0 | See [verified scenario and limits](#r15-test-7z-encrypted-archive-fails-closed). |
+| `test_extracted_inventory_mismatch_fails_closed` | none | pytest.raises(IgnBdTopoArchiveError, match="inventory") | 0 | See [verified scenario and limits](#r15-test-extracted-inventory-mismatch-fails-closed). |
+| `test_stale_extraction_backup_blocks_before_7z_open` | none | pytest.raises(IgnBdTopoArchiveError, match="manual recovery") | 1 | See [verified scenario and limits](#r15-test-stale-extraction-backup-blocks-before-7z-open). |
+| `test_extraction_publication_double_failure_preserves_backup` | none | pytest.raises(IgnBdTopoArchiveError, match="rollback") | 1 | See [verified scenario and limits](#r15-test-extraction-publication-double-failure-preserves-backup). |
+| `test_extraction_part_link_is_rejected_without_touching_target` | pytest.mark.parametrize("link_kind", ["symlink", "junction"]) | pytest.raises(IgnBdTopoArchiveError, match="safe ordinary directory") | 4 | See [verified scenario and limits](#r15-test-extraction-part-link-is-rejected-without-touching-target). |
+| `test_duplicate_ign_yaml_key_is_rejected` | none | pytest.raises(IgnBdTopoDownloadError) | 1 | See [verified scenario and limits](#r15-test-duplicate-ign-yaml-key-is-rejected). |
+| `test_ign_cache_schema_version_is_a_strict_integer` | pytest.mark.parametrize("schema_version", [True, 1.0]) | pytest.raises((TypeError, ValidationError)) | 0 | See [verified scenario and limits](#r15-test-ign-cache-schema-version-is-a-strict-integer). |
+| `test_ign_cache_file_size_is_a_strict_integer` | pytest.mark.parametrize("value", [True, 1.0, "1"]) | pytest.raises(ValidationError) | 0 | See [verified scenario and limits](#r15-test-ign-cache-file-size-is-a-strict-integer). |
+| `test_ign_cache_json_is_strict_before_model_validation` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":1,"schema_version":1}',<br>        b'{"schema_version":NaN}',<br>        b"[]",<br>    ],<br>) | pytest.raises(ValueError) | 0 | See [verified scenario and limits](#r15-test-ign-cache-json-is-strict-before-model-validation). |
+| `test_download_cache_reader_rejects_noncanonical_json_and_refreshes` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":1,"schema_version":1}',<br>        b'{"schema_version":NaN}',<br>        b"[]",<br>    ],<br>) | none | 2 | See [verified scenario and limits](#r15-test-download-cache-reader-rejects-noncanonical-json-and-refreshes). |
+| `test_extraction_cache_reader_rejects_noncanonical_json_and_rebuilds` | pytest.mark.parametrize(<br>    "invalid_json",<br>    [<br>        b'{"schema_version":3,"schema_version":3}',<br>        b'{"schema_version":Infinity}',<br>        b"[]",<br>    ],<br>) | none | 1 | See [verified scenario and limits](#r15-test-extraction-cache-reader-rejects-noncanonical-json-and-rebuilds). |
+| `test_department_coverage_loader_selects_configured_identity` | none | none | 13 | See [verified scenario and limits](#r15-test-department-coverage-loader-selects-configured-identity). |
+| `test_department_coverage_requires_one_authoritative_feature` | pytest.mark.parametrize(<br>    "department_codes",<br>    [["32"], ["31", "31"]],<br>    ids=["missing", "duplicate"],<br>) | pytest.raises(IgnBdTopoLayerError, match="exactly one\|found") | 0 | See [verified scenario and limits](#r15-test-department-coverage-requires-one-authoritative-feature). |
+| `test_department_coverage_requires_configured_identity_field` | none | pytest.raises(IgnBdTopoLayerError, match="identity field\|missing_code") | 0 | See [verified scenario and limits](#r15-test-department-coverage-requires-configured-identity-field). |
+| `test_missing_department_coverage_layer_fails` | none | pytest.raises(IgnBdTopoLayerError, match="department\|found 0") | 0 | See [verified scenario and limits](#r15-test-missing-department-coverage-layer-fails). |
+| `test_department_coverage_layer_discovery_must_be_unambiguous` | none | pytest.raises(IgnBdTopoLayerError, match="unambiguous\|found 2") | 0 | See [verified scenario and limits](#r15-test-department-coverage-layer-discovery-must-be-unambiguous). |
+| `test_direct_consumers_reject_same_inventory_content_tampering` | pytest.mark.parametrize(<br>    ("consumer", "layer", "old_bytes", "new_bytes"),<br>    [<br>        ("electricity", LINE_LAYER, b"HT", b"HX"),<br>        ("roads", ROAD_LAYER, b"Bretelle", b"BretellX"),<br>        ("coverage", DEPARTMENT_LAYER, b"Department 31", b"Department 3X"),<br>    ],<br>) | pytest.raises(IgnBdTopoLayerError, match="integrity\|SHA\|physical\|changed") | 2 | See [verified scenario and limits](#r15-test-direct-consumers-reject-same-inventory-content-tampering). |
+| `test_road_loader_rejects_source_change_after_physical_read` | none | pytest.raises(IgnBdTopoLayerError, match="changed\|integrity\|SHA") | 0 | See [verified scenario and limits](#r15-test-road-loader-rejects-source-change-after-physical-read). |
 
 ## 8. Public exports and package ownership
 

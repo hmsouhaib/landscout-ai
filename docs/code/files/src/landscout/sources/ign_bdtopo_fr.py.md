@@ -8,11 +8,33 @@
 - Domain: official source acquisition and physical authority
 - Responsibility: Acquires, verifies, safely extracts/inventories, selects globally unique configured roles, loads, and source-completely revalidates fresh IGN BD TOPO data.
 - Source SHA256: `598df901cd8dfe543595f22ff511b511a196f345474acd6355d7929a7a512101`
+- Source SHA256 basis: `git-content`
+- R15 verification basis: `8bef62ab9b6eef185bab526a046b4a7dbbea42a1`; source bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
 - Binds four globally unique configured IGN roles, strict marker/inventory authority, Windows-compatible archive destinations, and fresh source-complete role objects; the internal extraction marker advances from schema 2 to 3.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## R15 source authority and I/O boundaries
+
+The adapter acquires one configured 7z/GPKG source and discovers four distinct physical roles: electric lines, transformation posts, roads and department coverage. It does not normalize feature attributes, compute parcel distance, classify access or apply BESS policy. The [test companion](../../../tests/unit/test_ign_bdtopo_fr.py.md) distinguishes real temporary archives/GPKGs from official data and from fake inventory records.
+
+Configuration is a frozen extra-forbid Pydantic tree with ordered tuple match_tokens. NonEmptyString/department/edition/checksum aliases trim or lowercase only as declared below; canonical metadata SHA and strict numeric/schema fields use different constraints. Dataclasses are frozen envelopes, not constructor validators: GeoDataFrames and files named by Paths remain mutable. Public source boundaries reconstruct the exact config class from model_dump and revalidate it rather than trusting model_copy or frozen status.
+
+HttpUrl is not the transport contract. On a cache miss, open_safe_https validates HTTPS URLs and every resolved public address per hop, binds the TLS socket to a validated address, checks the connected peer, and uses the hostname for TLS verification. The shared transport rejects credentials/fragments/local destinations, malformed DNS and mixed public/private results, follows bounded validated redirects and avoids ambient proxies. It provides a GET stream; SafeHttpsError is an OSError handled by the adapter's download wrapper. This contextual reading does not close safe_http or prove its behavior through the mocked IGN tests. No hardcoded official-host allowlist or checksum_url retrieval exists here.
+
+download_ign_bdtopo_archive reconstructs config, rejects recovery backups, then checks the local cache before transport. A valid hit still parses schema-1 metadata, checks configured identity and UTC age, hashes current archive bytes and runs py7zr.test; it needs no DNS/HTTP. On a miss, copyfileobj streams in 1 MiB chunks to an exclusive .part file. Optional expected size/checksum is checked after the stream has been written, not as an early Content-Length/maximum-byte budget. A CRC result of None is accepted as unavailable, not called successful extraction. Archive and metadata are published in order with recovery backups; no atomic two-file transaction, lock or general concurrent-reader snapshot is promised. See the corrected _publish_cache_pair notice for its asymmetric rollback and cleanup limits.
+
+Extraction revalidates download/config lineage and archive bytes even before an extraction-cache hit. Member metadata is checked for encryption, unsafe Windows/Unicode destinations, links, collisions, sizes, parent-file conflicts and exactly one GPKG. Actual extraction-tree path/kind/size parity is compared with that member inventory, while per-file SHA256 values are computed from extracted files, not immutable archive-member snapshots. The .landscout-extraction.json schema-3 marker retains archive lineage, GPKG size/SHA, full layer inventory, four roles and all extracted entries. Reuse rechecks that tree and configuration. Safe transaction-directory validation precedes removal, stale backups fail closed and rollback failures preserve recovery material; this is neither a ZIP nor GPU manifest protocol.
+
+The private _load_untrusted_ign_bdtopo_layer reads a named GPKG layer without archive/config authority. Public electricity/road/coverage loaders require extraction plus config, reconstruct config, compare archive metadata, validate the marker/current GPKG/full tree, rediscover all four roles, read selected layers by path and check extraction stability afterward. They do not reopen the .7z bytes at this boundary. The postcondition reuses parsed marker evidence and can short-circuit after a GPKG mismatch; it is not an immutable-byte parser or a concurrency lock. There is no final archive/GPKG rehash after publication solely because an envelope is returned.
+
+Electricity and road loading retain every raw row/column and geometry, including NULL/EMPTY/nonempty-invalid facts, without family filtering or repair, and require nonempty data with active projected EPSG:2154-equivalent CRS. Department coverage instead selects exactly one raw attribute equal to archive department, requires a valid nonempty Polygon/MultiPolygon, copies/reset-indexes it and appends eight noncolliding lineage columns. Its summary describes the whole raw layer, not just the selected row. SOURCE_COVERAGE_BOUNDARY means source extent, not electrical-service reach.
+
+The electricity/road revalidators fresh-load through those public gates and compare supplied frames (ordered columns/dtypes/index class/names/values, active geometry, CRS equivalence, exact nongeometry values, ordered WKB and attrs) plus summaries, returning fresh frames. Their normalizers call these revalidators before factual projection. Coverage revalidation compares frame/summary/scalars but currently has no direct repository caller; _validate_coverage_summary_contract likewise has no current direct caller, and is not invoked by that revalidator. Grid proximity delegates to the electricity normalizer; road policy/proximity delegates to the road normalizer; coverage assessments call the coverage loader. These contextual dependencies receive no closure credit here.
+
+Controlled error ownership is local: download/config, archive/extraction and layer boundaries have distinct IgnBdTopoError subclasses. Explicit raises below include internal TypeError/ValueError that a surrounding helper may wrap. There is no blanket guarantee that every private operation or every public callable wraps every possible Exception; fresh-source revalidators do broadly translate, whereas loaders rely on delegated gates. No available capacity, guaranteed RTE connection point, legal/heavy-truck access, BESS authorization or score follows from these facts.
 
 ## 2. Purpose and architectural position
 
@@ -408,9 +430,18 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ## 5. Classes, models, dataclasses, and fields
 
+<a id="r15-ignbdtopologicallayerconfig"></a>
 ### `IgnBdTopoLogicalLayerConfig`
 
-**Source purpose and field meaning:** Frozen physical-layer selector: class_label is a trimmed display/error label; match_tokens is an ordered nonempty immutable tuple retained verbatim after trimming. Each token must normalize to letters/digits, and normalized duplicates fail. Discovery normalizes actual layer names and requires every token's words to match.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayerConfig`. Source lines 91–107.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLogicalLayerConfig(BaseModel):
+```
+
+**Verified purpose:** Frozen physical-layer selector: class_label is a trimmed display/error label; match_tokens is an ordered nonempty immutable tuple retained verbatim after trimming. Each token must normalize to letters/digits, and normalized duplicates fail. Discovery normalizes actual layer names and requires every token's words to match.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -482,9 +513,40 @@ class IgnBdTopoLogicalLayerConfig(BaseModel):
         return value
 ```
 
+<a id="r15-ignbdtopologicallayerconfig-class-label"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayerConfig.class_label`
+
+Source lines 96–96.
+
+```python
+class_label: NonEmptyString
+```
+
+Required trimmed nonempty display/error label. It does not fix the physical layer name.
+
+<a id="r15-ignbdtopologicallayerconfig-match-tokens"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayerConfig.match_tokens`
+
+Source lines 97–97.
+
+```python
+match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)
+```
+
+Required ordered tuple with at least one trimmed nonempty token; normalized empty/duplicate phrases fail. Matching uses the union of their words without reordering retained tokens.
+
+<a id="r15-ignbdtopologicallayersconfig"></a>
 ### `IgnBdTopoLogicalLayersConfig`
 
-**Source purpose and field meaning:** Frozen pair of electric-line and transformation-post selectors. Their normalized token sets must differ; this is not sufficient to prove distinct physical layers, which discovery checks separately.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayersConfig`. Source lines 110–126.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLogicalLayersConfig(BaseModel):
+```
+
+**Verified purpose:** Frozen pair of electric-line and transformation-post selectors. Their normalized token sets must differ; this is not sufficient to prove distinct physical layers, which discovery checks separately.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -555,9 +617,40 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
         return self
 ```
 
+<a id="r15-ignbdtopologicallayersconfig-electric-lines"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayersConfig.electric_lines`
+
+Source lines 113–113.
+
+```python
+electric_lines: IgnBdTopoLogicalLayerConfig
+```
+
+Required frozen selector for the electric-line role.
+
+<a id="r15-ignbdtopologicallayersconfig-transformation-posts"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayersConfig.transformation_posts`
+
+Source lines 114–114.
+
+```python
+transformation_posts: IgnBdTopoLogicalLayerConfig
+```
+
+Required frozen selector for posts; normalized phrase-set equality with electric_lines is rejected.
+
+<a id="r15-ignbdtopodepartmentlayerconfig"></a>
 ### `IgnBdTopoDepartmentLayerConfig`
 
-**Source purpose and field meaning:** Frozen layer selector inheriting class_label and match_tokens, adding the exact observed attribute name department_code_field. The coverage loader uses that field to select exactly one feature matching the configured department; the model does not fetch or inspect the layer.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentLayerConfig`. Source lines 129–132.
+
+Exact declaration:
+
+```python
+class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
+```
+
+**Verified purpose:** Frozen layer selector inheriting class_label and match_tokens, adding the trimmed nonempty configured attribute name department_code_field. The coverage loader uses that field to select exactly one feature matching the configured department; the model does not fetch or inspect the layer.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoLogicalLayerConfig`.
@@ -613,9 +706,29 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
     department_code_field: NonEmptyString
 ```
 
+<a id="r15-ignbdtopodepartmentlayerconfig-department-code-field"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentLayerConfig.department_code_field`
+
+Source lines 132–132.
+
+```python
+department_code_field: NonEmptyString
+```
+
+Required trimmed nonempty raw attribute name. The model does not inspect the GPKG; the coverage loader later requires this exact retained column name.
+
+<a id="r15-ignbdtopoaccessconfig"></a>
 ### `IgnBdTopoAccessConfig`
 
-**Source purpose and field meaning:** Frozen road_segments selector. The historical class docstring says outside extraction metadata, but schema-3 extraction metadata now includes road_segments_layer and the physical four-role inventory. The docstring is retained unchanged in the source snapshot, not treated as the current metadata contract.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoAccessConfig`. Source lines 135–140.
+
+Exact declaration:
+
+```python
+class IgnBdTopoAccessConfig(BaseModel):
+```
+
+**Verified purpose:** Frozen road_segments selector. The historical class docstring says outside extraction metadata, but schema-3 extraction metadata now includes road_segments_layer and the physical four-role inventory. The docstring is retained unchanged in the source snapshot, not treated as the current metadata contract.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -644,9 +757,29 @@ class IgnBdTopoAccessConfig(BaseModel):
     road_segments: IgnBdTopoLogicalLayerConfig
 ```
 
+<a id="r15-ignbdtopoaccessconfig-road-segments"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoAccessConfig.road_segments`
+
+Source lines 140–140.
+
+```python
+road_segments: IgnBdTopoLogicalLayerConfig
+```
+
+Required frozen selector for factual road segments; it is not a vehicle-access policy.
+
+<a id="r15-ignbdtopocoverageconfig"></a>
 ### `IgnBdTopoCoverageConfig`
 
-**Source purpose and field meaning:** Frozen required department_layer selector, including its configured identity field. It does not represent an already measured coverage polygon.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageConfig`. Source lines 143–146.
+
+Exact declaration:
+
+```python
+class IgnBdTopoCoverageConfig(BaseModel):
+```
+
+**Verified purpose:** Frozen required department_layer selector, including its configured identity field. It does not represent an already measured coverage polygon.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -703,9 +836,29 @@ class IgnBdTopoCoverageConfig(BaseModel):
     department_layer: IgnBdTopoDepartmentLayerConfig
 ```
 
+<a id="r15-ignbdtopocoverageconfig-department-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageConfig.department_layer`
+
+Source lines 146–146.
+
+```python
+department_layer: IgnBdTopoDepartmentLayerConfig
+```
+
+Required frozen department selector with identity attribute configuration.
+
+<a id="r15-ignbdtoposourceconfig"></a>
 ### `IgnBdTopoSourceConfig`
 
-**Source purpose and field meaning:** Frozen source identity and nested selectors. Provider/product, projection, package/archive formats have closed domains; department and calendar edition are validated; product_version is optional descriptive text. URL validation here is HttpUrl plus matching .7z extension, not a hardcoded official-host/HTTPS network gate. Optional official algorithm and digest must occur together, with matching MD5/SHA256 lengths; checksum_url requires a pinned checksum. Size is optional positive exact int, cache age is finite nonnegative float. Acquisition applies safe HTTPS and byte checks independently.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`. Source lines 149–213.
+
+Exact declaration:
+
+```python
+class IgnBdTopoSourceConfig(BaseModel):
+```
+
+**Verified purpose:** Frozen source identity and nested selectors. Provider/product, projection, package/archive formats have closed domains; department and calendar edition are validated; product_version is optional descriptive text. URL validation here is HttpUrl plus matching .7z extension, not a hardcoded official-host/HTTPS network gate. Optional official algorithm and digest must occur together, with matching MD5/SHA256 lengths; checksum_url requires a pinned checksum. Size is optional positive exact int, cache age is finite nonnegative float. Acquisition applies safe HTTPS and byte checks independently.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -1035,9 +1188,207 @@ class IgnBdTopoSourceConfig(BaseModel):
         return self
 ```
 
+<a id="r15-ignbdtoposourceconfig-provider"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.provider`
+
+Source lines 154–156.
+
+```python
+provider: Literal[
+        "Institut national de l'information géographique et forestière (IGN)"
+    ]
+```
+
+Required exact provider Literal shown in the declaration; no host ownership is established by this label.
+
+<a id="r15-ignbdtoposourceconfig-product"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.product`
+
+Source lines 157–157.
+
+```python
+product: Literal["BD TOPO"]
+```
+
+Required exact BD TOPO Literal.
+
+<a id="r15-ignbdtoposourceconfig-department-code"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.department_code`
+
+Source lines 158–158.
+
+```python
+department_code: DepartmentCode
+```
+
+Required string trimmed then matched against two digits, 2A/2B or 971..976; no real department lookup.
+
+<a id="r15-ignbdtoposourceconfig-edition"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.edition`
+
+Source lines 159–159.
+
+```python
+edition: EditionString
+```
+
+Required trimmed YYYY-MM-DD spelling, then date.fromisoformat calendar validation. No recency rule.
+
+<a id="r15-ignbdtoposourceconfig-product-version"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.product_version`
+
+Source lines 160–160.
+
+```python
+product_version: NonEmptyString | None = None
+```
+
+Optional trimmed nonempty string with default None; descriptive only.
+
+<a id="r15-ignbdtoposourceconfig-projection"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.projection`
+
+Source lines 161–161.
+
+```python
+projection: Projection
+```
+
+Required EPSG:2154 Literal; physical CRS validation is separate.
+
+<a id="r15-ignbdtoposourceconfig-format"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.format`
+
+Source lines 162–162.
+
+```python
+format: PackageFormat
+```
+
+Required GPKG Literal; envelopes call this package_format.
+
+<a id="r15-ignbdtoposourceconfig-archive-format"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.archive_format`
+
+Source lines 163–163.
+
+```python
+archive_format: ArchiveFormat
+```
+
+Required 7z Literal; decoded source URL suffix is compared case-insensitively.
+
+<a id="r15-ignbdtoposourceconfig-source-url"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.source_url`
+
+Source lines 164–164.
+
+```python
+source_url: HttpUrl
+```
+
+Required Pydantic HttpUrl plus decoded .7z suffix check. Model URL parsing is distinct from HTTPS-only/DNS/socket safety and does not impose an official-host allowlist.
+
+<a id="r15-ignbdtoposourceconfig-checksum-url"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.checksum_url`
+
+Source lines 165–165.
+
+```python
+checksum_url: HttpUrl | None = None
+```
+
+Optional HttpUrl default None; if supplied, requires an official algorithm/digest pin. It is retained, never downloaded by this adapter.
+
+<a id="r15-ignbdtoposourceconfig-official-checksum-algorithm"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.official_checksum_algorithm`
+
+Source lines 166–166.
+
+```python
+official_checksum_algorithm: ChecksumAlgorithm | None = None
+```
+
+Optional md5/sha256 Literal default None, paired with official_checksum by the cross-validator.
+
+<a id="r15-ignbdtoposourceconfig-official-checksum"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.official_checksum`
+
+Source lines 167–167.
+
+```python
+official_checksum: HexChecksum | None = None
+```
+
+Optional trimmed/lowercased hex text default None; when paired, MD5 requires 32 digits and SHA256 64. Unlike CanonicalSha256 metadata, this alias intentionally cleans input.
+
+<a id="r15-ignbdtoposourceconfig-expected-archive-size-bytes"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.expected_archive_size_bytes`
+
+Source lines 168–168.
+
+```python
+expected_archive_size_bytes: StrictPositiveInt | None = None
+```
+
+Optional strict positive integer default None; checked against fully written/downloaded archive bytes, not a streaming byte limit.
+
+<a id="r15-ignbdtoposourceconfig-cache-max-age-hours"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.cache_max_age_hours`
+
+Source lines 169–169.
+
+```python
+cache_max_age_hours: StrictNonNegativeFloat
+```
+
+Required strict finite nonnegative float field; no default. Pydantic strict float is not an exact type(value) is float test. Cache reuse requires age in the inclusive 0..configured-hours interval.
+
+<a id="r15-ignbdtoposourceconfig-logical-layers"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.logical_layers`
+
+Source lines 170–170.
+
+```python
+logical_layers: IgnBdTopoLogicalLayersConfig
+```
+
+Required frozen pair of electricity selectors with differing normalized phrase sets.
+
+<a id="r15-ignbdtoposourceconfig-access"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.access`
+
+Source lines 171–171.
+
+```python
+access: IgnBdTopoAccessConfig
+```
+
+Required frozen road-selector config; no legal or truck accessibility semantics.
+
+<a id="r15-ignbdtoposourceconfig-coverage"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.coverage`
+
+Source lines 172–172.
+
+```python
+coverage: IgnBdTopoCoverageConfig
+```
+
+Required frozen department-selector config; source boundary, not electrical capacity.
+
+<a id="r15-ignbdtopoerror"></a>
 ### `IgnBdTopoError`
 
-**Source purpose:** Base error for controlled IGN BD TOPO source failures.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoError`. Source lines 216–217.
+
+Exact declaration:
+
+```python
+class IgnBdTopoError(RuntimeError):
+```
+
+**Verified purpose:** Base error for controlled IGN BD TOPO source failures.
 
 - Exact decorators: none.
 - Exact bases: `RuntimeError`.
@@ -1088,9 +1439,18 @@ class IgnBdTopoError(RuntimeError):
     """Base error for controlled IGN BD TOPO source failures."""
 ```
 
+<a id="r15-ignbdtopodownloaderror"></a>
 ### `IgnBdTopoDownloadError`
 
-**Source purpose:** Raised when an IGN archive cannot be downloaded or cached safely.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownloadError`. Source lines 220–221.
+
+Exact declaration:
+
+```python
+class IgnBdTopoDownloadError(IgnBdTopoError):
+```
+
+**Verified purpose:** Raised when an IGN archive cannot be downloaded or cached safely.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoError`.
@@ -1180,9 +1540,18 @@ class IgnBdTopoDownloadError(IgnBdTopoError):
     """Raised when an IGN archive cannot be downloaded or cached safely."""
 ```
 
+<a id="r15-ignbdtopoarchiveerror"></a>
 ### `IgnBdTopoArchiveError`
 
-**Source purpose:** Raised when an IGN archive or its extraction is unsafe or invalid.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveError`. Source lines 224–225.
+
+Exact declaration:
+
+```python
+class IgnBdTopoArchiveError(IgnBdTopoError):
+```
+
+**Verified purpose:** Raised when an IGN archive or its extraction is unsafe or invalid.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoError`.
@@ -1303,9 +1672,18 @@ class IgnBdTopoArchiveError(IgnBdTopoError):
     """Raised when an IGN archive or its extraction is unsafe or invalid."""
 ```
 
+<a id="r15-ignbdtopolayererror"></a>
 ### `IgnBdTopoLayerError`
 
-**Source purpose:** Raised when required GeoPackage layers cannot be discovered or loaded.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerError`. Source lines 228–229.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLayerError(IgnBdTopoError):
+```
+
+**Verified purpose:** Raised when required GeoPackage layers cannot be discovered or loaded.
 
 - Exact decorators: none.
 - Exact bases: `IgnBdTopoError`.
@@ -1443,9 +1821,18 @@ class IgnBdTopoLayerError(IgnBdTopoError):
     """Raised when required GeoPackage layers cannot be discovered or loaded."""
 ```
 
+<a id="r15-ignbdtopoarchiveintegrity"></a>
 ### `IgnBdTopoArchiveIntegrity`
 
-**Source purpose and field meaning:** Frozen observation of one archive validation: positive file size and local SHA256, optional configured official algorithm/digest and whether that comparison was required/performed. None is not fabricated official evidence. Dataclass construction alone does not validate these fields.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity`. Source lines 233–238.
+
+Exact declaration:
+
+```python
+class IgnBdTopoArchiveIntegrity:
+```
+
+**Verified purpose:** Frozen observation of one archive validation: positive file size and local SHA256, optional configured official algorithm/digest and whether that comparison was required/performed. None is not fabricated official evidence. Dataclass construction alone does not validate these fields.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1509,9 +1896,73 @@ class IgnBdTopoArchiveIntegrity:
     official_checksum_validated: bool
 ```
 
+<a id="r15-ignbdtopoarchiveintegrity-file-size"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity.file_size`
+
+Source lines 234–234.
+
+```python
+file_size: int
+```
+
+Required field with no default. Observed archive byte size; physical archive validation requires positive size and compares an optional configured pin. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoarchiveintegrity-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity.sha256`
+
+Source lines 235–235.
+
+```python
+sha256: str
+```
+
+Required field with no default. Lowercase local archive SHA256, calculated by streaming bytes; it is not automatically an official checksum. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoarchiveintegrity-official-checksum-algorithm"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity.official_checksum_algorithm`
+
+Source lines 236–236.
+
+```python
+official_checksum_algorithm: ChecksumAlgorithm | None
+```
+
+Required field with no default. Nullable configured md5/sha256 algorithm, distinct from the always-calculated local SHA256. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoarchiveintegrity-official-checksum"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity.official_checksum`
+
+Source lines 237–237.
+
+```python
+official_checksum: str | None
+```
+
+Required field with no default. Nullable configured official digest; no pin is fabricated when absent. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoarchiveintegrity-official-checksum-validated"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoArchiveIntegrity.official_checksum_validated`
+
+Source lines 238–238.
+
+```python
+official_checksum_validated: bool
+```
+
+Required field with no default. Whether a configured official digest comparison was required and passed by archive validation; local SHA alone does not set official evidence. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload"></a>
 ### `IgnBdTopoDownload`
 
-**Source purpose and field meaning:** Frozen envelope joining configured provider/product/department/edition/version/projection/formats/URLs, UTC timestamp, filename, observed size/local SHA and optional official-checksum evidence to a mutable filesystem Path. cache_hit records reuse, spatial_role remains PROXY_GEOMETRY. It does not contain immutable archive bytes; source boundaries reconstruct and check its facts.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload`. Source lines 242–262.
+
+Exact declaration:
+
+```python
+class IgnBdTopoDownload:
+```
+
+**Verified purpose:** Frozen envelope joining configured provider/product/department/edition/version/projection/formats/URLs, UTC timestamp, filename, observed size/local SHA and optional official-checksum evidence to an immutable Path value naming mutable filesystem contents. cache_hit records reuse, spatial_role remains PROXY_GEOMETRY. It does not contain immutable archive bytes; source boundaries reconstruct and check its facts.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1688,9 +2139,238 @@ class IgnBdTopoDownload:
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
 ```
 
+<a id="r15-ignbdtopodownload-provider"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.provider`
+
+Source lines 243–243.
+
+```python
+provider: str
+```
+
+Required field with no default. Provider identity; equality with the reconstructed config is a boundary check, not implied by a plain string field. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-product"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.product`
+
+Source lines 244–244.
+
+```python
+product: str
+```
+
+Required field with no default. Product identity; plain metadata/envelope strings are compared with configured BD TOPO at the boundary. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-department-code"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.department_code`
+
+Source lines 245–245.
+
+```python
+department_code: str
+```
+
+Required field with no default. Archive department identity, compared to the supplied config; not inferred from road geometry. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-edition"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.edition`
+
+Source lines 246–246.
+
+```python
+edition: str
+```
+
+Required field with no default. Archive edition text, compared to the configured calendar edition; not acquisition time. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-product-version"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.product_version`
+
+Source lines 247–247.
+
+```python
+product_version: str | None
+```
+
+Required field with no default. Nullable descriptive product version retained from config; no version is invented when absent. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-projection"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.projection`
+
+Source lines 248–248.
+
+```python
+projection: str
+```
+
+Required field with no default. Declared projection identity; actual loaded CRS is independently checked for EPSG:2154 equivalence. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-package-format"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.package_format`
+
+Source lines 249–249.
+
+```python
+package_format: str
+```
+
+Required field with no default. Package-format lineage copied from config.format; actual physical layer metadata is checked separately. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-archive-format"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.archive_format`
+
+Source lines 250–250.
+
+```python
+archive_format: str
+```
+
+Required field with no default. Archive-format lineage, not a successful decoder result. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-source-url"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.source_url`
+
+Source lines 251–251.
+
+```python
+source_url: str
+```
+
+Required field with no default. Configured archive URL lineage, not the final redirect URL; byte acquisition uses the shared HTTPS transport. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-checksum-url"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.checksum_url`
+
+Source lines 252–252.
+
+```python
+checksum_url: str | None
+```
+
+Required field with no default. Nullable checksum provenance URL; this adapter does not fetch it. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-download-timestamp"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.download_timestamp`
+
+Source lines 253–253.
+
+```python
+download_timestamp: str
+```
+
+Required field with no default. Timezone-aware UTC ISO download timestamp; cache freshness checks it, whereas lineage validation does not impose maximum age. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-filename"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.filename`
+
+Source lines 254–254.
+
+```python
+filename: str
+```
+
+Required field with no default. URL-derived archive basename, compared with config and physical path name at the lineage gate. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-file-size"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.file_size`
+
+Source lines 255–255.
+
+```python
+file_size: int
+```
+
+Required field with no default. Observed archive byte size; physical archive validation requires positive size and compares an optional configured pin. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.sha256`
+
+Source lines 256–256.
+
+```python
+sha256: str
+```
+
+Required field with no default. Lowercase local archive SHA256, calculated by streaming bytes; it is not automatically an official checksum. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-official-checksum-algorithm"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.official_checksum_algorithm`
+
+Source lines 257–257.
+
+```python
+official_checksum_algorithm: ChecksumAlgorithm | None
+```
+
+Required field with no default. Nullable configured md5/sha256 algorithm, distinct from the always-calculated local SHA256. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-official-checksum"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.official_checksum`
+
+Source lines 258–258.
+
+```python
+official_checksum: str | None
+```
+
+Required field with no default. Nullable configured official digest; no pin is fabricated when absent. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-official-checksum-validated"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.official_checksum_validated`
+
+Source lines 259–259.
+
+```python
+official_checksum_validated: bool
+```
+
+Required field with no default. Whether a configured official digest comparison was required and passed by archive validation; local SHA alone does not set official evidence. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-path"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.path`
+
+Source lines 260–260.
+
+```python
+path: Path
+```
+
+Required field with no default. Path naming the archive on disk, not immutable archive bytes. Path values are immutable; the referenced file can change. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-cache-hit"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.cache_hit`
+
+Source lines 261–261.
+
+```python
+cache_hit: bool
+```
+
+Required field with no default. Boolean observation of reuse rather than fresh publication; not a substitute for current byte validation. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodownload-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownload.spatial_role`
+
+Source lines 262–262.
+
+```python
+spatial_role: SpatialRole = "PROXY_GEOMETRY"
+```
+
+Default "PROXY_GEOMETRY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayerselection"></a>
 ### `IgnBdTopoLayerSelection`
 
-**Source purpose and field meaning:** Frozen public electricity discovery result: the complete ordered physical layer-name tuple and the unique electric-line and transformation-post names selected from it. Four-role uniqueness is owned by _ConfiguredPhysicalRoles, not this two-role record.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSelection`. Source lines 266–269.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLayerSelection:
+```
+
+**Verified purpose:** Frozen public electricity discovery result: the complete ordered physical layer-name tuple and the unique electric-line and transformation-post names selected from it. Four-role uniqueness is owned by _ConfiguredPhysicalRoles, not this two-role record.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1750,9 +2430,51 @@ class IgnBdTopoLayerSelection:
     transformation_posts_layer: str
 ```
 
+<a id="r15-ignbdtopolayerselection-all-layer-names"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSelection.all_layer_names`
+
+Source lines 267–267.
+
+```python
+all_layer_names: tuple[str, ...]
+```
+
+Required field with no default. Complete ordered physical layer-name inventory, not just the selected roles; source-bound checks compare it with fresh Pyogrio listing. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayerselection-electric-lines-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSelection.electric_lines_layer`
+
+Source lines 268–268.
+
+```python
+electric_lines_layer: str
+```
+
+Required field with no default. Selected physical electric-line name, not the logical role name or loaded frame. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayerselection-transformation-posts-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSelection.transformation_posts_layer`
+
+Source lines 269–269.
+
+```python
+transformation_posts_layer: str
+```
+
+Required field with no default. Selected physical transformation-post name; no RTE connection-point claim. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction"></a>
 ### `IgnBdTopoExtraction`
 
-**Source purpose and field meaning:** Frozen extraction envelope retaining its archive envelope, extraction/GPKG Paths, filename, positive GPKG size/SHA, complete ordered layer inventory, all four selected physical role names and cache-hit evidence. Paths remain mutable external resources; schema-3 marker and fresh physical reads establish current authority.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction`. Source lines 273–286.
+
+Exact declaration:
+
+```python
+class IgnBdTopoExtraction:
+```
+
+**Verified purpose:** Frozen extraction envelope retaining its archive envelope, extraction/GPKG Paths, filename, positive GPKG size/SHA, complete ordered layer inventory, all four selected physical role names and cache-hit evidence. Path values name mutable external resources; schema-3 marker and fresh physical reads establish current authority.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -1917,9 +2639,161 @@ class IgnBdTopoExtraction:
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
 ```
 
+<a id="r15-ignbdtopoextraction-archive"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.archive`
+
+Source lines 274–274.
+
+```python
+archive: IgnBdTopoDownload
+```
+
+Required field with no default. Retained download envelope and its local Path/lineage; no embedded archive-byte snapshot. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-extraction-path"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.extraction_path`
+
+Source lines 275–275.
+
+```python
+extraction_path: Path
+```
+
+Required field with no default. Root Path of the extracted tree and marker; disk contents remain mutable. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-geopackage-path"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.geopackage_path`
+
+Source lines 276–276.
+
+```python
+geopackage_path: Path
+```
+
+Required field with no default. Path reopened by Pyogrio/GeoPandas; physical pre/post checks do not turn it into an immutable parser snapshot. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-geopackage-filename"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.geopackage_filename`
+
+Source lines 277–277.
+
+```python
+geopackage_filename: str
+```
+
+Required field with no default. Discovered GPKG basename, compared to the contained package Path. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-geopackage-size-bytes"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.geopackage_size_bytes`
+
+Source lines 278–278.
+
+```python
+geopackage_size_bytes: int
+```
+
+Required field with no default. Positive GPKG byte size captured with SHA256 and compared against the physical file. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-geopackage-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.geopackage_sha256`
+
+Source lines 279–279.
+
+```python
+geopackage_sha256: str
+```
+
+Required field with no default. Lowercase GPKG SHA256; separate from archive SHA and canonical frame comparison. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-all-layer-names"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.all_layer_names`
+
+Source lines 280–280.
+
+```python
+all_layer_names: tuple[str, ...]
+```
+
+Required field with no default. Complete ordered physical layer-name inventory, not just the selected roles; source-bound checks compare it with fresh Pyogrio listing. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-electric-lines-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.electric_lines_layer`
+
+Source lines 281–281.
+
+```python
+electric_lines_layer: str
+```
+
+Required field with no default. Selected physical electric-line name, not the logical role name or loaded frame. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-transformation-posts-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.transformation_posts_layer`
+
+Source lines 282–282.
+
+```python
+transformation_posts_layer: str
+```
+
+Required field with no default. Selected physical transformation-post name; no RTE connection-point claim. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-road-segments-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.road_segments_layer`
+
+Source lines 283–283.
+
+```python
+road_segments_layer: str
+```
+
+Required field with no default. Selected physical road-segment name; schema-3 metadata retains it separately from road feature attributes. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-department-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.department_layer`
+
+Source lines 284–284.
+
+```python
+department_layer: str
+```
+
+Required field with no default. Selected physical department-layer name in discovery/extraction records, not a coverage polygon. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-cache-hit"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.cache_hit`
+
+Source lines 285–285.
+
+```python
+cache_hit: bool
+```
+
+Required field with no default. Boolean observation of reuse rather than fresh publication; not a substitute for current byte validation. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoextraction-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoExtraction.spatial_role`
+
+Source lines 286–286.
+
+```python
+spatial_role: SpatialRole = "PROXY_GEOMETRY"
+```
+
+Default "PROXY_GEOMETRY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary"></a>
 ### `IgnBdTopoLayerSummary`
 
-**Source purpose and field meaning:** Frozen factual summary for one nonempty raw layer: logical/physical names, observed CRS string, feature count, ordered columns and dtype pairs, NULL/EMPTY/nonempty-invalid counts, sorted distinct non-null geometry type names and PROXY_GEOMETRY. Fields are structural facts rather than connection/access decisions.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary`. Source lines 290–301.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLayerSummary:
+```
+
+**Verified purpose:** Frozen factual summary for one nonempty raw layer: logical/physical names, observed CRS string, feature count, ordered columns and dtype pairs, NULL/EMPTY/nonempty-invalid counts, sorted distinct non-null geometry type names and PROXY_GEOMETRY. Fields are structural facts rather than connection/access decisions.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2056,9 +2930,139 @@ class IgnBdTopoLayerSummary:
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
 ```
 
+<a id="r15-ignbdtopolayersummary-logical-name"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.logical_name`
+
+Source lines 291–291.
+
+```python
+logical_name: LogicalLayerName
+```
+
+Required field with no default. Logical electricity/post/road role used by the raw-layer summary; no department value in LogicalLayerName. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-source-layer-name"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.source_layer_name`
+
+Source lines 292–292.
+
+```python
+source_layer_name: str
+```
+
+Required field with no default. Original physical layer name associated with this summary. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-crs"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.crs`
+
+Source lines 293–293.
+
+```python
+crs: str
+```
+
+Required field with no default. Observed CRS.to_string() spelling after projected EPSG:2154-equivalence validation; no reprojection. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-feature-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.feature_count`
+
+Source lines 294–294.
+
+```python
+feature_count: int
+```
+
+Required field with no default. All raw layer rows, including null/empty/invalid geometries; not a usable-feature count. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-columns"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.columns`
+
+Source lines 295–295.
+
+```python
+columns: tuple[str, ...]
+```
+
+Required field with no default. Ordered original source columns, including active geometry; coverage summaries describe the full raw layer before appended lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-dtypes"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.dtypes`
+
+Source lines 296–296.
+
+```python
+dtypes: tuple[tuple[str, str], ...]
+```
+
+Required field with no default. Ordered (column, string dtype) pairs matching columns; no value coercion is performed by this record. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-null-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.null_geometry_count`
+
+Source lines 297–297.
+
+```python
+null_geometry_count: int
+```
+
+Required field with no default. Count of null geometry across the complete raw layer; those rows are not removed by raw loading. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-empty-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.empty_geometry_count`
+
+Source lines 298–298.
+
+```python
+empty_geometry_count: int
+```
+
+Required field with no default. Count of non-null empty geometry across the complete raw layer. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-invalid-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.invalid_geometry_count`
+
+Source lines 299–299.
+
+```python
+invalid_geometry_count: int
+```
+
+Required field with no default. Count of non-null, nonempty invalid geometry across the complete raw layer; no repair. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-geometry-types"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.geometry_types`
+
+Source lines 300–300.
+
+```python
+geometry_types: tuple[str, ...]
+```
+
+Required field with no default. Sorted distinct non-null observed geometry type names, including empty geometry types when present. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopolayersummary-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLayerSummary.spatial_role`
+
+Source lines 301–301.
+
+```python
+spatial_role: SpatialRole = "PROXY_GEOMETRY"
+```
+
+Default "PROXY_GEOMETRY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoloadedlayer"></a>
 ### `IgnBdTopoLoadedLayer`
 
-**Source purpose and field meaning:** Frozen pair of an already read GeoDataFrame and its summary. The data field remains a mutable GeoDataFrame and is returned by reference; freezing this envelope is not deep immutability of source rows.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLoadedLayer`. Source lines 305–307.
+
+Exact declaration:
+
+```python
+class IgnBdTopoLoadedLayer:
+```
+
+**Verified purpose:** Frozen pair of an already read GeoDataFrame and its summary. The data field remains a mutable GeoDataFrame and is returned by reference; freezing this envelope is not deep immutability of source rows.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2117,9 +3121,40 @@ class IgnBdTopoLoadedLayer:
     summary: IgnBdTopoLayerSummary
 ```
 
+<a id="r15-ignbdtopoloadedlayer-data"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLoadedLayer.data`
+
+Source lines 306–306.
+
+```python
+data: gpd.GeoDataFrame
+```
+
+Required field with no default. Mutable raw GeoDataFrame retained by reference by _loaded_layer_from_frame; frozen envelope does not freeze rows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoloadedlayer-summary"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoLoadedLayer.summary`
+
+Source lines 307–307.
+
+```python
+summary: IgnBdTopoLayerSummary
+```
+
+Required field with no default. Frozen factual summary associated with the frame; compare with fresh physical facts before trusting a caller-supplied record. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata"></a>
 ### `IgnBdTopoElectricityData`
 
-**Source purpose and field meaning:** Frozen two-layer source envelope: extraction lineage, mutable electric-lines and transformation-posts frames and their frozen summaries, with PROXY_GEOMETRY. Loaders retain every row; the source-complete normalizer reloads and compares physical data before using it.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData`. Source lines 311–317.
+
+Exact declaration:
+
+```python
+class IgnBdTopoElectricityData:
+```
+
+**Verified purpose:** Frozen two-layer source envelope: extraction lineage, mutable electric-lines and transformation-posts frames and their frozen summaries, with PROXY_GEOMETRY. Loaders retain every row; the source-complete normalizer reloads and compares physical data before using it.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2228,9 +3263,84 @@ class IgnBdTopoElectricityData:
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
 ```
 
+<a id="r15-ignbdtopoelectricitydata-extraction"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.extraction`
+
+Source lines 312–312.
+
+```python
+extraction: IgnBdTopoExtraction
+```
+
+Required field with no default. Retained extraction envelope linking config-bound physical reads; not a private frame promoted to source authority. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata-electric-lines"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.electric_lines`
+
+Source lines 313–313.
+
+```python
+electric_lines: gpd.GeoDataFrame
+```
+
+Required field with no default. Mutable raw line GeoDataFrame retaining all read rows and defects. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata-transformation-posts"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.transformation_posts`
+
+Source lines 314–314.
+
+```python
+transformation_posts: gpd.GeoDataFrame
+```
+
+Required field with no default. Mutable raw post GeoDataFrame retaining all read rows and defects; not capacity data. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata-electric-lines-summary"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.electric_lines_summary`
+
+Source lines 315–315.
+
+```python
+electric_lines_summary: IgnBdTopoLayerSummary
+```
+
+Required field with no default. Frozen summary of the full raw electric-line frame. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata-transformation-posts-summary"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.transformation_posts_summary`
+
+Source lines 316–316.
+
+```python
+transformation_posts_summary: IgnBdTopoLayerSummary
+```
+
+Required field with no default. Frozen summary of the full raw transformation-post frame. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopoelectricitydata-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoElectricityData.spatial_role`
+
+Source lines 317–317.
+
+```python
+spatial_role: SpatialRole = "PROXY_GEOMETRY"
+```
+
+Default "PROXY_GEOMETRY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtoporoaddata"></a>
 ### `IgnBdTopoRoadData`
 
-**Source purpose and field meaning:** Frozen unfiltered road source envelope with extraction lineage, mutable raw road_segments frame and frozen summary. No road vehicle-policy evidence is created by this record; public consumers fresh-revalidate physical facts.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoRoadData`. Source lines 321–326.
+
+Exact declaration:
+
+```python
+class IgnBdTopoRoadData:
+```
+
+**Verified purpose:** Frozen unfiltered road source envelope with extraction lineage, mutable raw road_segments frame and frozen summary. No road vehicle-policy evidence is created by this record; public consumers fresh-revalidate physical facts.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2371,9 +3481,51 @@ class IgnBdTopoRoadData:
     road_segments_summary: IgnBdTopoLayerSummary
 ```
 
+<a id="r15-ignbdtoporoaddata-extraction"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoRoadData.extraction`
+
+Source lines 324–324.
+
+```python
+extraction: IgnBdTopoExtraction
+```
+
+Required field with no default. Retained extraction envelope linking config-bound physical reads; not a private frame promoted to source authority. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtoporoaddata-road-segments"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoRoadData.road_segments`
+
+Source lines 325–325.
+
+```python
+road_segments: gpd.GeoDataFrame
+```
+
+Required field with no default. Mutable raw road GeoDataFrame; factual loading performs no policy classification or parcel distance. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtoporoaddata-road-segments-summary"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoRoadData.road_segments_summary`
+
+Source lines 326–326.
+
+```python
+road_segments_summary: IgnBdTopoLayerSummary
+```
+
+Required field with no default. Frozen summary of the full raw road frame, not selected VALID-only roads. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary"></a>
 ### `IgnBdTopoCoverageLayerSummary`
 
-**Source purpose and field meaning:** Frozen summary distinguishing complete source-layer feature/schema/geometry counts from the exactly-one selected feature produced by the loader. department_code_field and selected_department_code identify the selection, and spatial_role is SOURCE_COVERAGE_BOUNDARY. It does not summarize a parcel intersection.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary`. Source lines 330–345.
+
+Exact declaration:
+
+```python
+class IgnBdTopoCoverageLayerSummary:
+```
+
+**Verified purpose:** Frozen summary distinguishing complete source-layer feature/schema/geometry counts from the exactly-one selected feature produced by the loader. department_code_field and selected_department_code identify the selection, and spatial_role is SOURCE_COVERAGE_BOUNDARY. It does not summarize a parcel intersection.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2486,9 +3638,161 @@ class IgnBdTopoCoverageLayerSummary:
     spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
 ```
 
+<a id="r15-ignbdtopocoveragelayersummary-source-layer-name"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.source_layer_name`
+
+Source lines 333–333.
+
+```python
+source_layer_name: str
+```
+
+Required field with no default. Original physical layer name associated with this summary. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-crs"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.crs`
+
+Source lines 334–334.
+
+```python
+crs: str
+```
+
+Required field with no default. Observed CRS.to_string() spelling after projected EPSG:2154-equivalence validation; no reprojection. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-source-feature-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.source_feature_count`
+
+Source lines 335–335.
+
+```python
+source_feature_count: int
+```
+
+Required field with no default. Number of rows in the entire department layer before selection. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-selected-feature-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.selected_feature_count`
+
+Source lines 336–336.
+
+```python
+selected_feature_count: int
+```
+
+Required field with no default. Number matching archive department; the coverage builder requires exactly one, not the dataclass constructor. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-columns"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.columns`
+
+Source lines 337–337.
+
+```python
+columns: tuple[str, ...]
+```
+
+Required field with no default. Ordered original source columns, including active geometry; coverage summaries describe the full raw layer before appended lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-dtypes"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.dtypes`
+
+Source lines 338–338.
+
+```python
+dtypes: tuple[tuple[str, str], ...]
+```
+
+Required field with no default. Ordered (column, string dtype) pairs matching columns; no value coercion is performed by this record. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-null-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.null_geometry_count`
+
+Source lines 339–339.
+
+```python
+null_geometry_count: int
+```
+
+Required field with no default. Count of null geometry across the complete raw layer; those rows are not removed by raw loading. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-empty-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.empty_geometry_count`
+
+Source lines 340–340.
+
+```python
+empty_geometry_count: int
+```
+
+Required field with no default. Count of non-null empty geometry across the complete raw layer. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-invalid-geometry-count"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.invalid_geometry_count`
+
+Source lines 341–341.
+
+```python
+invalid_geometry_count: int
+```
+
+Required field with no default. Count of non-null, nonempty invalid geometry across the complete raw layer; no repair. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-geometry-types"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.geometry_types`
+
+Source lines 342–342.
+
+```python
+geometry_types: tuple[str, ...]
+```
+
+Required field with no default. Sorted distinct non-null observed geometry type names, including empty geometry types when present. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-department-code-field"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.department_code_field`
+
+Source lines 343–343.
+
+```python
+department_code_field: str
+```
+
+Required field with no default. Name of the configured raw attribute used for exact equality selection against archive department. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-selected-department-code"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.selected_department_code`
+
+Source lines 344–344.
+
+```python
+selected_department_code: str
+```
+
+Required field with no default. Archive department string used by the coverage builder, not a geometry-derived code. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopocoveragelayersummary-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoCoverageLayerSummary.spatial_role`
+
+Source lines 345–345.
+
+```python
+spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
+```
+
+Default "SOURCE_COVERAGE_BOUNDARY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage"></a>
 ### `IgnBdTopoDepartmentCoverage`
 
-**Source purpose and field meaning:** Frozen envelope containing extraction lineage, a mutable one-row selected coverage GeoDataFrame and frozen full-source summary. Seven source identity scalars plus spatial_role mirror the eight appended lineage columns; this is a department source-coverage boundary, not electrical-service reach.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage`. Source lines 349–362.
+
+Exact declaration:
+
+```python
+class IgnBdTopoDepartmentCoverage:
+```
+
+**Verified purpose:** Frozen envelope containing extraction lineage, a mutable one-row selected coverage GeoDataFrame and frozen full-source summary. Seven source identity scalars plus spatial_role mirror the eight appended lineage columns; this is a department source-coverage boundary, not electrical-service reach.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2611,9 +3915,139 @@ class IgnBdTopoDepartmentCoverage:
     spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
 ```
 
+<a id="r15-ignbdtopodepartmentcoverage-extraction"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.extraction`
+
+Source lines 352–352.
+
+```python
+extraction: IgnBdTopoExtraction
+```
+
+Required field with no default. Retained extraction envelope linking config-bound physical reads; not a private frame promoted to source authority. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-coverage"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.coverage`
+
+Source lines 353–353.
+
+```python
+coverage: gpd.GeoDataFrame
+```
+
+Required field with no default. Mutable copied one-row selected department GeoDataFrame, reset index and eight appended lineage columns. Selected geometry must be valid nonempty Polygon/MultiPolygon. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-summary"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.summary`
+
+Source lines 354–354.
+
+```python
+summary: IgnBdTopoCoverageLayerSummary
+```
+
+Required field with no default. Frozen factual summary associated with the frame; compare with fresh physical facts before trusting a caller-supplied record. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-provider"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_provider`
+
+Source lines 355–355.
+
+```python
+source_provider: str
+```
+
+Required field with no default. Archive provider mirrored into output lineage; not newly acquired authority. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-product"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_product`
+
+Source lines 356–356.
+
+```python
+source_product: str
+```
+
+Required field with no default. Archive product mirrored into output lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-department-code"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_department_code`
+
+Source lines 357–357.
+
+```python
+source_department_code: str
+```
+
+Required field with no default. Archive department mirrored into output lineage and used for selection. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-edition"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_edition`
+
+Source lines 358–358.
+
+```python
+source_edition: str
+```
+
+Required field with no default. Archive edition mirrored into output lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-product-version"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_product_version`
+
+Source lines 359–359.
+
+```python
+source_product_version: str | None
+```
+
+Required field with no default. Nullable archive product version mirrored into output lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-archive-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_archive_sha256`
+
+Source lines 360–360.
+
+```python
+source_archive_sha256: str
+```
+
+Required field with no default. Archive SHA lineage mirrored into selected coverage; this coverage load does not reread .7z bytes. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-source-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.source_layer`
+
+Source lines 361–361.
+
+```python
+source_layer: str
+```
+
+Required field with no default. Selected physical department layer mirrored into output lineage. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15-ignbdtopodepartmentcoverage-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr.IgnBdTopoDepartmentCoverage.spatial_role`
+
+Source lines 362–362.
+
+```python
+spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
+```
+
+Default "SOURCE_COVERAGE_BOUNDARY". PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--cachemetadata"></a>
 ### `_CacheMetadata`
 
-**Source purpose and field meaning:** Frozen schema-1 download sidecar model, distinct from this YAML. Identity fields describe provider/product/department/edition/version/projection/formats/URLs and filename; timestamp governs freshness, file_size/SHA256 bind current bytes, official checksum fields report the configured comparison, and spatial_role remains PROXY_GEOMETRY. Parsing alone is not a cache hit; the reader rechecks identity, age and bytes.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._CacheMetadata`. Source lines 365–393.
+
+Exact declaration:
+
+```python
+class _CacheMetadata(BaseModel):
+```
+
+**Verified purpose:** Frozen schema-1 download sidecar model, distinct from the input YAML. Identity fields describe provider/product/department/edition/version/projection/formats/URLs and filename; timestamp governs freshness, file_size/SHA256 bind current bytes, official checksum fields report the configured comparison, and spatial_role remains PROXY_GEOMETRY. Parsing alone is not a cache hit; the reader rechecks identity, age and bytes.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2686,9 +4120,227 @@ class _CacheMetadata(BaseModel):
         return value
 ```
 
+<a id="r15--cachemetadata-schema-version"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.schema_version`
+
+Source lines 368–368.
+
+```python
+schema_version: Literal[1]
+```
+
+Required field with no default. Required exact builtin-int schema discriminator: 1 for download metadata or 3 for extraction metadata; bool/float/string rejected before Literal validation. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-provider"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.provider`
+
+Source lines 369–369.
+
+```python
+provider: str
+```
+
+Required field with no default. Provider identity; equality with the reconstructed config is a boundary check, not implied by a plain string field. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-product"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.product`
+
+Source lines 370–370.
+
+```python
+product: str
+```
+
+Required field with no default. Product identity; plain metadata/envelope strings are compared with configured BD TOPO at the boundary. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-department-code"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.department_code`
+
+Source lines 371–371.
+
+```python
+department_code: str
+```
+
+Required field with no default. Archive department identity, compared to the supplied config; not inferred from road geometry. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-edition"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.edition`
+
+Source lines 372–372.
+
+```python
+edition: str
+```
+
+Required field with no default. Archive edition text, compared to the configured calendar edition; not acquisition time. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-product-version"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.product_version`
+
+Source lines 373–373.
+
+```python
+product_version: str | None
+```
+
+Required field with no default. Nullable descriptive product version retained from config; no version is invented when absent. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-projection"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.projection`
+
+Source lines 374–374.
+
+```python
+projection: str
+```
+
+Required field with no default. Declared projection identity; actual loaded CRS is independently checked for EPSG:2154 equivalence. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-package-format"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.package_format`
+
+Source lines 375–375.
+
+```python
+package_format: str
+```
+
+Required field with no default. Package-format lineage copied from config.format; actual physical layer metadata is checked separately. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-archive-format"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.archive_format`
+
+Source lines 376–376.
+
+```python
+archive_format: str
+```
+
+Required field with no default. Archive-format lineage, not a successful decoder result. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-source-url"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.source_url`
+
+Source lines 377–377.
+
+```python
+source_url: str
+```
+
+Required field with no default. Configured archive URL lineage, not the final redirect URL; byte acquisition uses the shared HTTPS transport. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-checksum-url"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.checksum_url`
+
+Source lines 378–378.
+
+```python
+checksum_url: str | None
+```
+
+Required field with no default. Nullable checksum provenance URL; this adapter does not fetch it. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-download-timestamp"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.download_timestamp`
+
+Source lines 379–379.
+
+```python
+download_timestamp: str
+```
+
+Required field with no default. Timezone-aware UTC ISO download timestamp; cache freshness checks it, whereas lineage validation does not impose maximum age. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-filename"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.filename`
+
+Source lines 380–380.
+
+```python
+filename: str
+```
+
+Required field with no default. URL-derived archive basename, compared with config and physical path name at the lineage gate. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-file-size"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.file_size`
+
+Source lines 381–381.
+
+```python
+file_size: StrictPositiveInt
+```
+
+Required field with no default. Observed archive byte size; physical archive validation requires positive size and compares an optional configured pin. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. Field alias StrictPositiveInt rejects bool/coercive strings and requires > 0.
+
+<a id="r15--cachemetadata-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.sha256`
+
+Source lines 382–382.
+
+```python
+sha256: CanonicalSha256
+```
+
+Required field with no default. Lowercase local archive SHA256, calculated by streaming bytes; it is not automatically an official checksum. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. CanonicalSha256 requires a strict lowercase 64-hex string without trimming.
+
+<a id="r15--cachemetadata-official-checksum-algorithm"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.official_checksum_algorithm`
+
+Source lines 383–383.
+
+```python
+official_checksum_algorithm: ChecksumAlgorithm | None
+```
+
+Required field with no default. Nullable configured md5/sha256 algorithm, distinct from the always-calculated local SHA256. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-official-checksum"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.official_checksum`
+
+Source lines 384–384.
+
+```python
+official_checksum: str | None
+```
+
+Required field with no default. Nullable configured official digest; no pin is fabricated when absent. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--cachemetadata-official-checksum-validated"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.official_checksum_validated`
+
+Source lines 385–385.
+
+```python
+official_checksum_validated: StrictBool
+```
+
+Required field with no default. Whether a configured official digest comparison was required and passed by archive validation; local SHA alone does not set official evidence. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. StrictBool rejects coercive truthy values.
+
+<a id="r15--cachemetadata-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr._CacheMetadata.spatial_role`
+
+Source lines 386–386.
+
+```python
+spatial_role: SpatialRole
+```
+
+Required field with no default. PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractedentrymetadata"></a>
 ### `_ExtractedEntryMetadata`
 
-**Source purpose and field meaning:** Frozen inventory record: relative_path identifies one destination, kind is file or directory, file entries carry nonnegative exact size and lowercase SHA256, directory entries carry no byte evidence. Cross-field kind/size/hash consistency and safe paths are enforced by the owning validators.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._ExtractedEntryMetadata`. Source lines 396–402.
+
+Exact declaration:
+
+```python
+class _ExtractedEntryMetadata(BaseModel):
+```
+
+**Verified purpose:** Frozen extra-forbid inventory record with plain relative_path, file/directory kind, optional strict nonnegative size and optional canonical SHA. The model has no kind/size/hash cross-validator or path grammar. _inventory_extracted_tree constructs directory records without byte evidence and file records with size/SHA; owning source/cache checks compare these fresh records with retained metadata.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2723,9 +4375,62 @@ class _ExtractedEntryMetadata(BaseModel):
     sha256: CanonicalSha256 | None = None
 ```
 
+<a id="r15--extractedentrymetadata-relative-path"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractedEntryMetadata.relative_path`
+
+Source lines 399–399.
+
+```python
+relative_path: str
+```
+
+Required field with no default. Accepted destination path in inventory; archive path grammar and disk containment are owner checks, not enforced by an unconstrained string annotation. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractedentrymetadata-kind"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractedEntryMetadata.kind`
+
+Source lines 400–400.
+
+```python
+kind: Literal["file", "directory"]
+```
+
+Required field with no default. Destination kind file/directory. Inventory construction distinguishes files with byte evidence and directories without it. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractedentrymetadata-size-bytes"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractedEntryMetadata.size_bytes`
+
+Source lines 401–401.
+
+```python
+size_bytes: int | None = Field(default=None, strict=True, ge=0)
+```
+
+Optional strict nonnegative integer file size, default None; inventory construction omits it for directories. The model itself does not require presence for kind=file or absence for kind=directory.
+
+<a id="r15--extractedentrymetadata-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractedEntryMetadata.sha256`
+
+Source lines 402–402.
+
+```python
+sha256: CanonicalSha256 | None = None
+```
+
+Optional strict lowercase 64-hex file SHA256, default None; directory records constructed by the inventory owner omit it. This is an extracted-file digest, not the archive digest; the model has no kind/hash cross-validator.
+
+<a id="r15--extractionmetadata"></a>
 ### `_ExtractionMetadata`
 
-**Source purpose and field meaning:** Frozen schema-3 marker: archive_sha256 links the archive envelope, relative GPKG path/positive size/SHA256 bind the package, all_layer_names and four selected roles record physical discovery, extracted_entries binds the entire file/directory tree, and spatial_role remains PROXY_GEOMETRY. Ordered tuples and frozen entry records prevent nested mutation. This marker is not a field of the input YAML.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._ExtractionMetadata`. Source lines 405–426.
+
+Exact declaration:
+
+```python
+class _ExtractionMetadata(BaseModel):
+```
+
+**Verified purpose:** Frozen schema-3 marker: archive_sha256 links the archive envelope, relative GPKG path/positive size/SHA256 bind the package, all_layer_names and four selected roles record physical discovery, extracted_entries binds the entire file/directory tree, and spatial_role remains PROXY_GEOMETRY. Ordered tuples and frozen entry records prevent nested mutation. This marker is not a field of the input YAML.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -2784,9 +4489,150 @@ class _ExtractionMetadata(BaseModel):
         return value
 ```
 
+<a id="r15--extractionmetadata-schema-version"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.schema_version`
+
+Source lines 408–408.
+
+```python
+schema_version: Literal[3]
+```
+
+Required field with no default. Required exact builtin-int schema discriminator: 1 for download metadata or 3 for extraction metadata; bool/float/string rejected before Literal validation. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-archive-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.archive_sha256`
+
+Source lines 409–409.
+
+```python
+archive_sha256: CanonicalSha256
+```
+
+Required field with no default. Archive-envelope SHA lineage used in extraction metadata; physical archive bytes are validated on extraction, not on every source-layer load. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. CanonicalSha256 requires a strict lowercase 64-hex string without trimming.
+
+<a id="r15--extractionmetadata-geopackage-relative-path"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.geopackage_relative_path`
+
+Source lines 410–410.
+
+```python
+geopackage_relative_path: str
+```
+
+Required field with no default. GPKG path relative to extraction root; containment is checked during reuse/loading, not by this plain model string field. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-geopackage-size-bytes"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.geopackage_size_bytes`
+
+Source lines 411–411.
+
+```python
+geopackage_size_bytes: StrictPositiveInt
+```
+
+Required field with no default. Positive GPKG byte size captured with SHA256 and compared against the physical file. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. Field alias StrictPositiveInt rejects bool/coercive strings and requires > 0.
+
+<a id="r15--extractionmetadata-geopackage-sha256"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.geopackage_sha256`
+
+Source lines 412–412.
+
+```python
+geopackage_sha256: CanonicalSha256
+```
+
+Required field with no default. Lowercase GPKG SHA256; separate from archive SHA and canonical frame comparison. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary. CanonicalSha256 requires a strict lowercase 64-hex string without trimming.
+
+<a id="r15--extractionmetadata-all-layer-names"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.all_layer_names`
+
+Source lines 413–413.
+
+```python
+all_layer_names: tuple[str, ...]
+```
+
+Required field with no default. Complete ordered physical layer-name inventory, not just the selected roles; source-bound checks compare it with fresh Pyogrio listing. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-electric-lines-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.electric_lines_layer`
+
+Source lines 414–414.
+
+```python
+electric_lines_layer: str
+```
+
+Required field with no default. Selected physical electric-line name, not the logical role name or loaded frame. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-transformation-posts-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.transformation_posts_layer`
+
+Source lines 415–415.
+
+```python
+transformation_posts_layer: str
+```
+
+Required field with no default. Selected physical transformation-post name; no RTE connection-point claim. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-road-segments-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.road_segments_layer`
+
+Source lines 416–416.
+
+```python
+road_segments_layer: str
+```
+
+Required field with no default. Selected physical road-segment name; schema-3 metadata retains it separately from road feature attributes. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-department-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.department_layer`
+
+Source lines 417–417.
+
+```python
+department_layer: str
+```
+
+Required field with no default. Selected physical department-layer name in discovery/extraction records, not a coverage polygon. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-extracted-entries"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.extracted_entries`
+
+Source lines 418–418.
+
+```python
+extracted_entries: tuple[_ExtractedEntryMetadata, ...]
+```
+
+Required field with no default. Immutable ordered tuple of frozen per-file/directory records; reuse/loading compares the complete freshly inventoried tree, excluding the root marker. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--extractionmetadata-spatial-role"></a>
+#### `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.spatial_role`
+
+Source lines 419–419.
+
+```python
+spatial_role: SpatialRole
+```
+
+Required field with no default. PROXY_GEOMETRY for ordinary source evidence; SOURCE_COVERAGE_BOUNDARY for department coverage. No capacity or access authorization follows. Validated by the frozen extra-forbid Pydantic model; cross-record physical equality belongs to the cache/source boundary.
+
+<a id="r15--validatedarchivemember"></a>
 ### `_ValidatedArchiveMember`
 
-**Source purpose and field meaning:** Frozen pre-extraction destination record: accepted original relative path, file/directory kind and nonnegative uncompressed size for files (None for directories). Implicit parent directories are included; it contains no member-content hash.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._ValidatedArchiveMember`. Source lines 887–890.
+
+Exact declaration:
+
+```python
+class _ValidatedArchiveMember:
+```
+
+**Verified purpose:** Frozen pre-extraction destination record: accepted original relative path, file/directory kind and nonnegative uncompressed size for files (None for directories). Implicit parent directories are included; it contains no member-content hash.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2817,9 +4663,51 @@ class _ValidatedArchiveMember:
     size_bytes: int | None
 ```
 
+<a id="r15--validatedarchivemember-relative-path"></a>
+#### `landscout.sources.ign_bdtopo_fr._ValidatedArchiveMember.relative_path`
+
+Source lines 888–888.
+
+```python
+relative_path: str
+```
+
+Required field with no default. Accepted destination path in inventory; archive path grammar and disk containment are owner checks, not enforced by an unconstrained string annotation. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--validatedarchivemember-kind"></a>
+#### `landscout.sources.ign_bdtopo_fr._ValidatedArchiveMember.kind`
+
+Source lines 889–889.
+
+```python
+kind: Literal["file", "directory"]
+```
+
+Required field with no default. Destination kind file/directory. Inventory construction distinguishes files with byte evidence and directories without it. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--validatedarchivemember-size-bytes"></a>
+#### `landscout.sources.ign_bdtopo_fr._ValidatedArchiveMember.size_bytes`
+
+Source lines 890–890.
+
+```python
+size_bytes: int | None
+```
+
+Required field with no default. File uncompressed/observed byte size, or None for directories as constructed by the inventory owner; no archive-member content hash in _ValidatedArchiveMember. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--configuredphysicalroles"></a>
 ### `_ConfiguredPhysicalRoles`
 
-**Source purpose and field meaning:** Frozen physical-discovery result containing the complete ordered layer-name tuple and four distinct selected names for lines, posts, roads and department coverage. It records checked selection, not loaded geometry.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles`. Source lines 1158–1163.
+
+Exact declaration:
+
+```python
+class _ConfiguredPhysicalRoles:
+```
+
+**Verified purpose:** Frozen physical-discovery result containing the complete ordered layer-name tuple and four distinct selected names for lines, posts, roads and department coverage. It records checked selection, not loaded geometry.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2852,9 +4740,73 @@ class _ConfiguredPhysicalRoles:
     department_layer: str
 ```
 
+<a id="r15--configuredphysicalroles-all-layer-names"></a>
+#### `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles.all_layer_names`
+
+Source lines 1159–1159.
+
+```python
+all_layer_names: tuple[str, ...]
+```
+
+Required field with no default. Complete ordered physical layer-name inventory, not just the selected roles; source-bound checks compare it with fresh Pyogrio listing. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--configuredphysicalroles-electric-lines-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles.electric_lines_layer`
+
+Source lines 1160–1160.
+
+```python
+electric_lines_layer: str
+```
+
+Required field with no default. Selected physical electric-line name, not the logical role name or loaded frame. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--configuredphysicalroles-transformation-posts-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles.transformation_posts_layer`
+
+Source lines 1161–1161.
+
+```python
+transformation_posts_layer: str
+```
+
+Required field with no default. Selected physical transformation-post name; no RTE connection-point claim. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--configuredphysicalroles-road-segments-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles.road_segments_layer`
+
+Source lines 1162–1162.
+
+```python
+road_segments_layer: str
+```
+
+Required field with no default. Selected physical road-segment name; schema-3 metadata retains it separately from road feature attributes. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--configuredphysicalroles-department-layer"></a>
+#### `landscout.sources.ign_bdtopo_fr._ConfiguredPhysicalRoles.department_layer`
+
+Source lines 1163–1163.
+
+```python
+department_layer: str
+```
+
+Required field with no default. Selected physical department-layer name in discovery/extraction records, not a coverage polygon. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--verifiedignextraction"></a>
 ### `_VerifiedIgnExtraction`
 
-**Source purpose and field meaning:** Private frozen context joining the extraction envelope, reconstructed schema-3 marker and physically discovered GPKG Path after local integrity checks. The path will still be reopened by the reader and rechecked afterward; this is not an immutable GPKG-byte snapshot.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._VerifiedIgnExtraction`. Source lines 1344–1347.
+
+Exact declaration:
+
+```python
+class _VerifiedIgnExtraction:
+```
+
+**Verified purpose:** Private frozen context joining the extraction envelope, reconstructed schema-3 marker and physically discovered GPKG Path after local integrity checks. The path will still be reopened by the reader and rechecked afterward; this is not an immutable GPKG-byte snapshot.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -2886,11 +4838,47 @@ class _VerifiedIgnExtraction:
 ```
 
 
+<a id="r15--verifiedignextraction-extraction"></a>
+#### `landscout.sources.ign_bdtopo_fr._VerifiedIgnExtraction.extraction`
+
+Source lines 1345–1345.
+
+```python
+extraction: IgnBdTopoExtraction
+```
+
+Required field with no default. Retained extraction envelope linking config-bound physical reads; not a private frame promoted to source authority. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--verifiedignextraction-metadata"></a>
+#### `landscout.sources.ign_bdtopo_fr._VerifiedIgnExtraction.metadata`
+
+Source lines 1346–1346.
+
+```python
+metadata: _ExtractionMetadata
+```
+
+Required field with no default. Freshly parsed schema-3 marker retained in the private verified context for post-read comparison; the marker is not reparsed by the postcondition. Dataclass annotation alone is not a runtime validator.
+
+<a id="r15--verifiedignextraction-geopackage-path"></a>
+#### `landscout.sources.ign_bdtopo_fr._VerifiedIgnExtraction.geopackage_path`
+
+Source lines 1347–1347.
+
+```python
+geopackage_path: Path
+```
+
+Required field with no default. Path reopened by Pyogrio/GeoPandas; physical pre/post checks do not turn it into an immutable parser snapshot. Dataclass annotation alone is not a runtime validator.
+
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r15-ignbdtopologicallayerconfig--unique-tokens"></a>
 ### `IgnBdTopoLogicalLayerConfig._unique_tokens`
 
-**Purpose and ordered algorithm:** After Pydantic has produced a nonempty tuple of trimmed tokens, normalize each for matching, reject empty normalized tokens and duplicate normalized phrases, and return the original ordered tuple. It does not sort or replace the retained tokens.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayerConfig._unique_tokens`. Source lines 101–107.
+
+**Verified purpose:** After Pydantic has produced a nonempty tuple of trimmed tokens, normalize each for matching, reject empty normalized tokens and duplicate normalized phrases, and return the original ordered tuple. It does not sort or replace the retained tokens.
 
 **Exact signature**
 
@@ -2963,9 +4951,12 @@ def _unique_tokens(cls, value: tuple[str, ...]) -> tuple[str, ...]:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-ignbdtopologicallayersconfig--different-token-sets"></a>
 ### `IgnBdTopoLogicalLayersConfig._different_token_sets`
 
-**Purpose and ordered algorithm:** Compare the two selectors' sets of normalized token phrases and reject equality. Return self otherwise; actual physical-role uniqueness is checked later, not proved by different token sets.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoLogicalLayersConfig._different_token_sets`. Source lines 117–126.
+
+**Verified purpose:** Compare the two selectors' sets of normalized token phrases and reject equality. Return self otherwise; actual physical-role uniqueness is checked later, not proved by different token sets.
 
 **Exact signature**
 
@@ -3035,9 +5026,12 @@ def _different_token_sets(self) -> Self:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-ignbdtoposourceconfig--valid-edition-date"></a>
 ### `IgnBdTopoSourceConfig._valid_edition_date`
 
-**Purpose and ordered algorithm:** Parse the already pattern-validated edition with date.fromisoformat; translate an impossible calendar date into ValueError and retain its original canonical spelling.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig._valid_edition_date`. Source lines 176–181.
+
+**Verified purpose:** Parse the already pattern-validated edition with date.fromisoformat; translate an impossible calendar date into ValueError and retain its original canonical spelling.
 
 **Exact signature**
 
@@ -3104,9 +5098,12 @@ def _valid_edition_date(cls, value: str) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-ignbdtoposourceconfig--consistent-package-and-checksum"></a>
 ### `IgnBdTopoSourceConfig._consistent_package_and_checksum`
 
-**Purpose and ordered algorithm:** Decode the configured URL path and require its suffix to match .7z; require checksum algorithm/digest together, MD5 length 32 or SHA256 length 64, and forbid checksum_url without that pin. Return self; this validator neither downloads checksum_url nor proves an official host.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig._consistent_package_and_checksum`. Source lines 184–213.
+
+**Verified purpose:** Decode the configured URL path and require its suffix to match .7z; require checksum algorithm/digest together, MD5 length 32 or SHA256 length 64, and forbid checksum_url without that pin. Return self; this validator neither downloads checksum_url nor proves an official host.
 
 **Exact signature**
 
@@ -3205,9 +5202,12 @@ def _consistent_package_and_checksum(self) -> Self:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--cachemetadata--strict-schema-version"></a>
 ### `_CacheMetadata._strict_schema_version`
 
-**Purpose and ordered algorithm:** Reject every non-builtin-int schema value before Literal[1] validation, including bool and numeric strings; return the unchanged integer for Pydantic's version check.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._CacheMetadata._strict_schema_version`. Source lines 390–393.
+
+**Verified purpose:** Reject every non-builtin-int schema value before Literal[1] validation, including bool and numeric strings; return the unchanged integer for Pydantic's version check.
 
 **Exact signature**
 
@@ -3272,9 +5272,12 @@ def _strict_schema_version(cls, value: object) -> object:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--extractionmetadata--strict-schema-version"></a>
 ### `_ExtractionMetadata._strict_schema_version`
 
-**Purpose and ordered algorithm:** Reject every non-builtin-int schema value before Literal[3] validation; return the integer unchanged. Version 3 binds the complete inventory and four physical roles.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._ExtractionMetadata._strict_schema_version`. Source lines 423–426.
+
+**Verified purpose:** Reject every non-builtin-int schema value before Literal[3] validation; return the integer unchanged. Version 3 binds the complete inventory and four physical roles.
 
 **Exact signature**
 
@@ -3339,9 +5342,12 @@ def _strict_schema_version(cls, value: object) -> object:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--normalize-words"></a>
 ### `_normalize_words`
 
-**Purpose and ordered algorithm:** Casefold then NFKD-normalize the string, remove combining characters, retain ASCII lowercase-letter/digit runs and join them with single spaces. This matching key does not overwrite source layer names.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._normalize_words`. Source lines 429–432.
+
+**Verified purpose:** Casefold then NFKD-normalize the string, remove combining characters, retain ASCII lowercase-letter/digit runs and join them with single spaces. This matching key does not overwrite source layer names.
 
 **Exact signature**
 
@@ -3412,9 +5418,12 @@ def _normalize_words(value: str) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-load-ign-bdtopo-source-config"></a>
 ### `load_ign_bdtopo_source_config`
 
-**Purpose and ordered algorithm:** Read the chosen YAML bytes once with duplicate-key-safe parsing, require a mapping, and construct the frozen nested source config. Translate read, YAML and model-validation failures to IgnBdTopoDownloadError; do not access the archive.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_source_config`. Source lines 435–451.
+
+**Verified purpose:** Read the chosen YAML bytes once with duplicate-key-safe parsing, require a mapping, and construct the frozen nested source config. Translate read, YAML and model-validation failures to IgnBdTopoDownloadError; do not access the archive.
 
 **Exact signature**
 
@@ -3541,7 +5550,7 @@ Outbound call expressions and conservative ownership:
 | `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `IgnBdTopoDownloadError` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoDownloadError` |
 | `isinstance` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 
 **Source-observed side-effect matrix**
 
@@ -3584,9 +5593,12 @@ def load_ign_bdtopo_source_config(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validated-source-config"></a>
 ### `_validated_source_config`
 
-**Purpose and ordered algorithm:** Require the exact config class, dump Python values and reconstruct with model_validate so forged model_copy values cannot bypass validation. Wrap type/value/model errors using the supplied controlled source-error class; return a fresh config.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validated_source_config`. Source lines 454–464.
+
+**Verified purpose:** Require the exact config class, dump Python values and reconstruct with model_validate so forged model_copy values cannot bypass validation. Wrap type/value/model errors using the supplied controlled source-error class; return a fresh config.
 
 **Exact signature**
 
@@ -3635,7 +5647,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `type` | `unresolved local/third-party receiver; no ownership inferred` |
 | `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `IgnBdTopoSourceConfig.model_validate` | `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig.model_validate` |
+| `IgnBdTopoSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`) |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `error_type` | `unresolved local/third-party receiver; no ownership inferred` |
 
@@ -3674,9 +5686,12 @@ def _validated_source_config(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--archive-filename"></a>
 ### `_archive_filename`
 
-**Purpose and ordered algorithm:** Decode the configured URL path, take its filename and require a nonempty .7z suffix case-insensitively. Return the filename; no filesystem lookup or remote request occurs.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._archive_filename`. Source lines 467–471.
+
+**Verified purpose:** Decode the configured URL path, take its filename and require a nonempty .7z suffix case-insensitively. Return the filename; no filesystem lookup or remote request occurs.
 
 **Exact signature**
 
@@ -3747,9 +5762,12 @@ def _archive_filename(config: IgnBdTopoSourceConfig) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--calculate-checksums"></a>
 ### `_calculate_checksums`
 
-**Purpose and ordered algorithm:** Stream the file in 1 MiB chunks through local SHA256 and, only when requested, MD5. For an official SHA256 pin maintain a second SHA256 digest; with no official algorithm return None for that second result. Wrap file-read errors as archive errors.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._calculate_checksums`. Source lines 474–495.
+
+**Verified purpose:** Stream the file in 1 MiB chunks through local SHA256 and a separate optional official MD5 or SHA256 digest. Even official SHA256 uses its own digest object; with no official algorithm return None for that second result. Wrap file-read errors as archive errors.
 
 **Exact signature**
 
@@ -3841,9 +5859,12 @@ def _calculate_checksums(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-validate-ign-bdtopo-archive"></a>
 ### `validate_ign_bdtopo_archive`
 
-**Purpose and ordered algorithm:** Reconstruct config first, require a regular non-linked positive-size archive path, compare optional pinned size, stream local and configured official digests, and test the 7z container. Reject only an explicit False CRC result; None means unavailable container CRC, not a successful extraction. Return observed byte evidence; optional pins remain optional and full extraction is a later prerequisite.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.validate_ign_bdtopo_archive`. Source lines 498–556.
+
+**Verified purpose:** Reconstruct config first, require a regular non-linked positive-size archive path, compare optional pinned size, stream local and configured official digests, and test the 7z container. Reject only an explicit False CRC result; None means unavailable container CRC, not a successful extraction. Return observed byte evidence; optional pins remain optional and full extraction is a later prerequisite.
 
 **Exact signature**
 
@@ -4037,9 +6058,12 @@ def validate_ign_bdtopo_archive(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--cache-metadata-from-download"></a>
 ### `_cache_metadata_from_download`
 
-**Purpose and ordered algorithm:** Copy the download's source identity, timestamp, size/digests and spatial role into the frozen schema-1 sidecar model. Exclude process-local path/cache_hit and do not write the model here.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._cache_metadata_from_download`. Source lines 559–580.
+
+**Verified purpose:** Copy the download's source identity, timestamp, size/digests and spatial role into the frozen schema-1 sidecar model. Exclude process-local path/cache_hit and do not write the model here.
 
 **Exact signature**
 
@@ -4119,9 +6143,12 @@ def _cache_metadata_from_download(download: IgnBdTopoDownload) -> _CacheMetadata
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--download-from-metadata"></a>
 ### `_download_from_metadata`
 
-**Purpose and ordered algorithm:** Copy validated sidecar facts into a frozen download envelope and add the supplied physical archive path and cache-hit flag. This constructor alone does not reread or validate those bytes.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._download_from_metadata`. Source lines 583–607.
+
+**Verified purpose:** Copy validated sidecar facts into a frozen download envelope and add the supplied physical archive path and cache-hit flag. This constructor alone does not reread or validate those bytes.
 
 **Exact signature**
 
@@ -4208,9 +6235,12 @@ def _download_from_metadata(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--load-cached-download"></a>
 ### `_load_cached_download`
 
-**Purpose and ordered algorithm:** Require both files, strictly parse schema-1 metadata, require UTC timestamp with age in the configured inclusive freshness window, and compare every configured identity/filename/checksum/role field. Revalidate archive bytes and 7z integrity, compare size/SHA/checksum state, then return a cache-hit envelope. Controlled parsing, I/O and integrity failures yield None so the caller may refresh; no network request occurs here.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._load_cached_download`. Source lines 610–673.
+
+**Verified purpose:** Require both files, strictly parse schema-1 metadata, require UTC timestamp with age in the configured inclusive freshness window, and compare every configured identity/filename/checksum/role field. Revalidate archive bytes and 7z integrity, compare size/SHA/checksum state, then return a cache-hit envelope. Controlled parsing, I/O and integrity failures yield None so the caller may refresh; no network request occurs here.
 
 **Exact signature**
 
@@ -4251,7 +6281,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `archive_path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_CacheMetadata.model_validate` | `landscout.sources.ign_bdtopo_fr._CacheMetadata.model_validate` |
+| `_CacheMetadata.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr._CacheMetadata`) |
 | `loads_strict_json_object` | `landscout.common.strict_json.loads_strict_json_object` |
 | `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `datetime.fromisoformat` | `datetime.datetime.fromisoformat` |
@@ -4353,9 +6383,12 @@ def _load_cached_download(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--replace-file"></a>
 ### `_replace_file`
 
-**Purpose and ordered algorithm:** Replace the target path with source via Path.replace. This is a filesystem publication seam used by recovery tests, not a string operation; OSError is handled by the transaction owner.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._replace_file`. Source lines 676–677.
+
+**Verified purpose:** Replace the target path with source via Path.replace. This is a filesystem publication seam used by recovery tests, not a string operation; OSError is handled by the transaction owner.
 
 **Exact signature**
 
@@ -4415,9 +6448,12 @@ def _replace_file(source: Path, target: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--cache-recovery-paths"></a>
 ### `_cache_recovery_paths`
 
-**Purpose and ordered algorithm:** Derive sibling archive and metadata filenames with .bak appended; return the two Paths without inspecting or creating them.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._cache_recovery_paths`. Source lines 680–687.
+
+**Verified purpose:** Derive sibling archive and metadata filenames with .bak appended; return the two Paths without inspecting or creating them.
 
 **Exact signature**
 
@@ -4490,9 +6526,12 @@ def _cache_recovery_paths(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--require-no-cache-recovery-material"></a>
 ### `_require_no_cache_recovery_material`
 
-**Purpose and ordered algorithm:** Inspect both derived backup paths for existence, symlinks or junctions. Any present recovery material causes a controlled download error before cache reuse or publication; it is never deleted by this guard.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._require_no_cache_recovery_material`. Source lines 690–701.
+
+**Verified purpose:** Inspect both derived backup paths for existence, symlinks or junctions. Any present recovery material causes a controlled download error before cache reuse or publication; it is never deleted by this guard.
 
 **Exact signature**
 
@@ -4573,9 +6612,12 @@ def _require_no_cache_recovery_material(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--prepare-temporary-cache-file"></a>
 ### `_prepare_temporary_cache_file`
 
-**Purpose and ordered algorithm:** Reject a symlink/junction or existing nonregular .part target; unlink only an existing ordinary file. Wrap inspection/removal OSError as a controlled error, leaving a safe absent target for exclusive creation.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._prepare_temporary_cache_file`. Source lines 704–721.
+
+**Verified purpose:** Reject a symlink/junction or existing nonregular .part target; unlink only an existing ordinary file. Wrap inspection/removal OSError as a controlled error, leaving a safe absent target for exclusive creation.
 
 **Exact signature**
 
@@ -4659,9 +6701,12 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--cleanup-temporary-cache-files"></a>
 ### `_cleanup_temporary_cache_files`
 
-**Purpose and ordered algorithm:** Attempt missing-ok unlink for every supplied temporary file, remember the first OSError, and raise a cleanup error only when no primary exception already exists. Thus cleanup cannot replace a publication/rollback failure.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._cleanup_temporary_cache_files`. Source lines 724–737.
+
+**Verified purpose:** Attempt missing-ok unlink for every supplied temporary file, remember the first OSError, and raise a cleanup error only when no primary exception already exists. These caught cleanup OSErrors do not replace an active publication/rollback failure; arbitrary other exception types are not caught here.
 
 **Exact signature**
 
@@ -4738,9 +6783,12 @@ def _cleanup_temporary_cache_files(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--publish-cache-pair"></a>
 ### `_publish_cache_pair`
 
-**Purpose and ordered algorithm:** Refuse stale backups, copy any existing archive and metadata to separate recovery files, then replace archive followed by metadata. On publication failure restore both previous files (or remove newly created primaries); preserve recovery files if rollback also fails. Remove backups only after successful publication or rollback. The two-file operation is recoverable, not one atomic filesystem transaction.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._publish_cache_pair`. Source lines 740–787.
+
+**Verified purpose:** Refuse stale backups, copy existing archive/metadata primaries to recovery files, then replace archive followed by metadata. On publication OSError, restore the archive only if it was published (or unlink a newly created archive); an old metadata primary remains in place, while a newly created metadata target is unlinked. No metadata_backup-to-primary restore call exists. Preserve backups if rollback fails; remove them after success or completed rollback. Backup-copy failure also attempts backup cleanup. Cleanup within this helper can itself raise OSError; only the outer temporary-file cleanup specifically preserves an active primary error. Recoverable sequential replacements are not a two-file atomic transaction or concurrency lock.
 
 **Exact signature**
 
@@ -4804,7 +6852,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | Inspect existing files and recovery paths; `copy2` reads previous primaries. |
-| Filesystem/archive write or publication | `copy2` writes backups/restores; `_replace_file` publishes; unlink removes backups or newly published files during rollback. |
+| Filesystem/archive write or publication | copy2 creates backups; _replace_file publishes and restores the archive only when needed; unlink removes backups/new primaries. No metadata-backup restoration call. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -4868,9 +6916,12 @@ def _publish_cache_pair(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-download-ign-bdtopo-archive"></a>
 ### `download_ign_bdtopo_archive`
 
-**Purpose and ordered algorithm:** Reconstruct config, derive the filename and refuse existing recovery material before testing the offline cache. On miss create the cache parent, prepare safe .part files, stream through shared safe HTTPS into an exclusive archive file, validate bytes/7z, create UTC download evidence and exclusive metadata, then publish the pair. Cleanup respects the primary error; a valid hit needs no network.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.download_ign_bdtopo_archive`. Source lines 790–863.
+
+**Verified purpose:** Reconstruct config, derive the filename and refuse existing recovery material before testing the offline cache. On miss create the cache parent, prepare safe .part files, stream through shared safe HTTPS into an exclusive archive file, validate bytes/7z, create UTC download evidence and exclusive metadata, then publish the pair. Cleanup respects the primary error; a valid hit needs no network.
 
 **Exact signature**
 
@@ -5142,9 +7193,12 @@ def download_ign_bdtopo_archive(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--windows-component-key"></a>
 ### `_windows_component_key`
 
-**Purpose and ordered algorithm:** NFKC-normalize one archive component for collision detection, reject empty/dot/traversal/trim/trailing-dot-or-space/control/Windows-forbidden forms and reserved device stems, then return casefolded comparison text. Original accepted names remain the inventory values.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._windows_component_key`. Source lines 893–911.
+
+**Verified purpose:** NFKC-normalize one archive component for collision detection, reject empty/dot/traversal/trim/trailing-dot-or-space/control/Windows-forbidden forms and reserved device stems, then return casefolded comparison text. Original accepted names remain the inventory values.
 
 **Exact signature**
 
@@ -5231,9 +7285,12 @@ def _windows_component_key(component: str) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-archive-members"></a>
 ### `_validate_archive_members`
 
-**Purpose and ordered algorithm:** Reject encryption and unreadable/empty inventory before extraction. For each member reject malformed/duplicate names, absolute/driven/traversal paths, unsafe Windows components, links/encrypted/special entries and invalid file sizes. Build explicit and implicit directory destinations, reject NFKC/casefold collisions and parent-file conflicts, require exactly one .gpkg file, and return deterministic path-key-ordered records. This inspects archive metadata, not extracted content.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_archive_members`. Source lines 914–1031.
+
+**Verified purpose:** Reject encryption and unreadable/empty inventory before extraction. For each member reject malformed/duplicate names, absolute/driven/traversal paths, unsafe Windows components, links/encrypted/special entries and invalid file sizes. Build explicit and implicit directory destinations, reject NFKC/casefold collisions and parent-file conflicts, require exactly one .gpkg file, and return deterministic path-key-ordered records. This inspects archive metadata, not extracted content.
 
 **Exact signature**
 
@@ -5457,9 +7514,12 @@ def _validate_archive_members(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-discover-ign-bdtopo-geopackage"></a>
 ### `discover_ign_bdtopo_geopackage`
 
-**Purpose and ordered algorithm:** Accept an existing .gpkg file directly; otherwise require a directory, recursively collect ordinary-file candidates by case-insensitive suffix, and require exactly one. Return its Path. This discovery helper alone is not the complete non-linked-tree or byte-authority gate.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.discover_ign_bdtopo_geopackage`. Source lines 1034–1056.
+
+**Verified purpose:** Accept an existing .gpkg file directly; otherwise require a directory, recursively collect ordinary-file candidates by case-insensitive suffix, and require exactly one. Return its Path. This discovery helper alone is not the complete non-linked-tree or byte-authority gate.
 
 **Exact signature**
 
@@ -5608,9 +7668,12 @@ def discover_ign_bdtopo_geopackage(root: Path) -> Path:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-list-ign-bdtopo-layers"></a>
 ### `list_ign_bdtopo_layers`
 
-**Purpose and ordered algorithm:** Require a file, ask Pyogrio/GDAL for its physical layers, convert names to strings in returned order, and reject no names, blank names or duplicates. Wrap listing failure as IgnBdTopoLayerError; this does read the package metadata.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.list_ign_bdtopo_layers`. Source lines 1059–1075.
+
+**Verified purpose:** Require a file, ask Pyogrio/GDAL for its physical layers, convert names to strings in returned order, and reject no names, blank names or duplicates. Wrap listing failure as IgnBdTopoLayerError; this does read the package metadata.
 
 **Exact signature**
 
@@ -5751,9 +7814,12 @@ def list_ign_bdtopo_layers(geopackage_path: Path) -> tuple[str, ...]:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--matching-layers"></a>
 ### `_matching_layers`
 
-**Purpose and ordered algorithm:** Union the normalized words of every configured match token; for each physical layer normalize its name and select it when that word set is a subset. Return matching original names in input order; no fuzzy ranking or filesystem access.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._matching_layers`. Source lines 1078–1089.
+
+**Verified purpose:** Union the normalized words of every configured match token; for each physical layer normalize its name and select it when that word set is a subset. Return matching original names in input order; no fuzzy ranking or filesystem access.
 
 **Exact signature**
 
@@ -5837,9 +7903,12 @@ def _matching_layers(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-discover-ign-bdtopo-layers"></a>
 ### `discover_ign_bdtopo_layers`
 
-**Purpose and ordered algorithm:** Reconstruct config with layer-error translation, list physical names and resolve electric-line and transformation-post selectors. Require exactly one match for each and reject a shared physical layer; return the inventory plus those two names.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.discover_ign_bdtopo_layers`. Source lines 1092–1126.
+
+**Verified purpose:** Reconstruct config with layer-error translation, list physical names and resolve electric-line and transformation-post selectors. Require exactly one match for each and reject a shared physical layer; return the inventory plus those two names.
 
 **Exact signature**
 
@@ -6000,9 +8069,12 @@ def discover_ign_bdtopo_layers(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--discover-department-coverage-layer"></a>
 ### `_discover_department_coverage_layer`
 
-**Purpose and ordered algorithm:** Resolve the coverage selector against the supplied inventory, require exactly one match, and return that original layer name. This private helper neither reads features nor independently reconstructs config.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._discover_department_coverage_layer`. Source lines 1129–1140.
+
+**Verified purpose:** Resolve the coverage selector against the supplied inventory, require exactly one match, and return that original layer name. This private helper neither reads features nor independently reconstructs config.
 
 **Exact signature**
 
@@ -6099,9 +8171,12 @@ def _discover_department_coverage_layer(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--discover-road-layer"></a>
 ### `_discover_road_layer`
 
-**Purpose and ordered algorithm:** Resolve the road selector against the supplied inventory, require exactly one match, and return the original name without reading roads or assigning vehicle access.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._discover_road_layer`. Source lines 1143–1154.
+
+**Verified purpose:** Resolve the road selector against the supplied inventory, require exactly one match, and return the original name without reading roads or assigning vehicle access.
 
 **Exact signature**
 
@@ -6178,9 +8253,12 @@ def _discover_road_layer(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--discover-configured-physical-roles"></a>
 ### `_discover_configured_physical_roles`
 
-**Purpose and ordered algorithm:** Discover the electricity pair and its actual inventory, match road and department selectors against it, then require all four selected physical names to be distinct. Return the immutable inventory and four-role record; discovery delegates package metadata reads.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._discover_configured_physical_roles`. Source lines 1166–1193.
+
+**Verified purpose:** Discover the electricity pair and its actual inventory, match road and department selectors against it, then require all four selected physical names to be distinct. Return the immutable inventory and four-role record; discovery delegates package metadata reads.
 
 **Exact signature**
 
@@ -6285,9 +8363,12 @@ def _discover_configured_physical_roles(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--safe-relative-path"></a>
 ### `_safe_relative_path`
 
-**Purpose and ordered algorithm:** Resolve both Paths and derive the package's POSIX relative path inside the extraction root; translate escape/read-resolution failure to IgnBdTopoArchiveError. Resolution may inspect links; the helper does not write data.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._safe_relative_path`. Source lines 1196–1202.
+
+**Verified purpose:** Resolve both Paths and derive the package's POSIX relative path inside the extraction root; translate escape/read-resolution failure to IgnBdTopoArchiveError. Resolution may inspect links; the helper does not write data.
 
 **Exact signature**
 
@@ -6358,9 +8439,12 @@ def _safe_relative_path(path: Path, root: Path) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--resolve-relative-path"></a>
 ### `_resolve_relative_path`
 
-**Purpose and ordered algorithm:** Reject empty, absolute, Windows-driven or parent-traversing relative package paths; join POSIX components under root and resolve for containment, then return the candidate Path. This containment check is not the full archive Windows-name grammar.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._resolve_relative_path`. Source lines 1205–1225.
+
+**Verified purpose:** Reject empty, absolute, Windows-driven or parent-traversing relative package paths; join POSIX components under root and resolve for containment, then return the candidate Path. This containment check is not the full archive Windows-name grammar.
 
 **Exact signature**
 
@@ -6455,9 +8539,12 @@ def _resolve_relative_path(root: Path, relative_path: str) -> Path:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--geopackage-integrity"></a>
 ### `_geopackage_integrity`
 
-**Purpose and ordered algorithm:** Require a positive-size file, obtain its stat size and stream SHA256. Return size and lowercase digest with controlled read/inspection errors. Native GPKG validity, link rejection and source identity are separate owner checks.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._geopackage_integrity`. Source lines 1228–1244.
+
+**Verified purpose:** Require a positive-size file, obtain its stat size and stream SHA256. Return size and lowercase digest with controlled read/inspection errors. Native GPKG validity, link rejection and source identity are separate owner checks.
 
 **Exact signature**
 
@@ -6549,9 +8636,12 @@ def _geopackage_integrity(path: Path) -> tuple[int, str]:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--regular-file-sha256"></a>
 ### `_regular_file_sha256`
 
-**Purpose and ordered algorithm:** Stream SHA256 over the given file and wrap OSError. The inventory owner has already checked ordinary non-linked file kind; this helper's name does not imply an independent link guard.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._regular_file_sha256`. Source lines 1247–1257.
+
+**Verified purpose:** Stream SHA256 over the given file and wrap OSError. The inventory owner has already checked ordinary non-linked file kind; this helper's name does not imply an independent link guard.
 
 **Exact signature**
 
@@ -6626,9 +8716,12 @@ def _regular_file_sha256(path: Path) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--inventory-extracted-tree"></a>
 ### `_inventory_extracted_tree`
 
-**Purpose and ordered algorithm:** Require an ordinary non-linked root, walk it without following links, reject linked or special directories/files, and emit directory records plus each regular file's size and SHA256. Optionally omit exactly the marker path, sort by NFKC/casefold path then original spelling, and return immutable records. No repair/removal occurs.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._inventory_extracted_tree`. Source lines 1260–1322.
+
+**Verified purpose:** Require an ordinary non-linked root, walk it without following links, reject linked or special directories/files, and emit directory records plus each regular file's size and SHA256. Optionally omit exactly the marker path, sort by NFKC/casefold path then original spelling, and return immutable records. No repair/removal occurs.
 
 **Exact signature**
 
@@ -6786,9 +8879,12 @@ def _inventory_extracted_tree(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-extracted-inventory"></a>
 ### `_validate_extracted_inventory`
 
-**Purpose and ordered algorithm:** Inventory the complete extracted tree, compare each destination's path/kind/size mapping with validated archive members including implicit directories, and reject any mismatch. Return observed records with per-file hashes; this is size/path inventory parity, not immutable archive-member byte equality.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_extracted_inventory`. Source lines 1325–1340.
+
+**Verified purpose:** Inventory the complete extracted tree, compare each destination's path/kind/size mapping with validated archive members including implicit directories, and reject any mismatch. Return observed records with per-file hashes; this is size/path inventory parity, not immutable archive-member byte equality.
 
 **Exact signature**
 
@@ -6869,9 +8965,12 @@ def _validate_extracted_inventory(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--valid-layer-inventory"></a>
 ### `_valid_layer_inventory`
 
-**Purpose and ordered algorithm:** Return whether the object is exactly a nonempty tuple containing unique nonempty already-trimmed strings. String subclasses pass the isinstance check; this predicate does not query the GPKG.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._valid_layer_inventory`. Source lines 1350–1359.
+
+**Verified purpose:** Return whether the object is exactly a nonempty tuple containing unique nonempty already-trimmed strings. String subclasses pass the isinstance check; this predicate does not query the GPKG.
 
 **Exact signature**
 
@@ -6945,9 +9044,12 @@ def _valid_layer_inventory(value: object) -> bool:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-extraction-envelope"></a>
 ### `_validate_extraction_envelope`
 
-**Purpose and ordered algorithm:** Require exact extraction/download envelopes and valid roles, positive size, lowercase SHA spellings and Path fields; strictly reconstruct schema-3 marker from a non-linked file. Reconcile contained discovered GPKG path, filename, archive lineage, layer inventory and four distinct roles, then rehash the GPKG and every extracted file and relist layers. Return the verified context or controlled layer error. Archive SHA is compared as lineage here, not reread as an immutable archive snapshot.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_extraction_envelope`. Source lines 1362–1473.
+
+**Verified purpose:** Require exact extraction/download envelopes and valid roles, positive size, lowercase SHA spellings and Path fields; strictly reconstruct schema-3 marker from a non-linked file. Reconcile contained discovered GPKG path, filename, archive lineage, layer inventory and four distinct roles, then rehash the GPKG and every extracted file and relist layers. Return the verified context or controlled layer error. Archive SHA is compared as lineage here, not reread as an immutable archive snapshot.
 
 **Exact signature**
 
@@ -7014,7 +9116,7 @@ Outbound call expressions and conservative ownership:
 | `marker_path.is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
 | `marker_path.is_junction` | `unresolved local/third-party receiver; no ownership inferred` |
 | `marker_path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_ExtractionMetadata.model_validate` | `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.model_validate` |
+| `_ExtractionMetadata.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr._ExtractionMetadata`) |
 | `loads_strict_json_object` | `landscout.common.strict_json.loads_strict_json_object` |
 | `marker_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_resolve_relative_path` | `landscout.sources.ign_bdtopo_fr._resolve_relative_path` |
@@ -7168,9 +9270,12 @@ def _validate_extraction_envelope(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--verify-unchanged-extraction"></a>
 ### `_verify_unchanged_extraction`
 
-**Purpose and ordered algorithm:** Recompute package size/SHA, physical layer names and complete tree inventory after layer reading; compare against the context and fail on change. This is a path-reopen postcondition, not a snapshot-bound parser.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._verify_unchanged_extraction`. Source lines 1476–1491.
+
+**Verified purpose:** Recompute package size/SHA, physical layer names and complete tree inventory after layer reading; compare against the context and fail on change. This is a path-reopen postcondition, not a snapshot-bound parser.
 
 **Exact signature**
 
@@ -7247,9 +9352,12 @@ def _verify_unchanged_extraction(context: _VerifiedIgnExtraction) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--read-layer-frame"></a>
 ### `_read_layer_frame`
 
-**Purpose and ordered algorithm:** Require a nonempty already-trimmed string layer name, read it through GeoPandas using Pyogrio, and require a GeoDataFrame. Return the raw frame, preserving factual rows and defects; source-bound validation is owned by the caller.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._read_layer_frame`. Source lines 1494–1513.
+
+**Verified purpose:** Require a nonempty already-trimmed string layer name, read it through GeoPandas using Pyogrio, and require a GeoDataFrame. Return the raw frame, preserving factual rows and defects; source-bound validation is owned by the caller.
 
 **Exact signature**
 
@@ -7336,9 +9444,12 @@ def _read_layer_frame(geopackage_path: Path, layer_name: str) -> gpd.GeoDataFram
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--read-verified-layer-frames"></a>
 ### `_read_verified_layer_frames`
 
-**Purpose and ordered algorithm:** Require a nonempty exact tuple of distinct names present in the verified inventory, read each frame in requested order, and run the extraction postcondition before returning the tuple. The context was checked before these path-based reads; no immutable-byte parser is introduced.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._read_verified_layer_frames`. Source lines 1516–1531.
+
+**Verified purpose:** Require a nonempty exact tuple of distinct names present in the verified inventory, read each frame in requested order, and run the extraction postcondition before returning the tuple. The context was checked before these path-based reads; no immutable-byte parser is introduced.
 
 **Exact signature**
 
@@ -7429,9 +9540,12 @@ def _read_verified_layer_frames(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-layer-summary-contract"></a>
 ### `_validate_layer_summary_contract`
 
-**Purpose and ordered algorithm:** Require exact summary class, builtin nonnegative counts, unique nonempty ordered columns, matching ordered dtype pairs, sorted unique geometry names and PROXY_GEOMETRY. Each geometry count must not exceed feature_count. Return the summary; it is structural evidence, not physical reconstruction or a disjoint-count closure proof.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_layer_summary_contract`. Source lines 1534–1590.
+
+**Verified purpose:** Require exact summary class, builtin nonnegative counts, unique nonempty ordered columns, matching ordered dtype pairs, sorted unique geometry names and PROXY_GEOMETRY. Each geometry count must not exceed feature_count. Return the summary; it is structural evidence, not physical reconstruction or a disjoint-count closure proof.
 
 **Exact signature**
 
@@ -7591,9 +9705,12 @@ def _validate_layer_summary_contract(summary: object) -> IgnBdTopoLayerSummary:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--compare-layer-summary"></a>
 ### `_compare_layer_summary`
 
-**Purpose and ordered algorithm:** Structurally validate the supplied summary then require dataclass equality with the freshly observed expected summary. Any difference fails; it neither mutates nor rereads the frame.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._compare_layer_summary`. Source lines 1593–1601.
+
+**Verified purpose:** Structurally validate the supplied summary then require dataclass equality with the freshly observed expected summary. Any difference fails; it neither mutates nor rereads the frame.
 
 **Exact signature**
 
@@ -7667,9 +9784,12 @@ def _compare_layer_summary(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--compare-loaded-frame"></a>
 ### `_compare_loaded_frame`
 
-**Purpose and ordered algorithm:** Require a GeoDataFrame and exact ordered columns, dtype spellings, index class/names/values and active geometry name. Validate equivalent Lambert-93 CRS, compare nongeometry frames exactly, compare ordered WKB hex values and frame attrs, and wrap mismatch as a controlled layer error. drop creates temporary frames; neither supplied nor expected is changed.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._compare_loaded_frame`. Source lines 1604–1652.
+
+**Verified purpose:** Require a GeoDataFrame and exact ordered columns, dtype spellings, index class/names/values and active geometry name. Validate equivalent Lambert-93 CRS, compare nongeometry frames exactly, compare ordered WKB hex values and frame attrs, and wrap mismatch as a controlled layer error. drop creates temporary frames; neither supplied nor expected is changed.
 
 **Exact signature**
 
@@ -7813,9 +9933,12 @@ def _compare_loaded_frame(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--load-cached-extraction"></a>
 ### `_load_cached_extraction`
 
-**Purpose and ordered algorithm:** Require extraction directory and a regular non-linked marker, strictly reconstruct schema 3, check archive SHA/role, resolve and discover the same GPKG, compare physical size/SHA and entire tree inventory, then rediscover and compare all configured roles. Return a cache-hit extraction or None on controlled inconsistency; caller revalidates the archive before this helper.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._load_cached_extraction`. Source lines 1655–1725.
+
+**Verified purpose:** Require extraction directory and a regular non-linked marker, strictly reconstruct schema 3, check archive SHA/role, resolve and discover the same GPKG, compare physical size/SHA and entire tree inventory, then rediscover and compare all configured roles. Return a cache-hit extraction or None on controlled inconsistency; caller revalidates the archive before this helper.
 
 **Exact signature**
 
@@ -7858,7 +9981,7 @@ Outbound call expressions and conservative ownership:
 | `metadata_path.is_file` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_path.is_symlink` | `unresolved local/third-party receiver; no ownership inferred` |
 | `metadata_path.is_junction` | `unresolved local/third-party receiver; no ownership inferred` |
-| `_ExtractionMetadata.model_validate` | `landscout.sources.ign_bdtopo_fr._ExtractionMetadata.model_validate` |
+| `_ExtractionMetadata.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.ign_bdtopo_fr._ExtractionMetadata`) |
 | `loads_strict_json_object` | `landscout.common.strict_json.loads_strict_json_object` |
 | `metadata_path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `_resolve_relative_path` | `landscout.sources.ign_bdtopo_fr._resolve_relative_path` |
@@ -7965,9 +10088,12 @@ def _load_cached_extraction(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--replace-directory"></a>
 ### `_replace_directory`
 
-**Purpose and ordered algorithm:** Rename/replace source directory at target via Path.replace. Errors propagate to the publication transaction; the Paths themselves are not mutated.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._replace_directory`. Source lines 1728–1729.
+
+**Verified purpose:** Rename/replace source directory at target via Path.replace. Errors propagate to the publication transaction; the Paths themselves are not mutated.
 
 **Exact signature**
 
@@ -8027,9 +10153,12 @@ def _replace_directory(source: Path, target: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--path-exists-or-is-link"></a>
 ### `_path_exists_or_is_link`
 
-**Purpose and ordered algorithm:** Return true for existence, symlink or junction, and conservatively true when inspection raises OSError. An inaccessible transaction path is never treated as safely absent.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._path_exists_or_is_link`. Source lines 1732–1736.
+
+**Verified purpose:** Return true for existence, symlink or junction, and conservatively true when inspection raises OSError. An inaccessible transaction path is never treated as safely absent.
 
 **Exact signature**
 
@@ -8105,9 +10234,12 @@ def _path_exists_or_is_link(path: Path) -> bool:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--remove-validated-extraction-directory"></a>
 ### `_remove_validated_extraction_directory`
 
-**Purpose and ordered algorithm:** Return for absence; otherwise reject linked/non-directory target, validate its entire ordinary tree, and only then recursively remove that exact transaction directory. Translate removal error; this helper is destructive and not a harmless inventory routine.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._remove_validated_extraction_directory`. Source lines 1739–1752.
+
+**Verified purpose:** Return for absence; otherwise reject linked/non-directory target, validate its entire ordinary tree, and only then recursively remove that exact transaction directory. Translate removal error; this helper is destructive and not a harmless inventory routine.
 
 **Exact signature**
 
@@ -8191,9 +10323,12 @@ def _remove_validated_extraction_directory(path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--require-no-extraction-backup"></a>
 ### `_require_no_extraction_backup`
 
-**Purpose and ordered algorithm:** Derive sibling .bak and fail if it exists, is a link/junction or cannot be safely inspected. Preserve it for manual recovery.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._require_no_extraction_backup`. Source lines 1755–1760.
+
+**Verified purpose:** Derive sibling .bak and fail if it exists, is a link/junction or cannot be safely inspected. Preserve it for manual recovery.
 
 **Exact signature**
 
@@ -8261,9 +10396,12 @@ def _require_no_extraction_backup(extraction_path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--require-safe-existing-extraction-marker"></a>
 ### `_require_safe_existing_extraction_marker`
 
-**Purpose and ordered algorithm:** If the marker is absent do nothing; otherwise require an ordinary non-linked file and wrap unsafe inspection. This prevents replacing a linked marker but does not parse its content.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._require_safe_existing_extraction_marker`. Source lines 1763–1781.
+
+**Verified purpose:** If the marker is absent do nothing; otherwise require an ordinary non-linked file and wrap unsafe inspection. This prevents replacing a linked marker but does not parse its content.
 
 **Exact signature**
 
@@ -8347,9 +10485,12 @@ def _require_safe_existing_extraction_marker(extraction_path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--prepare-temporary-extraction-directory"></a>
 ### `_prepare_temporary_extraction_directory`
 
-**Purpose and ordered algorithm:** If the intended .part exists, remove it only through the full safe-tree validator, then mkdir exclusively. Translate creation failure; no broad cache cleanup is performed.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._prepare_temporary_extraction_directory`. Source lines 1784–1792.
+
+**Verified purpose:** If the intended .part exists, remove it only through the full safe-tree validator, then mkdir exclusively. Translate creation failure; no broad cache cleanup is performed.
 
 **Exact signature**
 
@@ -8419,9 +10560,12 @@ def _prepare_temporary_extraction_directory(path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--publish-extraction-directory"></a>
 ### `_publish_extraction_directory`
 
-**Purpose and ordered algorithm:** Refuse a stale .bak; if the primary exists, require and inventory its ordinary tree, then rename it to backup. Publish the prepared directory; on failure restore the backup, preserving it if restoration also fails. After success safely remove the old backup tree. This can perform filesystem moves/removal through delegated helpers.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._publish_extraction_directory`. Source lines 1795–1826.
+
+**Verified purpose:** Refuse a stale .bak; if the primary exists, require and inventory its ordinary tree, then rename it to backup. Publish the prepared directory; on failure restore the backup, preserving it if restoration also fails. After success safely remove the old backup tree. This can perform filesystem moves/removal through delegated helpers.
 
 **Exact signature**
 
@@ -8524,9 +10668,12 @@ def _publish_extraction_directory(temporary_path: Path, extraction_path: Path) -
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-extract-ign-bdtopo-archive"></a>
 ### `extract_ign_bdtopo_archive`
 
-**Purpose and ordered algorithm:** Reconstruct config and validate download/config lineage, choose explicit extraction target or short download-parent/x/first-16-SHA cache path, and refuse unsafe target, marker or backup. Revalidate archive size/checksum/CRC and envelope facts before cache reuse. On miss prepare a safe .part directory, validate full member inventory, extract, compare complete destination inventory, discover four distinct roles and hash the GPKG; write schema-3 marker exclusively, publish recoverably, and clean temporary data without masking primary errors. No source features are normalized.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.extract_ign_bdtopo_archive`. Source lines 1829–1933.
+
+**Verified purpose:** Reconstruct config and validate download/config lineage, choose explicit extraction target or download.path.parent / x / first-16-SHA cache path, and refuse unsafe target, marker or backup. Revalidate archive size/checksum/CRC and envelope facts before cache reuse. On miss prepare a safe .part directory, validate full member inventory, extract, compare complete destination inventory, discover four distinct roles and hash the GPKG; write schema-3 marker exclusively, publish recoverably, and clean temporary data without masking primary errors. No source features are normalized.
 
 **Exact signature**
 
@@ -8837,9 +10984,12 @@ def extract_ign_bdtopo_archive(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-lambert93"></a>
 ### `_validate_lambert93`
 
-**Purpose and ordered algorithm:** Require a readable CRS, projected status and PyProj equivalence to EPSG:2154. Return the CRS object; it does not reproject geometry, accept arbitrary metre projections or demand one literal CRS string.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_lambert93`. Source lines 1936–1955.
+
+**Verified purpose:** Require a readable CRS, projected status and PyProj equivalence to EPSG:2154. Return the CRS object; it does not reproject geometry, accept arbitrary metre projections or demand one literal CRS string.
 
 **Exact signature**
 
@@ -8930,9 +11080,12 @@ def _validate_lambert93(crs_value: Any, layer_name: str) -> CRS:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--loaded-layer-from-frame"></a>
 ### `_loaded_layer_from_frame`
 
-**Purpose and ordered algorithm:** Require active geometry, Lambert-93 and at least one feature. Count NULL, EMPTY and nonempty invalid geometries without repair or row filtering, retain sorted observed non-null geometry type names and exact ordered schema/dtypes, validate the summary and return the same raw frame in a frozen envelope. This helper does not impose line/polygon family suitability.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._loaded_layer_from_frame`. Source lines 1958–2001.
+
+**Verified purpose:** Require active geometry, Lambert-93 and at least one feature. Count NULL, EMPTY and nonempty invalid geometries without repair or row filtering, retain sorted observed non-null geometry type names and exact ordered schema/dtypes, validate the summary and return the same raw frame in a frozen envelope. This helper does not impose line/polygon family suitability.
 
 **Exact signature**
 
@@ -9064,9 +11217,12 @@ def _loaded_layer_from_frame(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--load-untrusted-ign-bdtopo-layer"></a>
 ### `_load_untrusted_ign_bdtopo_layer`
 
-**Purpose and ordered algorithm:** Require the package file and nonblank layer name, read and summarize that raw layer. It is a private inspection path with no config/extraction provenance proof and is not exported as a source-complete API.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._load_untrusted_ign_bdtopo_layer`. Source lines 2004–2016.
+
+**Verified purpose:** Require the package file and nonblank layer name, read and summarize that raw layer. It is a private inspection path with no config/extraction provenance proof and is not exported as a source-complete API.
 
 **Exact signature**
 
@@ -9156,9 +11312,12 @@ def _load_untrusted_ign_bdtopo_layer(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validated-layer-source-config"></a>
 ### `_validated_layer_source_config`
 
-**Purpose and ordered algorithm:** Delegate exact-class reconstruction to _validated_source_config with IgnBdTopoLayerError as the controlled boundary error.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validated_layer_source_config`. Source lines 2019–2020.
+
+**Verified purpose:** Delegate exact-class reconstruction to _validated_source_config with IgnBdTopoLayerError as the controlled boundary error.
 
 **Exact signature**
 
@@ -9222,9 +11381,12 @@ def _validated_layer_source_config(config: object) -> IgnBdTopoSourceConfig:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-archive-config-lineage"></a>
 ### `_validate_archive_config_lineage`
 
-**Purpose and ordered algorithm:** Accept only an exact download or extraction containing an exact download; check exact positive size, boolean states, lowercase SHA, UTC timestamp, Path/filename agreement, every configured source identity and optional size. Return None on equality, otherwise controlled layer error. These are local envelope/config comparisons, not archive byte reads.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_archive_config_lineage`. Source lines 2023–2096.
+
+**Verified purpose:** Accept only an exact download or extraction containing an exact download; check exact positive size, boolean states, lowercase SHA, UTC timestamp, Path/filename agreement, every configured source identity and optional size. Return None on equality, otherwise controlled layer error. These are local envelope/config comparisons, not archive byte reads.
 
 **Exact signature**
 
@@ -9390,9 +11552,12 @@ def _validate_archive_config_lineage(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-load-ign-bdtopo-electricity"></a>
 ### `load_ign_bdtopo_electricity`
 
-**Purpose and ordered algorithm:** Reconstruct config, bind archive/config identity and current extraction bytes/tree, rediscover all four roles and require exact inventory/role equality. Read the two electricity layers as one checked batch, summarize both, and return fresh unfiltered frames attached to the supplied extraction. No network, topology repair or capacity inference.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_electricity`. Source lines 2099–2146.
+
+**Verified purpose:** Reconstruct config, bind archive/config identity and current extraction bytes/tree, rediscover all four roles and require exact inventory/role equality. Read the two electricity layers as one checked batch, summarize both, and return fresh unfiltered frames attached to the supplied extraction. No network, topology repair or capacity inference.
 
 **Exact signature**
 
@@ -9566,9 +11731,12 @@ def load_ign_bdtopo_electricity(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-load-ign-bdtopo-roads"></a>
 ### `load_ign_bdtopo_roads`
 
-**Purpose and ordered algorithm:** Apply the same config/archive/extraction/four-role gate as electricity, read the configured road layer with post-read integrity checks and summarize it. Return all raw road rows unchanged; no distance, vehicle classification or access inference is performed here.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_roads`. Source lines 2149–2183.
+
+**Verified purpose:** Apply the same config/archive/extraction/four-role gate as electricity, read the configured road layer with post-read integrity checks and summarize it. Return all raw road rows unchanged; no distance, vehicle classification or access inference is performed here.
 
 **Exact signature**
 
@@ -9726,9 +11894,12 @@ def load_ign_bdtopo_roads(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--department-coverage-from-frame"></a>
 ### `_department_coverage_from_frame`
 
-**Purpose and ordered algorithm:** Require active Lambert-93 geometry and a nonempty layer with the configured identity attribute. Compare that raw attribute to the archive department, select exactly one feature into a copied RangeIndex frame, require valid nonempty Polygon/MultiPolygon and reject eight lineage-column collisions before appending lineage. Summary counts/schema describe the whole source layer; selected_feature_count describes the one returned row.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._department_coverage_from_frame`. Source lines 2186–2293.
+
+**Verified purpose:** Require active Lambert-93 geometry and a nonempty layer with the configured identity attribute. Compare that raw attribute to the archive department, select exactly one feature into a copied RangeIndex frame, require valid nonempty Polygon/MultiPolygon and reject eight lineage-column collisions before appending lineage. Summary counts/schema describe the whole source layer; selected_feature_count describes the one returned row.
 
 **Exact signature**
 
@@ -9941,9 +12112,12 @@ def _department_coverage_from_frame(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15-load-ign-bdtopo-department-coverage"></a>
 ### `load_ign_bdtopo_department_coverage`
 
-**Purpose and ordered algorithm:** Reconstruct config, validate archive lineage/current extraction and all four configured physical roles, read the selected department layer with post-read verification, then derive its exactly-one authoritative coverage feature using the configured identity field. No parcel relation is computed.
+Qualified owner: `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_department_coverage`. Source lines 2296–2326.
+
+**Verified purpose:** Reconstruct config, validate archive lineage/current extraction and all four configured physical roles, read the selected department layer with post-read verification, then derive its exactly-one authoritative coverage feature using the configured identity field. No parcel relation is computed.
 
 **Exact signature**
 
@@ -10125,9 +12299,12 @@ def load_ign_bdtopo_department_coverage(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--revalidate-ign-bdtopo-electricity-data"></a>
 ### `_revalidate_ign_bdtopo_electricity_data`
 
-**Purpose and ordered algorithm:** Require exact source/config envelope classes; fresh-load electricity through the public physical gate, exact-compare both supplied frames and summaries and require PROXY_GEOMETRY. Return fresh data, not the possibly mutated supplied frames; translate failures to controlled layer errors.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._revalidate_ign_bdtopo_electricity_data`. Source lines 2329–2364.
+
+**Verified purpose:** Require exact source/config envelope classes; fresh-load electricity through the public physical gate, exact-compare both supplied frames and summaries and require PROXY_GEOMETRY. Return fresh data, not the possibly mutated supplied frames; translate failures to controlled layer errors.
 
 **Exact signature**
 
@@ -10247,9 +12424,12 @@ def _revalidate_ign_bdtopo_electricity_data(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--revalidate-ign-bdtopo-road-data"></a>
 ### `_revalidate_ign_bdtopo_road_data`
 
-**Purpose and ordered algorithm:** Require exact road source/config classes; fresh-load via the public road loader and compare the supplied raw frame and summary exactly with physical facts. Return the fresh source; no local fixture envelope is promoted to physical authority.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._revalidate_ign_bdtopo_road_data`. Source lines 2367–2394.
+
+**Verified purpose:** Require exact road source/config classes; fresh-load via the public road loader and compare the supplied raw frame and summary exactly with physical facts. Return the fresh source; no local fixture envelope is promoted to physical authority.
 
 **Exact signature**
 
@@ -10359,9 +12539,12 @@ def _revalidate_ign_bdtopo_road_data(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--validate-coverage-summary-contract"></a>
 ### `_validate_coverage_summary_contract`
 
-**Purpose and ordered algorithm:** Require exact coverage-summary class, builtin nonnegative counts with selected not exceeding source, unique ordered columns, matching dtype pairs, sorted unique geometry names and SOURCE_COVERAGE_BOUNDARY. Return the local summary. No current direct caller was found; this helper does not itself prove selected count one or physically reread data.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._validate_coverage_summary_contract`. Source lines 2397–2448.
+
+**Verified purpose:** Require exact coverage-summary class, builtin nonnegative counts with selected not exceeding source, unique ordered columns, matching dtype pairs, sorted unique geometry names and SOURCE_COVERAGE_BOUNDARY. Return the local summary. No current direct caller was found; this helper does not itself prove selected count one or physically reread data.
 
 **Exact signature**
 
@@ -10488,9 +12671,12 @@ def _validate_coverage_summary_contract(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r15--revalidate-ign-bdtopo-department-coverage"></a>
 ### `_revalidate_ign_bdtopo_department_coverage`
 
-**Purpose and ordered algorithm:** Require exact coverage/config classes, fresh-load the physical coverage, compare the supplied selected frame, summary and all scalar lineage fields, then return fresh coverage. No current direct repository caller was found; public coverage assessment obtains fresh coverage via its public loader.
+Qualified owner: `landscout.sources.ign_bdtopo_fr._revalidate_ign_bdtopo_department_coverage`. Source lines 2451–2484.
+
+**Verified purpose:** Require exact coverage/config classes, fresh-load the physical coverage, compare the supplied selected frame, summary and all scalar lineage fields, then return fresh coverage. No current direct repository caller was found; public coverage assessment obtains fresh coverage via its public loader.
 
 **Exact signature**
 
@@ -10607,6 +12793,41 @@ def _revalidate_ign_bdtopo_department_coverage(
 ## 8. Public exports and package ownership
 
 This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
+
+
+The sources package explicitly imports and lists these 29 adapter names in its __all__ (the module itself has no __all__):
+
+- `IgnBdTopoArchiveError`
+- `IgnBdTopoArchiveIntegrity`
+- `IgnBdTopoCoverageConfig`
+- `IgnBdTopoCoverageLayerSummary`
+- `IgnBdTopoDepartmentCoverage`
+- `IgnBdTopoDepartmentLayerConfig`
+- `IgnBdTopoDownload`
+- `IgnBdTopoDownloadError`
+- `IgnBdTopoElectricityData`
+- `IgnBdTopoError`
+- `IgnBdTopoExtraction`
+- `IgnBdTopoLayerError`
+- `IgnBdTopoLayerSelection`
+- `IgnBdTopoLayerSummary`
+- `IgnBdTopoLoadedLayer`
+- `IgnBdTopoLogicalLayerConfig`
+- `IgnBdTopoLogicalLayersConfig`
+- `IgnBdTopoRoadData`
+- `IgnBdTopoSourceConfig`
+- `discover_ign_bdtopo_geopackage`
+- `discover_ign_bdtopo_layers`
+- `download_ign_bdtopo_archive`
+- `extract_ign_bdtopo_archive`
+- `list_ign_bdtopo_layers`
+- `load_ign_bdtopo_department_coverage`
+- `load_ign_bdtopo_electricity`
+- `load_ign_bdtopo_roads`
+- `load_ign_bdtopo_source_config`
+- `validate_ign_bdtopo_archive`
+
+IgnBdTopoAccessConfig and private revalidators/raw readers are not package re-exports. Direct importability from the module is not a package public API guarantee.
 
 ## 9. Trust, provenance, side effects, and business boundary
 
