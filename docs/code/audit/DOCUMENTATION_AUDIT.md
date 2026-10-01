@@ -8,6 +8,12 @@ Current checkpoint authority: [DOCS.CONTINUITY.1.R1](../../project/tickets/DOCS.
 
 Starting identity was fetched and checked on clean `main` at `aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02`. The original Git inventory has 245 files. The [coverage ledger](coverage.json) begins with every file and qualified Python symbol explicitly `NOT_READ`; AST enumeration is not semantic review. The [protected-file manifest](protected_files.json) records exact Git-content and starting-checkout SHA256 separately.
 
+## DOCS.CONTINUITY.1.R15.1 — IGN test side-effect correction
+
+The [R15.1 receipt](R15_1_DOCUMENTATION_FIDELITY.md) and [exact supplied instruction](../../project/tickets/DOCS.CONTINUITY.1.R15.1.md) record the independent **CORRECTION_REQUIRED** verdict on R15 documentation. Four test notices omitted their direct `pyogrio.write_dataframe(..., append=True)` calls; four omitted or incompletely listed local model/dictionary mutations. Only those eight side-effect cells are corrected. Eight owner purpose notes were already accurate and remain unchanged; the sole foundations test row receives the new companion SHA and compact successor provenance. R14 corrections are accepted within the supplied review's limited scope. The fix awaits independent R15.1 review.
+
+Gain **0 files / 0 symbols**; totals remain **111/245 files and 3,330/4,769 symbols**, remaining **134/1,439**. No new pytest; R15's 125 passes are historical. One unchanged INDEX candidate and receipt-only completion remain distinct; see the receipt for measured results. Global audit **PARTIAL**, visual/cold-start/semantic/final acceptance gaps and earlier reserves retained. Six documentary paths only; source/test/config/auditor/coverage/matrix/backlog/cache/main remain unchanged. Stop after recovery publication.
+
 ## DOCS.CONTINUITY.1.R15 — IGN BD TOPO source and bounded R14 retouches
 
 The [R15 receipt](R15_IGN_BDTOPO_SOURCE.md) closes the four original IGN source/test/companion units under the sole foundations owner: two explicit READ rows and embedded READ/NOT_READ companion states, now CHECKED/CORRECTED. Gain **four files / 355 symbols**; deduplicated total **111/245 files and 3,330/4,769 symbols**, remaining **134 files / 1,439 symbols**. No dependency, approval, receipt/ticket or R14-retouch credit. The two R14 purpose paragraphs and matching notes alone correct the invented CRS-test distance assertion and scalar equals_exact naming; other R14 evidence/states remain unchanged.

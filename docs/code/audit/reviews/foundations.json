@@ -20576,7 +20576,7 @@
         ]
       ],
       "source_sha256_basis": "git-content",
-      "documentation_sha256": "f4ac55a98498fcac75098f9cb05116ffd57068a854145e7d2979d6aa18613f83",
+      "documentation_sha256": "dcb9da1a08dcb30f8a2196c3a5535e46fd1dbd416f117f910df02239ae6b6964",
       "documentation_sha256_basis": "git-content",
       "r15_provenance": {
         "receipt": "docs/code/audit/R15_IGN_BDTOPO_SOURCE.md",
@@ -20584,6 +20584,15 @@
         "review": "PENDING",
         "source_commit": "8bef62ab9b6eef185bab526a046b4a7dbbea42a1",
         "companion_evidence": "embedded_documentation_status; no separate companion owner row"
+      },
+      "r15_1_provenance": {
+        "receipt": "docs/code/audit/R15_1_DOCUMENTATION_FIDELITY.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R15.1.md",
+        "reviewed_commit": "29732dd3f4f1b4f0f2351d18e1f9d2d96a503091",
+        "supplied_review": "CORRECTION_REQUIRED_R15_DOCUMENTATION",
+        "local_correction": "EIGHT_SIDE_EFFECT_CELLS_CORRECTED_PENDING_INDEPENDENT_REVIEW",
+        "prior_documentation_sha256": "f4ac55a98498fcac75098f9cb05116ffd57068a854145e7d2979d6aa18613f83",
+        "targeted_symbol_notes": "Eight R15 purpose notes retained unchanged after comparison with source bodies and generic R14 predecessor notes."
       }
     },
     {

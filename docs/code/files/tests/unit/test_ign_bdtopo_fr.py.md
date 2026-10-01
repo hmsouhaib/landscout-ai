@@ -1778,7 +1778,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `object.__setattr__(tampered, "provider", "UNTRUSTED")` changes the local deep model copy. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1861,7 +1861,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | `content["coverage"]["department_layer"]["department_code_field"] = " "`<br>`content["coverage"]["department_layer"]["match_tokens"] = []` |
+| In-memory mutation | `del content["coverage"]`<br>`content["coverage"]["department_layer"]["department_code_field"] = " "`<br>`content["coverage"]["department_layer"]["match_tokens"] = []` change the local `_config_data()` dictionary in separate parameter branches. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1938,7 +1938,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `del content[field]` removes `source_url` or `edition` from the local `_config_data()` dictionary. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -4320,7 +4320,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe(secondary_lines, gpkg_path, layer="LIGNE_ELECTRIQUE_SECONDAIRE", driver="GPKG", append=True)` adds a layer to the synthetic GeoPackage. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -6378,7 +6378,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe(secondary, gpkg_path, layer="TRONCON_DE_ROUTE_SECONDAIRE", driver="GPKG", append=True)` adds a layer to the synthetic GeoPackage. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -6587,7 +6587,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `object.__setattr__(tampered.access.road_segments, "match_tokens", ())` in the road branch, or `object.__setattr__(tampered.coverage.department_layer, "department_code_field", " ")` in the coverage branch, changes a nested model of the local deep copy. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -6689,7 +6689,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe(added, extraction.geopackage_path, layer="ADDED_AFTER_EXTRACTION", driver="GPKG", append=True)` adds a layer to the extracted synthetic GeoPackage. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -9717,7 +9717,7 @@ The table lists direct lexical operations, excluding nested callback bodies. Fix
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | None directly present. |
-| Filesystem/archive write or publication | None directly present. |
+| Filesystem/archive write or publication | `pyogrio.write_dataframe(second, gpkg_path, layer="DEPARTEMENT_SECONDAIRE", driver="GPKG", append=True)` adds a layer to the synthetic GeoPackage. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
