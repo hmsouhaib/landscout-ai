@@ -8,11 +8,25 @@
 - Domain: official source acquisition and physical authority
 - Responsibility: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
 - Source SHA256: `0954d4025b779a7fa75813edb81c8f3b3227243da6b22b2066a0443762927c0e`
+- Source SHA256 basis: `git-content`
+- R16 verification basis: `7f00e8c29e9bb85222abb708e0fc6a45ad2ba178`; Python bytes unchanged.
 
 ## 1. STEP 7F.1A.4 contract delta
 
 - Moves RTE/ODRE configuration, source GeoJSON, and cache metadata to shared strict serialization and strict finite numeric/source-identity validation.
 - This delta is validation/source-authority/API hardening unless the exact source below says otherwise; no undocumented schema or business-semantic change is inferred.
+
+## R16 source authority and evidence limits
+
+The checked-in YAML names three logical RTE/ODRÉ exports. `RteOdreSourceConfig` and its nested Pydantic models are frozen and extra-forbid; the alias for cache age rejects bool/non-Real/nonfinite/negative inputs before accepted values become float. Configured URL origin is HTTPS `odre.opendatasoft.com`, absent/443 port and `/api/explore/v2.1` after trimming trailing slashes, with no credentials/query/fragment. This is configuration validation, not socket safety. `open_safe_https` owns per-hop URL, DNS-address, peer and TLS validation and bounded redirects; these source tests mock the opener and do not prove live transport. Builders reconstruct config and construct percent-encoded URLs without network. The plain YAML loader can propagate filesystem, strict-YAML and Pydantic errors; its error contract differs from the controlled reconstruction wrapper.
+
+Remote dataset metadata, physical GeoJSON bytes and their count reconciliation are distinct evidence. Optional source text is trimmed or left `None`; modified/processed values are not parsed publication dates. `GENERALIZED_OR_RESTRICTED` is a two-phrase description heuristic, not coordinate measurement. `MISSING` is applied only when a nonempty export has entirely null geometry, not automatically for an empty collection. FeatureCollection parsing uses duplicate-free finite UTF-8 JSON, recognizes a missing geometry key as null, and reports sorted distinct *root* geometry types. Recursive geometry checks ensure type and coordinate nesting with finite numeric positions, not Shapely topology, ring closure, CRS/range correctness, exclusively 2D coordinates or real network precision. **FOUNDATIONS-APP-002 remains OPEN**: an unhashable geometry `type` list/dict may raise a raw `TypeError` at membership, before the controlled unsupported-type branch. The cache helper catches it as a miss; this documentation ticket neither changes Python nor classifies it as closed.
+
+The sidecar has exactly twelve keys: logical_name, dataset_id, provider, portal, source_url, export_format, download_timestamp, filename, file_size, sha256, dataset_metadata and export_summary. It omits `path` and `cache_hit` and has no IGN schema-version field. A hit reopens and strictly decodes the sidecar, reparses the physical export, checks byte size/SHA, count/summary/identity and an aware timestamp converted to UTC; it needs no DNS/HTTP. A miss fetches metadata before streaming export bytes to an exclusive-created `.part`. This is path-based rechecking, not an immutable parser snapshot or a re-acquisition by downstream consumers.
+
+Publication checks recovery `.bak` paths and temporary links/junctions before network. Existing primary files are copied to backup, then archive and metadata are replaced sequentially. On an OSError after archive publication, archive restoration/removal is conditional; there is **no call restoring the metadata backup**. A double-failure retains backups for manual recovery. Internal backup cleanup is distinct from outer temporary cleanup, which suppresses its caught OSError only while an active primary error exists. Neither phase guarantees a two-file atomic transaction, a lock or immunity to races. Frozen dataclasses provide records, not broad constructor validation or immutable disk bytes.
+
+The [RTE test companion](../../../tests/unit/test_rte_odre_fr.py.md) records bounded BytesIO/fault-injection evidence. This adapter does not normalize source geometries, calculate available RTE capacity, prove a connection point or decide a BESS parcel.
 
 ## 2. Purpose and architectural position
 
@@ -241,9 +255,12 @@ No executable module-import-time statement is declared outside imports, assignme
 
 ## 5. Classes, models, dataclasses, and fields
 
+<a id="r16-rtedatasetconfig"></a>
 ### `RteDatasetConfig`
 
-**Source purpose:** Frozen configuration for one logical dataset: dataset_id is a validated nonempty dataset identifier used in encoded API/cache paths, and preferred_format is the geojson-only export choice. The model validates an identifier domain, not a hardcoded equality to the three checked-in IDs.
+Qualified owner: `landscout.sources.rte_odre_fr.RteDatasetConfig`. Source lines 88–92.
+
+**Verified purpose:** Frozen extra-forbid dataset selector with a strictly nonempty, path-safe configured ID and GeoJSON-only preferred format. It is config identity, not an acquired export.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -285,9 +302,30 @@ class RteDatasetConfig(BaseModel):
     preferred_format: ExportFormat
 ```
 
+<a id="r16-rtedatasetconfig-dataset-id"></a>
+#### `landscout.sources.rte_odre_fr.RteDatasetConfig.dataset_id`
+
+Source lines 91–91.
+
+Exact declaration: `dataset_id: DatasetIdentifier`.
+
+Required trimmed nonempty ID matching the declared safe identifier pattern; URL builder percent-encodes it. It is a configured value, not a physical-source pin.
+
+<a id="r16-rtedatasetconfig-preferred-format"></a>
+#### `landscout.sources.rte_odre_fr.RteDatasetConfig.preferred_format`
+
+Source lines 92–92.
+
+Exact declaration: `preferred_format: ExportFormat`.
+
+Required Literal geojson; no CSV/GPKG export accepted by the model.
+
+<a id="r16-rtedatasetsconfig"></a>
 ### `RteDatasetsConfig`
 
-**Source purpose:** Requires exactly the three logical dataset slots sites, overhead_lines and underground_lines, each a frozen RteDatasetConfig. These are logical acquisition roles, not geometry classifications or frame columns.
+Qualified owner: `landscout.sources.rte_odre_fr.RteDatasetsConfig`. Source lines 95–100.
+
+**Verified purpose:** Frozen extra-forbid collection of the three required logical dataset selectors; no fourth dataset or hardcoded physical ID is inferred.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -318,9 +356,39 @@ class RteDatasetsConfig(BaseModel):
     underground_lines: RteDatasetConfig
 ```
 
+<a id="r16-rtedatasetsconfig-sites"></a>
+#### `landscout.sources.rte_odre_fr.RteDatasetsConfig.sites`
+
+Source lines 98–98.
+
+Exact declaration: `sites: RteDatasetConfig`.
+
+Required frozen selector for the sites logical slot; the dataset ID comes from YAML.
+
+<a id="r16-rtedatasetsconfig-overhead-lines"></a>
+#### `landscout.sources.rte_odre_fr.RteDatasetsConfig.overhead_lines`
+
+Source lines 99–99.
+
+Exact declaration: `overhead_lines: RteDatasetConfig`.
+
+Required frozen selector for overhead-lines logical slot; no capacity is inferred.
+
+<a id="r16-rtedatasetsconfig-underground-lines"></a>
+#### `landscout.sources.rte_odre_fr.RteDatasetsConfig.underground_lines`
+
+Source lines 100–100.
+
+Exact declaration: `underground_lines: RteDatasetConfig`.
+
+Required frozen selector for underground-lines logical slot; no connection feasibility is inferred.
+
+<a id="r16-rteodreapiconfig"></a>
 ### `RteOdreApiConfig`
 
-**Source purpose:** Frozen base_url HttpUrl constrained to the official HTTPS host odre.opendatasoft.com, default/443 port and /api/explore/v2.1 path without credentials, query or fragment. It validates configuration only; per-request DNS/TLS validation belongs to safe_http.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreApiConfig`. Source lines 103–123.
+
+**Verified purpose:** Frozen extra-forbid HttpUrl config. The validator requires the official HTTPS ODRE host, default/443 port and exact API path after trailing-slash removal; request-hop DNS/TLS belongs to safe_http.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -364,9 +432,21 @@ class RteOdreApiConfig(BaseModel):
         return value
 ```
 
+<a id="r16-rteodreapiconfig-base-url"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreApiConfig.base_url`
+
+Source lines 106–106.
+
+Exact declaration: `base_url: HttpUrl`.
+
+Required HttpUrl constrained by _official_api_origin to HTTPS ODRE host/default or 443 port/exact v2.1 path without credentials/query/fragment. Safe transport independently validates each request hop.
+
+<a id="r16-rteodrecacheconfig"></a>
 ### `RteOdreCacheConfig`
 
-**Source purpose:** Frozen cache freshness configuration: max_age_hours is a strict finite nonnegative number, normalized to float; bool and numeric text are rejected. The current value 168 means a maximum age of seven days, not a scheduler.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreCacheConfig`. Source lines 126–129.
+
+**Verified purpose:** Frozen extra-forbid cache lifetime config; the pre-validator rejects bool, non-Real, nonfinite and negative ages, while zero is allowed.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -393,9 +473,21 @@ class RteOdreCacheConfig(BaseModel):
     max_age_hours: StrictNonNegativeFloat
 ```
 
+<a id="r16-rteodrecacheconfig-max-age-hours"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreCacheConfig.max_age_hours`
+
+Source lines 129–129.
+
+Exact declaration: `max_age_hours: StrictNonNegativeFloat`.
+
+Required StrictNonNegativeFloat with a before-validator requiring Real nonbool, finite and >=0; accepted values become float. Freshness compares age in seconds.
+
+<a id="r16-rteodresourceconfig"></a>
 ### `RteOdreSourceConfig`
 
-**Source purpose:** Frozen RTE/ODRE identity plus nested API, three dataset and cache models, with extra keys forbidden. These runtime objects contain no mutable list/dict/set. Public acquisition boundaries reconstruct and revalidate even a supplied model.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreSourceConfig`. Source lines 132–139.
+
+**Verified purpose:** Frozen extra-forbid root configuration with literal provider RTE/portal ODRE and nested frozen API, three-dataset and cache models. Public URL/fetch/download boundaries reconstruct it.
 
 - Exact decorators: none.
 - Exact bases: `BaseModel`.
@@ -499,9 +591,57 @@ class RteOdreSourceConfig(BaseModel):
     cache: RteOdreCacheConfig
 ```
 
+<a id="r16-rteodresourceconfig-provider"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreSourceConfig.provider`
+
+Source lines 135–135.
+
+Exact declaration: `provider: Literal["RTE"]`.
+
+Required Literal RTE identity; physical export and remote metadata still need independent checks.
+
+<a id="r16-rteodresourceconfig-portal"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreSourceConfig.portal`
+
+Source lines 136–136.
+
+Exact declaration: `portal: Literal["ODRE"]`.
+
+Required Literal ODRE identity; not a runtime network proof.
+
+<a id="r16-rteodresourceconfig-api"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreSourceConfig.api`
+
+Source lines 137–137.
+
+Exact declaration: `api: RteOdreApiConfig`.
+
+Required nested frozen RteOdreApiConfig, reconstructed at public URL/fetch/download boundaries.
+
+<a id="r16-rteodresourceconfig-datasets"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreSourceConfig.datasets`
+
+Source lines 138–138.
+
+Exact declaration: `datasets: RteDatasetsConfig`.
+
+Required nested frozen three-slot dataset configuration; IDs are configured rather than baked into builders.
+
+<a id="r16-rteodresourceconfig-cache"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreSourceConfig.cache`
+
+Source lines 139–139.
+
+Exact declaration: `cache: RteOdreCacheConfig`.
+
+Required nested frozen cache lifetime configuration; no fixed official publication hash is declared.
+
+<a id="r16-rteodredownloaderror"></a>
 ### `RteOdreDownloadError`
 
-**Source purpose:** Raised when RTE/ODRE metadata or exports cannot be retrieved safely.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreDownloadError`. Source lines 142–143.
+
+**Verified purpose:** RuntimeError subclass for adapter-controlled download/cache/geometry paths. The plain YAML loader and some private operations can propagate other documented exceptions.
 
 - Exact decorators: none.
 - Exact bases: `RuntimeError`.
@@ -589,9 +729,12 @@ class RteOdreDownloadError(RuntimeError):
     """Raised when RTE/ODRE metadata or exports cannot be retrieved safely."""
 ```
 
+<a id="r16-rteodredatasetmetadata"></a>
 ### `RteOdreDatasetMetadata`
 
-**Source purpose:** Frozen scalar metadata captured from the official dataset response: identity, optional textual publisher/license/timestamps, optional count and conservative precision status. Post-init validates count only; fetch/cache helpers establish the other input contracts. No precise geometry claim is inferred from missing metadata.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata`. Source lines 147–164.
+
+**Verified purpose:** Frozen remote-metadata record. __post_init__ checks only records_count; fetch/cache reconstruction supplies string/domain checks, and annotations alone do not validate arbitrary construction.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -656,9 +799,93 @@ class RteOdreDatasetMetadata:
             raise ValueError("records_count must be a non-negative integer or None")
 ```
 
+<a id="r16-rteodredatasetmetadata-dataset-id"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.dataset_id`
+
+Source lines 148–148.
+
+Exact declaration: `dataset_id: str`.
+
+Remote dataset ID as returned by fetch only after exact equality to configured ID; a direct dataclass constructor does not enforce this.
+
+<a id="r16-rteodredatasetmetadata-title"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.title`
+
+Source lines 149–149.
+
+Exact declaration: `title: str | None`.
+
+Optional trimmed source title or None when absent/nonstring; no fallback title is fabricated.
+
+<a id="r16-rteodredatasetmetadata-publisher"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.publisher`
+
+Source lines 150–150.
+
+Exact declaration: `publisher: str | None`.
+
+Optional trimmed source publisher or None; the adapter does not prove a publication edition from this text.
+
+<a id="r16-rteodredatasetmetadata-modified"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.modified`
+
+Source lines 151–151.
+
+Exact declaration: `modified: str | None`.
+
+Optional trimmed remote modified text or None; not parsed as a timestamp.
+
+<a id="r16-rteodredatasetmetadata-data-processed"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.data_processed`
+
+Source lines 152–152.
+
+Exact declaration: `data_processed: str | None`.
+
+Optional trimmed remote data_processed text or None; not a verified acquisition time.
+
+<a id="r16-rteodredatasetmetadata-metadata-processed"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.metadata_processed`
+
+Source lines 153–153.
+
+Exact declaration: `metadata_processed: str | None`.
+
+Optional trimmed remote metadata_processed text or None; not a verified export time.
+
+<a id="r16-rteodredatasetmetadata-license"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.license`
+
+Source lines 154–154.
+
+Exact declaration: `license: str | None`.
+
+Optional trimmed source license text or None; no missing value is filled.
+
+<a id="r16-rteodredatasetmetadata-records-count"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.records_count`
+
+Source lines 155–155.
+
+Exact declaration: `records_count: int | None`.
+
+Optional remote count; __post_init__ requires nonnegative exact int excluding bool or None. Export validation compares it when present.
+
+<a id="r16-rteodredatasetmetadata-geometry-precision-status"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.geometry_precision_status`
+
+Source lines 156–156.
+
+Exact declaration: `geometry_precision_status: GeometryPrecisionStatus`.
+
+Conservative description-derived UNKNOWN/GENERALIZED_OR_RESTRICTED, or MISSING for a nonempty all-null export; not a measured positional accuracy or legal claim.
+
+<a id="r16-rteodreexportsummary"></a>
 ### `RteOdreExportSummary`
 
-**Source purpose:** Frozen file-derived counts and immutable tuple of sorted observed root geometry types. Counts concern JSON geometry presence, not Shapely validity; GeometryCollection children are structurally validated but not expanded into the root type inventory.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreExportSummary`. Source lines 168–191.
+
+**Verified purpose:** Frozen physical-export summary. __post_init__ checks nonnegative exact int counts, closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -740,9 +967,48 @@ class RteOdreExportSummary:
             raise TypeError("geometry_types must be a tuple of non-empty strings")
 ```
 
+<a id="r16-rteodreexportsummary-feature-count"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreExportSummary.feature_count`
+
+Source lines 169–169.
+
+Exact declaration: `feature_count: int`.
+
+Physical FeatureCollection list length; __post_init__ requires nonnegative exact int excluding bool.
+
+<a id="r16-rteodreexportsummary-null-geometry-count"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreExportSummary.null_geometry_count`
+
+Source lines 170–170.
+
+Exact declaration: `null_geometry_count: int`.
+
+Number of features whose geometry key is missing or null; nonnegative exact int and part of closure.
+
+<a id="r16-rteodreexportsummary-non-null-geometry-count"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreExportSummary.non_null_geometry_count`
+
+Source lines 171–171.
+
+Exact declaration: `non_null_geometry_count: int`.
+
+Number of features with non-null geometry object; nonnegative exact int and part of closure.
+
+<a id="r16-rteodreexportsummary-geometry-types"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreExportSummary.geometry_types`
+
+Source lines 172–172.
+
+Exact declaration: `geometry_types: tuple[str, ...]`.
+
+Tuple of nonempty strings by constructor check; physical parser builds sorted distinct root geometry names, whereas constructor alone does not enforce those stronger properties.
+
+<a id="r16-rteodredownload"></a>
 ### `RteOdreDownload`
 
-**Source purpose:** Frozen acquisition envelope for one configured logical dataset, its official URL/local file identity, cache flag and frozen metadata/export summary. The local file remains mutable outside the envelope; only cache reuse reparses and rehashes it. The model does not pin a publication version.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreDownload`. Source lines 195–209.
+
+**Verified purpose:** Frozen envelope for configured lineage, local export path, byte digest, remote metadata and physical summary. It has no __post_init__; Path names mutable disk content, not an immutable snapshot.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -809,11 +1075,140 @@ class RteOdreDownload:
 ```
 
 
+<a id="r16-rteodredownload-logical-name"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.logical_name`
+
+Source lines 196–196.
+
+Exact declaration: `logical_name: LogicalDatasetName`.
+
+Configured logical slot among sites/overhead_lines/underground_lines; envelope constructor has no runtime validation.
+
+<a id="r16-rteodredownload-dataset-id"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.dataset_id`
+
+Source lines 197–197.
+
+Exact declaration: `dataset_id: str`.
+
+Configured physical ID recorded in the result; cache path compares it with sidecar and nested remote metadata.
+
+<a id="r16-rteodredownload-provider"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.provider`
+
+Source lines 198–198.
+
+Exact declaration: `provider: str`.
+
+RTE label copied from validated config, not an independent official-source proof.
+
+<a id="r16-rteodredownload-portal"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.portal`
+
+Source lines 199–199.
+
+Exact declaration: `portal: str`.
+
+ODRE label copied from validated config.
+
+<a id="r16-rteodredownload-source-url"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.source_url`
+
+Source lines 200–200.
+
+Exact declaration: `source_url: str`.
+
+Constructed configured export URL; safe_http validates the actual request destination separately.
+
+<a id="r16-rteodredownload-export-format"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.export_format`
+
+Source lines 201–201.
+
+Exact declaration: `export_format: ExportFormat`.
+
+Configured GeoJSON export format copied to lineage.
+
+<a id="r16-rteodredownload-download-timestamp"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.download_timestamp`
+
+Source lines 202–202.
+
+Exact declaration: `download_timestamp: str`.
+
+UTC ISO text set on fresh download; cache reader accepts any timezone-aware offset and converts to UTC for age. Dataclass constructor alone does not check it.
+
+<a id="r16-rteodredownload-filename"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.filename`
+
+Source lines 203–203.
+
+Exact declaration: `filename: str`.
+
+Export basename derived from configured dataset ID and compared with disk path on cache reuse.
+
+<a id="r16-rteodredownload-file-size"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.file_size`
+
+Source lines 204–204.
+
+Exact declaration: `file_size: int`.
+
+Observed current export byte size on fresh download/cache check; not a Content-Length budget.
+
+<a id="r16-rteodredownload-sha256"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.sha256`
+
+Source lines 205–205.
+
+Exact declaration: `sha256: str`.
+
+SHA256 of file bytes read by path, not of reserialized GeoJSON or an official pinned checksum.
+
+<a id="r16-rteodredownload-path"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.path`
+
+Source lines 206–206.
+
+Exact declaration: `path: Path`.
+
+Immutable Path value naming mutable local GeoJSON bytes; no consumer acquisition is implied by the envelope.
+
+<a id="r16-rteodredownload-cache-hit"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.cache_hit`
+
+Source lines 207–207.
+
+Exact declaration: `cache_hit: bool`.
+
+True on validated local reuse, false on fresh publication; the flag is lineage, not a physical invariant of arbitrary dataclass construction.
+
+<a id="r16-rteodredownload-dataset-metadata"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.dataset_metadata`
+
+Source lines 208–208.
+
+Exact declaration: `dataset_metadata: RteOdreDatasetMetadata`.
+
+Frozen nested remote metadata record; there is no new metadata fetch on valid cache hit.
+
+<a id="r16-rteodredownload-export-summary"></a>
+#### `landscout.sources.rte_odre_fr.RteOdreDownload.export_summary`
+
+Source lines 209–209.
+
+Exact declaration: `export_summary: RteOdreExportSummary`.
+
+Frozen nested summary of physical parsed GeoJSON, compared with cached summary on reuse; not a GeoDataFrame.
+
 ## 6. Functions, methods, validators, fixtures, callbacks, and tests
 
+<a id="r16--strict-nonnegative-finite-number"></a>
 ### `_strict_nonnegative_finite_number`
 
-**Purpose:** Pydantic pre-validator rejects booleans/non-Real inputs, failed float conversion, nonfinite values and negatives before the annotated float field converts an accepted value. Zero cache age is allowed; this function is invoked via BeforeValidator, not by a direct repository call.
+Qualified owner: `landscout.sources.rte_odre_fr._strict_nonnegative_finite_number`. Source lines 66–78.
+
+**Verified purpose:** Pydantic pre-validator rejects booleans/non-Real inputs, failed float conversion, nonfinite values and negatives before the annotated float field converts an accepted value. Zero cache age is allowed; this function is invoked via BeforeValidator, not by a direct repository call.
 
 **Exact signature**
 
@@ -890,9 +1285,12 @@ def _strict_nonnegative_finite_number(value: object) -> object:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-rteodreapiconfig--official-api-origin"></a>
 ### `RteOdreApiConfig._official_api_origin`
 
-**Purpose:** After HttpUrl parsing, requires HTTPS on odre.opendatasoft.com, no credentials/query/fragment, default or 443 port and the `/api/explore/v2.1` path after trimming trailing slashes. It returns the validated URL; DNS/public-address/TLS binding belongs to safe_http at request time.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreApiConfig._official_api_origin`. Source lines 110–123.
+
+**Verified purpose:** After HttpUrl parsing, requires HTTPS on odre.opendatasoft.com, no credentials/query/fragment, default or 443 port and the `/api/explore/v2.1` path after trimming trailing slashes. It returns the validated URL; DNS/public-address/TLS binding belongs to safe_http at request time.
 
 **Exact signature**
 
@@ -969,9 +1367,12 @@ def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-rteodredatasetmetadata---post-init--"></a>
 ### `RteOdreDatasetMetadata.__post_init__`
 
-**Purpose:** Dataclass construction validates only records_count: None or a nonnegative Python int excluding bool. Other annotations are not runtime Pydantic validation; the public fetch/cache reconstruction supplies the additional string/domain checks.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.__post_init__`. Source lines 158–164.
+
+**Verified purpose:** Dataclass construction validates only records_count: None or a nonnegative Python int excluding bool. Other annotations are not runtime Pydantic validation; the public fetch/cache reconstruction supplies the additional string/domain checks.
 
 **Exact signature**
 
@@ -1036,9 +1437,12 @@ def __post_init__(self) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-rteodreexportsummary---post-init--"></a>
 ### `RteOdreExportSummary.__post_init__`
 
-**Purpose:** Requires nonnegative Python integer counts excluding bool, null plus non-null equal total, and a tuple of nonempty string geometry names. It does not itself require sorted/unique/closed-domain names; physical export parsing produces that canonical tuple and cache validation compares against it.
+Qualified owner: `landscout.sources.rte_odre_fr.RteOdreExportSummary.__post_init__`. Source lines 174–191.
+
+**Verified purpose:** Requires nonnegative Python integer counts excluding bool, null plus non-null equal total, and a tuple of nonempty string geometry names. It does not itself require sorted/unique/closed-domain names; physical export parsing produces that canonical tuple and cache validation compares against it.
 
 **Exact signature**
 
@@ -1119,9 +1523,12 @@ def __post_init__(self) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-load-rte-odre-source-config"></a>
 ### `load_rte_odre_source_config`
 
-**Purpose:** Reads the exact requested YAML bytes through strict duplicate-aware YAML, requires a mapping and validates a frozen extra-forbidden nested source config. Filesystem, strict-YAML and Pydantic errors propagate; this loader does not acquire a dataset or hash a fixed source publication.
+Qualified owner: `landscout.sources.rte_odre_fr.load_rte_odre_source_config`. Source lines 212–218.
+
+**Verified purpose:** Reads the exact requested YAML bytes through strict duplicate-aware YAML, requires a mapping and validates a frozen extra-forbidden nested source config. Filesystem, strict-YAML and Pydantic errors propagate; this loader does not acquire a dataset or hash a fixed source publication.
 
 **Exact signature**
 
@@ -1185,7 +1592,7 @@ Outbound call expressions and conservative ownership:
 | `path.read_bytes` | `unresolved local/third-party receiver; no ownership inferred` |
 | `type` | `unresolved local/third-party receiver; no ownership inferred` |
 | `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `RteOdreSourceConfig.model_validate` | `landscout.sources.rte_odre_fr.RteOdreSourceConfig.model_validate` |
+| `RteOdreSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.rte_odre_fr.RteOdreSourceConfig`) |
 
 **Source-observed side-effect matrix**
 
@@ -1218,9 +1625,12 @@ def load_rte_odre_source_config(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validated-source-config"></a>
 ### `_validated_source_config`
 
-**Purpose:** Requires the exact RteOdreSourceConfig type, dumps it to ordinary Python values and reconstructs it so bypassed/forged frozen models cannot alter the official API contract. Wraps type/validation failures as RteOdreDownloadError before URL construction or requests.
+Qualified owner: `landscout.sources.rte_odre_fr._validated_source_config`. Source lines 221–229.
+
+**Verified purpose:** Requires the exact RteOdreSourceConfig type, dumps it to ordinary Python values and reconstructs it so bypassed/forged frozen models cannot alter the official API contract. Wraps type/validation failures as RteOdreDownloadError before URL construction or requests.
 
 **Exact signature**
 
@@ -1262,7 +1672,7 @@ Outbound call expressions and conservative ownership:
 |---|---|
 | `type` | `unresolved local/third-party receiver; no ownership inferred` |
 | `TypeError` | `unresolved local/third-party receiver; no ownership inferred` |
-| `RteOdreSourceConfig.model_validate` | `landscout.sources.rte_odre_fr.RteOdreSourceConfig.model_validate` |
+| `RteOdreSourceConfig.model_validate` | `pydantic.BaseModel.model_validate` (inherited by `landscout.sources.rte_odre_fr.RteOdreSourceConfig`) |
 | `config.model_dump` | `unresolved local/third-party receiver; no ownership inferred` |
 | `RteOdreDownloadError` | `landscout.sources.rte_odre_fr.RteOdreDownloadError` |
 
@@ -1299,9 +1709,12 @@ def _validated_source_config(config: object) -> RteOdreSourceConfig:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--get-dataset-config"></a>
 ### `_get_dataset_config`
 
-**Purpose:** Accepts only the three declared logical dataset slots and retrieves that nested configured dataset. It does not hardcode the chosen dataset identifier; the YAML values remain authoritative.
+Qualified owner: `landscout.sources.rte_odre_fr._get_dataset_config`. Source lines 232–237.
+
+**Verified purpose:** Accepts only the three declared logical dataset slots and retrieves that nested configured dataset. It does not hardcode the chosen dataset identifier; the YAML values remain authoritative.
 
 **Exact signature**
 
@@ -1378,9 +1791,12 @@ def _get_dataset_config(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--dataset-api-url"></a>
 ### `_dataset_api_url`
 
-**Purpose:** Selects the logical dataset, percent-encodes its ID with no safe path characters and joins it to the configured API base plus the private caller's suffix. It assumes the public caller reconstructed config and performs no request.
+Qualified owner: `landscout.sources.rte_odre_fr._dataset_api_url`. Source lines 240–250.
+
+**Verified purpose:** Selects the logical dataset, percent-encodes its ID with no safe path characters and joins it to the configured API base plus the private caller's suffix. It assumes the public caller reconstructed config and performs no request.
 
 **Exact signature**
 
@@ -1464,9 +1880,12 @@ def _dataset_api_url(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-build-rte-odre-metadata-url"></a>
 ### `build_rte_odre_metadata_url`
 
-**Purpose:** Reconstructs/validates the supplied source config and returns the selected dataset's metadata URL with no suffix. It is a read-only string-building boundary.
+Qualified owner: `landscout.sources.rte_odre_fr.build_rte_odre_metadata_url`. Source lines 253–257.
+
+**Verified purpose:** Reconstructs/validates the supplied source config and returns the selected dataset's metadata URL with no suffix. It is a read-only string-building boundary.
 
 **Exact signature**
 
@@ -1558,9 +1977,12 @@ def build_rte_odre_metadata_url(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-build-rte-odre-export-url"></a>
 ### `build_rte_odre_export_url`
 
-**Purpose:** Reconstructs/validates config, chooses the configured GeoJSON format and percent-encodes it before building the selected dataset export URL. It performs no network call or cache access.
+Qualified owner: `landscout.sources.rte_odre_fr.build_rte_odre_export_url`. Source lines 260–266.
+
+**Verified purpose:** Reconstructs/validates config, chooses the configured GeoJSON format and percent-encodes it before building the selected dataset export URL. It performs no network call or cache access.
 
 **Exact signature**
 
@@ -1658,9 +2080,12 @@ def build_rte_odre_export_url(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--optional-string"></a>
 ### `_optional_string`
 
-**Purpose:** Reads an optional metadata key, returns None for nonstrings or blank strings and otherwise strips edge whitespace. It does not fabricate a missing title/publisher/date/license or parse timestamp semantics.
+Qualified owner: `landscout.sources.rte_odre_fr._optional_string`. Source lines 269–274.
+
+**Verified purpose:** Reads an optional metadata key, returns None for nonstrings or blank strings and otherwise strips edge whitespace. It does not fabricate a missing title/publisher/date/license or parse timestamp semantics.
 
 **Exact signature**
 
@@ -1728,9 +2153,12 @@ def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--metadata-precision-status"></a>
 ### `_metadata_precision_status`
 
-**Purpose:** Returns GENERALIZED_OR_RESTRICTED only when a present case-folded description contains both the exact accented phrases 'données gps' and 'sécurité publique'; otherwise returns UNKNOWN. It does not measure positional error and never produces EXACT_NOT_CLAIMED in this path.
+Qualified owner: `landscout.sources.rte_odre_fr._metadata_precision_status`. Source lines 277–283.
+
+**Verified purpose:** Returns GENERALIZED_OR_RESTRICTED only when a present case-folded description contains both the exact accented phrases 'données gps' and 'sécurité publique'; otherwise returns UNKNOWN. It does not measure positional error and never produces EXACT_NOT_CLAIMED in this path.
 
 **Exact signature**
 
@@ -1796,9 +2224,12 @@ def _metadata_precision_status(description: str | None) -> GeometryPrecisionStat
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--read-response-json"></a>
 ### `_read_response_json`
 
-**Purpose:** Uses the shared safe HTTPS transport in a context manager and strictly decodes the entire response as finite duplicate-free UTF-8 JSON object. Expected HTTP/URL/filesystem/JSON failures are wrapped with the URL; it writes no cache.
+Qualified owner: `landscout.sources.rte_odre_fr._read_response_json`. Source lines 286–296.
+
+**Verified purpose:** Uses the shared safe HTTPS transport in a context manager and strictly decodes the entire response as finite duplicate-free UTF-8 JSON object. Expected HTTP/URL/filesystem/JSON failures are wrapped with the URL; it writes no cache.
 
 **Exact signature**
 
@@ -1872,9 +2303,12 @@ def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-fetch-rte-odre-dataset-metadata"></a>
 ### `fetch_rte_odre_dataset_metadata`
 
-**Purpose:** Reconstructs config, selects the dataset and fetches its metadata through safe HTTPS. It requires response dataset_id equality, treats malformed/missing metas/default mappings as absent optional metadata, and accepts records_count only as nonnegative int excluding bool or None. It records trimmed optional text fields and the conservative description-based precision status; source timestamps remain strings, not verified dates or pinned editions.
+Qualified owner: `landscout.sources.rte_odre_fr.fetch_rte_odre_dataset_metadata`. Source lines 299–340.
+
+**Verified purpose:** Reconstructs config, selects the dataset and fetches its metadata through safe HTTPS. It requires response dataset_id equality, treats malformed/missing metas/default mappings as absent optional metadata, and accepts records_count only as nonnegative int excluding bool or None. It records trimmed optional text fields and the conservative description-based precision status; source timestamps remain strings, not verified dates or pinned editions.
 
 **Exact signature**
 
@@ -2025,9 +2459,12 @@ def fetch_rte_odre_dataset_metadata(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--sha256"></a>
 ### `_sha256`
 
-**Purpose:** Streams exact downloaded GeoJSON file bytes in fixed chunks into SHA256. It does not hash reserialized JSON or the sidecar.
+Qualified owner: `landscout.sources.rte_odre_fr._sha256`. Source lines 343–348.
+
+**Verified purpose:** Streams exact downloaded GeoJSON file bytes in fixed chunks into SHA256. It does not hash reserialized JSON or the sidecar.
 
 **Exact signature**
 
@@ -2097,9 +2534,12 @@ def _sha256(path: Path) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validate-geojson"></a>
 ### `_validate_geojson`
 
-**Purpose:** Requires a nonempty file and finite strict UTF-8 JSON FeatureCollection with a features list of Feature objects. Missing/null geometry is counted as null; other geometry must be an object and pass recursive structural coordinate validation. Returns total/null/non-null counts and sorted unique root geometry-type names, not a GeoDataFrame. It does not validate topology, CRS ranges, ring closure, polygon area or positional accuracy.
+Qualified owner: `landscout.sources.rte_odre_fr._validate_geojson`. Source lines 351–390.
+
+**Verified purpose:** Requires a nonempty file and finite strict UTF-8 JSON FeatureCollection with a features list of Feature objects. Missing/null geometry is counted as null; other geometry must be an object and pass recursive structural coordinate validation. Returns total/null/non-null counts and sorted unique root geometry-type names, not a GeoDataFrame. It does not validate topology, CRS ranges, ring closure, polygon area or positional accuracy.
 
 **Exact signature**
 
@@ -2225,9 +2665,12 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validate-position"></a>
 ### `_validate_position`
 
-**Purpose:** Requires a JSON list with at least X/Y and every supplied ordinate a finite Real excluding bool. Extra ordinates are allowed; neither geographic coordinate ranges nor exact dimensionality are enforced.
+Qualified owner: `landscout.sources.rte_odre_fr._validate_position`. Source lines 393–406.
+
+**Verified purpose:** Requires a JSON list with at least X/Y and every supplied ordinate a finite Real excluding bool. Extra ordinates are allowed; neither geographic coordinate ranges nor exact dimensionality are enforced.
 
 **Exact signature**
 
@@ -2306,9 +2749,12 @@ def _validate_position(value: object, geometry_type: str) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validate-nested-coordinates"></a>
 ### `_validate_nested_coordinates`
 
-**Purpose:** Requires lists at the declared nesting depth, recursively descends to positions and delegates their finite numeric validation. Empty arrays at a non-position level are accepted; this is structural nesting, not minimum vertex count or ring closure validation.
+Qualified owner: `landscout.sources.rte_odre_fr._validate_nested_coordinates`. Source lines 409–427.
+
+**Verified purpose:** Requires lists at the declared nesting depth, recursively descends to positions and delegates their finite numeric validation. Empty arrays at a non-position level are accepted; this is structural nesting, not minimum vertex count or ring closure validation.
 
 **Exact signature**
 
@@ -2398,9 +2844,12 @@ def _validate_nested_coordinates(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validate-geojson-geometry"></a>
 ### `_validate_geojson_geometry`
 
-**Purpose:** Requires a geometry object and a supported type, recursively validates each GeometryCollection member or the required coordinate nesting for its coordinate type, and returns the root type name. It does not call Shapely. Known limitation FOUNDATIONS-APP-002: a list/dict `type` value raises raw unhashable TypeError at set membership before the intended controlled unsupported-type error; no production fix is made in this documentation ticket.
+Qualified owner: `landscout.sources.rte_odre_fr._validate_geojson_geometry`. Source lines 430–463.
+
+**Verified purpose:** Requires a geometry object and a supported type, recursively validates each GeometryCollection member or the required coordinate nesting for its coordinate type, and returns the root type name. It does not call Shapely. Known limitation FOUNDATIONS-APP-002: a list/dict `type` value raises raw unhashable TypeError at set membership before the intended controlled unsupported-type error; no production fix is made in this documentation ticket.
 
 **Exact signature**
 
@@ -2502,9 +2951,12 @@ def _validate_geojson_geometry(geometry: object) -> str:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--metadata-from-dict"></a>
 ### `_metadata_from_dict`
 
-**Purpose:** Requires exactly the cached metadata keys and exact built-in string/null/integer values plus the closed precision-status domain. It constructs a new frozen metadata record; post-init rejects negative counts. Source metadata strings are not reparsed or fetched on this cache path.
+Qualified owner: `landscout.sources.rte_odre_fr._metadata_from_dict`. Source lines 466–520.
+
+**Verified purpose:** Requires exactly the cached metadata keys and exact built-in string/null/integer values plus the closed precision-status domain. It constructs a new frozen metadata record; post-init rejects negative counts. Source metadata strings are not reparsed or fetched on this cache path.
 
 **Exact signature**
 
@@ -2628,9 +3080,12 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--export-summary-from-dict"></a>
 ### `_export_summary_from_dict`
 
-**Purpose:** Requires exactly four cached summary keys and a JSON list of exact string geometry names, converts that list to a new tuple and lets the frozen summary's post-init enforce counts/closure/nonempty members. Cache reuse separately compares this record to a freshly parsed export summary.
+Qualified owner: `landscout.sources.rte_odre_fr._export_summary_from_dict`. Source lines 523–544.
+
+**Verified purpose:** Requires exactly four cached summary keys and a JSON list of exact string geometry names, converts that list to a new tuple and lets the frozen summary's post-init enforce counts/closure/nonempty members. Cache reuse separately compares this record to a freshly parsed export summary.
 
 **Exact signature**
 
@@ -2719,9 +3174,12 @@ def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--validate-records-count"></a>
 ### `_validate_records_count`
 
-**Purpose:** If source metadata contains a count, requires it equal the physically parsed export feature count; missing count is explicitly allowed. It does not replace unavailable metadata with an inferred source claim.
+Qualified owner: `landscout.sources.rte_odre_fr._validate_records_count`. Source lines 547–556.
+
+**Verified purpose:** If source metadata contains a count, requires it equal the physically parsed export feature count; missing count is explicitly allowed. It does not replace unavailable metadata with an inferred source claim.
 
 **Exact signature**
 
@@ -2795,9 +3253,12 @@ def _validate_records_count(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--replace-file"></a>
 ### `_replace_file`
 
-**Purpose:** Performs one Path.replace filesystem operation. It is the fault-injection seam for pair publication, not a complete transaction by itself.
+Qualified owner: `landscout.sources.rte_odre_fr._replace_file`. Source lines 559–560.
+
+**Verified purpose:** Performs one Path.replace filesystem operation. It is the fault-injection seam for pair publication, not a complete transaction by itself.
 
 **Exact signature**
 
@@ -2857,9 +3318,12 @@ def _replace_file(source: Path, target: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--is-link-or-junction"></a>
 ### `_is_link_or_junction`
 
-**Purpose:** Inspects filesystem symlink/junction flags and returns true on OSError to fail closed. It is used for temporary/recovery safety, not by this adapter's primary-cache hit helper.
+Qualified owner: `landscout.sources.rte_odre_fr._is_link_or_junction`. Source lines 563–567.
+
+**Verified purpose:** Inspects filesystem symlink/junction flags and returns true on OSError to fail closed. It is used for temporary/recovery safety, not by this adapter's primary-cache hit helper.
 
 **Exact signature**
 
@@ -2926,9 +3390,12 @@ def _is_link_or_junction(path: Path) -> bool:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--cache-recovery-paths"></a>
 ### `_cache_recovery_paths`
 
-**Purpose:** Derives archive and metadata sibling `.bak` paths without filesystem I/O.
+Qualified owner: `landscout.sources.rte_odre_fr._cache_recovery_paths`. Source lines 570–577.
+
+**Verified purpose:** Derives archive and metadata sibling `.bak` paths without filesystem I/O.
 
 **Exact signature**
 
@@ -3001,9 +3468,12 @@ def _cache_recovery_paths(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--require-no-cache-recovery-material"></a>
 ### `_require_no_cache_recovery_material`
 
-**Purpose:** Rejects existing or link/junction backup paths before any cache hit or network attempt, leaves them untouched and demands manual recovery rather than overwriting evidence.
+Qualified owner: `landscout.sources.rte_odre_fr._require_no_cache_recovery_material`. Source lines 580–590.
+
+**Verified purpose:** Rejects existing or link/junction backup paths before any cache hit or network attempt, leaves them untouched and demands manual recovery rather than overwriting evidence.
 
 **Exact signature**
 
@@ -3082,9 +3552,12 @@ def _require_no_cache_recovery_material(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--prepare-temporary-cache-file"></a>
 ### `_prepare_temporary_cache_file`
 
-**Purpose:** Rejects link/junction or non-regular temporary targets, removes only a stale ordinary temporary file and wraps preparation failures before network access. The later writes use exclusive creation.
+Qualified owner: `landscout.sources.rte_odre_fr._prepare_temporary_cache_file`. Source lines 593–610.
+
+**Verified purpose:** Rejects link/junction or non-regular temporary targets, removes only a stale ordinary temporary file and wraps preparation failures before network access. The later writes use exclusive creation.
 
 **Exact signature**
 
@@ -3167,9 +3640,12 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--cleanup-temporary-cache-files"></a>
 ### `_cleanup_temporary_cache_files`
 
-**Purpose:** Attempts all temporary unlinks, remembers the first OSError and raises it as a controlled error only if there is no primary failure. It cannot mask the double-failure recovery error.
+Qualified owner: `landscout.sources.rte_odre_fr._cleanup_temporary_cache_files`. Source lines 613–626.
+
+**Verified purpose:** Attempts all temporary unlinks, remembers the first OSError and raises it as a controlled error only if there is no primary failure. Caught OSErrors do not mask an active primary failure; arbitrary other exception types are not caught here.
 
 **Exact signature**
 
@@ -3246,9 +3722,12 @@ def _cleanup_temporary_cache_files(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--publish-cache-pair"></a>
 ### `_publish_cache_pair`
 
-**Purpose:** Refuses existing backups, copies existing export/sidecar to backup siblings, then replaces export followed by metadata. If publication raises OSError after export replacement, it restores the old export or removes a first export; failed metadata replacement leaves the old metadata in place under the Path.replace contract. A rollback error retains recovery backups and raises the explicit double-failure error. Success or successful rollback removes backups; this is recoverable pair publication, not one atomic two-file operation.
+Qualified owner: `landscout.sources.rte_odre_fr._publish_cache_pair`. Source lines 629–674.
+
+**Verified purpose:** Rejects recovery backups, copies existing export/sidecar primaries, then replaces export followed by metadata. On publication OSError it conditionally restores the archive if published or removes a new one; an old metadata primary remains if its replace failed. No metadata-backup restoration call exists. A failed rollback keeps backups and raises a double-failure error; cleanup of backups can itself fail. This is sequential recoverable publication, not atomic two-file replacement or a lock.
 
 **Exact signature**
 
@@ -3309,7 +3788,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | None directly present. |
 | Filesystem/archive read or metadata access | `archive_path.is_file`<br>`metadata_path.is_file` |
-| Filesystem/archive write or publication | `archive_backup.unlink`<br>`metadata_backup.unlink`<br>`archive_path.unlink` |
+| Filesystem/archive write or publication | copy2 writes backups; _replace_file publishes/restores; unlink removes backups/new archive. No metadata-backup restore call. |
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -3371,9 +3850,12 @@ def _publish_cache_pair(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16--load-cached-download"></a>
 ### `_load_cached_download`
 
-**Purpose:** Requires both paths to be files, strict-decodes an exact twelve-key sidecar and validates exact scalar field types. It reparses the physical GeoJSON, rechecks byte size/SHA, source/dataset/format/filename identity and an aware timestamp with nonnegative age within max_age_hours. It reconstructs nested metadata/summary, requires fresh-summary equality and optional source count closure, returning a cache-hit envelope or None on invalidity. It makes no DNS/HTTP call, does not fetch current publication metadata and does not add a schema_version field.
+Qualified owner: `landscout.sources.rte_odre_fr._load_cached_download`. Source lines 677–775.
+
+**Verified purpose:** Requires both paths to be files, strict-decodes an exact twelve-key sidecar and validates exact scalar field types. It reparses the physical GeoJSON, rechecks byte size/SHA, source/dataset/format/filename identity and an aware timestamp with nonnegative age within max_age_hours. It reconstructs nested metadata/summary, requires fresh-summary equality and optional source count closure, returning a cache-hit envelope or None on invalidity. It makes no DNS/HTTP call, does not fetch current publication metadata and does not add a schema_version field.
 
 **Exact signature**
 
@@ -3562,9 +4044,12 @@ def _load_cached_download(
 
 - This adapter establishes source/provenance and factual physical data only; it does not interpret suitability, rank parcels, score, or create a legal conclusion.
 
+<a id="r16-download-rte-odre-dataset"></a>
 ### `download_rte_odre_dataset`
 
-**Purpose:** Reconstructs config, derives source/cache identity, refuses recovery material and tries a byte/summary-verified offline cache first. On a miss it creates the cache directory and prepares safe temporary files before fetching metadata, then streams safe-HTTPS GeoJSON to an exclusive-created part, validates its structure/counts and marks metadata MISSING when a nonempty export has only null geometries. It records current UTC, size/SHA, metadata and summary, serializes a sidecar without path/cache_hit, publishes the recoverable pair and cleans temporary files without masking failure. No fixed archive edition/hash is pinned in the RTE config and no geometry normalization or grid-capacity interpretation occurs.
+Qualified owner: `landscout.sources.rte_odre_fr.download_rte_odre_dataset`. Source lines 778–869.
+
+**Verified purpose:** Reconstructs config, derives source/cache identity, refuses recovery material and tries a byte/summary-verified offline cache first. On a miss it creates the cache directory and prepares safe temporary files before fetching metadata, then streams safe-HTTPS GeoJSON to an exclusive-created part, validates its structure/counts and marks metadata MISSING when a nonempty export has only null geometries. It records current UTC, size/SHA, metadata and summary, serializes a sidecar without path/cache_hit, publishes the recoverable pair and cleans temporary files without masking failure. No fixed archive edition/hash is pinned in the RTE config and no geometry normalization or grid-capacity interpretation occurs.
 
 **Exact signature**
 
@@ -3712,7 +4197,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 |---|---|
 | Network I/O | `open_safe_https` |
 | Filesystem/archive read or metadata access | `temporary_archive.open`<br>`temporary_archive.stat`<br>`temporary_metadata.open` |
-| Filesystem/archive write or publication | `cache_dir.mkdir`<br>`copyfileobj` |
+| Filesystem/archive write or publication | cache_dir.mkdir; exclusive temporary_archive.open/temporary_metadata.open and output.write; copyfileobj streams bytes; _publish_cache_pair publishes; _cleanup_temporary_cache_files unlinks. |
 | Hashing/byte identity | `_sha256` |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
@@ -3829,6 +4314,23 @@ def download_rte_odre_dataset(
 ## 8. Public exports and package ownership
 
 This module declares no `__all__`; no package-level public guarantee is inferred from direct importability alone.
+
+
+The sources package explicitly imports and lists these **11** adapter names in its `__all__` (the RTE module itself declares no `__all__`):
+
+- `RteDatasetConfig`
+- `RteOdreDatasetMetadata`
+- `RteOdreDownload`
+- `RteOdreDownloadError`
+- `RteOdreExportSummary`
+- `RteOdreSourceConfig`
+- `build_rte_odre_export_url`
+- `build_rte_odre_metadata_url`
+- `download_rte_odre_dataset`
+- `fetch_rte_odre_dataset_metadata`
+- `load_rte_odre_source_config`
+
+The API/cache/datasets config submodels and private validators are not package re-exports. Direct module importability is not package ownership.
 
 ## 9. Trust, provenance, side effects, and business boundary
 

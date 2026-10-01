@@ -7001,10 +7001,16 @@
       "source_sha256": "0954d4025b779a7fa75813edb81c8f3b3227243da6b22b2066a0443762927c0e",
       "documentation_path": "docs/code/files/src/landscout/sources/rte_odre_fr.py.md",
       "read_complete": true,
-      "status": "READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Exact imports, eleven sources package re-exports, direct qualified callers and contextual safe_http/strict_json/strict_yaml owners checked. Fixture-value and inherited Pydantic method ownership qualified; contextual reads receive no closure credit."
+      ],
+      "contract_review": [
+        "R16 complete RTE source/test/companion reconciliation: config and transport, remote metadata versus physical GeoJSON, path-based cache, pair recovery and bounded synthetic test evidence. A-002 remains open; prior READ evidence retained; no application or dependency closure."
+      ],
+      "test_references": [
+        "tests/unit/test_rte_odre_fr.py"
+      ],
       "symbols": [
         {
           "qualified_name": "_strict_nonnegative_finite_number",
@@ -7014,11 +7020,10 @@
             78
           ],
           "signature_sha256": "05ebd8b01e6e72d4818681a64d49ad25ee4efc9b6e9e779f4d866d28ba570eeb",
-          "status": "READ",
-          "documentation_anchor": "_strict_nonnegative_finite_number",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--strict-nonnegative-finite-number",
           "review_notes": [
-            "Pydantic pre-validator rejects booleans/non-Real inputs, failed float conversion, nonfinite values and negatives before the annotated float field converts an accepted value. Zero cache age is allowed; this function is invoked via BeforeValidator, not by a direct repository call.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Pydantic pre-validator rejects booleans/non-Real inputs, failed float conversion, nonfinite values and negatives before the annotated float field converts an accepted value. Zero cache age is allowed; this function is invoked via BeforeValidator, not by a direct repository call."
           ],
           "test_references": []
         },
@@ -7030,10 +7035,10 @@
             92
           ],
           "signature_sha256": "fb7eb61503a97bbf8a1e5d42ff5c9a97c73037b083b15586230d1524c416db24",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetconfig",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen extra-forbid dataset selector with a strictly nonempty, path-safe configured ID and GeoJSON-only preferred format. It is config identity, not an acquired export."
           ],
           "test_references": []
         },
@@ -7045,10 +7050,10 @@
             91
           ],
           "signature_sha256": "bc350d6401f09292ded7cea27b98771904a4083c941d04ad6c9b2b8fd1394adb",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetconfig-dataset-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required trimmed nonempty ID matching the declared safe identifier pattern; URL builder percent-encodes it. It is a configured value, not a physical-source pin."
           ],
           "test_references": []
         },
@@ -7060,10 +7065,10 @@
             92
           ],
           "signature_sha256": "032d4c613a679fad13f97c2410414872a1459f444c4dbc9db74c4f2feac6bb04",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetconfig-preferred-format",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required Literal geojson; no CSV/GPKG export accepted by the model."
           ],
           "test_references": []
         },
@@ -7075,10 +7080,10 @@
             100
           ],
           "signature_sha256": "3569deb4f777f84ed06d21029bfb5b278bdd5832504ca745c77f35cb7a17be9d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetsconfig",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen extra-forbid collection of the three required logical dataset selectors; no fourth dataset or hardcoded physical ID is inferred."
           ],
           "test_references": []
         },
@@ -7090,10 +7095,10 @@
             98
           ],
           "signature_sha256": "3ca8f7281ebe0f0da1a61ab022659304bdae9b21ea314474b8528df7d4df8f8a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetsconfig-sites",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required frozen selector for the sites logical slot; the dataset ID comes from YAML."
           ],
           "test_references": []
         },
@@ -7105,10 +7110,10 @@
             99
           ],
           "signature_sha256": "2cfe146ff40419362c649c28cbe3eb10809bac30575ec578f71050008e426eb1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetsconfig-overhead-lines",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required frozen selector for overhead-lines logical slot; no capacity is inferred."
           ],
           "test_references": []
         },
@@ -7120,10 +7125,10 @@
             100
           ],
           "signature_sha256": "4047b5382eadb40031877e6bede09eacde00266a3386845a4e78af3cb00cf32f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rtedatasetsconfig-underground-lines",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required frozen selector for underground-lines logical slot; no connection feasibility is inferred."
           ],
           "test_references": []
         },
@@ -7135,10 +7140,10 @@
             123
           ],
           "signature_sha256": "038af5e59d9bb095c01c9a02301bfa6c005c6feff7207087dce851756cd48170",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreapiconfig",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen extra-forbid HttpUrl config. The validator requires the official HTTPS ODRE host, default/443 port and exact API path after trailing-slash removal; request-hop DNS/TLS belongs to safe_http."
           ],
           "test_references": []
         },
@@ -7150,10 +7155,10 @@
             106
           ],
           "signature_sha256": "3a38ae91215ec9dbd67f496b79aafaed7e06d186f11f8498d49813ecd99f04c9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreapiconfig-base-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required HttpUrl constrained by _official_api_origin to HTTPS ODRE host/default or 443 port/exact v2.1 path without credentials/query/fragment. Safe transport independently validates each request hop."
           ],
           "test_references": []
         },
@@ -7165,11 +7170,10 @@
             123
           ],
           "signature_sha256": "b2a828cf307cfe6c3973d7b050b9d58e438882d6760d72c054748ef0e09bc00e",
-          "status": "READ",
-          "documentation_anchor": "rteodreapiconfig_official_api_origin",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreapiconfig--official-api-origin",
           "review_notes": [
-            "After HttpUrl parsing, requires HTTPS on odre.opendatasoft.com, no credentials/query/fragment, default or 443 port and the `/api/explore/v2.1` path after trimming trailing slashes. It returns the validated URL; DNS/public-address/TLS binding belongs to safe_http at request time.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "After HttpUrl parsing, requires HTTPS on odre.opendatasoft.com, no credentials/query/fragment, default or 443 port and the `/api/explore/v2.1` path after trimming trailing slashes. It returns the validated URL; DNS/public-address/TLS binding belongs to safe_http at request time."
           ],
           "test_references": []
         },
@@ -7181,10 +7185,10 @@
             129
           ],
           "signature_sha256": "0b337700373b9ff6d9291e3f9769ebae56f9b8f24ec39c93441d0022720a7b8e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodrecacheconfig",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen extra-forbid cache lifetime config; the pre-validator rejects bool, non-Real, nonfinite and negative ages, while zero is allowed."
           ],
           "test_references": []
         },
@@ -7196,10 +7200,10 @@
             129
           ],
           "signature_sha256": "bafd794519b508a740dfdf7565ba7fb825682b7b923e7ab79bb950e17ae3d7bf",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodrecacheconfig-max-age-hours",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required StrictNonNegativeFloat with a before-validator requiring Real nonbool, finite and >=0; accepted values become float. Freshness compares age in seconds."
           ],
           "test_references": []
         },
@@ -7211,10 +7215,10 @@
             139
           ],
           "signature_sha256": "42d0203f55ecdc1942e932a9c367737344cde4f278b8894175f0d78f458f42fa",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen extra-forbid root configuration with literal provider RTE/portal ODRE and nested frozen API, three-dataset and cache models. Public URL/fetch/download boundaries reconstruct it."
           ],
           "test_references": []
         },
@@ -7226,10 +7230,10 @@
             135
           ],
           "signature_sha256": "81ccceb4fa3da0197b681c2bb4533f6226aa34a80d4fdf18ea1fb49ee5bdc48b",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig-provider",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required Literal RTE identity; physical export and remote metadata still need independent checks."
           ],
           "test_references": []
         },
@@ -7241,10 +7245,10 @@
             136
           ],
           "signature_sha256": "1c8b8e578e5b27cc1f87380c8438a57c512efb48606c8b74cc106f3d101690e4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig-portal",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required Literal ODRE identity; not a runtime network proof."
           ],
           "test_references": []
         },
@@ -7256,10 +7260,10 @@
             137
           ],
           "signature_sha256": "40d3172dfe3a8af5f27bdcd01eedd895c280e9a089481ad63a82854ee8a64410",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig-api",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required nested frozen RteOdreApiConfig, reconstructed at public URL/fetch/download boundaries."
           ],
           "test_references": []
         },
@@ -7271,10 +7275,10 @@
             138
           ],
           "signature_sha256": "a4a5d1354401e7edddef5a3724a4cd0fa7f72e0bd902d0ef980f8fe557fb0de7",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig-datasets",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required nested frozen three-slot dataset configuration; IDs are configured rather than baked into builders."
           ],
           "test_references": []
         },
@@ -7286,10 +7290,10 @@
             139
           ],
           "signature_sha256": "23f0ceb594059c4fee4bfdf39e3cf0ca29ba44c82ac7dbef93ddced2f6ccb42d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodresourceconfig-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Required nested frozen cache lifetime configuration; no fixed official publication hash is declared."
           ],
           "test_references": []
         },
@@ -7301,10 +7305,10 @@
             143
           ],
           "signature_sha256": "be2ff4bb27efa7835e29771f58201e6fe0f78bef9777464d3c91f167b65f39ea",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownloaderror",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "RuntimeError subclass for adapter-controlled download/cache/geometry paths. The plain YAML loader and some private operations can propagate other documented exceptions."
           ],
           "test_references": []
         },
@@ -7316,10 +7320,10 @@
             164
           ],
           "signature_sha256": "d8b73a0ca84015730bb6db5dfbc2eb0e291c494e7b817ce41fee1b4484d45145",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen remote-metadata record. __post_init__ checks only records_count; fetch/cache reconstruction supplies string/domain checks, and annotations alone do not validate arbitrary construction."
           ],
           "test_references": []
         },
@@ -7331,10 +7335,10 @@
             148
           ],
           "signature_sha256": "d51fac0046f8d3c75659df870062ddba3d5b3b0bb134217b018f2e603d6b26de",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-dataset-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Remote dataset ID as returned by fetch only after exact equality to configured ID; a direct dataclass constructor does not enforce this."
           ],
           "test_references": []
         },
@@ -7346,10 +7350,10 @@
             149
           ],
           "signature_sha256": "ed513442889a552e64c2a611bb74b82905212b7523406c5113bfe004b34ea419",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-title",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed source title or None when absent/nonstring; no fallback title is fabricated."
           ],
           "test_references": []
         },
@@ -7361,10 +7365,10 @@
             150
           ],
           "signature_sha256": "47403f78172d9c39ff2add82c5a44c1f65bd380be8cb9c60c7df3566a199e1a1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-publisher",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed source publisher or None; the adapter does not prove a publication edition from this text."
           ],
           "test_references": []
         },
@@ -7376,10 +7380,10 @@
             151
           ],
           "signature_sha256": "f62b57507197cb235a5ffed4de164cdacd1b304fbd68d7765d1f0044c2ff63c5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-modified",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed remote modified text or None; not parsed as a timestamp."
           ],
           "test_references": []
         },
@@ -7391,10 +7395,10 @@
             152
           ],
           "signature_sha256": "a716bf0c8c4fe66d1ad4ac0ab716b2edefe84fad8625d43d3a07f8babdd4cc4d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-data-processed",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed remote data_processed text or None; not a verified acquisition time."
           ],
           "test_references": []
         },
@@ -7406,10 +7410,10 @@
             153
           ],
           "signature_sha256": "c4b75ab39ee76b1d264824dcd4874a4a7920ab2b6b584e7c06c703f8ee4cbbf5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-metadata-processed",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed remote metadata_processed text or None; not a verified export time."
           ],
           "test_references": []
         },
@@ -7421,10 +7425,10 @@
             154
           ],
           "signature_sha256": "6a4b7dbf8d71e185811a5e55c8b7dd1194e3f1a011441b8e27a22d11fb35a331",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-license",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional trimmed source license text or None; no missing value is filled."
           ],
           "test_references": []
         },
@@ -7436,10 +7440,10 @@
             155
           ],
           "signature_sha256": "cafb96899c41bb076b9801def569e7e5113b08be1d0e00e791b011600848689c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-records-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Optional remote count; __post_init__ requires nonnegative exact int excluding bool or None. Export validation compares it when present."
           ],
           "test_references": []
         },
@@ -7451,10 +7455,10 @@
             156
           ],
           "signature_sha256": "8fb890515e50fd4e653c248cb6b708a4c2d17d97086062fd7f7547eb41dcc1ca",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata-geometry-precision-status",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Conservative description-derived UNKNOWN/GENERALIZED_OR_RESTRICTED, or MISSING for a nonempty all-null export; not a measured positional accuracy or legal claim."
           ],
           "test_references": []
         },
@@ -7466,11 +7470,10 @@
             164
           ],
           "signature_sha256": "427656437ff5643b9454d1778d9cd5ad43d31f54a0039a19a7be0be1601fafaa",
-          "status": "READ",
-          "documentation_anchor": "rteodredatasetmetadata__post_init__",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredatasetmetadata---post-init--",
           "review_notes": [
-            "Dataclass construction validates only records_count: None or a nonnegative Python int excluding bool. Other annotations are not runtime Pydantic validation; the public fetch/cache reconstruction supplies the additional string/domain checks.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Dataclass construction validates only records_count: None or a nonnegative Python int excluding bool. Other annotations are not runtime Pydantic validation; the public fetch/cache reconstruction supplies the additional string/domain checks."
           ],
           "test_references": []
         },
@@ -7482,10 +7485,10 @@
             191
           ],
           "signature_sha256": "852e5271764289a5c0c70cec97c31e7512705f5b794f93381e88fc40e04d0169",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen physical-export summary. __post_init__ checks nonnegative exact int counts, closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself."
           ],
           "test_references": []
         },
@@ -7497,10 +7500,10 @@
             169
           ],
           "signature_sha256": "e65e5ffe6d0bac4f66248a1e64004db5835f40a4aa5a1e042947e24145ae148e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary-feature-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Physical FeatureCollection list length; __post_init__ requires nonnegative exact int excluding bool."
           ],
           "test_references": []
         },
@@ -7512,10 +7515,10 @@
             170
           ],
           "signature_sha256": "6ea71a126b6c5bbbf8147402d696a31c4b44a1018f4d4492bab23e9d08bc7e84",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary-null-geometry-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Number of features whose geometry key is missing or null; nonnegative exact int and part of closure."
           ],
           "test_references": []
         },
@@ -7527,10 +7530,10 @@
             171
           ],
           "signature_sha256": "212b3a8aa382093ad96ffad2f226e5bd3f89597b6572262e66626b75194fbf9f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary-non-null-geometry-count",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Number of features with non-null geometry object; nonnegative exact int and part of closure."
           ],
           "test_references": []
         },
@@ -7542,10 +7545,10 @@
             172
           ],
           "signature_sha256": "d9c622f90b04cd2b5e52bd803a16a1caedbc53c4f30cac9ca6544dc373c6f8d6",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary-geometry-types",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Tuple of nonempty strings by constructor check; physical parser builds sorted distinct root geometry names, whereas constructor alone does not enforce those stronger properties."
           ],
           "test_references": []
         },
@@ -7557,11 +7560,10 @@
             191
           ],
           "signature_sha256": "427656437ff5643b9454d1778d9cd5ad43d31f54a0039a19a7be0be1601fafaa",
-          "status": "READ",
-          "documentation_anchor": "rteodreexportsummary__post_init__",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodreexportsummary---post-init--",
           "review_notes": [
-            "Requires nonnegative Python integer counts excluding bool, null plus non-null equal total, and a tuple of nonempty string geometry names. It does not itself require sorted/unique/closed-domain names; physical export parsing produces that canonical tuple and cache validation compares against it.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires nonnegative Python integer counts excluding bool, null plus non-null equal total, and a tuple of nonempty string geometry names. It does not itself require sorted/unique/closed-domain names; physical export parsing produces that canonical tuple and cache validation compares against it."
           ],
           "test_references": []
         },
@@ -7573,10 +7575,10 @@
             209
           ],
           "signature_sha256": "62d0d6c7e131fd0dcb90aebfba67df13f36b9013c8e9a01c18907939cce0a078",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen envelope for configured lineage, local export path, byte digest, remote metadata and physical summary. It has no __post_init__; Path names mutable disk content, not an immutable snapshot."
           ],
           "test_references": []
         },
@@ -7588,10 +7590,10 @@
             196
           ],
           "signature_sha256": "f47fe1e1bbbac6ee17df80f644196dd34fd8c3bd0ff5317599140dfa21d7991f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-logical-name",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Configured logical slot among sites/overhead_lines/underground_lines; envelope constructor has no runtime validation."
           ],
           "test_references": []
         },
@@ -7603,10 +7605,10 @@
             197
           ],
           "signature_sha256": "d51fac0046f8d3c75659df870062ddba3d5b3b0bb134217b018f2e603d6b26de",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-dataset-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Configured physical ID recorded in the result; cache path compares it with sidecar and nested remote metadata."
           ],
           "test_references": []
         },
@@ -7618,10 +7620,10 @@
             198
           ],
           "signature_sha256": "4667aee004a3c25155cc86e608930c2e6c99291a6b4d6dc408ea8da773d7237f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-provider",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "RTE label copied from validated config, not an independent official-source proof."
           ],
           "test_references": []
         },
@@ -7633,10 +7635,10 @@
             199
           ],
           "signature_sha256": "ce03170a7ff2cc0e4f952194e74d3213e46a372bba19714a466b354101e22163",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-portal",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "ODRE label copied from validated config."
           ],
           "test_references": []
         },
@@ -7648,10 +7650,10 @@
             200
           ],
           "signature_sha256": "ee32ab255499f1bd48e975d9fabfbd5492c2f67ab0115739fa52d5aa9cc4dc5d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-source-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Constructed configured export URL; safe_http validates the actual request destination separately."
           ],
           "test_references": []
         },
@@ -7663,10 +7665,10 @@
             201
           ],
           "signature_sha256": "cc9d246f3dd8f7ca3fc6f14b8bd62543cf734a5430c7038ddcd3e130ed13a011",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-export-format",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Configured GeoJSON export format copied to lineage."
           ],
           "test_references": []
         },
@@ -7678,10 +7680,10 @@
             202
           ],
           "signature_sha256": "fe3256c6428f9790ce07500d79556dd314f2c51311f487afa682a60f74ea2bcf",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-download-timestamp",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "UTC ISO text set on fresh download; cache reader accepts any timezone-aware offset and converts to UTC for age. Dataclass constructor alone does not check it."
           ],
           "test_references": []
         },
@@ -7693,10 +7695,10 @@
             203
           ],
           "signature_sha256": "c225a6b756e4e22c4a992d3e4374f507151094598ff681b510ab5833615b0bf9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-filename",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Export basename derived from configured dataset ID and compared with disk path on cache reuse."
           ],
           "test_references": []
         },
@@ -7708,10 +7710,10 @@
             204
           ],
           "signature_sha256": "3e11e0e4d0aebc21e06d7dea9218b15ebc8fd5da888ecc6ba9a0b238653bb266",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-file-size",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Observed current export byte size on fresh download/cache check; not a Content-Length budget."
           ],
           "test_references": []
         },
@@ -7723,10 +7725,10 @@
             205
           ],
           "signature_sha256": "d126419d4b1a302d1c13911e34ff685ae124d93b9aca7129c1b419edfc422a94",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-sha256",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "SHA256 of file bytes read by path, not of reserialized GeoJSON or an official pinned checksum."
           ],
           "test_references": []
         },
@@ -7738,10 +7740,10 @@
             206
           ],
           "signature_sha256": "5595a347cdaf5824fdd13c7ceeb5c6e5403b26af72271264b662730b34e2da28",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-path",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Immutable Path value naming mutable local GeoJSON bytes; no consumer acquisition is implied by the envelope."
           ],
           "test_references": []
         },
@@ -7753,10 +7755,10 @@
             207
           ],
           "signature_sha256": "c6bddae9bb895473e137fa3ecd62a0f2685d6771664f6d8206fefe23462a6547",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-cache-hit",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "True on validated local reuse, false on fresh publication; the flag is lineage, not a physical invariant of arbitrary dataclass construction."
           ],
           "test_references": []
         },
@@ -7768,10 +7770,10 @@
             208
           ],
           "signature_sha256": "ce48b3400c5f5fb018c558158bac14b50752fd0edfb02d8c9be90d01ad9e4e8a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-dataset-metadata",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen nested remote metadata record; there is no new metadata fetch on valid cache hit."
           ],
           "test_references": []
         },
@@ -7783,10 +7785,10 @@
             209
           ],
           "signature_sha256": "28cdcf267d64d173fb3e49b6b783a445df5fc096c9c00c540aec03f1a16ff08d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-rteodredownload-export-summary",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Frozen nested summary of physical parsed GeoJSON, compared with cached summary on reuse; not a GeoDataFrame."
           ],
           "test_references": []
         },
@@ -7798,11 +7800,10 @@
             218
           ],
           "signature_sha256": "badde7374426565b2f43bfd249f58ae41a40db0e10417a6885a49d7be26d08cd",
-          "status": "READ",
-          "documentation_anchor": "load_rte_odre_source_config",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-load-rte-odre-source-config",
           "review_notes": [
-            "Reads the exact requested YAML bytes through strict duplicate-aware YAML, requires a mapping and validates a frozen extra-forbidden nested source config. Filesystem, strict-YAML and Pydantic errors propagate; this loader does not acquire a dataset or hash a fixed source publication.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reads the exact requested YAML bytes through strict duplicate-aware YAML, requires a mapping and validates a frozen extra-forbidden nested source config. Filesystem, strict-YAML and Pydantic errors propagate; this loader does not acquire a dataset or hash a fixed source publication."
           ],
           "test_references": []
         },
@@ -7814,11 +7815,10 @@
             229
           ],
           "signature_sha256": "43679182d3fb44ba99cbfcb896d596a2ceb1bc9c2a919d160900c2e39a359982",
-          "status": "READ",
-          "documentation_anchor": "_validated_source_config",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validated-source-config",
           "review_notes": [
-            "Requires the exact RteOdreSourceConfig type, dumps it to ordinary Python values and reconstructs it so bypassed/forged frozen models cannot alter the official API contract. Wraps type/validation failures as RteOdreDownloadError before URL construction or requests.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires the exact RteOdreSourceConfig type, dumps it to ordinary Python values and reconstructs it so bypassed/forged frozen models cannot alter the official API contract. Wraps type/validation failures as RteOdreDownloadError before URL construction or requests."
           ],
           "test_references": []
         },
@@ -7830,11 +7830,10 @@
             237
           ],
           "signature_sha256": "1e3d5c847197f980336b540df6cf3a66f218fde5fea708115b40af9510621005",
-          "status": "READ",
-          "documentation_anchor": "_get_dataset_config",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--get-dataset-config",
           "review_notes": [
-            "Accepts only the three declared logical dataset slots and retrieves that nested configured dataset. It does not hardcode the chosen dataset identifier; the YAML values remain authoritative.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Accepts only the three declared logical dataset slots and retrieves that nested configured dataset. It does not hardcode the chosen dataset identifier; the YAML values remain authoritative."
           ],
           "test_references": []
         },
@@ -7846,11 +7845,10 @@
             250
           ],
           "signature_sha256": "3c33152697c7d4f58fe279ef78497636e4e190d6369766a6de4ff7f2028aa9e9",
-          "status": "READ",
-          "documentation_anchor": "_dataset_api_url",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--dataset-api-url",
           "review_notes": [
-            "Selects the logical dataset, percent-encodes its ID with no safe path characters and joins it to the configured API base plus the private caller's suffix. It assumes the public caller reconstructed config and performs no request.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Selects the logical dataset, percent-encodes its ID with no safe path characters and joins it to the configured API base plus the private caller's suffix. It assumes the public caller reconstructed config and performs no request."
           ],
           "test_references": []
         },
@@ -7862,11 +7860,10 @@
             257
           ],
           "signature_sha256": "fb07115ed46851003d81f7df38ba57a280167a6c7d99ffa1b81851ac9ab79fd1",
-          "status": "READ",
-          "documentation_anchor": "build_rte_odre_metadata_url",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-build-rte-odre-metadata-url",
           "review_notes": [
-            "Reconstructs/validates the supplied source config and returns the selected dataset's metadata URL with no suffix. It is a read-only string-building boundary.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reconstructs/validates the supplied source config and returns the selected dataset's metadata URL with no suffix. It is a read-only string-building boundary."
           ],
           "test_references": []
         },
@@ -7878,11 +7875,10 @@
             266
           ],
           "signature_sha256": "dc03850a53e6490078ee917f3e35723d040662b83db45acd1359d95702999ad9",
-          "status": "READ",
-          "documentation_anchor": "build_rte_odre_export_url",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-build-rte-odre-export-url",
           "review_notes": [
-            "Reconstructs/validates config, chooses the configured GeoJSON format and percent-encodes it before building the selected dataset export URL. It performs no network call or cache access.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reconstructs/validates config, chooses the configured GeoJSON format and percent-encodes it before building the selected dataset export URL. It performs no network call or cache access."
           ],
           "test_references": []
         },
@@ -7894,11 +7890,10 @@
             274
           ],
           "signature_sha256": "9711382c4e52e8811cb965ed17d6b1b42a3421328bbf41491785b76709de5d98",
-          "status": "READ",
-          "documentation_anchor": "_optional_string",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--optional-string",
           "review_notes": [
-            "Reads an optional metadata key, returns None for nonstrings or blank strings and otherwise strips edge whitespace. It does not fabricate a missing title/publisher/date/license or parse timestamp semantics.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reads an optional metadata key, returns None for nonstrings or blank strings and otherwise strips edge whitespace. It does not fabricate a missing title/publisher/date/license or parse timestamp semantics."
           ],
           "test_references": []
         },
@@ -7910,11 +7905,10 @@
             283
           ],
           "signature_sha256": "333af1939775ced4e92534fb332f3db635fcf1914b4031a3ba860e86619b3887",
-          "status": "READ",
-          "documentation_anchor": "_metadata_precision_status",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--metadata-precision-status",
           "review_notes": [
-            "Returns GENERALIZED_OR_RESTRICTED only when a present case-folded description contains both the exact accented phrases 'données gps' and 'sécurité publique'; otherwise returns UNKNOWN. It does not measure positional error and never produces EXACT_NOT_CLAIMED in this path.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Returns GENERALIZED_OR_RESTRICTED only when a present case-folded description contains both the exact accented phrases 'données gps' and 'sécurité publique'; otherwise returns UNKNOWN. It does not measure positional error and never produces EXACT_NOT_CLAIMED in this path."
           ],
           "test_references": []
         },
@@ -7926,11 +7920,10 @@
             296
           ],
           "signature_sha256": "abc4e615800f9e935efc61da983cd958a6f76f5652b4aed84924071760f0972b",
-          "status": "READ",
-          "documentation_anchor": "_read_response_json",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--read-response-json",
           "review_notes": [
-            "Uses the shared safe HTTPS transport in a context manager and strictly decodes the entire response as finite duplicate-free UTF-8 JSON object. Expected HTTP/URL/filesystem/JSON failures are wrapped with the URL; it writes no cache.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Uses the shared safe HTTPS transport in a context manager and strictly decodes the entire response as finite duplicate-free UTF-8 JSON object. Expected HTTP/URL/filesystem/JSON failures are wrapped with the URL; it writes no cache."
           ],
           "test_references": []
         },
@@ -7942,11 +7935,10 @@
             340
           ],
           "signature_sha256": "92ff7c170213a4919be1aa1e8e49279e1e0149fd0afeb68f22f0954ccbe8213c",
-          "status": "READ",
-          "documentation_anchor": "fetch_rte_odre_dataset_metadata",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-fetch-rte-odre-dataset-metadata",
           "review_notes": [
-            "Reconstructs config, selects the dataset and fetches its metadata through safe HTTPS. It requires response dataset_id equality, treats malformed/missing metas/default mappings as absent optional metadata, and accepts records_count only as nonnegative int excluding bool or None. It records trimmed optional text fields and the conservative description-based precision status; source timestamps remain strings, not verified dates or pinned editions.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reconstructs config, selects the dataset and fetches its metadata through safe HTTPS. It requires response dataset_id equality, treats malformed/missing metas/default mappings as absent optional metadata, and accepts records_count only as nonnegative int excluding bool or None. It records trimmed optional text fields and the conservative description-based precision status; source timestamps remain strings, not verified dates or pinned editions."
           ],
           "test_references": []
         },
@@ -7958,11 +7950,10 @@
             348
           ],
           "signature_sha256": "998cded2f9e406b7a5e77be329188f6a36718c53bd122325d93de573668eb3fc",
-          "status": "READ",
-          "documentation_anchor": "_sha256",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--sha256",
           "review_notes": [
-            "Streams exact downloaded GeoJSON file bytes in fixed chunks into SHA256. It does not hash reserialized JSON or the sidecar.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Streams exact downloaded GeoJSON file bytes in fixed chunks into SHA256. It does not hash reserialized JSON or the sidecar."
           ],
           "test_references": []
         },
@@ -7974,11 +7965,10 @@
             390
           ],
           "signature_sha256": "fde4a3e6da1f6ee7b423ffd3b0ccca95d91357681c5849ed52369d6c215982d7",
-          "status": "READ",
-          "documentation_anchor": "_validate_geojson",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validate-geojson",
           "review_notes": [
-            "Requires a nonempty file and finite strict UTF-8 JSON FeatureCollection with a features list of Feature objects. Missing/null geometry is counted as null; other geometry must be an object and pass recursive structural coordinate validation. Returns total/null/non-null counts and sorted unique root geometry-type names, not a GeoDataFrame. It does not validate topology, CRS ranges, ring closure, polygon area or positional accuracy.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires a nonempty file and finite strict UTF-8 JSON FeatureCollection with a features list of Feature objects. Missing/null geometry is counted as null; other geometry must be an object and pass recursive structural coordinate validation. Returns total/null/non-null counts and sorted unique root geometry-type names, not a GeoDataFrame. It does not validate topology, CRS ranges, ring closure, polygon area or positional accuracy."
           ],
           "test_references": []
         },
@@ -7990,11 +7980,10 @@
             406
           ],
           "signature_sha256": "fb7276887e1222481838722823d5a3358867c4a03dd539d6c7c9ed77373c955d",
-          "status": "READ",
-          "documentation_anchor": "_validate_position",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validate-position",
           "review_notes": [
-            "Requires a JSON list with at least X/Y and every supplied ordinate a finite Real excluding bool. Extra ordinates are allowed; neither geographic coordinate ranges nor exact dimensionality are enforced.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires a JSON list with at least X/Y and every supplied ordinate a finite Real excluding bool. Extra ordinates are allowed; neither geographic coordinate ranges nor exact dimensionality are enforced."
           ],
           "test_references": []
         },
@@ -8006,11 +7995,10 @@
             427
           ],
           "signature_sha256": "97f255958e5af67f5473e477741c55b873a662cdbd1a7c18a03486884cfee922",
-          "status": "READ",
-          "documentation_anchor": "_validate_nested_coordinates",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validate-nested-coordinates",
           "review_notes": [
-            "Requires lists at the declared nesting depth, recursively descends to positions and delegates their finite numeric validation. Empty arrays at a non-position level are accepted; this is structural nesting, not minimum vertex count or ring closure validation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires lists at the declared nesting depth, recursively descends to positions and delegates their finite numeric validation. Empty arrays at a non-position level are accepted; this is structural nesting, not minimum vertex count or ring closure validation."
           ],
           "test_references": []
         },
@@ -8022,11 +8010,10 @@
             463
           ],
           "signature_sha256": "f718ab7826263cc5a7b5647da38488bdf9b0fbc1772d5c1efab3faa64d803e96",
-          "status": "READ",
-          "documentation_anchor": "_validate_geojson_geometry",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validate-geojson-geometry",
           "review_notes": [
-            "Requires a geometry object and a supported type, recursively validates each GeometryCollection member or the required coordinate nesting for its coordinate type, and returns the root type name. It does not call Shapely. Known limitation FOUNDATIONS-APP-002: a list/dict `type` value raises raw unhashable TypeError at set membership before the intended controlled unsupported-type error; no production fix is made in this documentation ticket.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires a geometry object and a supported type, recursively validates each GeometryCollection member or the required coordinate nesting for its coordinate type, and returns the root type name. It does not call Shapely. Known limitation FOUNDATIONS-APP-002: a list/dict `type` value raises raw unhashable TypeError at set membership before the intended controlled unsupported-type error; no production fix is made in this documentation ticket."
           ],
           "test_references": []
         },
@@ -8038,11 +8025,10 @@
             520
           ],
           "signature_sha256": "c55d85c21f25a12ed045e8998f28587cfe94460c54b6130cba262657afd7c902",
-          "status": "READ",
-          "documentation_anchor": "_metadata_from_dict",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--metadata-from-dict",
           "review_notes": [
-            "Requires exactly the cached metadata keys and exact built-in string/null/integer values plus the closed precision-status domain. It constructs a new frozen metadata record; post-init rejects negative counts. Source metadata strings are not reparsed or fetched on this cache path.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires exactly the cached metadata keys and exact built-in string/null/integer values plus the closed precision-status domain. It constructs a new frozen metadata record; post-init rejects negative counts. Source metadata strings are not reparsed or fetched on this cache path."
           ],
           "test_references": []
         },
@@ -8054,11 +8040,10 @@
             544
           ],
           "signature_sha256": "1855a8438954827a44adabd1a4b75413e993abd904c425c3cf6c6d1211a9b51d",
-          "status": "READ",
-          "documentation_anchor": "_export_summary_from_dict",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--export-summary-from-dict",
           "review_notes": [
-            "Requires exactly four cached summary keys and a JSON list of exact string geometry names, converts that list to a new tuple and lets the frozen summary's post-init enforce counts/closure/nonempty members. Cache reuse separately compares this record to a freshly parsed export summary.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires exactly four cached summary keys and a JSON list of exact string geometry names, converts that list to a new tuple and lets the frozen summary's post-init enforce counts/closure/nonempty members. Cache reuse separately compares this record to a freshly parsed export summary."
           ],
           "test_references": []
         },
@@ -8070,11 +8055,10 @@
             556
           ],
           "signature_sha256": "64592b0913b0cbc0379021f781fdbeb5b2e017c1a6230973ae8a47e6b2f670a1",
-          "status": "READ",
-          "documentation_anchor": "_validate_records_count",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--validate-records-count",
           "review_notes": [
-            "If source metadata contains a count, requires it equal the physically parsed export feature count; missing count is explicitly allowed. It does not replace unavailable metadata with an inferred source claim.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "If source metadata contains a count, requires it equal the physically parsed export feature count; missing count is explicitly allowed. It does not replace unavailable metadata with an inferred source claim."
           ],
           "test_references": []
         },
@@ -8086,11 +8070,10 @@
             560
           ],
           "signature_sha256": "e1eb3983c3b5e9e2492d07fac937806ede10aee8612555863e4dc62f744bd649",
-          "status": "READ",
-          "documentation_anchor": "_replace_file",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--replace-file",
           "review_notes": [
-            "Performs one Path.replace filesystem operation. It is the fault-injection seam for pair publication, not a complete transaction by itself.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Performs one Path.replace filesystem operation. It is the fault-injection seam for pair publication, not a complete transaction by itself."
           ],
           "test_references": []
         },
@@ -8102,11 +8085,10 @@
             567
           ],
           "signature_sha256": "60511b99d7c681eddcf555b022efb1606b1eb51aed485999357a63d834adf5fa",
-          "status": "READ",
-          "documentation_anchor": "_is_link_or_junction",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--is-link-or-junction",
           "review_notes": [
-            "Inspects filesystem symlink/junction flags and returns true on OSError to fail closed. It is used for temporary/recovery safety, not by this adapter's primary-cache hit helper.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Inspects filesystem symlink/junction flags and returns true on OSError to fail closed. It is used for temporary/recovery safety, not by this adapter's primary-cache hit helper."
           ],
           "test_references": []
         },
@@ -8118,11 +8100,10 @@
             577
           ],
           "signature_sha256": "c3ea757655865bb5d9ceaa28b9b38fe0ce817df7b7e76a8c0a51f3064a0dccbd",
-          "status": "READ",
-          "documentation_anchor": "_cache_recovery_paths",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--cache-recovery-paths",
           "review_notes": [
-            "Derives archive and metadata sibling `.bak` paths without filesystem I/O.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Derives archive and metadata sibling `.bak` paths without filesystem I/O."
           ],
           "test_references": []
         },
@@ -8134,11 +8115,10 @@
             590
           ],
           "signature_sha256": "b9ed8857edcbea68866049bb1e54c0f76885a2ef4e5f85e4faf7e1ba3f8d6bbf",
-          "status": "READ",
-          "documentation_anchor": "_require_no_cache_recovery_material",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--require-no-cache-recovery-material",
           "review_notes": [
-            "Rejects existing or link/junction backup paths before any cache hit or network attempt, leaves them untouched and demands manual recovery rather than overwriting evidence.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Rejects existing or link/junction backup paths before any cache hit or network attempt, leaves them untouched and demands manual recovery rather than overwriting evidence."
           ],
           "test_references": []
         },
@@ -8150,11 +8130,10 @@
             610
           ],
           "signature_sha256": "8d1d685bd4a523102b87ec4495f4912f723d0f9d9e09f015b0b7d5859639d65c",
-          "status": "READ",
-          "documentation_anchor": "_prepare_temporary_cache_file",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--prepare-temporary-cache-file",
           "review_notes": [
-            "Rejects link/junction or non-regular temporary targets, removes only a stale ordinary temporary file and wraps preparation failures before network access. The later writes use exclusive creation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Rejects link/junction or non-regular temporary targets, removes only a stale ordinary temporary file and wraps preparation failures before network access. The later writes use exclusive creation."
           ],
           "test_references": []
         },
@@ -8166,11 +8145,10 @@
             626
           ],
           "signature_sha256": "8c98a3a29d88fd4285a10a4054c609e3000b362ba852cb32cf756284f4263dec",
-          "status": "READ",
-          "documentation_anchor": "_cleanup_temporary_cache_files",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--cleanup-temporary-cache-files",
           "review_notes": [
-            "Attempts all temporary unlinks, remembers the first OSError and raises it as a controlled error only if there is no primary failure. It cannot mask the double-failure recovery error.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Attempts all temporary unlinks, remembers the first OSError and raises it as a controlled error only if there is no primary failure. Caught OSErrors do not mask an active primary failure; arbitrary other exception types are not caught here."
           ],
           "test_references": []
         },
@@ -8182,11 +8160,10 @@
             674
           ],
           "signature_sha256": "e8f30c74091e4d5e165e752e1153ae1472e1c3bc93a2d11662bf7b130ddce866",
-          "status": "READ",
-          "documentation_anchor": "_publish_cache_pair",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--publish-cache-pair",
           "review_notes": [
-            "Refuses existing backups, copies existing export/sidecar to backup siblings, then replaces export followed by metadata. If publication raises OSError after export replacement, it restores the old export or removes a first export; failed metadata replacement leaves the old metadata in place under the Path.replace contract. A rollback error retains recovery backups and raises the explicit double-failure error. Success or successful rollback removes backups; this is recoverable pair publication, not one atomic two-file operation.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Rejects recovery backups, copies existing export/sidecar primaries, then replaces export followed by metadata. On publication OSError it conditionally restores the archive if published or removes a new one; an old metadata primary remains if its replace failed. No metadata-backup restoration call exists. A failed rollback keeps backups and raises a double-failure error; cleanup of backups can itself fail. This is sequential recoverable publication, not atomic two-file replacement or a lock."
           ],
           "test_references": []
         },
@@ -8198,11 +8175,10 @@
             775
           ],
           "signature_sha256": "1f7242a2cd39c9d73e9d9056a958a40dba610d4ee566b92e44736346927b6b4b",
-          "status": "READ",
-          "documentation_anchor": "_load_cached_download",
+          "status": "CHECKED",
+          "documentation_anchor": "r16--load-cached-download",
           "review_notes": [
-            "Requires both paths to be files, strict-decodes an exact twelve-key sidecar and validates exact scalar field types. It reparses the physical GeoJSON, rechecks byte size/SHA, source/dataset/format/filename identity and an aware timestamp with nonnegative age within max_age_hours. It reconstructs nested metadata/summary, requires fresh-summary equality and optional source count closure, returning a cache-hit envelope or None on invalidity. It makes no DNS/HTTP call, does not fetch current publication metadata and does not add a schema_version field.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Requires both paths to be files, strict-decodes an exact twelve-key sidecar and validates exact scalar field types. It reparses the physical GeoJSON, rechecks byte size/SHA, source/dataset/format/filename identity and an aware timestamp with nonnegative age within max_age_hours. It reconstructs nested metadata/summary, requires fresh-summary equality and optional source count closure, returning a cache-hit envelope or None on invalidity. It makes no DNS/HTTP call, does not fetch current publication metadata and does not add a schema_version field."
           ],
           "test_references": []
         },
@@ -8214,18 +8190,51 @@
             869
           ],
           "signature_sha256": "eee62d67ee09aa424c44977e0706bdaf1de307f1db2a2204b2abea417df8bb86",
-          "status": "READ",
-          "documentation_anchor": "download_rte_odre_dataset",
+          "status": "CHECKED",
+          "documentation_anchor": "r16-download-rte-odre-dataset",
           "review_notes": [
-            "Reconstructs config, derives source/cache identity, refuses recovery material and tries a byte/summary-verified offline cache first. On a miss it creates the cache directory and prepares safe temporary files before fetching metadata, then streams safe-HTTPS GeoJSON to an exclusive-created part, validates its structure/counts and marks metadata MISSING when a nonempty export has only null geometries. It records current UTC, size/SHA, metadata and summary, serializes a sidecar without path/cache_hit, publishes the recoverable pair and cleans temporary files without masking failure. No fixed archive edition/hash is pinned in the RTE config and no geometry normalization or grid-capacity interpretation occurs.",
-            "Actual source and companion context read. Status remains READ until the remaining companion/snapshot/caller evidence is closed; no independent approval is implied."
+            "Reconstructs config, derives source/cache identity, refuses recovery material and tries a byte/summary-verified offline cache first. On a miss it creates the cache directory and prepares safe temporary files before fetching metadata, then streams safe-HTTPS GeoJSON to an exclusive-created part, validates its structure/counts and marks metadata MISSING when a nonempty export has only null geometries. It records current UTC, size/SHA, metadata and summary, serializes a sidecar without path/cache_hit, publishes the recoverable pair and cleans temporary files without masking failure. No fixed archive edition/hash is pinned in the RTE config and no geometry normalization or grid-capacity interpretation occurs."
           ],
           "test_references": []
         }
       ],
       "findings": [],
       "documentation_read_complete": true,
-      "documentation_status": "READ"
+      "documentation_status": "CORRECTED",
+      "r16_prior_evidence": {
+        "commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
+        "file_row_without_symbols": {
+          "path": "src/landscout/sources/rte_odre_fr.py",
+          "role": "production",
+          "source_sha256": "0954d4025b779a7fa75813edb81c8f3b3227243da6b22b2066a0443762927c0e",
+          "documentation_path": "docs/code/files/src/landscout/sources/rte_odre_fr.py.md",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": [],
+          "documentation_read_complete": true,
+          "documentation_status": "READ"
+        },
+        "symbols_sha256": "098eb70d594c5a7f960a446bf5e1e314ae3efbe4ee5173b86baf6640cbc863bb"
+      },
+      "read_ranges": [
+        [
+          1,
+          869
+        ]
+      ],
+      "source_sha256_basis": "git-content",
+      "documentation_sha256": "b2d66a11d1c44ca506f5e799ae15119e2c015f36aead361f5122c8d7db8d6ff4",
+      "documentation_sha256_basis": "git-content",
+      "r16_provenance": {
+        "receipt": "docs/code/audit/R16_RTE_ODRE_SOURCE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R16.md",
+        "review": "PENDING",
+        "source_commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
+        "companion_evidence": "embedded documentation status; no separate companion owner row"
+      }
     },
     {
       "path": "src/landscout/stages/assess_grid_coverage.py",
@@ -26918,10 +26927,60 @@
       "source_sha256": "30bf71ecb360553cdcd1efd6e797379d16668f346f4ef59bfa7b22d2569cdd46",
       "documentation_path": "docs/code/files/tests/unit/test_rte_odre_fr.py.md",
       "read_complete": true,
-      "status": "READ",
-      "imports_exports_callers_reviewed": [],
-      "contract_review": [],
-      "test_references": [],
+      "status": "CHECKED",
+      "imports_exports_callers_reviewed": [
+        "Exact imports, eleven sources package re-exports, direct qualified callers and contextual safe_http/strict_json/strict_yaml owners checked. Fixture-value and inherited Pydantic method ownership qualified; contextual reads receive no closure credit."
+      ],
+      "contract_review": [
+        "R16 complete RTE source/test/companion reconciliation: config and transport, remote metadata versus physical GeoJSON, path-based cache, pair recovery and bounded synthetic test evidence. A-002 remains open; prior READ evidence retained; no application or dependency closure."
+      ],
+      "test_references": [
+        "tests/unit/test_rte_odre_fr.py::test_valid_source_config_loads",
+        "tests/unit/test_rte_odre_fr.py::test_source_config_yaml_rejects_duplicate_keys",
+        "tests/unit/test_rte_odre_fr.py::test_loaded_source_config_is_immutable",
+        "tests/unit/test_rte_odre_fr.py::test_source_identity_is_exact",
+        "tests/unit/test_rte_odre_fr.py::test_cache_age_is_a_strict_finite_number",
+        "tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails",
+        "tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails",
+        "tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path",
+        "tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network",
+        "tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails",
+        "tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails",
+        "tests/unit/test_rte_odre_fr.py::test_build_export_url",
+        "tests/unit/test_rte_odre_fr.py::test_build_metadata_url",
+        "tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id",
+        "tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication",
+        "tests/unit/test_rte_odre_fr.py::test_metadata_response_rejects_duplicate_json_keys",
+        "tests/unit/test_rte_odre_fr.py::test_metadata_response_rejects_nonfinite_json_constants",
+        "tests/unit/test_rte_odre_fr.py::test_successful_download",
+        "tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected",
+        "tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted",
+        "tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected",
+        "tests/unit/test_rte_odre_fr.py::test_export_summary_rejects_invalid_geometry_counts",
+        "tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused",
+        "tests/unit/test_rte_odre_fr.py::test_untrusted_cache_metadata_is_rejected_and_refreshed",
+        "tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed",
+        "tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files",
+        "tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache",
+        "tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache",
+        "tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair",
+        "tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected",
+        "tests/unit/test_rte_odre_fr.py::test_geojson_export_rejects_duplicate_json_keys",
+        "tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected",
+        "tests/unit/test_rte_odre_fr.py::test_standard_geojson_geometry_types_are_summarized",
+        "tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position",
+        "tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure",
+        "tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively",
+        "tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted",
+        "tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity",
+        "tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache",
+        "tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache",
+        "tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh",
+        "tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network",
+        "tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network",
+        "tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network",
+        "tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error"
+      ],
       "symbols": [
         {
           "qualified_name": "_config_data",
@@ -26931,10 +26990,10 @@
             37
           ],
           "signature_sha256": "f833d5933c5a3348ea98856a1308053e9906eb3fa02ebb5e4a28e52ee8b3fea5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--config-data",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reads the checked-in RTE YAML with yaml.safe_load for a mutable test payload. This fixture helper is not the production strict loader and does not itself reject duplicate YAML keys."
           ],
           "test_references": []
         },
@@ -26946,10 +27005,10 @@
             59
           ],
           "signature_sha256": "3bef3ef2886793aefde3b8f3514a9ad7feb2022ad232792bc9f5f6cdde6abe5e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--metadata-content",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds synthetic ODRE metadata JSON bytes for the selected dataset ID, with fixed optional text/description and a configurable records_count (default two). It is not a live publication response."
           ],
           "test_references": []
         },
@@ -26961,10 +27020,10 @@
             79
           ],
           "signature_sha256": "714fa30da4010600e168d3811a050d6ee53df3c76c98cc9e3758baca49bdda92",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--feature-collection",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Builds a synthetic two-Feature GeoJSON byte stream with one Point and one null geometry, or two null geometries when requested. It makes no real geospatial-source claim."
           ],
           "test_references": []
         },
@@ -26976,10 +27035,10 @@
             83
           ],
           "signature_sha256": "70768cd2bc140ae57a14abc3c5b14ab375f9fd02ce56651cc9b8ede4e6598bec",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--response",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Wraps supplied bytes in io.BytesIO for a mocked open_safe_https context-manager response; no DNS, TLS or redirect occurs."
           ],
           "test_references": []
         },
@@ -26991,10 +27050,10 @@
             87
           ],
           "signature_sha256": "19da2fa0d7f07789f0976ca62d743605d8d0168ae21d62e6b451258548a9d908",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--metadata-path",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Derives the expected sidecar path from the configured sites dataset ID under the temporary cache directory; it does not create or validate the sidecar."
           ],
           "test_references": []
         },
@@ -27006,10 +27065,10 @@
             95
           ],
           "signature_sha256": "fb980b1f0801387cc16a0f1bccc6b522d7c271bb8de60b3a1d45e57028ce2554",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16--expire-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Rewrites a test sidecar's download_timestamp to 169 hours before now, forcing a miss against the checked-in 168-hour lifetime. It mutates a temporary cache file, not source configuration."
           ],
           "test_references": []
         },
@@ -27021,10 +27080,10 @@
             100
           ],
           "signature_sha256": "ce648b3536b723c3ea682b72052ed52b1ccc4492f138d91d04d013a9edc72538",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-source-config",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Pytest fixture loads the actual checked-in RTE YAML through load_rte_odre_source_config. Test parameters named source_config receive its value; they are not direct references to the fixture callable."
           ],
           "test_references": []
         },
@@ -27036,10 +27095,10 @@
             107
           ],
           "signature_sha256": "2a6c27b003f24077c1377e38e838eaf911a3481e7685ea6561700d40977d2277",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-valid-source-config-loads",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Asserts four selected checked-in config values after fixture loading: provider, portal, sites ID and cache age. It does not exhaust every YAML field."
           ],
           "test_references": []
         },
@@ -27051,10 +27110,10 @@
             118
           ],
           "signature_sha256": "b983943fd9ca0f1c3c7507c5420263855fd6f9d8658f2110ec34000705ad05b6",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-source-config-yaml-rejects-duplicate-keys",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Writes a duplicate-key variant of the checked-in YAML to tmp_path and expects ValueError from the strict production loader; no network or data export is involved."
           ],
           "test_references": []
         },
@@ -27066,10 +27125,10 @@
             125
           ],
           "signature_sha256": "559e9a246caf582dd0c5217a504791b59a7d18f80c70b6c9c9748c7fc05fe150",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-loaded-source-config-is-immutable",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Attempts reassignment of provider on a loaded frozen model and expects ValidationError. This covers one assignment, not every nested mutation operation."
           ],
           "test_references": []
         },
@@ -27081,10 +27140,10 @@
             134
           ],
           "signature_sha256": "c45974745bc9a89e37bc63fe951f5075205fffe2b93697f1a11afa2ba089d91c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-source-identity-is-exact",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes wrong provider and portal values in mutable YAML-derived payloads and expects RteOdreSourceConfig.model_validate to reject each. No HTTP call is made."
           ],
           "test_references": []
         },
@@ -27096,10 +27155,10 @@
             146
           ],
           "signature_sha256": "659c1dd50ebc2179db36f5ad6570b8c8c184b63c7dca85e96bfddaa0bfdac34e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-cache-age-is-a-strict-finite-number",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes bool, numeric string, NaN and positive/negative infinity for max_age_hours and expects Pydantic rejection. This is model validation, not cache expiration behavior."
           ],
           "test_references": []
         },
@@ -27111,10 +27170,10 @@
             154
           ],
           "signature_sha256": "f339de45e37755de9ac7097b546925288b5c3af036ea63dd41fbfeb1722d2c6d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-missing-dataset-id-fails",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Deletes the sites dataset ID from a YAML-derived payload and expects Pydantic validation failure before URL construction."
           ],
           "test_references": []
         },
@@ -27126,10 +27185,10 @@
             162
           ],
           "signature_sha256": "ba509ab47a98af8d09a12d6bf5670f434a3b0f4ef40b4f479534bf8bf18e5de8",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-empty-base-url-fails",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Sets the API base to an empty string in a YAML-derived payload and expects Pydantic validation failure."
           ],
           "test_references": []
         },
@@ -27141,10 +27200,10 @@
             183
           ],
           "signature_sha256": "ac11f000bb1c4e7c170f3cb9dc102eb11c3b30ac58b07b45c231df341a817ca2",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-api-base-is-pinned-to-the-official-https-origin-and-path",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes HTTP, another host, older API path, credentials, non-443 port and query in the base URL, each rejected by Pydantic. It does not exercise safe_http DNS/TLS."
           ],
           "test_references": []
         },
@@ -27156,10 +27215,10 @@
             206
           ],
           "signature_sha256": "f0eb3b12df1f39fa3536c70e1759aeadc164dbf22d55f2f2f67e01d473f42a8a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-mutated-loaded-api-origin-is-rejected-before-metadata-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Uses model_copy to inject a foreign HttpUrl into an otherwise loaded config, installs a network-failure sentinel, and verifies metadata fetch raises controlled RteOdreDownloadError with zero opener calls. It exercises reconstruction at this boundary."
           ],
           "test_references": []
         },
@@ -27171,10 +27230,10 @@
             199
           ],
           "signature_sha256": "6572bcdbd9870d1ac2c471106c6e1d9ba09218f7401dd560688b1acee8f6d7c1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-mutated-loaded-api-origin-is-rejected-before-metadata-network-fail-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocked opener increments network_calls then raises AssertionError if invoked; parent asserts zero calls after rejecting a forged model."
           ],
           "test_references": []
         },
@@ -27186,10 +27245,10 @@
             214
           ],
           "signature_sha256": "2b0f104369b89cc45f38cb31a419f07e3e9f56ed9d41d0a79e89cff7caee057c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-negative-cache-age-fails",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Sets max_age_hours to -1 in a YAML-derived payload and expects Pydantic rejection; zero is not tested here."
           ],
           "test_references": []
         },
@@ -27201,10 +27260,10 @@
             222
           ],
           "signature_sha256": "126ce8ab84034841f636dbc9b09b602cf3e9c7caa2fd32033b5384cab9f47242",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-unsupported-export-format-fails",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes sites.preferred_format to csv and expects Pydantic rejection of the configured GeoJSON-only format."
           ],
           "test_references": []
         },
@@ -27216,10 +27275,10 @@
             234
           ],
           "signature_sha256": "e69e505cf051d36e04d7c593a46d8bd913e93fd6921b1ecbe63c2741989998f0",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-build-export-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "For each of the three configured logical dataset IDs, verifies the builder's exact catalog/export GeoJSON URL. This string-only test does not issue a request."
           ],
           "test_references": []
         },
@@ -27231,10 +27290,10 @@
             240
           ],
           "signature_sha256": "d35e71cdb7296bfd86f6ea2065b6e20bbb822973d6191550bfa5d14b9e29cfbb",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-build-metadata-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Asserts the sites metadata builder's exact catalog URL with no export suffix; no HTTP call is made."
           ],
           "test_references": []
         },
@@ -27246,10 +27305,10 @@
             250
           ],
           "signature_sha256": "3f28846af47fe9f213207bb7745af931909d518883fa17872cdab5f3ccd54db9",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-export-url-uses-configured-dataset-id",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Changes sites ID to configured-sites in a validated payload, then checks the export URL uses that ID rather than a hardcoded original one."
           ],
           "test_references": []
         },
@@ -27261,10 +27320,10 @@
             269
           ],
           "signature_sha256": "236f0476467ce47db60110450c509df7a9675de70532b807b8d6517e970bf969",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-is-captured-without-fabrication",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocks a metadata response and asserts the returned optional source strings/count and conservative description-derived precision label. The BytesIO response is synthetic, not official publication evidence."
           ],
           "test_references": []
         },
@@ -27276,10 +27335,10 @@
             286
           ],
           "signature_sha256": "818ff278947c9095a387c22693e8bdf1284bde1d10582389b7f4f3e7600092b6",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-response-rejects-duplicate-json-keys",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Injects a duplicated JSON metadata key into mocked response bytes and expects a controlled request/JSON error from strict parsing."
           ],
           "test_references": []
         },
@@ -27291,10 +27350,10 @@
             304
           ],
           "signature_sha256": "9a8a6ab157850af4b96a152a803fe9168766e40e41c86c4e5e966035929d85cd",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-response-rejects-nonfinite-json-constants",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Injects NaN, Infinity and -Infinity tokens into mocked metadata JSON and expects a controlled request/JSON error; it tests strict decoding, not GeoJSON coordinate validation."
           ],
           "test_references": []
         },
@@ -27306,10 +27365,10 @@
             337
           ],
           "signature_sha256": "bf5b485dbc204ea143df09f067d1b8b3e328a510733dc4105a213a799f560fe6",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-successful-download",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocks metadata and two-feature export streams, downloads into tmp_path and checks lineage, exact bytes/size/SHA, miss flag and summary counts/types. No live RTE dataset is acquired."
           ],
           "test_references": []
         },
@@ -27321,10 +27380,10 @@
             361
           ],
           "signature_sha256": "bd3bbbe1fe8a593b3837dd610f27f82987a4e7ea542223e6ba69266d1ecff59e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-export-record-count-mismatch-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "For source count one or three against a two-feature export, expects controlled records_count rejection and no published GeoJSON, part or backup files."
           ],
           "test_references": []
         },
@@ -27336,10 +27395,10 @@
             378
           ],
           "signature_sha256": "cbb8747370e799050dc03819743cb82f7236c29141746d6f5871c479df8dfd35",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-unavailable-metadata-record-count-is-accepted",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Provides null records_count with two physical features and checks download succeeds while retaining unknown source count as None."
           ],
           "test_references": []
         },
@@ -27351,10 +27410,10 @@
             395
           ],
           "signature_sha256": "d5cdc829587fa5f4f000a3e93f35bde5590cf2f3c5bfaf6ae7b8c3e40c7dc903",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-negative-source-record-count-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocks negative remote records_count and expects controlled rejection before a published export; the count is not inferred from features."
           ],
           "test_references": []
         },
@@ -27366,10 +27425,10 @@
             418
           ],
           "signature_sha256": "3a15a5945d7adbbad006efae9e4963d596081603b895732e15d1d63871f9eba3",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-export-summary-rejects-invalid-geometry-counts",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Constructs RteOdreExportSummary with negative or nonclosing counts and expects ValueError from __post_init__. It does not parse an export."
           ],
           "test_references": []
         },
@@ -27381,10 +27440,10 @@
             439
           ],
           "signature_sha256": "66ea9fe86e0577a5491b2f3b7dbe53c6df90ed03ebadb4ccf9b01202be927a48",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-fresh-cache-is-reused",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Calls download twice with one mocked metadata/export pair and checks the second call is a cache hit with identical timestamp/SHA. opener.call_count == 2 belongs entirely to the first miss, not two full downloads."
           ],
           "test_references": []
         },
@@ -27396,10 +27455,10 @@
             476
           ],
           "signature_sha256": "de4d04182f05342e78249a4055e6b4bacf8904dd3e869cdeb7f008b06b6032a2",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-untrusted-cache-metadata-is-rejected-and-refreshed",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "After a valid first download, corrupts the sidecar with a duplicate key or float file_size; a second call refreshes through two more mocked requests. It does not test all sidecar corruption forms."
           ],
           "test_references": []
         },
@@ -27411,10 +27470,10 @@
             514
           ],
           "signature_sha256": "9f5e7ef546bbd6c4d4508b2705fd52107cd574abdaf042bfad9983fd0a32db7c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-expired-cache-is-refreshed",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Ages a valid sidecar, changes the synthetic export to three features, then checks a miss, changed SHA/content and three-feature summary; no official version transition is claimed."
           ],
           "test_references": []
         },
@@ -27426,10 +27485,10 @@
             533
           ],
           "signature_sha256": "d39279a0f2240ab519b78cc750df860690dd186b4d786950423b8ca3006658c1",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-http-failure-raises-and-cleans-temporary-files",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocks metadata success and export HTTPError, expects RteOdreDownloadError and no lingering .part or .bak files. This is a mocked failure, not live transport behavior."
           ],
           "test_references": []
         },
@@ -27441,10 +27500,10 @@
             565
           ],
           "signature_sha256": "10116c59f9dd35130a38967da9ee1d798f5636b0dd8c3081ab70d15a080d4f53",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-failed-refresh-preserves-previous-valid-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Ages the sidecar then makes the export request fail; checks the prior archive bytes and aged metadata bytes persist without part/backup files. It does not claim that expired cache becomes a valid hit."
           ],
           "test_references": []
         },
@@ -27456,10 +27515,10 @@
             599
           ],
           "signature_sha256": "d257afc919ca4be38c1a791877a06ff47b79738690b1fcb521cd8ad92622642d",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-corrupted-refresh-preserves-previous-valid-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Ages a valid pair and sends malformed refresh export bytes; checks controlled rejection and preservation of prior archive/aged sidecar with cleanup."
           ],
           "test_references": []
         },
@@ -27471,10 +27530,10 @@
             650
           ],
           "signature_sha256": "6a55dc6532db5878a574d317e6b94864d2bb5780abdc210630f14a9fe18ea98a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-publication-failure-restores-previous-pair",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Injects a metadata replace failure while refreshing an expired pair; checks the previous archive and metadata bytes and backup cleanup. The callback delegates unaffected replaces; the publisher does not restore metadata from its backup."
           ],
           "test_references": []
         },
@@ -27486,10 +27545,10 @@
             627
           ],
           "signature_sha256": "2815735c2737050b047319d71650fec9a5ad885dc67b3b385867563c8cd6b22c",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-metadata-publication-failure-restores-previous-pair-fail-metadata-publication",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Raises PermissionError only for temporary-metadata-to-primary replacement and delegates every other replacement to the original helper."
           ],
           "test_references": []
         },
@@ -27501,10 +27560,10 @@
             680
           ],
           "signature_sha256": "940070ce4298b5df366167f841afcf6ba780c88a48af5c29449be5e806f524c0",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-invalid-geojson-download-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Feeds malformed JSON, wrong top-level type or missing features through the mocked export and checks controlled rejection with no published archive or temporary file."
           ],
           "test_references": []
         },
@@ -27516,10 +27575,10 @@
             690
           ],
           "signature_sha256": "bb62cbc068b39d288777713f7a2a5cdf4c1c62232c506059e1c9175eb3311cec",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-geojson-export-rejects-duplicate-json-keys",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Writes a temporary FeatureCollection with a duplicate JSON key and directly expects _validate_geojson to reject it via strict decoding."
           ],
           "test_references": []
         },
@@ -27531,10 +27590,10 @@
             719
           ],
           "signature_sha256": "f90dd09ee2d77b4b5c23f10467ff0805ea4f8191cefcbf95154ac796f0a860e5",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-malformed-geojson-feature-or-geometry-is-rejected",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes non-Feature values, bad geometry objects/types and missing required geometry members, expecting controlled rejection. It does not include unhashable type list/dict, so A-002 remains open."
           ],
           "test_references": []
         },
@@ -27546,10 +27605,10 @@
             760
           ],
           "signature_sha256": "860395ed8ef8d1a2789f015e63494140689537bcaecfa9898e7d3ab4ed4fe123",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-standard-geojson-geometry-types-are-summarized",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Writes synthetic examples of six coordinate types, one GeometryCollection and one null geometry, then checks 8/1/7 counts and sorted root type names. Polygon ring closure/topology and nested member type inventory are not proven."
           ],
           "test_references": []
         },
@@ -27561,10 +27620,10 @@
             788
           ],
           "signature_sha256": "690f125ce0f12a1d9dac13e8c2296226dc2ce850e20a38b913eb42646b4681df",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-point-requires-a-finite-numeric-position",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes missing/nonlist/boolean/nonfinite/short Point positions and expects rejection. NaN/Infinity serialized tokens may be rejected by strict JSON before the position validator."
           ],
           "test_references": []
         },
@@ -27576,10 +27635,10 @@
             826
           ],
           "signature_sha256": "10c33b4a06df1ca43b544f030b33ed3fec284416e82e1e5e28fc335a24c77d8a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-nested-coordinate-geometries-reject-obvious-invalid-structure",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes malformed nesting across MultiPoint, LineString, MultiLineString, Polygon and MultiPolygon. The infinity case may fail strict JSON first; no minimum vertex/ring validity is established."
           ],
           "test_references": []
         },
@@ -27591,10 +27650,10 @@
             850
           ],
           "signature_sha256": "ba4c7ffefd2492b52386f30a75afec109638dd6ebc2f7095097aac0b363a7796",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-geometry-collection-members-are-validated-recursively",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Writes a GeometryCollection with an invalid Point child and expects controlled coordinate/Point rejection from recursive member validation."
           ],
           "test_references": []
         },
@@ -27606,10 +27665,10 @@
             874
           ],
           "signature_sha256": "6dfba42bab584f4d831d75b6bbda85db49c4e8c3d095986438dc25b8a58ab370",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-null-feature-geometries-are-accepted",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mocks a nonempty export with two null geometries, checks publication, MISSING precision and 2/2/0 counts with no types. Empty collections are not asserted to receive MISSING."
           ],
           "test_references": []
         },
@@ -27621,10 +27680,10 @@
             909
           ],
           "signature_sha256": "9dd16188a7cff9246b6ea8b06ef1010b59cb62f87532e8876074c8f78c944184",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-lineage-sidecar-records-integrity",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reads the temporary sidecar and checks source URL, export byte size/SHA, nested publisher/summary closure and omission of path/cache_hit. It does not pin an official RTE publication hash."
           ],
           "test_references": []
         },
@@ -27636,10 +27695,10 @@
             945
           ],
           "signature_sha256": "e4e0f8ab69a183242bd9846689ebbc44055a6fdc8a80648c3beac7d068e8e25f",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-invalid-cached-record-count-invalidates-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Corrupts cached records_count to -1 or 1, checks a fresh request pair and restored count 2. Its byte equality compares first.path and refreshed.path after refresh, which are the same path, not a saved pre-refresh byte snapshot."
           ],
           "test_references": []
         },
@@ -27651,10 +27710,10 @@
             979
           ],
           "signature_sha256": "1b06e6f8add6bdfe99e170dfed5656775c069faa4b586aef2a6d403389ddab04",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-cached-export-summary-mismatch-invalidates-cache",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Mutates a cached summary to a different but internally closing null/type account, then checks a refresh and restored Point summary against physical export parsing."
           ],
           "test_references": []
         },
@@ -27666,10 +27725,10 @@
             1008
           ],
           "signature_sha256": "39eab2eb2753aa06038a87d271d4bbc6bea87f132339042e99cd5bea4bbc64a6",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-corrupted-cached-export-triggers-refresh",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Overwrites cached export with bad bytes while retaining sidecar, then checks a miss and replacement with valid synthetic content."
           ],
           "test_references": []
         },
@@ -27681,10 +27740,10 @@
             1069
           ],
           "signature_sha256": "1281a037cf02b23241c6c29249bcd334c1b657a723e2b24c765de79f36905e07",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-double-failure-preserves-recovery-and-next-run-uses-zero-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Injects metadata publication and archive rollback failures; checks old pair bytes in .bak files and next invocation fails on recovery guard before HTTP. No concurrent-reader atomicity is proven."
           ],
           "test_references": []
         },
@@ -27696,10 +27755,10 @@
             1039
           ],
           "signature_sha256": "507b3a3aca3bd091758cf0b4f240cc6d18ffdc185789382bd9893354cdc3ba12",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-double-failure-preserves-recovery-and-next-run-uses-zero-network-fail-publication-and-rollback",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Raises OSError for metadata publication and archive-backup rollback, delegating other Path.replace operations to the original helper."
           ],
           "test_references": []
         },
@@ -27711,10 +27770,10 @@
             1044
           ],
           "signature_sha256": "84373706a3858a9f6c68d88bdcb6d6dacd5f74194370de9477ad0e7fa132a1d4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-double-failure-preserves-recovery-and-next-run-uses-zero-network-response-for-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Routes mocked metadata URL to metadata BytesIO and export URL to GeoJSON BytesIO during the injected publication scenario."
           ],
           "test_references": []
         },
@@ -27726,10 +27785,10 @@
             1060
           ],
           "signature_sha256": "11dc94e74f9a8427ac5c4df85b32bb0578c65dd1e49964d2c9e74cb42e678d4a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-double-failure-preserves-recovery-and-next-run-uses-zero-network-fail-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Records a URL then raises AssertionError if next-run transport occurs; parent checks network_calls stays empty."
           ],
           "test_references": []
         },
@@ -27741,10 +27800,10 @@
             1129
           ],
           "signature_sha256": "23348dc65bd50ae60899ed2503e9db44591a5560103ab01fe28c5805c2a69b9e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-temporary-link-or-junction-cannot-modify-target-before-rte-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Parametrizes archive/metadata .part roles and simulated symlink/junction predicates, optionally redirecting Path.open to a sentinel. Checks rejection before requests and unchanged sentinel bytes; no real OS link is created."
           ],
           "test_references": []
         },
@@ -27756,10 +27815,10 @@
             1099
           ],
           "signature_sha256": "2fde091714c442c34b0f7f4af66e7c44582d5710cce704ce62034d01d09bf5c4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-temporary-link-or-junction-cannot-modify-target-before-rte-network-simulated-is-symlink",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reports the chosen temporary path as symlink only in the symlink case and delegates all other checks to original Path.is_symlink."
           ],
           "test_references": []
         },
@@ -27771,10 +27830,10 @@
             1104
           ],
           "signature_sha256": "5151fdad49c42804418ef8b212c6e40b321c468de904b95d705fee49250b1f03",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-temporary-link-or-junction-cannot-modify-target-before-rte-network-simulated-is-junction",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reports the chosen temporary path as junction only in the junction case and delegates other checks to original Path.is_junction."
           ],
           "test_references": []
         },
@@ -27786,10 +27845,10 @@
             1109
           ],
           "signature_sha256": "74055b028ed065633abc0620011ddaa873cae606826a3d4171cb4e89306b39bf",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-temporary-link-or-junction-cannot-modify-target-before-rte-network-simulated-symlink-open",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Would route an attempted open of the unsafe temporary path to the sentinel; otherwise delegates. Parent's pre-request guard is expected to prevent this open."
           ],
           "test_references": []
         },
@@ -27801,10 +27860,10 @@
             1118
           ],
           "signature_sha256": "3080a0d00a987b5c26bcb8277aa459d51325a28e4b543414a21192d343d006fd",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-temporary-link-or-junction-cannot-modify-target-before-rte-network-record-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Returns mocked metadata/export response if reached and records network use; parent asserts zero calls after temporary-path rejection."
           ],
           "test_references": []
         },
@@ -27816,10 +27875,10 @@
             1157
           ],
           "signature_sha256": "85b855ab515a0608d581dd817d38cea480fa3f8a5aab5d5317f2d354831da40e",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-broken-recovery-symlink-rejects-rte-before-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Simulates a broken .bak symlink and verifies the recovery guard rejects before network, with a sentinel opener unused. No actual Windows symlink is created."
           ],
           "test_references": []
         },
@@ -27831,10 +27890,10 @@
             1143
           ],
           "signature_sha256": "2fde091714c442c34b0f7f4af66e7c44582d5710cce704ce62034d01d09bf5c4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-broken-recovery-symlink-rejects-rte-before-network-simulated-is-symlink",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Reports the selected recovery backup Path as a symlink despite nonexistence and delegates other paths to original Path.is_symlink."
           ],
           "test_references": []
         },
@@ -27846,10 +27905,10 @@
             1149
           ],
           "signature_sha256": "11dc94e74f9a8427ac5c4df85b32bb0578c65dd1e49964d2c9e74cb42e678d4a",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-broken-recovery-symlink-rejects-rte-before-network-fail-network",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Raises AssertionError if the mocked opener is reached; parent checks the recovery guard prevents it."
           ],
           "test_references": []
         },
@@ -27861,10 +27920,10 @@
             1212
           ],
           "signature_sha256": "305d4747c1c7d5bd4b0667a833702d120edaa277c6937a89f1b23d8893af7eac",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-rte-cleanup-failure-does-not-mask-double-failure-recovery-error",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Injects metadata publication, archive rollback and temporary cleanup failures; expects the double-failure recovery error to dominate and preserved .bak bytes. The scenario is synthetic and no cleanup guarantee for all exceptions follows."
           ],
           "test_references": []
         },
@@ -27876,10 +27935,10 @@
             1192
           ],
           "signature_sha256": "507b3a3aca3bd091758cf0b4f240cc6d18ffdc185789382bd9893354cdc3ba12",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-rte-cleanup-failure-does-not-mask-double-failure-recovery-error-fail-publication-and-rollback",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Raises OSError on metadata publication and archive rollback, delegating other replacements to the original helper; marks rollback_failed for cleanup injection."
           ],
           "test_references": []
         },
@@ -27891,10 +27950,10 @@
             1197
           ],
           "signature_sha256": "488fa8758b7328a3a2567f17c7683a0b77259efeb3603659c3f0d33b3a265582",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-rte-cleanup-failure-does-not-mask-double-failure-recovery-error-fail-temporary-cleanup",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Raises PermissionError on the selected temporary metadata unlink only after rollback_failed; delegates other unlinks. Parent checks it does not mask the active recovery error."
           ],
           "test_references": []
         },
@@ -27906,17 +27965,51 @@
             1202
           ],
           "signature_sha256": "84373706a3858a9f6c68d88bdcb6d6dacd5f74194370de9477ad0e7fa132a1d4",
-          "status": "READ",
-          "documentation_anchor": null,
+          "status": "CHECKED",
+          "documentation_anchor": "r16-test-rte-cleanup-failure-does-not-mask-double-failure-recovery-error-response-for-url",
           "review_notes": [
-            "Complete source body read, including this declaration. Per-symbol companion semantic reconciliation and precise relationship evidence remain pending; READ does not mean CHECKED."
+            "Returns synthetic metadata/export BytesIO for the refresh that reaches the injected double-failure path."
           ],
           "test_references": []
         }
       ],
       "findings": [],
-      "documentation_read_complete": false,
-      "documentation_status": "NOT_READ"
+      "documentation_read_complete": true,
+      "documentation_status": "CORRECTED",
+      "r16_prior_evidence": {
+        "commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
+        "file_row_without_symbols": {
+          "path": "tests/unit/test_rte_odre_fr.py",
+          "role": "test",
+          "source_sha256": "30bf71ecb360553cdcd1efd6e797379d16668f346f4ef59bfa7b22d2569cdd46",
+          "documentation_path": "docs/code/files/tests/unit/test_rte_odre_fr.py.md",
+          "read_complete": true,
+          "status": "READ",
+          "imports_exports_callers_reviewed": [],
+          "contract_review": [],
+          "test_references": [],
+          "findings": [],
+          "documentation_read_complete": false,
+          "documentation_status": "NOT_READ"
+        },
+        "symbols_sha256": "1cba081330e15d287b07fc947b2070ba04a0ccb7b696d59de08c5f8e1079f7c7"
+      },
+      "read_ranges": [
+        [
+          1,
+          1212
+        ]
+      ],
+      "source_sha256_basis": "git-content",
+      "documentation_sha256": "432c8b63b9287919c3f7f5aee760af033c0c2c0beb2776a1a10aac62d07aa5f8",
+      "documentation_sha256_basis": "git-content",
+      "r16_provenance": {
+        "receipt": "docs/code/audit/R16_RTE_ODRE_SOURCE.md",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R16.md",
+        "review": "PENDING",
+        "source_commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
+        "companion_evidence": "embedded documentation status; no separate companion owner row"
+      }
     },
     {
       "path": "tests/unit/test_safe_http.py",
