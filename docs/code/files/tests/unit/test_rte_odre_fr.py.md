@@ -1246,7 +1246,7 @@ Direct lexical operations only; fixture/helpers and called adapter functions can
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | `del config_data["datasets"]["sites"]["dataset_id"]` deletes a key from the local YAML-derived dictionary; the checked-in YAML is unchanged. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -1565,7 +1565,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | If invoked, `network_calls += 1` rebinds the captured nonlocal counter before the sentinel raise; the successful parent test asserts zero calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -3026,7 +3026,7 @@ def test_expired_cache_is_refreshed(
 
 Qualified owner: `tests.unit.test_rte_odre_fr.test_http_failure_raises_and_cleans_temporary_files`. Source lines 517–533.
 
-**Verified purpose:** Mocks metadata success and export HTTPError, expects RteOdreDownloadError and no lingering .part or .bak files. This is a mocked failure, not live transport behavior.
+**Verified purpose:** Mocks metadata success and an export HTTPError, then expects RteOdreDownloadError. It asserts only that tmp_path has no `*.part` or `*.geojson` files; it does not assert absence of `*.bak`. This is a mocked failure, not live transport behavior.
 
 **Exact signature**
 
@@ -3120,7 +3120,7 @@ def test_http_failure_raises_and_cleans_temporary_files(
 
 Qualified owner: `tests.unit.test_rte_odre_fr.test_failed_refresh_preserves_previous_valid_cache`. Source lines 536–565.
 
-**Verified purpose:** Ages the sidecar then makes the export request fail; checks the prior archive bytes and aged metadata bytes persist without part/backup files. It does not claim that expired cache becomes a valid hit.
+**Verified purpose:** Ages the sidecar, then makes the metadata request fail with HTTPError before any refresh export request. It asserts the prior archive bytes remain, the expired metadata bytes remain and differ from the pre-expiration metadata, and no `*.part` files remain; it does not assert absence of `*.bak`. It does not claim that an expired cache becomes a fresh valid hit.
 
 **Exact signature**
 
@@ -3481,7 +3481,7 @@ def test_metadata_publication_failure_restores_previous_pair(
 
 Qualified owner: `tests.unit.test_rte_odre_fr.test_metadata_publication_failure_restores_previous_pair.fail_metadata_publication`. Source lines 622–627.
 
-**Verified purpose:** Raises PermissionError only for temporary-metadata-to-primary replacement and delegates every other replacement to the original helper.
+**Verified purpose:** For temporary-metadata-to-primary replacement, sets the captured nonlocal `failure_injected = True` then raises PermissionError; delegates every other replacement to the original helper.
 
 **Exact signature**
 
@@ -3528,7 +3528,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | Only in the targeted metadata-publication branch, `failure_injected = True` rebinds the captured nonlocal flag before PermissionError. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -5526,7 +5526,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | If invoked, `network_calls += 1` rebinds the captured nonlocal counter before returning a synthetic response; the successful parent test asserts zero calls. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**
@@ -5968,7 +5968,7 @@ A category is claimed only when the exact call/assignment evidence is listed. Em
 | Hashing/byte identity | None directly present. |
 | CRS/geometry/spatial calculation | None directly present. |
 | External process/environment | None directly present. |
-| In-memory mutation | None directly present. |
+| In-memory mutation | Only the archive-backup rollback branch assigns captured nonlocal `rollback_failed = True` before raising; the metadata-publication failure branch does not. |
 | Direct parameter mutation | None directly present. |
 
 **Complete source-ordered implementation**

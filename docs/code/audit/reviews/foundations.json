@@ -7443,7 +7443,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-rteodredatasetmetadata-records-count",
           "review_notes": [
-            "Optional remote count; __post_init__ requires nonnegative exact int excluding bool or None. Export validation compares it when present."
+            "Optional remote count; __post_init__ accepts None or a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards. Export validation compares it when present."
           ],
           "test_references": []
         },
@@ -7488,7 +7488,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-rteodreexportsummary",
           "review_notes": [
-            "Frozen physical-export summary. __post_init__ checks nonnegative exact int counts, closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself."
+            "Frozen physical-export summary. __post_init__ checks nonnegative int counts under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards; it also checks count closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself."
           ],
           "test_references": []
         },
@@ -7503,7 +7503,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-rteodreexportsummary-feature-count",
           "review_notes": [
-            "Physical FeatureCollection list length; __post_init__ requires nonnegative exact int excluding bool."
+            "Physical FeatureCollection list length; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards."
           ],
           "test_references": []
         },
@@ -7518,7 +7518,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-rteodreexportsummary-null-geometry-count",
           "review_notes": [
-            "Number of features whose geometry key is missing or null; nonnegative exact int and part of closure."
+            "Number of features whose geometry key is missing or null; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards, and requires count closure."
           ],
           "test_references": []
         },
@@ -7533,7 +7533,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-rteodreexportsummary-non-null-geometry-count",
           "review_notes": [
-            "Number of features with non-null geometry object; nonnegative exact int and part of closure."
+            "Number of features with non-null geometry object; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards, and requires count closure."
           ],
           "test_references": []
         },
@@ -8226,7 +8226,7 @@
         ]
       ],
       "source_sha256_basis": "git-content",
-      "documentation_sha256": "b2d66a11d1c44ca506f5e799ae15119e2c015f36aead361f5122c8d7db8d6ff4",
+      "documentation_sha256": "4e17bdbbbe6754bba568e6ff6b343563c350ac43c0d89213bc404c71f5213cb9",
       "documentation_sha256_basis": "git-content",
       "r16_provenance": {
         "receipt": "docs/code/audit/R16_RTE_ODRE_SOURCE.md",
@@ -8234,6 +8234,18 @@
         "review": "PENDING",
         "source_commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
         "companion_evidence": "embedded documentation status; no separate companion owner row"
+      },
+      "r16_1_provenance": {
+        "source_commit": "2f2dabe99825989f5fee8093dc7d5aeb129fce89",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R16.1.md",
+        "receipt": "docs/code/audit/R16_1_DOCUMENTATION_FIDELITY.md",
+        "supplied_review": "CORRECTION_REQUIRED — R16 documentation only",
+        "local_correction_review": "PENDING",
+        "reservations": [
+          "R16-REV01",
+          "R16-REV02",
+          "R16-REV03"
+        ]
       }
     },
     {
@@ -27488,7 +27500,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-test-http-failure-raises-and-cleans-temporary-files",
           "review_notes": [
-            "Mocks metadata success and export HTTPError, expects RteOdreDownloadError and no lingering .part or .bak files. This is a mocked failure, not live transport behavior."
+            "Mocks metadata success and an export HTTPError, then expects RteOdreDownloadError. It asserts only that tmp_path has no `*.part` or `*.geojson` files; it does not assert absence of `*.bak`. This is a mocked failure, not live transport behavior."
           ],
           "test_references": []
         },
@@ -27503,7 +27515,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-test-failed-refresh-preserves-previous-valid-cache",
           "review_notes": [
-            "Ages the sidecar then makes the export request fail; checks the prior archive bytes and aged metadata bytes persist without part/backup files. It does not claim that expired cache becomes a valid hit."
+            "Ages the sidecar, then makes the metadata request fail with HTTPError before any refresh export request. It asserts the prior archive bytes remain, the expired metadata bytes remain and differ from the pre-expiration metadata, and no `*.part` files remain; it does not assert absence of `*.bak`. It does not claim that an expired cache becomes a fresh valid hit."
           ],
           "test_references": []
         },
@@ -27548,7 +27560,7 @@
           "status": "CHECKED",
           "documentation_anchor": "r16-test-metadata-publication-failure-restores-previous-pair-fail-metadata-publication",
           "review_notes": [
-            "Raises PermissionError only for temporary-metadata-to-primary replacement and delegates every other replacement to the original helper."
+            "For temporary-metadata-to-primary replacement, sets the captured nonlocal `failure_injected = True` then raises PermissionError; delegates every other replacement to the original helper."
           ],
           "test_references": []
         },
@@ -28001,7 +28013,7 @@
         ]
       ],
       "source_sha256_basis": "git-content",
-      "documentation_sha256": "432c8b63b9287919c3f7f5aee760af033c0c2c0beb2776a1a10aac62d07aa5f8",
+      "documentation_sha256": "79ae76947bc49297bd38c8361126a82c66d8963df9caa3450346fd738b8d652b",
       "documentation_sha256_basis": "git-content",
       "r16_provenance": {
         "receipt": "docs/code/audit/R16_RTE_ODRE_SOURCE.md",
@@ -28009,6 +28021,18 @@
         "review": "PENDING",
         "source_commit": "7f00e8c29e9bb85222abb708e0fc6a45ad2ba178",
         "companion_evidence": "embedded documentation status; no separate companion owner row"
+      },
+      "r16_1_provenance": {
+        "source_commit": "2f2dabe99825989f5fee8093dc7d5aeb129fce89",
+        "ticket": "docs/project/tickets/DOCS.CONTINUITY.1.R16.1.md",
+        "receipt": "docs/code/audit/R16_1_DOCUMENTATION_FIDELITY.md",
+        "supplied_review": "CORRECTION_REQUIRED — R16 documentation only",
+        "local_correction_review": "PENDING",
+        "reservations": [
+          "R16-REV01",
+          "R16-REV02",
+          "R16-REV03"
+        ]
       }
     },
     {

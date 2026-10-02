@@ -869,7 +869,7 @@ Source lines 155–155.
 
 Exact declaration: `records_count: int | None`.
 
-Optional remote count; __post_init__ requires nonnegative exact int excluding bool or None. Export validation compares it when present.
+Optional remote count; __post_init__ accepts None or a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards. Export validation compares it when present.
 
 <a id="r16-rteodredatasetmetadata-geometry-precision-status"></a>
 #### `landscout.sources.rte_odre_fr.RteOdreDatasetMetadata.geometry_precision_status`
@@ -885,7 +885,7 @@ Conservative description-derived UNKNOWN/GENERALIZED_OR_RESTRICTED, or MISSING f
 
 Qualified owner: `landscout.sources.rte_odre_fr.RteOdreExportSummary`. Source lines 168–191.
 
-**Verified purpose:** Frozen physical-export summary. __post_init__ checks nonnegative exact int counts, closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself.
+**Verified purpose:** Frozen physical-export summary. __post_init__ checks nonnegative int counts under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards; it also checks count closure and a tuple of nonempty strings, but not sorted/unique/closed geometry names by itself.
 
 - Exact decorators: `dataclass(frozen=True)`.
 - Exact bases: plain object.
@@ -974,7 +974,7 @@ Source lines 169–169.
 
 Exact declaration: `feature_count: int`.
 
-Physical FeatureCollection list length; __post_init__ requires nonnegative exact int excluding bool.
+Physical FeatureCollection list length; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards.
 
 <a id="r16-rteodreexportsummary-null-geometry-count"></a>
 #### `landscout.sources.rte_odre_fr.RteOdreExportSummary.null_geometry_count`
@@ -983,7 +983,7 @@ Source lines 170–170.
 
 Exact declaration: `null_geometry_count: int`.
 
-Number of features whose geometry key is missing or null; nonnegative exact int and part of closure.
+Number of features whose geometry key is missing or null; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards, and requires count closure.
 
 <a id="r16-rteodreexportsummary-non-null-geometry-count"></a>
 #### `landscout.sources.rte_odre_fr.RteOdreExportSummary.non_null_geometry_count`
@@ -992,7 +992,7 @@ Source lines 171–171.
 
 Exact declaration: `non_null_geometry_count: int`.
 
-Number of features with non-null geometry object; nonnegative exact int and part of closure.
+Number of features with non-null geometry object; __post_init__ accepts a nonnegative int under isinstance, excluding bool but admitting ordinary int subclasses that satisfy the guards, and requires count closure.
 
 <a id="r16-rteodreexportsummary-geometry-types"></a>
 #### `landscout.sources.rte_odre_fr.RteOdreExportSummary.geometry_types`
