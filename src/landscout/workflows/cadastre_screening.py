@@ -30,6 +30,7 @@ from landscout.stages.filter_parcels import (
     filter_parcels_by_shape,
 )
 from landscout.stages.normalize_cadastre import normalize_cadastre_parcels
+from landscout.workflows import grid_screening as grid
 
 IDENTITY_COLUMNS = (
     "parcel_id",
@@ -74,6 +75,8 @@ class CadastreScreeningRunResult:
     area_rejected_count: int
     shape_rejected_count: int
     retained_count: int
+    voltage_proximity_csv: Path | None = None
+    grid_status: str | None = None
 
 
 def _fingerprint(path: Path) -> dict[str, str | int]:
@@ -106,6 +109,7 @@ def _check_output_path(
     cache: Path,
     root: Path,
     configuration_paths: tuple[Path, ...],
+    additional_paths: tuple[Path, ...] = (),
 ) -> Path:
     # Inspect the lexical path before resolve() can hide a link or junction.
     for ancestor in (path, *path.parents):
@@ -124,7 +128,7 @@ def _check_output_path(
         raise CadastreScreeningRunError(
             "Output directory collides with the cadastre cache"
         )
-    protected = [*configuration_paths, root / ".git"]
+    protected = [*configuration_paths, root / ".git", *additional_paths]
     if (root / ".git").exists():
         try:
             listing = subprocess.run(
@@ -230,9 +234,13 @@ def _records(
     return sorted(records, key=lambda row: str(row["parcel_id"]))
 
 
-def _write_csv(path: Path, records: list[dict[str, str | float | None]]) -> None:
+def _write_csv(
+    path: Path,
+    records: list[dict[str, str | float | None]],
+    columns: tuple[str, ...] = EXPORT_COLUMNS,
+) -> None:
     with path.open("x", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=EXPORT_COLUMNS, lineterminator="\n")
+        writer = csv.DictWriter(stream, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         writer.writerows(records)
 
@@ -304,6 +312,10 @@ def run_cadastre_screening(
     output_dir: Path | None = None,
     allow_download: bool = False,
     max_cache_age_hours: float = 168.0,
+    with_grid: bool = False,
+    ign_config_path: Path | None = None,
+    ign_cache_dir: Path | None = None,
+    ign_extraction_dir: Path | None = None,
 ) -> CadastreScreeningRunResult:
     """Run one FR/BESS commune, retaining the existing physical trust boundaries.
 
@@ -318,6 +330,12 @@ def run_cadastre_screening(
             raise CadastreScreeningRunError("scan_path must be a pathlib.Path")
         if type(allow_download) is not bool:
             raise CadastreScreeningRunError("allow_download must be an exact bool")
+        if type(with_grid) is not bool:
+            raise CadastreScreeningRunError("with_grid must be an exact bool")
+        if not with_grid and any(
+            p is not None for p in (ign_config_path, ign_cache_dir, ign_extraction_dir)
+        ):
+            raise CadastreScreeningRunError("IGN options require with_grid=True")
         scan_path = scan_path.resolve()
         if len(scan_path.parents) < 3:
             raise CadastreScreeningRunError(
@@ -346,9 +364,10 @@ def run_cadastre_screening(
                 "This workflow requires FR/BESS and exactly one commune"
             )
         commune = scan.aoi.commune_codes[0]
-        cache = _absolute(
+        cache_path = _absolute(
             cache_dir if cache_dir is not None else DEFAULT_CACHE_DIR, root
-        ).resolve()
+        )
+        cache = cache_path.resolve()
         destination = (
             _absolute(output_dir, root)
             if output_dir is not None
@@ -360,6 +379,36 @@ def run_cadastre_screening(
         destination = _check_output_path(
             destination, cache, root, (scan_path, profile_path)
         )
+        grid_options = None
+        source_paths: tuple[Path, ...] = ()
+        configuration_paths = (scan_path, profile_path)
+        if with_grid:
+            grid_options = grid._prepare_grid(
+                root,
+                commune,
+                cache_path,
+                destination,
+                configuration_paths,
+                ign_config_path,
+                ign_cache_dir,
+                ign_extraction_dir,
+            )
+            identities = (
+                *identities,
+                (grid_options.config_path, grid_options.config_identity),
+            )
+            configuration_paths = (*configuration_paths, grid_options.config_path)
+            source_paths = (
+                grid_options.cache_dir,
+                *(
+                    (grid_options.extraction_dir,)
+                    if grid_options.extraction_dir is not None
+                    else ()
+                ),
+            )
+            _check_output_path(
+                destination, cache, root, configuration_paths, source_paths
+            )
         download = download_cadastre_parcelles(
             commune,
             cache_dir=cache,
@@ -383,8 +432,24 @@ def run_cadastre_screening(
             retained,
             shape_rejected,
         )
+        grid_run = (
+            grid._run_grid(retained, grid_options)
+            if grid_options is not None and len(retained)
+            else None
+        )
         retained_records = _records(
             retained, "AREA_SHAPE" if loaded.profile.shape_screening.enabled else "AREA"
+        )
+        if grid_run is not None:
+            grid_records = grid._parcel_records(grid_run)
+            retained_records = [
+                {**row, **grid_records[row["parcel_id"]]} for row in retained_records
+            ]
+        candidate_columns = (
+            (*EXPORT_COLUMNS, *grid.GRID_COLUMNS) if with_grid else EXPORT_COLUMNS
+        )
+        voltage_records = (
+            grid._voltage_records(grid_run) if grid_run is not None else []
         )
         rejected_records = sorted(
             _records(area_rejected, "AREA", "rejection_reason")
@@ -392,22 +457,42 @@ def run_cadastre_screening(
             key=lambda row: str(row["parcel_id"]),
         )
         _check_config_identity(identities)
-        _check_output_path(destination, cache, root, (scan_path, profile_path))
+        _check_output_path(destination, cache, root, configuration_paths, source_paths)
         destination.mkdir(parents=True, exist_ok=False)
         reserved = destination
         candidates_csv = destination / "candidates.csv"
         rejections_csv = destination / "rejections.csv"
         candidates_geojson = destination / "candidates.geojson"
-        _write_csv(candidates_csv, retained_records)
+        _write_csv(candidates_csv, retained_records, candidate_columns)
         _write_csv(rejections_csv, rejected_records)
         _write_geojson(candidates_geojson, retained, retained_records)
+        voltage_path = destination / "voltage_proximity.csv" if with_grid else None
+        if voltage_path is not None:
+            _write_csv(voltage_path, voltage_records, grid.VOLTAGE_EXPORT_COLUMNS)
+            with voltage_path.open(encoding="utf-8", newline="") as stream:
+                written = list(csv.DictReader(stream))
+            expected = [
+                {key: "" if value is None else str(value) for key, value in row.items()}
+                for row in voltage_records
+            ]
+            if written != expected:
+                raise CadastreScreeningRunError(
+                    "Written voltage table differs from public grid result"
+                )
         _verify_export_ids(
             candidates_csv, rejections_csv, candidates_geojson, normalized, retained
         )
         revalidate_cadastre_parcel_source(source)
+        if grid_run is not None:
+            grid._final_grid_check(grid_run)
         _check_config_identity(identities)
         data_files = []
-        for path in (candidates_csv, rejections_csv, candidates_geojson):
+        for path in (
+            candidates_csv,
+            rejections_csv,
+            candidates_geojson,
+            *((voltage_path,) if voltage_path is not None else ()),
+        ):
             identity = _fingerprint(path)
             data_files.append({**identity, "path": path.name})
         manifest: dict[str, object] = {
@@ -468,6 +553,17 @@ def run_cadastre_screening(
             "presentation_order": "parcel_id ascending; intermediate frames unchanged",
         }
         manifest_path = destination / "run.json"
+        if with_grid:
+            manifest["schema_version"] = 2
+            manifest["scope"] = "CADASTRE_AREA_SHAPE_WITH_GRID_PROXIES"
+            manifest["configuration"]["ign"] = grid_options.config_identity
+            manifest["grid"] = (
+                grid._provenance(grid_run)
+                if grid_run is not None
+                else {"status": "NOT_RUN", "reason": "NO_RETAINED_PARCELS"}
+            )
+            if grid_run is not None:
+                del manifest["not_run"]["grid"]
         _publish_manifest(manifest_path, manifest)
         return CadastreScreeningRunResult(
             destination,
@@ -479,6 +575,8 @@ def run_cadastre_screening(
             len(area_rejected),
             len(shape_rejected),
             len(retained),
+            voltage_path,
+            ("COMPLETE" if grid_run is not None else "NOT_RUN") if with_grid else None,
         )
     except (OSError, ValueError, TypeError, RuntimeError) as error:
         detail = str(error)

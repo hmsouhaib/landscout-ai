@@ -14,6 +14,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     scan.add_argument("--cache-dir", type=Path)
     scan.add_argument("--output", type=Path)
     scan.add_argument("--max-cache-age-hours", type=float, default=168.0)
+    scan.add_argument(
+        "--with-grid",
+        action="store_true",
+        help="Read verified local IGN grid proxies and coverage",
+    )
+    scan.add_argument("--ign-config", type=Path)
+    scan.add_argument("--ign-cache-dir", type=Path)
+    scan.add_argument("--ign-extraction-dir", type=Path)
     mode = scan.add_mutually_exclusive_group()
     mode.add_argument(
         "--offline", action="store_true", help="Use a fresh verified cache (default)"
@@ -24,6 +32,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Allow acquisition of the configured commune",
     )
     args = parser.parse_args(argv)
+    if not args.with_grid and any(
+        p is not None
+        for p in (args.ign_config, args.ign_cache_dir, args.ign_extraction_dir)
+    ):
+        parser.error("IGN options require --with-grid")
 
     from landscout.workflows import CadastreScreeningRunError, run_cadastre_screening
 
@@ -34,6 +47,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_dir=args.output,
             allow_download=args.allow_download,
             max_cache_age_hours=args.max_cache_age_hours,
+            with_grid=args.with_grid,
+            ign_config_path=args.ign_config,
+            ign_cache_dir=args.ign_cache_dir,
+            ign_extraction_dir=args.ign_extraction_dir,
         )
     except CadastreScreeningRunError as error:
         print(f"Cadastre screening failed: {error}", file=sys.stderr)

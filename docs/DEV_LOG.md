@@ -6258,3 +6258,99 @@ Only cadastral area/shape screening ran. Grid, roads, planning, environment,
 scoring and owners are NOT_RUN. No BESS authorization, legal access, capacity or
 owner/contact conclusion is produced. Functional independent review is pending;
 stop after publication of this DEV branch.
+
+## DEV.GRID.RUN.1 — Optional source-bound IGN proximity and coverage
+
+2026-10-16. Started clean at `4550ca0777fd4acfa26405b51a64eaf25b25b49d` on the
+existing `dev/cadastre-run-1`. [Received ticket](project/tickets/DEV.GRID.RUN.1.md)
+is archived byte-for-byte from the attachment actually available to Codex, SHA256
+`ee0682cacab20bea25d6583ebacf005cb55dbe5d796577c858054484399ca909`.
+This proves identity with that received file, not with an unavailable initial
+Markdown/chat rendering. Section 1 supplies the limited independent cadastre/A-001
+approval at the starting SHA, with reviewer execution/Windows/provenance limits.
+Previous ticket/results remain historical. Global audit stays PARTIAL and deferred.
+
+Implemented optional `--with-grid` / API arguments, with explicit IGN options,
+root-relative public defaults and department/path/config preflight. The adapter
+adds exact-bool keyword-only `allow_download=True` and `allow_extract=True`;
+False stops before preparation/cleanup/network/extraction on an unusable source.
+Historical True paths remain compatible. The workflow always supplies False for
+both IGN permissions, including when cadastral download is permitted. No official
+source acquisition/re-extraction or cache-identity/freshness change occurred.
+
+The existing cadastral partitions execute once. Public `assess_grid_coverage`
+owns proximity/normalization/coverage; the workflow does not use private compute
+helpers or rerun proximity. Schema 1 remains the old four-file contract. Opt-in
+schema 2 adds the explicit grid allowlist, dynamic voltage_proximity.csv, four
+data-file digests and explicit IGN/config/archive/extraction/GPKG/coverage lineage.
+Selection/reasons/geometry stay cadastral. Integer/null/status evidence is preserved;
+grid failures cannot silently publish cadastral COMPLETE. Zero retained uses an
+empty extended schema with grid NOT_RUN/NO_RETAINED_PARCELS and no acquisition proof.
+
+User clarification after source inspection, within this same ticket: the named
+public electrical revalidator does not exist; the actual helper is internal.
+Final validation therefore publicly reloads electricity and strictly compares
+both complete GeoDataFrames (column order, values/dtypes, index class/values/names,
+active geometry, CRS, WKB, attrs), complete typed summaries, role and extraction
+identity. No private revalidator is imported or publicly aliased. Archive, coverage,
+marker and configuration checks remain separate, with causes retained. The second
+clarification permits index restoration because the stage resets it: first require
+the exact unique/non-null ID sequence and row count, then copy only the result's
+parcel frame and assign retained.index.copy(deep=True), then compare its full
+cadastral prefix. Neither input changes; no sort/reindex hides damage; the voltage
+table retains its own pair/index contract. These are two ticket imprecisions,
+not newly classified application defects or stage modifications.
+
+Validation in the existing Python 3.12.13 / GeoPandas 1.1.4 / Shapely 2.1.2,
+GEOS 3.13.1 / Pyogrio 0.13.0 environment:
+
+- Required 15-file pytest campaign: **978 passed, 1 warning / 157.96s / final native
+  exit0 after cleanup**, basetemp `%LOCALAPPDATA%\LandScout\pytest-runs\dgr1-07ab0e2d`.
+  The warning is the pre-existing invalid-coverage fixture deliberately writing
+  without CRS, not a new grid warning. No skip/xfail reported. Logs outside Git:
+  `C:\souhaib\dgr1-pytest-01.stdout.txt` / `.stderr.txt`.
+- Follow-up only for a new cadastre-permission/IGN-False regression and strengthened
+  unknown-voltage assertions: **2 passed / 4.33s / native exit0 after cleanup**,
+  basetemp `dgr1-2d706f50`, logs `C:\souhaib\dgr1-pytest-02.stdout.txt` / `.stderr.txt`.
+  There are **979 distinct cases** across these runs, not a claimed 979-case rerun
+  of the whole campaign. No pytest failure occurred in this ticket.
+- Ruff check/format are confined to the seven changed Python files. Initial I001
+  and unused-unpacking diagnostics in the new test were corrected before pytest.
+  New-delta `git diff --check` passes; no full pytest/documentary INDEX run or
+  installation. Historical audit registers/bindings remain partial and unchanged;
+  the IGN companion carries only a partial-staleness banner.
+- Bounded preservation passes: 329 starting tracked paths, 319 initially tracked
+  paths outside the 13 modified paths unchanged. Of the historical 106 protected
+  files, 104 retain starting-commit bytes; only the authorized IGN source/test are
+  new exceptions. Three prior approved cadastral exceptions are preserved, leaving
+  101 still identical to the original manifest. Both inherited EOL variants remain.
+- New integration prepares a real tiny 7z/GPKG with four distinct physical roles
+  through authorized adapter APIs and simulated transport. Final runs use real
+  physical loaders/revalidators/normalization/proximity/coverage, with transport
+  forbidden. Tests cover ties, full-parcel distances/zero, exact/bounded/unknown
+  voltage, no exact levels, unusable geometry, boundary statuses, exports/digests,
+  named sparse index and damaged ID/prefix rejection, both-layer reread differences,
+  persistent YAML/archive/GPKG/marker changes, path/write failures and real CLI
+  codes 0/1/2 with child DNS/network sentinels. Simulated links are not real Windows links.
+
+`SYNTHETIC_END_TO_END`: saved example
+`C:\souhaib\dgr1-synthetic-example\outputs\grid-run`, CLI native exit0 and no child
+network boundary invocation: **8 = 4 AREA rejected + 2 SHAPE rejected + 2 retained**.
+Four voltage rows cover 63 and 132.5 kV (one source line each). Parcel AA0001:
+line/exact distance 10 m, tie_count 2, post 0 m, all NOT_BOUNDARY_LIMITED. Parcel
+AA0008: nearest line 0 m/BELOW (<45 kV), exact line 5,930 m/BOUNDARY_LIMITED,
+post 10 m/NOT_BOUNDARY_LIMITED. These are synthetic IDs/measurements, not Muret facts.
+Logs `C:\souhaib\dgr1-synthetic.stdout.txt` / `.stderr.txt`; [usage](usage/cadastre_screening.md).
+
+`REAL_MURET_OFFLINE_RUN`: **NOT_RUN** for this grid ticket. Existing cadastral
+sidecar still lacks schema_version/commune_code and is dated 2026-08-11; IGN archive
+sidecar records `2026-08-11T15:32:03.110837+00:00`, beyond configured 168h.
+Official extraction was not freshly revalidated after that archive blocker.
+No official distances/counts, download, re-extraction, timestamp/hash alteration
+or age extension is claimed. The prior cadastral exit1 is separate historical evidence.
+
+Main and recovery are preserved. Grid remains PROXY_GEOMETRY evidence, without
+capacity/connection/eligibility conclusions or selection thresholds. Roads,
+planning, environment, scoring and owners stay NOT_RUN. A-001's limited acceptance
+is referenced in current state/backlog; A-002/A-003/A-004 and EP semantic review
+remain open. Independent review of this grid slice is pending; stop after DEV publication.

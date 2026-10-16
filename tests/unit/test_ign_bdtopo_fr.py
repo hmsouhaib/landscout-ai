@@ -2207,3 +2207,191 @@ def test_road_loader_rejects_source_change_after_physical_read(
         pytest.raises(IgnBdTopoLayerError, match="changed|integrity|SHA"),
     ):
         ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+
+@pytest.mark.parametrize("flag", [None, 0, 1, "false", [], {}])
+def test_offline_ign_permissions_require_exact_bool(source_config, tmp_path, flag):
+    with pytest.raises(IgnBdTopoDownloadError, match="exact bool"):
+        download_ign_bdtopo_archive(source_config, tmp_path, allow_download=flag)
+    with pytest.raises(IgnBdTopoArchiveError, match="exact bool"):
+        extract_ign_bdtopo_archive(
+            object(), source_config, tmp_path, allow_extract=flag
+        )
+    assert not list(tmp_path.iterdir())
+
+
+def test_verified_ign_offline_reuse_skips_all_preparation(tmp_path, source_config):
+    config, download, extracted = _extracted_fixture(tmp_path, source_config)
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with (
+        patch.object(
+            ign_bdtopo_fr, "open_safe_https", side_effect=AssertionError("network")
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_prepare_temporary_cache_file",
+            side_effect=AssertionError("cache prepare"),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_prepare_temporary_extraction_directory",
+            side_effect=AssertionError("extract prepare"),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_remove_validated_extraction_directory",
+            side_effect=AssertionError("cleanup"),
+        ),
+        patch.object(
+            py7zr.SevenZipFile, "extractall", side_effect=AssertionError("extract")
+        ),
+        patch.object(Path, "mkdir", side_effect=AssertionError("mkdir")),
+    ):
+        cached = download_ign_bdtopo_archive(
+            config, download.path.parent, allow_download=False
+        )
+        reused = extract_ign_bdtopo_archive(
+            cached, config, extracted.extraction_path, allow_extract=False
+        )
+    assert cached.cache_hit and reused.cache_hit
+    assert reused.geopackage_sha256 == extracted.geopackage_sha256
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        "absent",
+        "expired",
+        "checksum",
+        "size",
+        "archive",
+        "backup",
+        "unsafe_archive",
+        "unsafe_metadata",
+    ],
+)
+def test_archive_cache_only_failure_precedes_all_mutation(
+    tmp_path, source_config, monkeypatch, state
+):
+    cache = tmp_path / "cache"
+    config = _synthetic_config(source_config)
+    archive_path = cache / "BDTOPO_TEST_D031.7z"
+    if state != "absent":
+        raw = _synthetic_archive_bytes(tmp_path / "source")
+        with patch.object(
+            ign_bdtopo_fr, "open_safe_https", return_value=_response(raw)
+        ):
+            download = download_ign_bdtopo_archive(config, cache, allow_download=True)
+        metadata = _metadata_path(download.path)
+        if state == "expired":
+            _expire_cache(metadata)
+        elif state in ("checksum", "size"):
+            values = json.loads(metadata.read_bytes())
+            values["sha256" if state == "checksum" else "file_size"] = (
+                "0" * 64 if state == "checksum" else download.file_size + 1
+            )
+            metadata.write_text(json.dumps(values), encoding="utf-8")
+        elif state == "archive":
+            download.path.write_bytes(b"not a 7z archive")
+        elif state == "backup":
+            download.path.with_name(download.path.name + ".bak").write_bytes(
+                b"manual recovery"
+            )
+        else:
+            unsafe = archive_path if state == "unsafe_archive" else metadata
+            original = Path.is_symlink
+            monkeypatch.setattr(
+                Path, "is_symlink", lambda p: p == unsafe or original(p)
+            )
+        archive_path.with_name(archive_path.name + ".part").write_bytes(
+            b"preserve old part"
+        )
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with (
+        patch.object(
+            ign_bdtopo_fr, "open_safe_https", side_effect=AssertionError("network")
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_prepare_temporary_cache_file",
+            side_effect=AssertionError("prepare"),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_cleanup_temporary_cache_files",
+            side_effect=AssertionError("cleanup"),
+        ),
+        patch.object(
+            ign_bdtopo_fr, "_publish_cache_pair", side_effect=AssertionError("publish")
+        ),
+        patch.object(Path, "mkdir", side_effect=AssertionError("mkdir")),
+        pytest.raises(IgnBdTopoDownloadError),
+    ):
+        download_ign_bdtopo_archive(config, cache, allow_download=False)
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        "absent",
+        "marker",
+        "geopackage",
+        "backup",
+        "target_link",
+        "marker_link",
+        "target_file",
+    ],
+)
+def test_extraction_reuse_only_failure_precedes_cleanup_or_extract(
+    tmp_path, source_config, monkeypatch, state
+):
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    target = extraction.extraction_path
+    if state == "absent":
+        target = tmp_path / "missing/extraction"
+    elif state == "marker":
+        _extraction_metadata_path(target).write_text("{}", encoding="utf-8")
+    elif state == "geopackage":
+        extraction.geopackage_path.write_bytes(
+            extraction.geopackage_path.read_bytes() + b"changed"
+        )
+    elif state == "backup":
+        target.with_name(target.name + ".bak").mkdir()
+    elif state in ("target_link", "marker_link"):
+        unsafe = target if state == "target_link" else _extraction_metadata_path(target)
+        original = Path.is_junction
+        monkeypatch.setattr(Path, "is_junction", lambda p: p == unsafe or original(p))
+    else:
+        target = tmp_path / "existing-file"
+        target.write_bytes(b"preserve me")
+    part = target.with_name(target.name + ".part")
+    if target.parent.exists():
+        part.mkdir()
+        (part / "sentinel").write_bytes(b"preserve temporary directory")
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with (
+        patch.object(
+            ign_bdtopo_fr,
+            "_prepare_temporary_extraction_directory",
+            side_effect=AssertionError("prepare"),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_remove_validated_extraction_directory",
+            side_effect=AssertionError("cleanup"),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_publish_extraction_directory",
+            side_effect=AssertionError("publish"),
+        ),
+        patch.object(
+            py7zr.SevenZipFile, "extractall", side_effect=AssertionError("extract")
+        ),
+        patch.object(Path, "mkdir", side_effect=AssertionError("mkdir")),
+        pytest.raises(IgnBdTopoArchiveError),
+    ):
+        extract_ign_bdtopo_archive(download, config, target, allow_extract=False)
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before

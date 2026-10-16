@@ -1,5 +1,12 @@
 # `src/landscout/sources/ign_bdtopo_fr.py`
 
+> DEV.GRID.RUN.1 delta — this companion is partially stale. The adapter adds
+> keyword-only exact-bool `allow_download=True` and `allow_extract=True`.
+> False requires a verified reusable archive/extraction before any preparation,
+> cleanup, network or extraction. See the [current usage](../../../../../usage/cadastre_screening.md).
+> Historical snapshots, signatures and hashes below remain pre-DEV evidence;
+> they are not regenerated or promoted to CHECKED by this functional ticket.
+
 ## File identity
 
 - Repository path: `src/landscout/sources/ign_bdtopo_fr.py`

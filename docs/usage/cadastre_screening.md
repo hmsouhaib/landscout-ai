@@ -2,7 +2,8 @@
 
 `DEV.CADASTRE.RUN.1` integrates one FR/BESS commune through verified cadastral
 loading, normalization, and the existing area and shape filters. The result is
-`RETAINED_BY_EXECUTED_FILTERS`, a preliminary geometric selection. Grid, roads,
+`RETAINED_BY_EXECUTED_FILTERS`, a preliminary geometric selection. Without
+`--with-grid`, grid, roads,
 planning, environment, scoring and owners are recorded as `NOT_RUN`. Their
 presence elsewhere in the library does not imply execution by this command.
 
@@ -145,8 +146,128 @@ output directory. The local pre-schema sidecar lacks `schema_version` and
 the current fresh-cache contract. Neither archive nor metadata changed; no
 download occurred. Real parcel counts/selection are therefore unavailable.
 
-The exact [ticket](../project/tickets/DEV.CADASTRE.RUN.1.md) and
+The exact historical [cadastre ticket](../project/tickets/DEV.CADASTRE.RUN.1.md) and
 [DEV_LOG](../DEV_LOG.md#devcadastrerun1--first-executable-cadastre-screening-slice)
-record execution evidence. A-001's implementation awaits independent review;
+record that ticket's execution evidence. The successor review supplied in
+[DEV.GRID.RUN.1 section 1](../project/tickets/DEV.GRID.RUN.1.md) accepts the cadastre
+slice and A-001 within its reviewed scope;
 A-002/A-003/A-004 remain open. Global documentation remains PARTIAL and deferred
 by the user, with stale bindings queued for reconciliation on resumption.
+
+## Optional IGN grid proximity and coverage — schema 2
+
+```powershell
+.venv\Scripts\python.exe -B -X utf8 -m landscout scan `
+  --scan configs/scans/bess_muret.yaml `
+  --cache-dir data/cache/cadastre `
+  --output outputs/muret-cadastre-grid `
+  --with-grid `
+  --ign-config configs/sources/ign_bdtopo_fr.yaml `
+  --offline
+```
+
+The API adds keyword-only `with_grid=False`, `ign_config_path=None`,
+`ign_cache_dir=None` and `ign_extraction_dir=None`. `with_grid` requires an exact
+bool. IGN paths without grid enabled are rejected (CLI usage exit 2, API controlled
+run error). The CLI accepts `--ign-cache-dir` and `--ign-extraction-dir` for existing
+sources. Relative paths use the scan root above. Without overrides the adapter's
+public default config/cache paths are root-relative; the extractor selects its
+own default extraction from the verified download, without a duplicated archive
+filename in the workflow. Configured department must match the canonical commune
+department, including supported Corsican and overseas codes.
+
+IGN consumption is **reuse only**: the workflow always passes
+`allow_download=False` and `allow_extract=False`. `--allow-download` remains a
+cadastre-only permission. The two IGN adapter flags are keyword-only, exact bools,
+default True for historical callers. An unusable archive cache fails before
+mkdir/.part preparation/cleanup/network/publication; an unusable extraction fails
+before directory preparation/cleanup/extraction/replacement. Existing age,
+checksum, role, recovery and extraction-inventory checks remain effective.
+
+The cadastral calculation and partitions execute once. For nonempty retained
+parcels, the workflow loads verified electricity then calls public
+`assess_grid_coverage` once. That API owns its public proximity call, source-complete
+normalization and configured department-coverage load. The workflow does not call
+the private frame-computation helpers or recalculate distances. Line/post geometry
+remains an IGN proxy, and `nearest_exact_line` means **exact voltage**, not surveyed
+or certified geometry. There is no distance threshold or change to selection.
+
+The producer resets the parcel index. As clarified by the user, integration first
+checks count, ID presence/uniqueness and exact ID sequence; permutation/loss cannot
+be masked. It restores `retained.index.copy(deep=True)` on a new parcel-frame copy,
+then compares the complete pre-existing prefix (columns/order, values/dtypes,
+index class/values/names, active geometry, CRS, WKB and frame attributes). Both input
+frames remain unchanged. The voltage table keeps its own pair structure/index.
+Frozen result dataclasses containing DataFrames are not deeply immutable.
+
+With grid enabled, the manifest has `schema_version=2` and
+`scope=CADASTRE_AREA_SHAPE_WITH_GRID_PROXIES`. It closes only this executed slice.
+Five files are published:
+
+- `candidates.csv` and GeoJSON properties retain the exact schema-1 prefix, followed
+  by the explicit `NEAREST_COLUMNS` allowlist (nearest line, nearest exact-voltage
+  line, nearest post), `PARCEL_DIAGNOSTIC_COLUMNS`, then `COVERAGE_LINEAGE_COLUMNS`.
+  The full ordered export declarations are in
+  [grid_screening.py](../../src/landscout/workflows/grid_screening.py); producer
+  schemas are confronted in the integration tests. Unknown source columns are not
+  exported through a wildcard.
+- `rejections.csv` keeps the cadastral schema and original AREA/SHAPE reasons.
+  Grid is computed only for retained parcels.
+- `voltage_proximity.csv` uses `VOLTAGE_PROXIMITY_COLUMNS`,
+  `VOLTAGE_DIAGNOSTIC_COLUMNS`, then `COVERAGE_LINEAGE_COLUMNS`, without duplicates.
+  Export copies sort by `(parcel_id, voltage_kv)`. Its complete unique pair domain
+  uses exact voltage levels dynamically observed in `voltage_level_coverage`.
+- `run.json` is still the last completion marker, covering the four data-file
+  sizes and SHA256 digests.
+
+Integers such as tie counts remain integers in JSON and integer CSV lexemes.
+Finite numbers, source text and true nulls are preserved explicitly; missing
+evidence is not converted to zero. Boolean distances and NaN/Infinity serialization
+are refused. Status strings remain `NOT_BOUNDARY_LIMITED`, `BOUNDARY_LIMITED`,
+`OUTSIDE_OR_CROSSING_COVERAGE` and `NO_MATCH`. A package boundary can limit the
+nearest-feature evidence; these statuses are not suitability decisions. NO_MATCH
+for the exact-voltage view does not mean absence of electricity across France.
+
+Schema 2 adds the IGN YAML binding, verified archive identity/cache_hit, extraction
+identity/cache_hit/marker binding, GPKG size/hash, configured physical roles/layer
+inventory, source edition/department/projection, selected source coverage and
+observed exact-voltage counts. Provenance is extracted explicitly, without
+recursive `asdict` over frames. A selected IGN post does not establish RTE capacity,
+a connection point, cost, availability or connection feasibility.
+
+After data export, the final checks validate archive integrity against the retained
+download, publicly reload both electricity layers and compare their complete
+frames and typed summaries, and publicly reload/compare the department coverage
+from the same extraction. The electrical revalidator is internal in the existing
+adapter; the user expressly authorized public loading plus complete comparisons
+in the workflow instead of a private alias. Marker and YAML byte bindings are
+also checked. Persistent source/configuration changes fail with preserved causes
+and no COMPLETE marker. These are fresh physical reads, not a second distance
+calculation or a universal concurrency/snapshot guarantee.
+
+With no retained parcel, configuration/options are still validated but IGN
+archive/extraction/distance APIs are not invoked. Schema 2 has empty extended
+candidate/voltage headers, `grid.status=NOT_RUN`,
+`grid.reason=NO_RETAINED_PARCELS` and no invented acquisition provenance. In contrast,
+a valid nonempty source with no exact voltage has `grid.status=COMPLETE`, an empty
+voltage table and NO_MATCH exact-voltage fields. An unusable requested source is a
+controlled error, never a silent cadastral success. When grid completes, only grid
+leaves `not_run`; roads/planning/environment/scoring/owners remain NOT_RUN.
+
+`SYNTHETIC_END_TO_END` example:
+`C:\souhaib\dgr1-synthetic-example\outputs\grid-run`, real CLI subprocess exit 0
+with DNS/network boundaries forbidden. Counts stay 8 = 4 AREA rejected + 2 SHAPE
+rejected + 2 retained. There are four voltage rows for 63 and 132.5 kV. Parcel
+`31395000AA0001` has line distance 10 m/tie_count 2 and post distance 0; parcel
+`31395000AA0008` has nearest line distance 0 with BELOW evidence, exact-voltage line
+distance 5,930 m/BOUNDARY_LIMITED, and post distance 10 m. These are synthetic
+geometries, not official Muret findings. Tests separately exercise unknown voltage,
+no exact levels, unusable geometry and near/touching/outside coverage.
+
+`REAL_MURET_OFFLINE_RUN`: not executed for this grid ticket because prerequisites
+are not fresh valid caches. The cadastral sidecar has the pre-schema deficiencies
+reported above; IGN records `2026-08-11T15:32:03.110837+00:00`, older than the
+configured 168 h. Official extraction usability was not freshly asserted after
+that archive-cache blocker. No official acquisition/re-extraction, freshness
+adjustment or real parcel-distance count is claimed. The earlier cadastre-only
+exit 1 remains its separate historical execution.

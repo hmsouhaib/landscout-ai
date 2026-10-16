@@ -791,17 +791,30 @@ def download_ign_bdtopo_archive(
     config: IgnBdTopoSourceConfig,
     cache_dir: Path = DEFAULT_CACHE_DIR,
     timeout: float = 120.0,
+    *,
+    allow_download: bool = True,
 ) -> IgnBdTopoDownload:
     """Download or reuse the pinned IGN package with atomic cache publication."""
 
     config = _validated_source_config(config)
+    if type(allow_download) is not bool:
+        raise IgnBdTopoDownloadError("allow_download must be an exact bool")
     filename = _archive_filename(config)
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
     _require_no_cache_recovery_material(archive_path, metadata_path)
+    if not allow_download and any(
+        path.is_symlink() or path.is_junction()
+        for path in (archive_path, metadata_path)
+    ):
+        raise IgnBdTopoDownloadError("IGN offline cache path is a link or junction")
     cached = _load_cached_download(archive_path, metadata_path, config)
     if cached is not None:
         return cached
+    if not allow_download:
+        raise IgnBdTopoDownloadError(
+            f"IGN offline archive cache is absent, invalid or expired: {archive_path}"
+        )
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_name(f"{archive_path.name}.part")
@@ -1830,10 +1843,14 @@ def extract_ign_bdtopo_archive(
     download: IgnBdTopoDownload,
     config: IgnBdTopoSourceConfig,
     extraction_dir: Path | None = None,
+    *,
+    allow_extract: bool = True,
 ) -> IgnBdTopoExtraction:
     """Safely extract the package and resolve its required electricity layers."""
 
     config = _validated_source_config(config, error_type=IgnBdTopoArchiveError)
+    if type(allow_extract) is not bool:
+        raise IgnBdTopoArchiveError("allow_extract must be an exact bool")
     try:
         _validate_archive_config_lineage(download, config)
     except IgnBdTopoLayerError as error:
@@ -1869,6 +1886,10 @@ def extract_ign_bdtopo_archive(
     cached = _load_cached_extraction(extraction_path, download, config)
     if cached is not None:
         return cached
+    if not allow_extract:
+        raise IgnBdTopoArchiveError(
+            f"IGN reusable extraction is absent or invalid: {extraction_path}"
+        )
 
     extraction_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = extraction_path.with_name(f"{extraction_path.name}.part")
