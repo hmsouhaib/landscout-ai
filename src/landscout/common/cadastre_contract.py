@@ -8,6 +8,7 @@ from numbers import Real
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 from pyproj import CRS
+from shapely import get_coordinate_dimension  # type: ignore[import-untyped]
 
 from landscout.geo.crs import LAMBERT93, WGS84
 
@@ -107,7 +108,7 @@ def validate_normalized_cadastre_parcels(
     validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
     geometry = parcels.geometry
     non_null = ~geometry.isna()
-    if any(bool(value) for value in geometry.loc[non_null].has_z):
+    if any(get_coordinate_dimension(value) != 2 for value in geometry.loc[non_null]):
         raise ValueError("Normalized Cadastre parcel geometry must be exactly 2D")
     unsupported = set(geometry.loc[non_null].geom_type.dropna()) - {
         "Polygon",

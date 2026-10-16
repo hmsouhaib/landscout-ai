@@ -694,3 +694,142 @@ def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
 
     assert archive_backup.read_bytes() == old_archive
     assert metadata_backup.read_bytes() == old_metadata
+
+
+@pytest.mark.parametrize(
+    "state",
+    ["absent", "expired", "sha", "gzip", "metadata", "future", "non_utc", "size"],
+)
+def test_cache_only_failure_has_no_network_or_file_preparation(
+    tmp_path: Path,
+    state: str,
+) -> None:
+    cache = tmp_path / "cache"
+    if state != "absent":
+        with patch.object(
+            cadastre_fr, "open_safe_https", return_value=io.BytesIO(ARCHIVE_CONTENT)
+        ):
+            first = download_cadastre_parcelles(COMMUNE_CODE, cache)
+        meta = cache / f"{first.filename}.metadata.json"
+        if state == "expired":
+            _set_cache_age(meta, timedelta(hours=169))
+        elif state == "sha":
+            data = json.loads(meta.read_bytes())
+            data["sha256"] = "0" * 64
+            meta.write_text(json.dumps(data), encoding="utf-8")
+        elif state == "gzip":
+            first.path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+            _update_metadata_integrity(meta, first.path)
+        elif state == "metadata":
+            meta.write_text("{}", encoding="utf-8")
+        elif state == "future":
+            _set_cache_age(meta, timedelta(hours=-1))
+        elif state == "non_utc":
+            data = json.loads(meta.read_bytes())
+            data["download_timestamp"] = "2026-10-16T01:00:00+02:00"
+            meta.write_text(json.dumps(data), encoding="utf-8")
+        elif state == "size":
+            data = json.loads(meta.read_bytes())
+            data["file_size"] += 1
+            meta.write_text(json.dumps(data), encoding="utf-8")
+        (cache / "do-not-touch.part").write_bytes(b"existing temporary material")
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
+    with (
+        patch.object(
+            cadastre_fr, "open_safe_https", side_effect=AssertionError("network")
+        ) as network,
+        patch.object(
+            cadastre_fr,
+            "_prepare_temporary_cache_file",
+            side_effect=AssertionError("prepare"),
+        ),
+        patch.object(Path, "mkdir", side_effect=AssertionError("mkdir")),
+        pytest.raises(
+            CadastreDownloadError, match="Offline.*absent, invalid or expired"
+        ),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, cache, allow_download=False)
+    network.assert_not_called()
+    assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before
+    assert cache.exists() is (state != "absent")
+
+
+def test_cache_only_fresh_hit_needs_no_network_or_preparation(tmp_path: Path) -> None:
+    with patch.object(
+        cadastre_fr, "open_safe_https", return_value=io.BytesIO(ARCHIVE_CONTENT)
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path, allow_download=True)
+    with (
+        patch.object(
+            cadastre_fr, "open_safe_https", side_effect=AssertionError("network")
+        ) as network,
+        patch.object(
+            cadastre_fr,
+            "_prepare_temporary_cache_file",
+            side_effect=AssertionError("prepare"),
+        ),
+        patch.object(Path, "mkdir", side_effect=AssertionError("mkdir")),
+    ):
+        second = download_cadastre_parcelles(
+            COMMUNE_CODE, tmp_path, allow_download=False
+        )
+    network.assert_not_called()
+    assert second.cache_hit and second.sha256 == first.sha256
+    assert second.download_timestamp == first.download_timestamp
+
+
+@pytest.mark.parametrize("allow", [None, 0, 1, "false", [], {}])
+def test_allow_download_requires_exact_bool(tmp_path: Path, allow: object) -> None:
+    with (
+        patch.object(cadastre_fr, "open_safe_https") as network,
+        pytest.raises(ValueError, match="exact bool"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path, allow_download=allow)  # type: ignore[arg-type]
+    network.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "role", ["archive", "metadata", "archive_backup", "metadata_backup"]
+)
+@pytest.mark.parametrize("unsafe", ["symlink", "junction", "directory"])
+def test_cache_only_preserves_unsafe_primary_and_recovery_paths(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    role: str,
+    unsafe: str,
+) -> None:
+    archive = tmp_path / "cadastre-31395-parcelles.json.gz"
+    metadata = tmp_path / f"{archive.name}.metadata.json"
+    paths = {
+        "archive": archive,
+        "metadata": metadata,
+        "archive_backup": archive.with_suffix(".gz.bak"),
+        "metadata_backup": metadata.with_suffix(".json.bak"),
+    }
+    target = paths[role]
+    if unsafe == "directory":
+        target.mkdir()
+    else:
+        method = "is_symlink" if unsafe == "symlink" else "is_junction"
+        original = getattr(Path, method)
+        monkeypatch.setattr(Path, method, lambda p: p == target or original(p))
+    with (
+        patch.object(cadastre_fr, "open_safe_https") as network,
+        pytest.raises(CadastreDownloadError),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path, allow_download=False)
+    network.assert_not_called()
+    if unsafe == "directory":
+        assert target.is_dir()
+
+
+def test_cache_only_retains_existing_backup_bytes(tmp_path: Path) -> None:
+    recovery = tmp_path / "cadastre-31395-parcelles.json.gz.bak"
+    recovery.write_bytes(b"manual recovery")
+    with (
+        patch.object(cadastre_fr, "open_safe_https") as network,
+        pytest.raises(CadastreDownloadError, match="recovery"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path, allow_download=False)
+    network.assert_not_called()
+    assert recovery.read_bytes() == b"manual recovery"

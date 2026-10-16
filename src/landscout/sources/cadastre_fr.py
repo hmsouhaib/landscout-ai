@@ -309,7 +309,11 @@ def download_cadastre_parcelles(
     cache_dir: Path = DEFAULT_CACHE_DIR,
     timeout: float = 60.0,
     max_cache_age_hours: float = 168.0,
+    *,
+    allow_download: bool = True,
 ) -> CadastreDownload:
+    if type(allow_download) is not bool:
+        raise ValueError("allow_download must be an exact bool")
     if (
         isinstance(timeout, bool)
         or not isinstance(timeout, Real)
@@ -339,6 +343,11 @@ def download_cadastre_parcelles(
     )
     if cached is not None:
         return cached
+    if not allow_download:
+        raise CadastreDownloadError(
+            "Offline cadastre cache is absent, invalid or expired for "
+            f"{commune_code}: {archive_path} (max_cache_age_hours={max_cache_age_hours})"
+        )
 
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")

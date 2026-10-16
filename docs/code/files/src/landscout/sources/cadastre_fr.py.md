@@ -1,5 +1,12 @@
 # `src/landscout/sources/cadastre_fr.py`
 
+> DEV.CADASTRE.RUN.1 delta — this companion is partially stale. The adapter now
+> accepts keyword-only `allow_download: bool = True` (exact bool) and rejects an
+> unusable cache in cache-only mode before mkdir, temporary preparation or network.
+> See the [current usage contract](../../../../../usage/cadastre_screening.md).
+> The historical hashes, signatures and snapshots below remain pre-DEV evidence;
+> they are not synchronized to the new source or promoted to CHECKED by this ticket.
+
 ## File identity
 
 - Repository path: `src/landscout/sources/cadastre_fr.py`

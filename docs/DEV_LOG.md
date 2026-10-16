@@ -6175,3 +6175,86 @@ All distances remain 2D planar proxy distances calculated in EPSG:2154 from full
 Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
 
 No BESS grid-distance threshold is selected here.
+
+## DEV.CADASTRE.RUN.1 — First executable cadastre screening slice
+
+2026-10-16. [Exact received ticket](project/tickets/DEV.CADASTRE.RUN.1.md), SHA256
+`a2b94041410cba2eb538781408d1dcdd44b4da7279a67de5b0aec88da6c7deb4`.
+Started from clean recovery `e25a8cca80ccd476226e03f84649dc0fdd19c979` and created
+`dev/cadastre-run-1`; main/recovery are preserved. The ticket carries the supplied
+bounded R16.1 documentary approval and the user's development-resumption decision.
+Global documentation remains PARTIAL/deferred; no audit register is promoted.
+
+Implemented `python -m landscout scan` and `workflows.run_cadastre_screening`:
+configuration/profile load -> verified adapter -> physical source-bound loader ->
+normalization/revalidation -> existing area filter -> shape metrics -> existing
+shape filter -> unique/disjoint/complete ID partition -> CSV/GeoJSON and final
+schema-1 run.json marker. Filter values come from the loaded profile. Exports sort
+by parcel_id, preserve WGS84 geometry and exact stage reasons, keep unavailable
+metrics null, and hash the three data files/configurations. Persistent config and
+physical-source changes prevent completion. Existing output, link/junction,
+cache/config/tracked-path collisions are refused; incomplete newly created output
+is preserved. This is a completion-marker protocol, not an atomic multi-file
+transaction or immutable byte snapshot. [Usage and schemas](usage/cadastre_screening.md).
+
+Added exact-bool keyword-only adapter `allow_download=True`, keeping historical
+default behavior. The workflow/CLI default to offline and reject an unusable cache
+before mkdir, .part preparation/cleanup, transport or publication. Recovery guards
+remain earlier than cache hit/offline handling. A-001's intrinsic parcel guard now
+uses coordinate dimension 2: Polygon/MultiPolygon XYZ/XYM/XYZM fail; ordinary
+XY/null/empty/invalid geometry and area tolerances are preserved. Shapely 2.1.2 /
+GEOS 3.13.1 retain the M fixtures before validation; this in-memory proof does not
+promise measured-coordinate preservation by external source readers. A-001 is
+implemented/tested with independent review pending; A-002/A-003/A-004 stay open.
+
+Validation in existing Python 3.12.13, GeoPandas 1.1.4, Pyogrio 0.13.0 environment:
+
+- Exact ten-file targeted pytest campaign from the ticket, **411 passed / 22.17s /
+  final native exit 0 after cleanup**, no warning/skip/xfail reported. Basetemp
+  `%LOCALAPPDATA%\LandScout\pytest-runs\dcr1-a87357e5`; logs outside Git:
+  `C:\souhaib\dcr1-pytest-02.stdout.txt` and `.stderr.txt`.
+- Initial sandboxed campaign is retained separately: **211 passed, 200 setup
+  errors, 2 cache-write warnings / 14.98s / native exit 1**. WinError 5 prevented
+  creation of required basetemp `dcr1-99115d69`. The same scoped campaign was
+  rerun with execution permissions and a fresh basetemp, without security changes.
+  Original logs `C:\souhaib\dcr1-pytest-01.stdout.txt` and `.stderr.txt` remain.
+- Ruff check on the ten changed/new Python files passes. An initial import-order
+  diagnostic in the new integration test was corrected before the successful
+  campaign. Formatting is confined to these Python files; no global fix.
+- New tests use real synthetic GeoJSON gzip/cache metadata, real public physical
+  revalidation and stages, with network sentinels; real CLI subprocesses have
+  bounded timeouts and checked final exit codes. They cover cache-only failures,
+  dimension guards, exact selection/motifs/metrics/geometry, partition, strict JSON,
+  real file digests, empty selection, disabled shape, unsupported configuration,
+  persistent mutation, write failure, existing/simulated unsafe outputs and usage.
+- No full pytest or documentary INDEX auditor is run. Historical EOL/whitespace
+  exceptions and global audit artifacts are preserved; only the new delta is
+  checked with `git diff --check`. The two changed cadastral companions explicitly
+  mark their historical snapshots/bindings as partially stale for later reconciliation.
+- Bounded preservation check passes: 320 starting tracked paths, **312 initially
+  tracked paths outside the 17-path allowance unchanged**. The historical protected
+  manifest has three authorized exceptions (cadastre_fr.py, cadastre_contract.py,
+  test_cadastre_fr.py); its other **103 files are unchanged**, as are the two
+  inherited EOL checkout variants. Existing test bodies and companion content
+  below the new banners are preserved; new-delta whitespace checks pass.
+
+`SYNTHETIC_END_TO_END`: saved CLI example at
+`C:\souhaib\dcr1-synthetic-example\outputs\cadastre-run`, native exit 0:
+**8 normalized = 4 AREA rejected + 2 SHAPE rejected + 2 retained**. AREA reasons:
+AREA_BELOW_MIN 1, AREA_ABOVE_MAX 1, INVALID_GEOMETRY 2; SHAPE reasons:
+WIDTH_BELOW_MIN 1, RATIO_ABOVE_MAX 1. Three data files and COMPLETE run.json are
+consultable; inputs are explicitly synthetic. Logs `C:\souhaib\dcr1-synthetic.*`.
+
+`REAL_MURET_OFFLINE_RUN`: the documented command was attempted with default 168h,
+native exit 1: cache absent/invalid/expired under the current adapter contract.
+The present sidecar lacks schema_version/commune_code and records
+`2026-08-11T12:03:56.900678+00:00`. No `outputs/muret-premier-run` directory was
+created; real parcel/selection counts are unavailable. Archive/sidecar SHA256
+before/after are unchanged: `63e610d15f5572cfc9de123833e7ee88d36c028280e509e721f6ee4652ac969e`
+and `b93144c5d6dbfcd3f786d9210c5c70c3a43a3f1de82fa5f2ded9a7135401d467`.
+Logs `C:\souhaib\dcr1-muret-offline.*`. No timestamp/hash/age adjustment or download.
+
+Only cadastral area/shape screening ran. Grid, roads, planning, environment,
+scoring and owners are NOT_RUN. No BESS authorization, legal access, capacity or
+owner/contact conclusion is produced. Functional independent review is pending;
+stop after publication of this DEV branch.

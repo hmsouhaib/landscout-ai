@@ -1,5 +1,12 @@
 # `src/landscout/common/cadastre_contract.py`
 
+> DEV.CADASTRE.RUN.1 delta — this companion is partially stale. A-001's intrinsic
+> geometry guard now requires Shapely coordinate dimension 2, rejecting XYZ, XYM
+> and XYZM while preserving ordinary XY/null/empty/invalid behavior. See the
+> [current usage contract](../../../../../usage/cadastre_screening.md).
+> The historical hashes, signatures and snapshots below remain pre-DEV evidence;
+> they are not synchronized to the new source or promoted to CHECKED by this ticket.
+
 ## File identity
 
 - Repository path: `src/landscout/common/cadastre_contract.py`
