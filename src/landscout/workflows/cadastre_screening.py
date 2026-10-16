@@ -31,6 +31,8 @@ from landscout.stages.filter_parcels import (
 )
 from landscout.stages.normalize_cadastre import normalize_cadastre_parcels
 from landscout.workflows import grid_screening as grid
+from landscout.workflows import ign_screening as ign
+from landscout.workflows import road_screening as roads
 
 IDENTITY_COLUMNS = (
     "parcel_id",
@@ -77,6 +79,8 @@ class CadastreScreeningRunResult:
     retained_count: int
     voltage_proximity_csv: Path | None = None
     grid_status: str | None = None
+    road_proximity_csv: Path | None = None
+    roads_status: str | None = None
 
 
 def _fingerprint(path: Path) -> dict[str, str | int]:
@@ -316,6 +320,8 @@ def run_cadastre_screening(
     ign_config_path: Path | None = None,
     ign_cache_dir: Path | None = None,
     ign_extraction_dir: Path | None = None,
+    with_roads: bool = False,
+    road_policy_path: Path | None = None,
 ) -> CadastreScreeningRunResult:
     """Run one FR/BESS commune, retaining the existing physical trust boundaries.
 
@@ -332,10 +338,16 @@ def run_cadastre_screening(
             raise CadastreScreeningRunError("allow_download must be an exact bool")
         if type(with_grid) is not bool:
             raise CadastreScreeningRunError("with_grid must be an exact bool")
-        if not with_grid and any(
+        if type(with_roads) is not bool:
+            raise CadastreScreeningRunError("with_roads must be an exact bool")
+        if road_policy_path is not None and not with_roads:
+            raise CadastreScreeningRunError("road_policy_path requires with_roads=True")
+        if not (with_grid or with_roads) and any(
             p is not None for p in (ign_config_path, ign_cache_dir, ign_extraction_dir)
         ):
-            raise CadastreScreeningRunError("IGN options require with_grid=True")
+            raise CadastreScreeningRunError(
+                "IGN options require with_grid=True or with_roads=True"
+            )
         scan_path = scan_path.resolve()
         if len(scan_path.parents) < 3:
             raise CadastreScreeningRunError(
@@ -380,9 +392,14 @@ def run_cadastre_screening(
             destination, cache, root, (scan_path, profile_path)
         )
         grid_options = None
+        road_options = None
         source_paths: tuple[Path, ...] = ()
         configuration_paths = (scan_path, profile_path)
-        if with_grid:
+        if with_roads:
+            road_options = roads._prepare_roads(root, road_policy_path)
+            identities = (*identities, (road_options.path, road_options.identity))
+            configuration_paths = (*configuration_paths, road_options.path)
+        if with_grid or with_roads:
             grid_options = grid._prepare_grid(
                 root,
                 commune,
@@ -409,6 +426,7 @@ def run_cadastre_screening(
             _check_output_path(
                 destination, cache, root, configuration_paths, source_paths
             )
+        _check_config_identity(identities)
         download = download_cadastre_parcelles(
             commune,
             cache_dir=cache,
@@ -432,9 +450,21 @@ def run_cadastre_screening(
             retained,
             shape_rejected,
         )
-        grid_run = (
-            grid._run_grid(retained, grid_options)
+        context = (
+            ign._acquire_ign(
+                grid_options.config, grid_options.cache_dir, grid_options.extraction_dir
+            )
             if grid_options is not None and len(retained)
+            else None
+        )
+        grid_run = (
+            grid._run_grid(retained, grid_options, context)
+            if with_grid and context is not None
+            else None
+        )
+        road_run = (
+            roads._run_roads(retained, grid_options, road_options, context)
+            if with_roads and context is not None
             else None
         )
         retained_records = _records(
@@ -451,6 +481,7 @@ def run_cadastre_screening(
         voltage_records = (
             grid._voltage_records(grid_run) if grid_run is not None else []
         )
+        road_records = roads._road_records(road_run) if road_run is not None else []
         rejected_records = sorted(
             _records(area_rejected, "AREA", "rejection_reason")
             + _records(shape_rejected, "SHAPE", "shape_rejection_reason"),
@@ -479,12 +510,17 @@ def run_cadastre_screening(
                 raise CadastreScreeningRunError(
                     "Written voltage table differs from public grid result"
                 )
+        road_path = destination / "road_proximity.csv" if with_roads else None
+        if road_path is not None:
+            roads._write_road_csv(road_path, road_records)
         _verify_export_ids(
             candidates_csv, rejections_csv, candidates_geojson, normalized, retained
         )
         revalidate_cadastre_parcel_source(source)
         if grid_run is not None:
             grid._final_grid_check(grid_run)
+        if road_run is not None:
+            roads._final_road_check(road_run)
         _check_config_identity(identities)
         data_files = []
         for path in (
@@ -492,6 +528,7 @@ def run_cadastre_screening(
             rejections_csv,
             candidates_geojson,
             *((voltage_path,) if voltage_path is not None else ()),
+            *((road_path,) if road_path is not None else ()),
         ):
             identity = _fingerprint(path)
             data_files.append({**identity, "path": path.name})
@@ -564,6 +601,29 @@ def run_cadastre_screening(
             )
             if grid_run is not None:
                 del manifest["not_run"]["grid"]
+        if with_roads:
+            manifest["schema_version"] = 3
+            manifest["road_presentation_order"] = (
+                "parcel_id ascending, then loaded policy class order; public table unchanged"
+            )
+            manifest["scope"] = (
+                "CADASTRE_AREA_SHAPE_WITH_GRID_AND_ROAD_PROXIES"
+                if with_grid
+                else "CADASTRE_AREA_SHAPE_WITH_ROAD_PROXIES"
+            )
+            manifest["configuration"]["ign"] = grid_options.config_identity
+            manifest["configuration"]["road_policy"] = road_options.identity
+            manifest["roads"] = (
+                roads._provenance(road_run)
+                if road_run is not None
+                else {
+                    "status": "NOT_RUN",
+                    "reason": "NO_RETAINED_PARCELS",
+                    "policy": roads._policy_provenance(road_options),
+                }
+            )
+            if road_run is not None:
+                del manifest["not_run"]["roads"]
         _publish_manifest(manifest_path, manifest)
         return CadastreScreeningRunResult(
             destination,
@@ -577,6 +637,8 @@ def run_cadastre_screening(
             len(retained),
             voltage_path,
             ("COMPLETE" if grid_run is not None else "NOT_RUN") if with_grid else None,
+            road_path,
+            ("COMPLETE" if road_run is not None else "NOT_RUN") if with_roads else None,
         )
     except (OSError, ValueError, TypeError, RuntimeError) as error:
         detail = str(error)

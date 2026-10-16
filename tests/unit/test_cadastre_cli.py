@@ -167,3 +167,85 @@ def test_ign_cli_options_require_grid_usage_flag(tmp_path, flag):
     result = _cli(tmp_path, "scan", "--scan", "unused", flag, "unused")
     assert result.returncode == 2 and "require --with-grid" in result.stderr
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("with_grid", [False, True])
+@pytest.mark.parametrize("permission", ["--offline", "--allow-download"])
+def test_road_cli_subprocess_complete_from_verified_local_sources(
+    tmp_path, with_grid, permission
+):
+    from test_road_screening import write_road_project
+
+    scan, _, _, _, policy = write_road_project(tmp_path)
+    _forbid_child_network(tmp_path)
+    result = _cli(
+        tmp_path,
+        "scan",
+        "--scan",
+        str(scan),
+        "--with-roads",
+        permission,
+        "--road-policy",
+        str(policy),
+        "--output",
+        "outputs/roads",
+        *(["--with-grid"] if with_grid else []),
+    )
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads((tmp_path / "outputs/roads/run.json").read_bytes())
+    assert manifest["schema_version"] == 3 and manifest["roads"]["status"] == "COMPLETE"
+    assert manifest["counts"]["retained"] == 2
+    assert manifest["roads"]["policy"]["heavy_vehicle_access"] == "NOT_PROVEN"
+    assert not (tmp_path / "network-attempt.txt").exists()
+
+
+@pytest.mark.parametrize("failure", ["archive", "extraction", "policy", "department"])
+@pytest.mark.parametrize("with_grid", [False, True])
+def test_road_cli_source_failures_are_controlled_before_network(
+    tmp_path, failure, with_grid
+):
+    import yaml
+    from test_road_screening import write_road_project
+
+    scan, config, _, _, _ = write_road_project(tmp_path)
+    extra = []
+    if failure == "archive":
+        extra = ["--ign-cache-dir", "missing-cache"]
+    elif failure == "extraction":
+        extra = ["--ign-extraction-dir", "missing-extraction"]
+    elif failure == "policy":
+        extra = ["--road-policy", "missing-policy"]
+    else:
+        values = yaml.safe_load(config.read_bytes())
+        values["department_code"] = "32"
+        config.write_text(yaml.safe_dump(values), encoding="utf-8")
+    _forbid_child_network(tmp_path)
+    result = _cli(
+        tmp_path,
+        "scan",
+        "--scan",
+        str(scan),
+        "--with-roads",
+        "--output",
+        "outputs/fail",
+        *(["--with-grid"] if with_grid else []),
+        *extra,
+    )
+    assert result.returncode == 1 and "Cadastre screening failed:" in result.stderr
+    assert not (tmp_path / "outputs/fail/run.json").exists()
+    assert not (tmp_path / "network-attempt.txt").exists()
+    assert (
+        not (tmp_path / "missing-cache").exists()
+        and not (tmp_path / "missing-extraction").exists()
+    )
+
+
+@pytest.mark.parametrize("grid_flag", [[], ["--with-grid"]])
+def test_cli_road_policy_requires_road_flag_before_run(tmp_path, grid_flag):
+    _forbid_child_network(tmp_path)
+    before = set(tmp_path.iterdir())
+    result = _cli(
+        tmp_path, "scan", "--scan", "unused", "--road-policy", "unused", *grid_flag
+    )
+    assert result.returncode == 2 and "requires --with-roads" in result.stderr
+    assert set(tmp_path.iterdir()) == before

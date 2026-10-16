@@ -12,6 +12,38 @@ The supplied 7F.1C.1 review inspected publication/parent/seven-file scope, froze
 
 ## Active ticket and next action
 
+Current authority: [DEV.ROAD.RUN.1](tickets/DEV.ROAD.RUN.1.md), from
+`ce9cb34604622bf5988fa5cd01c6d9d55ca3dd08` on the existing
+`dev/cadastre-run-1`. Section 1 supplies **APPROVED — DEV.GRID.RUN.1** at that SHA,
+including both authorized interface adaptations. This supersedes only the grid
+review state below, not its historical execution records or the reviewer's
+explicit non-execution/Windows-attestation limits. The archived attachment is
+the received UTF-8 pasted-text representation, byte-identical SHA256
+`425759a26df1ed7872d16922c0379a41bf6d6b2018559abbca6cc1df85d4e7cb`;
+no original chat-format equivalence or cryptographic reviewer signature is implied.
+The [optional roads slice](../usage/cadastre_screening.md#optional-ign-road-proximity-by-class-and-coverage--schema-3)
+adds `--with-roads` alone or with grid, one shared local IGN context, unchanged
+cadastral selection and schema-3 long evidence by five distance-eligible classes
+plus six-class inventory. Original schemas 1/2 remain unchanged. General-car
+proxies never establish legal/heavy/BESS access; heavy access remains NOT_PROVEN.
+Synthetic combined CLI example at
+`C:\souhaib\drr1-synthetic-example-final\outputs\grid-roads-run` completes offline
+with 8 = 4 AREA rejected + 2 SHAPE rejected + 2 retained, four voltage rows and
+ten road rows; road counts in policy order are 2/1/1/1/1/1. Real Muret roads run
+is **NOT_RUN**: inspected cadastral metadata is pre-schema/old and IGN metadata
+is older than 168 h; no renewal, official download, re-extraction or real-distance
+result is claimed. Required ten-file campaign: 756 passes/317.99s/native exit0
+after cleanup, one pre-existing intentional missing-CRS warning. Final affected
+road/CLI replay: 148 passes/160.86s/exit0, no warning; 763 distinct cases across
+campaigns, not one final-state 763-case run. Two intermediate test-fixture/assertion
+failures and commands/logs remain in the new DEV_LOG entry. Scoped Ruff/format
+and bounded byte-preservation checks pass, distinct from prior grid reports. A-001 remains
+accepted solely in its cadastral slice; A-002/A-003/A-004 and EP questions remain
+open. Audit **PARTIAL / PAUSED_BY_USER_FOR_DEVELOPMENT**, zero added coverage;
+no audit register or companion binding reconciliation is claimed. Independent
+ROAD review **PENDING**. Publish only the authorized DEV branch, preserve
+main/recovery, then STOP for review. Following authority paragraphs are historical.
+
 Current authority: [DEV.GRID.RUN.1](tickets/DEV.GRID.RUN.1.md), on the existing `dev/cadastre-run-1` from `4550ca0777fd4acfa26405b51a64eaf25b25b49d`; main/recovery remain preserved. Its section 1 supplies **APPROVED — DEV.CADASTRE.RUN.1**, including intrinsic A-001, solely within the cadastral slice reviewed at that SHA. Reviewer executions/Windows-attestation limits stay explicit there; previous tickets, DEV_LOG and historical PENDING records are unchanged. The user additionally authorized public electricity rereading/comparison and restoration of the parcel index on a copy after exact ID-sequence checks; these correct ticket interface imprecisions, not application defects. The [optional grid slice](../usage/cadastre_screening.md#optional-ign-grid-proximity-and-coverage--schema-2) adds verified local IGN proximity/coverage before publication, without changing cadastral selection. Required 15-file campaign: 978 passed / 157.96s / native exit0 after cleanup, one pre-existing intentional missing-CRS warning; targeted follow-up: 2 passed / 4.33s / exit0 (one added permission-isolation test and one strengthened unknown-voltage test), 979 distinct cases evidenced across the runs. Synthetic CLI example completes with 8 = 4 AREA rejected + 2 SHAPE rejected + 2 retained and four voltage rows (63/132.5 kV). Official Muret grid run is NOT_RUN because cadastral/IGN cache prerequisites are invalid/expired; no renewal, official extraction or freshness adjustment. A-002/A-003/A-004 and EP semantic review remain open. Global documentation audit **PARTIAL / PAUSED_BY_USER_FOR_DEVELOPMENT**, zero added coverage credit; affected IGN reference carries a partial-staleness banner. Grid functional review **PENDING**. Following prior authority paragraphs are historical. Publish only this DEV branch, then STOP for review.
 
 Current authority: [DEV.CADASTRE.RUN.1](tickets/DEV.CADASTRE.RUN.1.md), on `dev/cadastre-run-1` from approved documentary base `e25a8cca80ccd476226e03f84649dc0fdd19c979`; recovery and main are preserved. Souhaib explicitly resumed development and deferred the exhaustive documentation audit: global audit **PARTIAL**, continuation **PAUSED_BY_USER_FOR_DEVELOPMENT**. The ticket supplies independent **APPROVED — R16.1 documentary correction** at that base, lifting R16-REV01/02/03 and accepting R16 as corrected within the supplied review scope; its exact limits are archived once in the ticket. Historical PENDING receipts remain historical. The new [cadastre workflow/CLI](../usage/cadastre_screening.md) integrates verified loading, area/shape screening and partitioned exports; A-001's dimension correction is implemented/tested, independent functional review **PENDING**. Targeted suite: 411 passed, native exit0 after cleanup; initial sandbox permission failure is separately retained. Synthetic physical integration succeeds (8 = 4 AREA rejected + 2 SHAPE rejected + 2 retained); official Muret offline attempt exits1 because the existing cache fails the current contract, with no output/download/cache mutation. Grid/roads/planning/environment/score/owners remain NOT_RUN. A-002/A-003/A-004, EP semantic review, historical evidence gaps and final global-audit acceptance remain open. The two changed cadastral companions carry partial-staleness banners; audit bindings are intentionally unreconciled. Following bounded DOCS instructions describe historical work. Publish this functional slice only to the DEV branch, then STOP for independent review.

@@ -30,6 +30,7 @@ from landscout.stages.normalize_cadastre import normalize_cadastre_parcels
 from landscout.workflows import CadastreScreeningRunError, run_cadastre_screening
 from landscout.workflows import cadastre_screening as workflow
 from landscout.workflows import grid_screening as grid
+from landscout.workflows import ign_screening as ign_workflow
 
 
 @pytest.fixture(autouse=True)
@@ -41,7 +42,7 @@ def forbid_transport(monkeypatch):
     monkeypatch.setattr(cadastre_fr, "open_safe_https", fail)
 
 
-def write_grid_project(root: Path, variant="normal"):
+def write_grid_project(root: Path, variant="normal", *, road_frame=None):
     scan, _, cache = write_project(root)
     raw_path = root / "fixture/grid.gpkg"
     raw_path.parent.mkdir()
@@ -110,16 +111,20 @@ def write_grid_project(root: Path, variant="normal"):
         append=True,
         geometry_type="Polygon",
     )
-    roads = gpd.GeoDataFrame(
-        {"cleabs": ["R1"], "nature": ["Route à 1 chaussée"]},
-        geometry=[LineString([(599000, 6199000), (607000, 6201000)])],
-        crs=2154,
+    roads = (
+        road_frame
+        if road_frame is not None
+        else gpd.GeoDataFrame(
+            {"cleabs": ["R1"], "nature": ["Route à 1 chaussée"]},
+            geometry=[LineString([(599000, 6199000), (607000, 6201000)])],
+            crs=2154,
+        )
     )
     pyogrio.write_dataframe(
         roads, raw_path, layer="TRONCON_DE_ROUTE", driver="GPKG", append=True
     )
     coverage = box(599000, 6199000, 607000, 6201000)
-    if variant in ("near", "touch", "outside"):
+    if variant in ("near", "equal", "crossing", "touch", "outside"):
         source = load_cadastre_parcels(
             cadastre_fr.download_cadastre_parcelles(
                 "31395", cache, allow_download=False
@@ -132,6 +137,10 @@ def write_grid_project(root: Path, variant="normal"):
         )
         if variant == "near":
             coverage = box(599000, 6199000, bounds[2] + 5, 6201000)
+        elif variant == "equal":
+            coverage = box(599000, 6199000, 600070, 6201000)
+        elif variant == "crossing":
+            coverage = box(600030, 6199000, 607000, 6201000)
         elif variant == "touch":
             coverage = box(bounds[0], 6199000, 607000, 6201000)
         else:
@@ -406,9 +415,9 @@ def test_zero_retained_does_not_access_ign_but_keeps_extended_empty_schema(
     for name in (
         "download_ign_bdtopo_archive",
         "extract_ign_bdtopo_archive",
-        "load_ign_bdtopo_electricity",
-        "assess_grid_coverage",
     ):
+        monkeypatch.setattr(ign_workflow, name, fail)
+    for name in ("load_ign_bdtopo_electricity", "assess_grid_coverage"):
         monkeypatch.setattr(grid, name, fail)
     result = run_cadastre_screening(scan, with_grid=True)
     assert result.retained_count == 0 and result.grid_status == "NOT_RUN"
@@ -684,8 +693,8 @@ def test_cadastre_download_permission_never_authorizes_ign_download_or_extract(
 ):
     scan, _, _, _ = write_grid_project(tmp_path)
     observed = []
-    download = grid.download_ign_bdtopo_archive
-    extract = grid.extract_ign_bdtopo_archive
+    download = ign_workflow.download_ign_bdtopo_archive
+    extract = ign_workflow.extract_ign_bdtopo_archive
 
     def record_download(*args, **kwargs):
         observed.append(("download", kwargs["allow_download"]))
@@ -695,8 +704,8 @@ def test_cadastre_download_permission_never_authorizes_ign_download_or_extract(
         observed.append(("extract", kwargs["allow_extract"]))
         return extract(*args, **kwargs)
 
-    monkeypatch.setattr(grid, "download_ign_bdtopo_archive", record_download)
-    monkeypatch.setattr(grid, "extract_ign_bdtopo_archive", record_extract)
+    monkeypatch.setattr(ign_workflow, "download_ign_bdtopo_archive", record_download)
+    monkeypatch.setattr(ign_workflow, "extract_ign_bdtopo_archive", record_extract)
     result = run_cadastre_screening(scan, with_grid=True, allow_download=True)
     assert result.grid_status == "COMPLETE"
     assert observed == [("download", False), ("extract", False)]

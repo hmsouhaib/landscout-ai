@@ -19,8 +19,6 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoLayerSummary,
     IgnBdTopoSourceConfig,
-    download_ign_bdtopo_archive,
-    extract_ign_bdtopo_archive,
     load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_electricity,
     load_ign_bdtopo_source_config,
@@ -34,6 +32,7 @@ from landscout.stages.assess_grid_coverage import (
     assess_grid_coverage,
 )
 from landscout.stages.enrich_grid_proximity import VOLTAGE_PROXIMITY_COLUMNS
+from landscout.workflows.ign_screening import _acquire_ign, _IgnContext
 
 # Deliberate export allowlist; no private producer mapping or runtime wildcard.
 NEAREST_COLUMNS = (
@@ -290,27 +289,20 @@ def _restore_parcel_index(
     return output
 
 
-def _run_grid(retained: gpd.GeoDataFrame, options: _GridOptions) -> _GridRun:
-    download = download_ign_bdtopo_archive(
-        options.config, cache_dir=options.cache_dir, allow_download=False
-    )
-    extraction = extract_ign_bdtopo_archive(
-        download,
-        options.config,
-        extraction_dir=options.extraction_dir,
-        allow_extract=False,
-    )
-    # The extractor owns its default path selection; False forbids rebuilding it.
-    actual_path = _checked_path(extraction.extraction_path, options.cache_dir)
-    if actual_path == options.cache_dir or options.cache_dir.is_relative_to(
-        actual_path
-    ):
-        raise GridScreeningError("IGN extraction target collides with archive cache")
-    marker = _identity(actual_path / ".landscout-extraction.json")
+def _run_grid(
+    retained: gpd.GeoDataFrame,
+    options: _GridOptions,
+    context: _IgnContext | None = None,
+) -> _GridRun:
+    if context is None:
+        context = _acquire_ign(
+            options.config, options.cache_dir, options.extraction_dir
+        )
+    extraction = context.extraction
     electricity = load_ign_bdtopo_electricity(extraction, options.config)
     result = assess_grid_coverage(retained, electricity, options.config)
     integrated = _restore_parcel_index(retained, result.parcels)
-    run = _GridRun(options, electricity, result, integrated, marker)
+    run = _GridRun(options, electricity, result, integrated, context.marker_identity)
     _voltage_records(run)
     return run
 

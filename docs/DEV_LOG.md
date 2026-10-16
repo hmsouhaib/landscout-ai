@@ -6354,3 +6354,182 @@ capacity/connection/eligibility conclusions or selection thresholds. Roads,
 planning, environment, scoring and owners stay NOT_RUN. A-001's limited acceptance
 is referenced in current state/backlog; A-002/A-003/A-004 and EP semantic review
 remain open. Independent review of this grid slice is pending; stop after DEV publication.
+
+## DEV.ROAD.RUN.1 — Optional source-bound road proximity by class and coverage
+
+2026-10-16. Authority: received [DEV.ROAD.RUN.1](project/tickets/DEV.ROAD.RUN.1.md),
+existing `dev/cadastre-run-1` from `ce9cb34604622bf5988fa5cd01c6d9d55ca3dd08`,
+direct parent `4550ca0777fd4acfa26405b51a64eaf25b25b49d`. Clean local/tracking/server
+DEV references matched before editing; main remained `aa4ebc7063f2abdfcbae95154ba89b5b1a0dba02`,
+recovery remained `e25a8cca80ccd476226e03f84649dc0fdd19c979`. No operation/unmerged
+state was found. The archived file is exactly the received UTF-8 attachment
+`839311b6-cf60-4acf-a647-6fbcc1fcf1e5/Pasted text.txt`, SHA256
+`425759a26df1ed7872d16922c0379a41bf6d6b2018559abbca6cc1df85d4e7cb`;
+its pasted-text format is not asserted equivalent to unavailable original chat
+Markdown. Section 1 supplies APPROVED — DEV.GRID.RUN.1 within its explicit scope
+and non-execution/Windows-attestation limits, not a fresh reviewer execution.
+CURRENT_STATE carries the successor reference; historical receipts are unchanged.
+
+### Implementation and trust boundaries
+
+- Added `--with-roads` / keyword-only exact-bool `with_roads=False` and
+  `--road-policy` / `road_policy_path=None`. IGN options require grid or roads;
+  a road policy requires roads. CLI usage/run/success codes remain 2/1/0.
+  Compatible optional road path/status fields follow the old result fields.
+- New bounded `ign_screening` shares one local archive/extraction acquisition
+  with False/False permissions. Existing grid preflight/frame/summary comparison
+  helpers are reused internally, without new private source/stage imports.
+  Grid restores only its copy's parcel index under the accepted ID-sequence
+  exception; road parcels must preserve their original sparse/named index.
+  Both analyses receive the same original cadastral retained object and exact
+  extraction. Roads alone never load or assess electricity, including physical
+  fixtures whose line/post geometries are unusable. All four discovery roles
+  remain required. Cadastre partition, filters, reasons and geometry are unchanged.
+- The new road workflow calls public `load_ign_bdtopo_roads`, then public
+  `assess_road_proximity_coverage` once. Its upstream application/normalization
+  are exercised once through real public calls, not normalization stubs.
+  No second distance calculation or road policy implementation is introduced.
+- Workflow policy default is explicitly scan-root-relative
+  `configs/access/ign_bdtopo_vehicle_proxy_policy.yaml`, passed as one validated
+  absolute path. Before/after-load byte binding and compiled config SHA agree;
+  all config/policy identities are checked before cadastral acquisition and
+  again before COMPLETE, including zero retained. Link/junction checks precede
+  resolve; cache/extraction/output/policy/config/tracked-path collisions and
+  pre-existing outputs fail closed. Existing recovery protections remain intact.
+- Policy bytes/config/source/stages are unchanged: policy ID
+  `ign_bdtopo_general_vehicle_proxy_v2`, schema 2, SHA256
+  `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`, scope
+  `OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY`, vehicle scope
+  `LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK`, heavy_vehicle_access **NOT_PROVEN**.
+
+### Outputs and validation
+
+No-option schema 1 and grid-only schema 2 keep their existing files/structures.
+Roads alone and combined mode use schema 3 with the exact documented scopes,
+four/five data files plus final run.json. Road facts live only in
+`road_proximity.csv`, not a scalar nearest-road candidate column. It uses public
+CLASS_PROXIMITY_COLUMNS followed by eleven explicit coverage columns; six-class
+counts include NOT_DISTANCE_PROXY, but its distance rows are absent. Before
+sorting scalar export copies, the complete schema/RangeIndex/ordered pair domain
+and class coverage are checked. Original table types/index/values remain unchanged.
+Every written CSV cell/header is reread. Finite numbers, integer ties,
+nullable toll bools (`true`/`false`/empty), raw private bool/numeric/TEXT facts,
+true nulls, whitespace and JSON-text traces retain their explicit encoding;
+no bool-as-number, generic default=str, JSON-text rewriting or NaN/Inf JSON.
+
+Manifest provenance is explicit: policy binding/identity/schema/scope/hash,
+archive, extraction marker, GPKG, roles, actual coverage and class counts/eligibility.
+Combined branches describe the same physical extraction without hiding their
+separate coverage use. Actual data-file size/SHA256 bindings have no run.json
+self-hash. Zero retained validates policy/config but performs no IGN acquisition,
+loading or assessment; header-only road CSV and NOT_RUN/NO_RETAINED_PARCELS
+contain no fabricated physical provenance or class counts. Empty eligible classes
+on nonempty parcels instead remain COMPLETE with NO_MATCH rows; all objects
+NOT_DISTANCE_PROXY is a valid such execution.
+
+After exports, public archive validation, complete public road rereading and
+typed summary/extraction/spatial-role comparison, complete public department
+coverage rereading/summary/lineage comparison, marker/config/policy bindings and
+existing cadastral/grid final checks precede COMPLETE. Combined coverage is
+checked against each actual branch result. Causes are retained and incomplete
+directories preserved. These checks reject persistent mutations, not every
+transient race; no immutable-snapshot/global-atomic-transaction claim is added.
+
+### Focused execution evidence
+
+Existing Windows environment only: Python 3.12.13, Windows 11 build 26200;
+GeoPandas 1.1.4, Pandas 3.0.5, Pyogrio 0.13.0, Shapely 2.1.2, PyProj 3.7.2,
+Py7zr 1.1.3. All invocations use `.venv\Scripts\python.exe -B -X utf8` and a
+fresh short `%LOCALAPPDATA%\LandScout\pytest-runs\drr1-*` directory. Exact commands,
+environment and logs are retained outside Git in `C:\souhaib\drr1-command-record.txt`.
+
+1. Initial six-case smoke: **5 passed / 1 failed**, 15.70s, final native exit1,
+   basetemp `drr1-3d5bad72`, merged `drr1-smoke-01.txt`. The failed test incorrectly
+   expected private TEXT on an empty class; assertion narrowed to matched rows.
+   Initial Ruff import-order/unused-import findings were corrected.
+2. Exact required ten-file campaign: **756 passed**, 317.99s, native **exit0 after
+   cleanup**, basetemp `drr1-ec85dd09`; stdout/stderr
+   `drr1-pytest-01.stdout.txt` / `.stderr.txt`. One pre-existing intentional
+   missing-CRS warning from `test_wrong_or_missing_road_crs_is_rejected[None]`;
+   no skip/xfail reported. This candidate preceded the seven follow-up cases
+   and later fixture-dtype refinement, not a claimed final 763-case single run.
+3. Targeted follow-up: **29 passed / 1 failed**, 45.95s, native exit1,
+   basetemp `drr1-3342ee63`; `drr1-pytest-02.stdout.txt` / `.stderr.txt`.
+   A strengthened physical dtype assertion found that the reader infers all-null
+   TEXT columns as float64. The fixture now places Hiver/Passage barré on its
+   fictitious distance-ineligible road *before sealing*, preserving all selected
+   evidence/classes. No source parser, policy or stage was broadened/modified.
+4. Final affected road/CLI replay (`test_road_screening.py test_cadastre_cli.py
+   -k road`): **148 passed / 17 deselected**, 160.86s, native **exit0 after cleanup**,
+   basetemp `drr1-d72fc992`; `drr1-pytest-03.stdout.txt` / `.stderr.txt`.
+   No warning, skip or xfail reported. Together with the required campaign,
+   **763 distinct cases** are evidenced (756 plus seven new cases), not
+   756+148 unique cases or a single final-state campaign of 763.
+
+The seven added follow-up cases are exact-equality/crossing boundary positions,
+roads-only operation with null line/post geometry (two), NO_MATCH separate from
+outside position, executed all-NOT_DISTANCE inventory, and policy binding altered
+during IGN config loading before acquisition. The default physical fixture now
+asserts bool fictif, float64 private/width and str nature/importance/state/access/
+closure/restriction, matching the recorded D031 factual scalar contract. Regression
+coverage also includes all modes, real full-polygon/zero/tie distances and stage
+tie choice, empty classes, restricted/unknown/nullable toll/private evidence,
+strict parcel/source indices, value/dtype/WKB/attrs/summary/identity mutations,
+archive/GPKG/marker/YAML/policy mutations, both actual combined coverages,
+cell-level CSV tampering, failures/paths and simulated links/junctions. Simulated
+guards are not claimed as demonstrations of real OS attacks. Actual child CLI
+cases forbid DNS/connections and cover success, controlled failures, incoherent
+options and cadastre-only acquisition permission; IGN always stays False/False.
+
+Scoped `ruff check` passed for all eight changed Python files;
+`ruff format --check` reported all eight already formatted. New-delta
+`git diff --check` passed. The bounded external verifier passed the worktree:
+332 initially tracked paths, 324 outside-used-scope paths unchanged in index and
+checkout; all 106 protected paths unchanged from the starting commit, including
+five prior approved cadastral/IGN source/test exceptions to the historical
+bootstrap (101 retain original protected bytes). Both historical EOL variants
+are preserved. Existing test functions/assertions remain: only the two existing
+grid tests' monkeypatch ownership moved to the shared physical-context module;
+their assertions remain unchanged. Ticket attachment bytes, saved data/config/
+source/marker hashes, partition and pair domains passed bounded verification.
+These checks are not an INDEX documentary-auditor run or global audit closure.
+No full repository suite, documentary INDEX, installation, official acquisition,
+large extraction or protected-area work was run.
+
+### Saved synthetic example and real-source limit
+
+`SYNTHETIC_END_TO_END`, final saved directory
+`C:\souhaib\drr1-synthetic-example-final\outputs\grid-roads-run`: actual combined
+CLI native exit0, DNS/connection attempt marker absent, execution.json in its
+project root records command/environment/stdout/stderr and all ten road rows.
+Scripts `drr1_example.py` / `drr1_verify.py` and stdout/stderr stay outside Git.
+Earlier synthetic evidence is preserved in a separate directory, not overwritten.
+Physical gzip + complete 7z/GPKG fixture yields 8 normalized = 4 AREA rejected
+(1 above, 1 below, 2 invalid) + 2 SHAPE rejected (1 ratio, 1 width) + 2 retained.
+Four voltage rows remain unchanged; ten road pairs cover five eligible classes.
+Seven roads have counts in policy order: GENERAL 2, LIMITED 1, RESTRICTED 1,
+NOT_GENERAL 1, NOT_DISTANCE 1 (ineligible), UNKNOWN 1.
+AA0001 GENERAL: 10 m, tie2, representative A, toll true, NOT_BOUNDARY_LIMITED;
+LIMITED: 5,960 m/BOUNDARY_LIMITED; RESTRICTED: 20 m with rights/private trace;
+UNKNOWN: 50 m with private_raw unresolved. AA0008 LIMITED: 0 m;
+GENERAL: 5,930 m/tie2/BOUNDARY_LIMITED. No synthetic result is an official Muret fact.
+
+`REAL_MURET_ROADS_RUN`: **NOT_RUN**, not a failed official road calculation.
+Existing sidecars were inspected read-only: cadastral metadata still lacks
+schema_version/commune_code and records `2026-08-11T12:03:56.900678+00:00`;
+IGN records `2026-08-11T15:32:03.110837+00:00`, exceeding the configured 168 h.
+No age extension, metadata/schema/timestamp/checksum rewrite, official download
+or re-extraction; extraction usability is not freshly asserted past that blocker.
+
+Only the twelve used authorized paths are changed; no adapter/stage/policy/YAML,
+dependency, audit register, protected manifest, cache/output or local script is
+included. Protected historical exceptions stay prior approved exceptions, not
+claimed identical to bootstrap. Global documentation audit remains
+**PARTIAL / PAUSED_BY_USER_FOR_DEVELOPMENT**, zero coverage gain; the restricted
+continuity update intentionally does not reconcile deferred companions/registers.
+A-001 remains accepted solely in its cadastral slice; A-002/A-003/A-004 and EP
+semantic/source questions stay open. No new application-stage defect was found;
+the two intermediate failures were test-fixture/assertion corrections.
+No legal access, easement, entrance, practicable route, heavy/BESS construction
+access, score, ranking, preference/threshold or extra parcel rejection is inferred.
+Independent ROAD review remains PENDING. Publish DEV only, then STOP for review.

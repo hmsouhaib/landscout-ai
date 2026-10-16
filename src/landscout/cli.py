@@ -22,6 +22,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     scan.add_argument("--ign-config", type=Path)
     scan.add_argument("--ign-cache-dir", type=Path)
     scan.add_argument("--ign-extraction-dir", type=Path)
+    scan.add_argument(
+        "--with-roads",
+        action="store_true",
+        help="Read verified local IGN road proxies by class and coverage",
+    )
+    scan.add_argument("--road-policy", type=Path)
     mode = scan.add_mutually_exclusive_group()
     mode.add_argument(
         "--offline", action="store_true", help="Use a fresh verified cache (default)"
@@ -32,11 +38,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Allow acquisition of the configured commune",
     )
     args = parser.parse_args(argv)
-    if not args.with_grid and any(
+    if not (args.with_grid or args.with_roads) and any(
         p is not None
         for p in (args.ign_config, args.ign_cache_dir, args.ign_extraction_dir)
     ):
-        parser.error("IGN options require --with-grid")
+        parser.error("IGN options require --with-grid or --with-roads")
+    if args.road_policy is not None and not args.with_roads:
+        parser.error("--road-policy requires --with-roads")
 
     from landscout.workflows import CadastreScreeningRunError, run_cadastre_screening
 
@@ -51,6 +59,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             ign_config_path=args.ign_config,
             ign_cache_dir=args.ign_cache_dir,
             ign_extraction_dir=args.ign_extraction_dir,
+            with_roads=args.with_roads,
+            road_policy_path=args.road_policy,
         )
     except CadastreScreeningRunError as error:
         print(f"Cadastre screening failed: {error}", file=sys.stderr)

@@ -3,7 +3,7 @@
 `DEV.CADASTRE.RUN.1` integrates one FR/BESS commune through verified cadastral
 loading, normalization, and the existing area and shape filters. The result is
 `RETAINED_BY_EXECUTED_FILTERS`, a preliminary geometric selection. Without
-`--with-grid`, grid, roads,
+either `--with-grid` or `--with-roads`, grid, roads,
 planning, environment, scoring and owners are recorded as `NOT_RUN`. Their
 presence elsewhere in the library does not imply execution by this command.
 
@@ -168,7 +168,7 @@ by the user, with stale bindings queued for reconciliation on resumption.
 
 The API adds keyword-only `with_grid=False`, `ign_config_path=None`,
 `ign_cache_dir=None` and `ign_extraction_dir=None`. `with_grid` requires an exact
-bool. IGN paths without grid enabled are rejected (CLI usage exit 2, API controlled
+bool. IGN paths without either grid or roads enabled are rejected (CLI usage exit 2, API controlled
 run error). The CLI accepts `--ign-cache-dir` and `--ign-extraction-dir` for existing
 sources. Relative paths use the scan root above. Without overrides the adapter's
 public default config/cache paths are root-relative; the extractor selects its
@@ -271,3 +271,145 @@ configured 168 h. Official extraction usability was not freshly asserted after
 that archive-cache blocker. No official acquisition/re-extraction, freshness
 adjustment or real parcel-distance count is claimed. The earlier cadastre-only
 exit 1 remains its separate historical execution.
+
+## Optional IGN road proximity by class and coverage — schema 3
+
+```powershell
+.venv\Scripts\python.exe -B -X utf8 -m landscout scan `
+  --scan configs/scans/bess_muret.yaml `
+  --cache-dir data/cache/cadastre `
+  --output outputs/muret-cadastre-grid-roads `
+  --with-grid --with-roads `
+  --ign-config configs/sources/ign_bdtopo_fr.yaml `
+  --road-policy configs/access/ign_bdtopo_vehicle_proxy_policy.yaml `
+  --offline
+```
+
+This is a target command, not evidence of an official Muret execution. Omit
+`--with-grid` for roads alone. The API adds only keyword-only `with_roads=False`
+(exact bool) and `road_policy_path=None`; a policy option without roads is an
+error (CLI 2, controlled API error). The result appends compatible optional
+`road_proximity_csv` and `roads_status` fields. Existing no-option schema 1 and
+grid-only schema 2 remain unchanged.
+
+The new workflow explicitly chooses the default policy at
+`scan_root / "configs/access/ign_bdtopo_vehicle_proxy_policy.yaml"`. It passes
+one validated absolute path to the public loader and assessment; this does not
+redefine the historical policy loader's own default. Policy bytes are captured
+before loading, compared afterwards with the compiled `config_sha256`, and
+checked again before COMPLETE. Policy/configuration/path validation precedes
+cadastre acquisition even with zero retained parcels.
+
+Nonempty runs obtain one shared archive/extraction context with the same strict
+False/False IGN permissions. Combined grid/roads use the exact same extraction
+and the same original cadastral `retained`, not each other's enriched frame.
+Roads alone never load or assess electricity, even when its geometry is unusable;
+the adapter still requires discovery of all four physical roles. Source/stage
+revalidations remain active. One public `assess_road_proximity_coverage` call owns
+the complete road proximity → policy application → normalization/revalidation
+chain and department load. The workflow adds no second distance calculation.
+
+Unlike grid, road assessment preserves the original sparse/named parcel index.
+Integration strictly compares every original column/value/dtype, index metadata,
+active geometry, CRS, WKB and frame attributes, without restoring, sorting or
+reindexing it. Roads do not add scalar nearest-road fields to candidates or
+GeoJSON. Cadastral selections, AREA/SHAPE reasons and geometries are unchanged.
+
+| Requested analyses | Manifest scope | Data files plus final run.json |
+|---|---|---|
+| Roads alone | `CADASTRE_AREA_SHAPE_WITH_ROAD_PROXIES` | Three cadastral exports + `road_proximity.csv` + marker (5 files) |
+| Grid and roads | `CADASTRE_AREA_SHAPE_WITH_GRID_AND_ROAD_PROXIES` | Same + `voltage_proximity.csv` + marker (6 files) |
+
+Both use schema 3. `road_proximity.csv` has the exact public
+`CLASS_PROXIMITY_COLUMNS` prefix, followed by these explicit columns:
+
+```text
+road_source_boundary_distance_m
+road_source_coverage_position
+road_proximity_coverage_status
+road_source_coverage_provider
+road_source_coverage_product
+road_source_coverage_department_code
+road_source_coverage_edition
+road_source_coverage_product_version
+road_source_coverage_archive_sha256
+road_source_coverage_layer
+road_source_coverage_spatial_role
+```
+
+The full fixed declaration is in
+[road_screening.py](../../src/landscout/workflows/road_screening.py). Before export
+it validates the complete ordered schema, RangeIndex, unique parcel/class pairs,
+exact ordered parcel × distance-eligible-class domain and all six class counts.
+Only scalar export copies sort by parcel ID then loaded policy class order;
+the original public table keeps its index, types and values. All written cells
+and the header are reread and compared, not just IDs.
+
+Policy `ign_bdtopo_general_vehicle_proxy_v2`, schema 2, config SHA256
+`2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166` supplies
+the class order and outcomes. Five classes have distance rows: general, limited,
+restricted-review, not-general and unknown-review. `NOT_DISTANCE_PROXY` is the
+sixth inventory class and never gets distance rows. Empty eligible classes keep
+one NO_MATCH row per parcel with null selected evidence, distance and tie count.
+All roads in NOT_DISTANCE_PROXY is valid COMPLETE evidence with five NO_MATCH
+rows per parcel, not an acquisition error or proof of no roads nationally.
+
+Finite numeric distances/widths and integer ties never coerce booleans. Nullable
+toll evidence writes `true`/`false`/empty. Private facts keep booleans, numeric
+facts or unresolved original TEXT; no truthiness conversion. True nulls write
+empty cells; text, whitespace, status/reasons and JSON-text traces are unchanged,
+without parsing/re-encoding JSON strings or generic `default=str`.
+
+Distances use full parcel Polygon/MultiPolygon calculation copies in XY
+EPSG:2154, not centroids. Exact ties and their lexical representative are the
+stage's existing result. A fully covered matched parcel is NOT_BOUNDARY_LIMITED
+only when road distance is strictly below its boundary margin; equality and
+greater distances are BOUNDARY_LIMITED. Touching/crossing/outside means zero
+margin and OUTSIDE_OR_CROSSING_COVERAGE. NO_MATCH remains separate and takes
+precedence over position. No acceptable distance or preference between classes
+is introduced.
+
+The manifest explicitly binds the policy (ID/schema/hash/scope/vehicle scope and
+heavy_vehicle_access), IGN archive, extraction marker, GPKG and physical roles,
+used department coverage, and six `{road_proxy_class, feature_count,
+distance_eligible}` entries. Combined branches retain explicit provenance for
+each use of the shared extraction. Four or five actual data-file sizes/SHA256
+digests are recorded; run.json has no self-hash. Only successfully assessed
+domains leave `not_run`.
+
+After exports the archive is publicly validated, roads are publicly reloaded
+and full-compared with their typed summary and same extraction/spatial role;
+department coverage is publicly reloaded and compared with the actual branch's
+frame, full typed summary and lineage. Combined mode also keeps the separate
+electrical coverage comparison. Marker, scan/profile/IGN/policy byte bindings
+are checked before the final marker. Failures preserve causes and an explicitly
+incomplete directory, never a silent cadastral COMPLETE. This is persistent
+mutation detection, not a guarantee against all transient races or an atomic
+multi-file snapshot.
+
+Zero retained parcels still validate configuration and policy, but never acquire
+IGN, load a layer or assess distances. The road CSV contains only its header;
+roads is NOT_RUN/NO_RETAINED_PARCELS with validated policy evidence but no invented
+physical provenance or class counts. Grid keeps its existing empty behavior.
+
+Saved `SYNTHETIC_END_TO_END` example:
+`C:\souhaib\drr1-synthetic-example-final\outputs\grid-roads-run`, actual CLI exit 0
+under child DNS/connection sentinels. Eight parcels partition as 4 AREA rejected,
+2 SHAPE rejected and 2 retained; four voltage rows and ten road rows. Seven road
+objects have class counts 2/1/1/1/1/1 in policy order (the fifth is ineligible).
+Parcel `31395000AA0001` has GENERAL distance 10 m, tie count 2, selected ID A,
+toll true; LIMITED distance 5,960 m is BOUNDARY_LIMITED. Parcel
+`31395000AA0008` has LIMITED distance 0 and GENERAL distance 5,930 m with two
+ties/BOUNDARY_LIMITED. Restricted rights/private and unresolved private evidence
+remain explicit. These are synthetic fixtures, not official Muret conclusions.
+
+`REAL_MURET_ROADS_RUN=NOT_RUN`: inspected existing sidecars still fail prerequisites
+(pre-schema cadastral metadata and August timestamp; IGN August timestamp older
+than 168 h). No timestamp/checksum/age rewrite, official download or extraction
+was performed; official extraction usability was not freshly certified beyond
+the archive-cache blocker. Historical attempts remain historical.
+
+Road evidence establishes neither legal access/easement, parcel entrance,
+route practicability, nor heavy-truck/construction/BESS access. Every row keeps
+`heavy_vehicle_access=NOT_PROVEN`. No road/parcel score, ranking, threshold,
+new rejection, planning or environmental decision is added.
